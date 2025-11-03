@@ -1,0 +1,15 @@
+[package]
+edition = "2024"
+name = "utils"
+
+[dependencies]
+signal-hook = "0.3.18"
+sd-notify = "0.4.5"
+alive_monitor = { path = "../../../../health_monitor/alive_monitor" }
+
+[build-dependencies]
+cbindgen = "0.29"
+
+[lib]
+name = "utils"
+crate-type = ["staticlib", "cdylib", "lib"]

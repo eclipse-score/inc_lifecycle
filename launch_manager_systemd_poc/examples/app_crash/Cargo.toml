@@ -1,0 +1,7 @@
+[package]
+edition = "2024"
+name = "app_crash"
+
+[dependencies]
+utils = { path = "../common/utils" }
+sd-notify = "0.4.5"

@@ -1,0 +1,16 @@
+[package]
+name = "alive_monitor"
+version = "0.0.1"
+edition = "2024"
+
+[dependencies]
+[target.'cfg(target_os = "linux")'.dependencies]
+sd-notify = "0.4.5"
+signal-hook = "0.3.18"
+
+[build-dependencies]
+cbindgen = "0.29"
+
+[lib]
+name = "alive_monitor"
+crate-type = ["staticlib", "cdylib", "lib"]

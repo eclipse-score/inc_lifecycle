@@ -1,0 +1,8 @@
+[package]
+edition = "2024"
+name = "appA"
+
+[dependencies]
+utils = { path = "../utils" }
+sd-notify = "0.4.5"
+signal-hook = "0.3.18"

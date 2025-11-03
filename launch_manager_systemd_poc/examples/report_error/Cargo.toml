@@ -1,0 +1,7 @@
+[package]
+edition = "2024"
+name = "report_error"
+
+[dependencies]
+utils = { path = "../common/utils" }
+sd-notify = "0.4.5"

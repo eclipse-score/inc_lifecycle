@@ -1,0 +1,10 @@
+[workspace]
+resolver = "3"
+members = [
+    "health_monitor",
+    "health_monitor/alive_monitor",
+    "launch_manager_systemd_poc/examples/common/appA",
+    "launch_manager_systemd_poc/examples/common/appB",
+    "launch_manager_systemd_poc/examples/app_crash",
+    "launch_manager_systemd_poc/examples/report_error"
+]
