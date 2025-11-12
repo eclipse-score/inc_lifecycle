@@ -1,0 +1,23 @@
+[Unit]
+Description=Example Service that communicates with D-Bus
+After=dbus.service
+Requires=dbus.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/score-lifecycle-lm
+# Environment variable tells your program which bus to connect to
+# For the system bus:
+Environment=DBUS_SYSTEM_BUS_ADDRESS=unix:path=/run/dbus/system_bus_socket
+# Or, for the session bus (if running as a user service):
+# Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=%t/bus
+
+# Run as a dedicated user (recommended for D-Bus services)
+User=dbus-test
+Group=dbus-test
+
+# If your service needs to be restarted automatically
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
