@@ -23,10 +23,12 @@ config_setting(
     name = "thread_sanitizer_enabled",
     define_values = {"sanitize": "thread"},
 )
+
 config_setting(
     name = "address_sanitizer_enabled",
     define_values = {"sanitize": "address"},
 )
+
 config_setting(
     name = "ub_sanitizer_enabled",
     define_values = {"sanitize": "undefined"},

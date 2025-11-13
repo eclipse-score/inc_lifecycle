@@ -12,13 +12,19 @@
 # *******************************************************************************
 cc_binary(
     name = "cpp_lifecycle_app",
-    deps = [
-        "//launch_manager:lifecycle_client"
-    ],
     srcs = [
         "main.cpp",
     ],
+    copts = select({
+        "//config:x86_64-qnx": [],
+        "//conditions:default": ["-pthread"],
+    }),
+    linkopts = select({
+        "//config:x86_64-qnx": [],
+        "//conditions:default": ["-lpthread"],
+    }),
     visibility = ["//visibility:public"],
-    copts = select({"//config:x86_64-qnx": [], "//conditions:default": ["-pthread"]}),
-    linkopts = select({"//config:x86_64-qnx": [], "//conditions:default": ["-lpthread"]}),
+    deps = [
+        "//launch_manager:lifecycle_client",
+    ],
 )

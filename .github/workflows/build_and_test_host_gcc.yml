@@ -13,7 +13,6 @@
 
 # Workflow configuration for S-CORE CI - Bazel Build & Test lifecycle module
 # This workflow runs Bazel build and test when triggered by specific pull request events.
-
 name: Bazel Build & Test lifecycle module
 on:
   pull_request:

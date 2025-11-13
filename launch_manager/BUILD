@@ -10,7 +10,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-load("//config:common_cc.bzl", "cc_library_with_common_opts", "cc_binary_with_common_opts")
+load("//config:common_cc.bzl", "cc_binary_with_common_opts", "cc_library_with_common_opts")
 
 # Needed to enable `#include <...>` for headers from same repo
 cc_library(
@@ -18,54 +18,69 @@ cc_library(
     hdrs = glob([
         "deliverables/inc/**/*.h",
         "deliverables/inc/**/*.hpp",
-        "deliverables/config/gen/*.h"
+        "deliverables/config/gen/*.h",
     ]),
-    includes = ["deliverables/inc", "deliverables/config/gen"],
+    includes = [
+        "deliverables/config/gen",
+        "deliverables/inc",
+    ],
     visibility = ["//visibility:public"],
 )
 
 cc_binary_with_common_opts(
     name = "launch_manager",
-    deps = [
-        "@score_baselibs//score/result",
-        "@score_baselibs//score/mw/log",
-        "@flatbuffers",
-        "//external/ipc_dropin:ipc_dropin",
-        ":deliverables_includes",
-    ],
     srcs = select({
-        "//config:x86_64-qnx": glob([
-            "deliverables/common/**/*.cpp",
-            "deliverables/daemon/**/*.cpp",
-        ], exclude = [
-            "deliverables/common/osal/linux/**",
-        ]),
-        "//config:arm64-qnx": glob([
-            "deliverables/common/**/*.cpp",
-            "deliverables/daemon/**/*.cpp",
-        ], exclude = [
-            "deliverables/common/osal/linux/**",
-        ]),
-        "//config:x86_64-linux": glob([
-            "deliverables/common/**/*.cpp",
-            "deliverables/daemon/**/*.cpp",
-        ], exclude = [
-            "deliverables/common/osal/qnx/**",
-        ]),
-        "//conditions:default": glob([
-            "deliverables/common/**/*.cpp",
-            "deliverables/daemon/**/*.cpp",
-        ], exclude = [
-            "deliverables/common/osal/qnx/**",
-        ]),
+        "//config:x86_64-qnx": glob(
+            [
+                "deliverables/common/**/*.cpp",
+                "deliverables/daemon/**/*.cpp",
+            ],
+            exclude = [
+                "deliverables/common/osal/linux/**",
+            ],
+        ),
+        "//config:arm64-qnx": glob(
+            [
+                "deliverables/common/**/*.cpp",
+                "deliverables/daemon/**/*.cpp",
+            ],
+            exclude = [
+                "deliverables/common/osal/linux/**",
+            ],
+        ),
+        "//config:x86_64-linux": glob(
+            [
+                "deliverables/common/**/*.cpp",
+                "deliverables/daemon/**/*.cpp",
+            ],
+            exclude = [
+                "deliverables/common/osal/qnx/**",
+            ],
+        ),
+        "//conditions:default": glob(
+            [
+                "deliverables/common/**/*.cpp",
+                "deliverables/daemon/**/*.cpp",
+            ],
+            exclude = [
+                "deliverables/common/osal/qnx/**",
+            ],
+        ),
     }),
     includes = ["deliverables/inc"],
-    visibility = ["//visibility:public"],
     linkopts = select({
         "//config:x86_64-qnx": ["-lsecpol"],
         "//config:arm64-qnx": ["-lsecpol"],
         "//conditions:default": [],
     }),
+    visibility = ["//visibility:public"],
+    deps = [
+        ":deliverables_includes",
+        "//external/ipc_dropin",
+        "@flatbuffers",
+        "@score_baselibs//score/mw/log",
+        "@score_baselibs//score/result",
+    ],
 )
 
 alias(
@@ -76,68 +91,76 @@ alias(
 
 cc_library(
     name = "lifecycle_client",
-    deps = [
-        "@score_baselibs//score/result",
-        "@score_baselibs//score/mw/log",
-        ":deliverables_includes",
-    ],
     srcs = [
-        "deliverables/libraries/score/lifecycle_client/src/lifecycleclient.cpp",
-        "deliverables/libraries/score/lifecycle_client/src/lifecycleclientimpl.cpp",
         "deliverables/common/osal/posix/semaphore.cpp",
         "deliverables/common/osal/posix/sysexit.cpp",
         "deliverables/daemon/process_group_manager/src/config.cpp",
+        "deliverables/libraries/score/lifecycle_client/src/lifecycleclient.cpp",
+        "deliverables/libraries/score/lifecycle_client/src/lifecycleclientimpl.cpp",
     ],
-    hdrs = ["deliverables/inc/score/lcm/exec_error_domain.h","deliverables/inc/score/lcm/lifecycle_client.h"],
+    hdrs = [
+        "deliverables/inc/score/lcm/exec_error_domain.h",
+        "deliverables/inc/score/lcm/lifecycle_client.h",
+    ],
+    copts = select({
+        "//config:x86_64-qnx": [],
+        "//conditions:default": ["-pthread"],
+    }),
+    linkopts = select({
+        "//config:x86_64-qnx": [],
+        "//conditions:default": ["-lpthread"],
+    }),
     visibility = ["//visibility:public"],
-    copts = select({"//config:x86_64-qnx": [], "//conditions:default": ["-pthread"]}),
-    linkopts = select({"//config:x86_64-qnx": [], "//conditions:default": ["-lpthread"]}),
+    deps = [
+        ":deliverables_includes",
+        "@score_baselibs//score/mw/log",
+        "@score_baselibs//score/result",
+    ],
 )
 
 cc_library(
     name = "control_client",
-    deps = [
-        "@score_baselibs//score/concurrency/future",
-        "@score_baselibs//score/mw/log",
-        ":deliverables_includes",
-    ],
     srcs = [
-        "deliverables/libraries/score/control_client/src/control_client.cpp",
-        "deliverables/libraries/score/control_client/src/control_client_impl.cpp",
         "deliverables/common/identifier_hash/identifier_hash.cpp",
         "deliverables/common/osal/posix/semaphore.cpp",
-        "deliverables/daemon/process_group_manager/src/controlclientchannel.cpp",
         "deliverables/daemon/process_group_manager/src/config.cpp",
+        "deliverables/daemon/process_group_manager/src/controlclientchannel.cpp",
+        "deliverables/libraries/score/control_client/src/control_client.cpp",
+        "deliverables/libraries/score/control_client/src/control_client_impl.cpp",
     ],
     hdrs = [
         "deliverables/inc/score/lcm/control_client.h",
+        "deliverables/inc/score/lcm/exec_error_domain.h",
         "deliverables/inc/score/lcm/execution_error_event.h",
         "deliverables/inc/score/lcm/identifier_hash.hpp",
-        "deliverables/inc/score/lcm/exec_error_domain.h",
-        ],
+    ],
     visibility = ["//visibility:public"],
+    deps = [
+        ":deliverables_includes",
+        "@score_baselibs//score/concurrency/future",
+        "@score_baselibs//score/mw/log",
+    ],
 )
-
 
 cc_library(
     name = "xaap-processstate-client",
-    deps = [
-        "@score_baselibs//score/result",
-        ":deliverables_includes",
-        "@score_baselibs//score/mw/log",
-        "//external/ipc_dropin:ipc_dropin",
-    ],
     srcs = [
-        "deliverables/libraries/etas/process_state_client/src/processstateclient.cpp",
         "deliverables/common/identifier_hash/identifier_hash.cpp",
+        "deliverables/libraries/etas/process_state_client/src/processstateclient.cpp",
     ],
     hdrs = [
-        "deliverables/inc/score/lcm/identifier_hash.hpp",
-        "deliverables/inc/score/lcm/exec_error_domain.h",
         "deliverables/inc/etas/vrte/lcm/process_state_client/posixprocess.hpp",
         "deliverables/inc/etas/vrte/lcm/process_state_client/processstateclient.hpp",
-        ],
+        "deliverables/inc/score/lcm/exec_error_domain.h",
+        "deliverables/inc/score/lcm/identifier_hash.hpp",
+    ],
     visibility = ["//visibility:public"],
+    deps = [
+        ":deliverables_includes",
+        "//external/ipc_dropin",
+        "@score_baselibs//score/mw/log",
+        "@score_baselibs//score/result",
+    ],
 )
 
 alias(

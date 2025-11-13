@@ -9,5 +9,5 @@ cc_library(
 alias(
     name = "ipc_dropin",
     actual = ":ipc_dropin_internal",
-    visibility = ["//visibility:public"], 
+    visibility = ["//visibility:public"],
 )

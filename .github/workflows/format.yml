@@ -10,15 +10,12 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-
 name: Formatting checks
-
 on:
   pull_request:
     types: [opened, reopened, synchronize]
   merge_group:
     types: [checks_requested]
-
 jobs:
   formatting-check:
     uses: eclipse-score/cicd-workflows/.github/workflows/format.yml@main

@@ -16,16 +16,28 @@ import os
 import json
 from gen_common_cfg import get_process_index_range
 
-def get_process(index : int, process_group : str):
-    return '''
+
+def get_process(index: int, process_group: str):
+    return (
+        """
 {
-    "index": '''+str(index)+''',
-    "shortName": "demo_application'''+str(index)+'''",
-    "identifier": "demo_app'''+str(index)+"_"+process_group+'''",
+    "index": """
+        + str(index)
+        + """,
+    "shortName": "demo_application"""
+        + str(index)
+        + """",
+    "identifier": "demo_app"""
+        + str(index)
+        + "_"
+        + process_group
+        + '''",
     "processType": "REGULAR_PROCESS",
     "refProcessGroupStates": [
         {
-            "identifier": "'''+process_group+'''/Startup"
+            "identifier": "'''
+        + process_group
+        + """/Startup"
         }
     ],
     "processExecutionErrors": [
@@ -34,103 +46,171 @@ def get_process(index : int, process_group : str):
         }
     ]
 }
-'''
+"""
+    )
 
-def get_monitor_interfaces(index : int, process_group : str):
-    return '''
+
+def get_monitor_interfaces(index: int, process_group: str):
+    return (
+        """
 {
-    "instanceSpecifier": "demo/demo_application'''+str(index)+'''/Port1",
-    "processShortName": "demo_application'''+str(index)+'''",
+    "instanceSpecifier": "demo/demo_application"""
+        + str(index)
+        + """/Port1",
+    "processShortName": "demo_application"""
+        + str(index)
+        + """",
     "portPrototype": "Port1",
-    "interfacePath": "demo_application_'''+str(index)+"_"+process_group+'''",
-    "refProcessIndex": '''+str(index)+''',
+    "interfacePath": "demo_application_"""
+        + str(index)
+        + "_"
+        + process_group
+        + """",
+    "refProcessIndex": """
+        + str(index)
+        + """,
     "permittedUid": 0
 }
-'''
+"""
+    )
 
-def get_checkpoints(index : int):
+
+def get_checkpoints(index: int):
     # Every demo app has three checkpoints
-    return ['''
+    return [
+        """
 {
-    "shortName": "Checkpoint'''+str(index)+"_1"+'''",
+    "shortName": "Checkpoint"""
+        + str(index)
+        + "_1"
+        + """",
     "checkpointId": 1,
-    "refInterfaceIndex": '''+str(index)+'''
-}''', '''
+    "refInterfaceIndex": """
+        + str(index)
+        + """
+}""",
+        """
 {
-    "shortName": "Checkpoint'''+str(index)+"_2"+'''",
+    "shortName": "Checkpoint"""
+        + str(index)
+        + "_2"
+        + """",
     "checkpointId": 2,
-    "refInterfaceIndex": '''+str(index)+'''
-}''', '''
+    "refInterfaceIndex": """
+        + str(index)
+        + """
+}""",
+        """
 {
-    "shortName": "Checkpoint'''+str(index)+"_3"+'''",
+    "shortName": "Checkpoint"""
+        + str(index)
+        + "_3"
+        + """",
     "checkpointId": 3,
-    "refInterfaceIndex": '''+str(index)+'''
+    "refInterfaceIndex": """
+        + str(index)
+        + """
 }
-''']
+""",
+    ]
 
-def get_alive_supervisions(index : int, process_group : str):
+
+def get_alive_supervisions(index: int, process_group: str):
     # Every demo app has three checkpoints and the first checkpoint is used for alive supervision
-    checkpointIdx = (index * 3)
-    return '''
+    checkpointIdx = index * 3
+    return (
+        """
 {
-    "ruleContextKey": "AliveSupervision'''+str(index)+'''",
-    "refCheckPointIndex": '''+str(checkpointIdx)+''',
+    "ruleContextKey": "AliveSupervision"""
+        + str(index)
+        + """",
+    "refCheckPointIndex": """
+        + str(checkpointIdx)
+        + """,
     "aliveReferenceCycle": 100.0,
     "minAliveIndications": 1,
     "maxAliveIndications": 3,
     "isMinCheckDisabled": false,
     "isMaxCheckDisabled": false,
     "failedSupervisionCyclesTolerance": 1,
-    "refProcessIndex": '''+str(index)+''',
+    "refProcessIndex": """
+        + str(index)
+        + ''',
     "refProcessGroupStates": [
         {
-            "identifier": "'''+process_group+'''/Startup"
+            "identifier": "'''
+        + process_group
+        + """/Startup"
         }
     ]
 }
-'''
+"""
+    )
 
-def get_deadline_supervisions(index : int, process_group : str):
+
+def get_deadline_supervisions(index: int, process_group: str):
     # Every demo app has three checkpoints and the first+second checkpoints are used for deadline supervision
     sourceCpIndex = index * 3
     targetCpIndex = sourceCpIndex + 1
-    return '''
+    return (
+        """
 {
-    "ruleContextKey": "DeadlineSupervision'''+str(index)+'''",
+    "ruleContextKey": "DeadlineSupervision"""
+        + str(index)
+        + """",
     "maxDeadline": 80.0,
     "minDeadline": 40.0,
     "checkpointTransition": {
-        "refSourceCPIndex": '''+str(sourceCpIndex)+''',
-        "refTargetCPIndex": '''+str(targetCpIndex)+'''
+        "refSourceCPIndex": """
+        + str(sourceCpIndex)
+        + """,
+        "refTargetCPIndex": """
+        + str(targetCpIndex)
+        + """
     },
-    "refProcessIndices": ['''+str(index)+'''],
+    "refProcessIndices": ["""
+        + str(index)
+        + '''],
     "refProcessGroupStates": [
         {
-            "identifier": "'''+process_group+'''/Startup"
+            "identifier": "'''
+        + process_group
+        + """/Startup"
         }
     ]
 }
-'''
+"""
+    )
 
-def get_logical_supervisions(index : int, process_group : str):
+
+def get_logical_supervisions(index: int, process_group: str):
     # Every demo app has three checkpoints and all three checkpoints in sequence are used for logical supervision
     startCpIndex = index * 3
-    return '''
+    return (
+        """
 {
-    "ruleContextKey": "LogicalSupervision'''+str(index)+'''",
+    "ruleContextKey": "LogicalSupervision"""
+        + str(index)
+        + """",
     "checkpoints": [
     {
-        "refCheckPointIndex": '''+str(startCpIndex)+''',
+        "refCheckPointIndex": """
+        + str(startCpIndex)
+        + """,
         "isInitial": true,
         "isFinal": false
     },
     {
-        "refCheckPointIndex": '''+str(startCpIndex+1)+''',
+        "refCheckPointIndex": """
+        + str(startCpIndex + 1)
+        + """,
         "isInitial": false,
         "isFinal": false
     },
     {
-        "refCheckPointIndex": '''+str(startCpIndex+2)+''',
+        "refCheckPointIndex": """
+        + str(startCpIndex + 2)
+        + """,
         "isInitial": false,
         "isFinal": true
     }],
@@ -141,80 +221,134 @@ def get_logical_supervisions(index : int, process_group : str):
         "checkpointSourceIdx": 1,
         "checkpointTargetIdx": 2
     }],
-    "refProcessIndices": ['''+str(index)+'''],
+    "refProcessIndices": ["""
+        + str(index)
+        + '''],
     "refProcessGroupStates": [
         {
-            "identifier": "'''+process_group+'''/Startup"
+            "identifier": "'''
+        + process_group
+        + """/Startup"
         }
     ]
 }
-'''
+"""
+    )
 
-def get_local_supervisions(index : int):
-    return '''
+
+def get_local_supervisions(index: int):
+    return (
+        """
 {
-    "ruleContextKey": "LocalSupervision'''+str(index)+'''",
-    "infoRefInterfacePath": "demo_application_'''+str(index)+'''",
+    "ruleContextKey": "LocalSupervision"""
+        + str(index)
+        + """",
+    "infoRefInterfacePath": "demo_application_"""
+        + str(index)
+        + """",
     "hmRefAliveSupervision": [
         {
-            "refAliveSupervisionIdx": '''+str(index)+'''
+            "refAliveSupervisionIdx": """
+        + str(index)
+        + """
         }
     ],
     "hmRefDeadlineSupervision": [
         {
-            "refDeadlineSupervisionIdx": '''+str(index)+'''
+            "refDeadlineSupervisionIdx": """
+        + str(index)
+        + """
         }
     ],
     "hmRefLogicalSupervision": [
         {
-            "refLogicalSupervisionIdx": '''+str(index)+'''
+            "refLogicalSupervisionIdx": """
+        + str(index)
+        + """
         }
     ]
 }
-'''
+"""
+    )
 
-def get_global_supervisions(process_count : int, process_group_index : int, process_group : str):
+
+def get_global_supervisions(
+    process_count: int, process_group_index: int, process_group: str
+):
     localSupervisionRefs = []
     processRefs = []
     for i in get_process_index_range(process_count, process_group_index):
-        localSupervisionRefs.append(json.loads('''
+        localSupervisionRefs.append(
+            json.loads(
+                """
 {
-    "refLocalSupervisionIndex": '''+str(i)+'''
-}'''))
-        processRefs.append(json.loads('''
+    "refLocalSupervisionIndex": """
+                + str(i)
+                + """
+}"""
+            )
+        )
+        processRefs.append(
+            json.loads(
+                """
 {
-    "index": '''+str(i)+'''
-}'''))
+    "index": """
+                + str(i)
+                + """
+}"""
+            )
+        )
 
-    globalSupervisions=json.loads('''
+    globalSupervisions = json.loads(
+        """
 {
-    "ruleContextKey": "GlobalSupervision_'''+process_group+'''",
+    "ruleContextKey": "GlobalSupervision_"""
+        + process_group
+        + '''",
     "isSeverityCritical": false,
     "localSupervision": [],
     "refProcesses": [],
     "refProcessGroupStates": [
         {
-            "identifier": "'''+process_group+'''/Startup"
+            "identifier": "'''
+        + process_group
+        + """/Startup"
         }
     ]
 }
-''')
+"""
+    )
     globalSupervisions["localSupervision"].extend(localSupervisionRefs)
     globalSupervisions["refProcesses"].extend(processRefs)
     return json.dumps(globalSupervisions)
 
-def get_recovery_notifications(process_count : int, process_group_index : int, process_group : str):
-    return'''
+
+def get_recovery_notifications(
+    process_count: int, process_group_index: int, process_group: str
+):
+    return (
+        """
 {
-    "shortName" : "RecoveryNotification_'''+process_group+'''",
+    "shortName" : "RecoveryNotification_"""
+        + process_group
+        + '''",
     "recoveryNotificationTimeout" : 4000.0,
-    "processGroupMetaModelIdentifier" : "'''+process_group+'''/Recovery",
-    "refGlobalSupervisionIndex" : '''+str(process_group_index)+''',
+    "processGroupMetaModelIdentifier" : "'''
+        + process_group
+        + """/Recovery",
+    "refGlobalSupervisionIndex" : """
+        + str(process_group_index)
+        + """,
     "instanceSpecifier" : "",
     "shouldFireWatchdog" : false
 }
-'''
-def gen_health_monitor_cfg_for_process_group(config, process_count : int, process_group : str, process_group_index : int):
+"""
+    )
+
+
+def gen_health_monitor_cfg_for_process_group(
+    config, process_count: int, process_group: str, process_group_index: int
+):
     processes = []
     monitorInterfaces = []
     checkpoints = []
@@ -228,18 +362,36 @@ def gen_health_monitor_cfg_for_process_group(config, process_count : int, proces
     for process_index in get_process_index_range(process_count, process_group_index):
         print(f"process Index {process_index} for FG {process_group}")
         processes.append(json.loads(get_process(process_index, process_group)))
-        monitorInterfaces.append(json.loads(get_monitor_interfaces(process_index, process_group)))
+        monitorInterfaces.append(
+            json.loads(get_monitor_interfaces(process_index, process_group))
+        )
 
         for cp in get_checkpoints(process_index):
             checkpoints.append(json.loads(cp))
 
-        hmAliveSupervisions.append(json.loads(get_alive_supervisions(process_index, process_group)))
-        hmDeadlineSupervisions.append(json.loads(get_deadline_supervisions(process_index,process_group)))
-        hmLogicalSupervisions.append(json.loads(get_logical_supervisions(process_index, process_group)))
+        hmAliveSupervisions.append(
+            json.loads(get_alive_supervisions(process_index, process_group))
+        )
+        hmDeadlineSupervisions.append(
+            json.loads(get_deadline_supervisions(process_index, process_group))
+        )
+        hmLogicalSupervisions.append(
+            json.loads(get_logical_supervisions(process_index, process_group))
+        )
         hmLocalSupervisions.append(json.loads(get_local_supervisions(process_index)))
-    
-    hmGlobalSupervision.append(json.loads(get_global_supervisions(process_count, process_group_index, process_group)))
-    hmRecoveryNotifications.append(json.loads(get_recovery_notifications(process_count, process_group_index, process_group)))
+
+    hmGlobalSupervision.append(
+        json.loads(
+            get_global_supervisions(process_count, process_group_index, process_group)
+        )
+    )
+    hmRecoveryNotifications.append(
+        json.loads(
+            get_recovery_notifications(
+                process_count, process_group_index, process_group
+            )
+        )
+    )
 
     config["process"].extend(processes)
     config["hmMonitorInterface"].extend(monitorInterfaces)
@@ -252,8 +404,9 @@ def gen_health_monitor_cfg_for_process_group(config, process_count : int, proces
     config["hmRecoveryNotification"].extend(hmRecoveryNotifications)
     return config
 
-def gen_health_monitor_cfg(process_count : int, process_groups : list):
-    config=json.loads('''
+
+def gen_health_monitor_cfg(process_count: int, process_groups: list):
+    config = json.loads("""
 {
     "versionMajor": 8,
     "versionMinor": 0,
@@ -267,21 +420,52 @@ def gen_health_monitor_cfg(process_count : int, process_groups : list):
     "hmGlobalSupervision": [],
     "hmRecoveryNotification": []
 }
-''')
-    
+""")
+
     for i in range(0, len(process_groups)):
-        gen_health_monitor_cfg_for_process_group(config, process_count, process_groups[i], i)
+        gen_health_monitor_cfg_for_process_group(
+            config, process_count, process_groups[i], i
+        )
 
     return config
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     my_parser = argparse.ArgumentParser()
-    my_parser.add_argument('-c', "--cppprocesses", action='store', type=int, required=True, help="Number of C++ processes")
-    my_parser.add_argument('-r', "--rustprocesses", action='store', type=int, required=True, help="Number of Rust processes")
-    my_parser.add_argument('-p','--process_groups', nargs='+', help='Name of a Process Group', required=True)
-    my_parser.add_argument('-o', "--out", action='store', type=Path, required=True, help="Output directory")
+    my_parser.add_argument(
+        "-c",
+        "--cppprocesses",
+        action="store",
+        type=int,
+        required=True,
+        help="Number of C++ processes",
+    )
+    my_parser.add_argument(
+        "-r",
+        "--rustprocesses",
+        action="store",
+        type=int,
+        required=True,
+        help="Number of Rust processes",
+    )
+    my_parser.add_argument(
+        "-p",
+        "--process_groups",
+        nargs="+",
+        help="Name of a Process Group",
+        required=True,
+    )
+    my_parser.add_argument(
+        "-o", "--out", action="store", type=Path, required=True, help="Output directory"
+    )
     args = my_parser.parse_args()
 
-    cfg_out_path = os.path.join(args.out, f'hm_demo.json')
-    with open(cfg_out_path, 'w') as f:
-        json.dump(gen_health_monitor_cfg(args.cppprocesses + args.rustprocesses, args.process_groups), f, indent=4)
+    cfg_out_path = os.path.join(args.out, f"hm_demo.json")
+    with open(cfg_out_path, "w") as f:
+        json.dump(
+            gen_health_monitor_cfg(
+                args.cppprocesses + args.rustprocesses, args.process_groups
+            ),
+            f,
+            indent=4,
+        )

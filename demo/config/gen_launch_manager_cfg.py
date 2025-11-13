@@ -16,6 +16,7 @@ from pathlib import Path
 import os
 from gen_common_cfg import get_process_index_range
 
+
 class LaunchManagerConfGen:
     def __init__(self):
         # setup generator data structures
@@ -296,7 +297,7 @@ class LaunchManagerConfGen:
         execution_error=1,
         depends_on={},
         use_in=[],
-        termination_behavior="ProcessIsNotSelfTerminating"
+        termination_behavior="ProcessIsNotSelfTerminating",
     ):
         if enter_timeout is None:
             enter_timeout = self.machines[process["machine_index"]][
@@ -333,7 +334,7 @@ class LaunchManagerConfGen:
                 "execution_error": execution_error,
                 "depends_on": depends_on,
                 "use_in": use_in,
-                "termination_behavior" : termination_behavior
+                "termination_behavior": termination_behavior,
             }
         else:
             raise Exception(f"Startup configuration with {name=} cannot be redefined!")
@@ -341,10 +342,12 @@ class LaunchManagerConfGen:
         # no need to return anything
         # end of the configuration
 
-def is_rust_app(process_index : int, cppprocess_count : int, rustprocess_count : int):
+
+def is_rust_app(process_index: int, cppprocess_count: int, rustprocess_count: int):
     processes_per_process_group = cppprocess_count + rustprocess_count
     process_index = process_index % processes_per_process_group
     return process_index >= cppprocess_count
+
 
 if __name__ == "__main__":
     my_parser = argparse.ArgumentParser()
@@ -356,8 +359,21 @@ if __name__ == "__main__":
         required=True,
         help="Number of C++ demo app processes",
     )
-    my_parser.add_argument('-r', "--rustprocesses", action='store', type=int, required=True, help="Number of Rust processes")
-    my_parser.add_argument('-p','--process_groups', nargs='+', help='Name of a Process Group', required=True)
+    my_parser.add_argument(
+        "-r",
+        "--rustprocesses",
+        action="store",
+        type=int,
+        required=True,
+        help="Number of Rust processes",
+    )
+    my_parser.add_argument(
+        "-p",
+        "--process_groups",
+        nargs="+",
+        help="Name of a Process Group",
+        required=True,
+    )
     my_parser.add_argument(
         "-n",
         "--non-supervised-processes",
@@ -376,10 +392,12 @@ if __name__ == "__main__":
         "qt_am_machine", env_variables={"LD_LIBRARY_PATH": "/opt/lib"}
     )
 
-    BASE_PROCESS_GROUP="MainPG"
+    BASE_PROCESS_GROUP = "MainPG"
     process_groups = args.process_groups
     if BASE_PROCESS_GROUP not in process_groups:
-        print(f"Process group '{BASE_PROCESS_GROUP}' must be included in the process groups list")
+        print(
+            f"Process group '{BASE_PROCESS_GROUP}' must be included in the process groups list"
+        )
         exit(1)
 
     # adding function groups to TestMachine01
@@ -400,7 +418,10 @@ if __name__ == "__main__":
         hm_process,
         "health_monitor_startup_config",
         # process_arguments = ["-a", "-b", "--test"],
-        env_variables={"PROCESSIDENTIFIER": "healthmonitor", "LC_STDOUT_LOG_LEVEL" : "3" },
+        env_variables={
+            "PROCESSIDENTIFIER": "healthmonitor",
+            "LC_STDOUT_LOG_LEVEL": "3",
+        },
         scheduling_policy="SCHED_OTHER",
         scheduling_priority=0,
         enter_timeout=20.0,
@@ -431,7 +452,12 @@ if __name__ == "__main__":
         use_in=["Startup", "Recovery"],
     )
 
-    if args.cppprocesses < 0 or args.non_supervised_processes < 0 or args.non_supervised_processes > 10000 or args.cppprocesses > 10000:
+    if (
+        args.cppprocesses < 0
+        or args.non_supervised_processes < 0
+        or args.non_supervised_processes > 10000
+        or args.cppprocesses > 10000
+    ):
         print("Number of demo app processes must be between 0 and 1000")
         exit(1)
     if args.rustprocesses < 0 or args.rustprocesses > 10000:
@@ -443,7 +469,7 @@ if __name__ == "__main__":
         process_group_name = process_groups[process_group_index]
         if process_group_name == BASE_PROCESS_GROUP:
             pg = pg_machine
-            exec_dependency={"healthmonitor": "Running"}
+            exec_dependency = {"healthmonitor": "Running"}
         else:
             pg = conf_gen.machine_add_process_group(
                 qt_am_machine, process_group_name, ["Off", "Startup", "Recovery"]
@@ -451,12 +477,16 @@ if __name__ == "__main__":
             exec_dependency = {}
 
         for i in get_process_index_range(total_process_count, process_group_index):
-            if not is_rust_app(i,  args.cppprocesses, args.rustprocesses):
+            if not is_rust_app(i, args.cppprocesses, args.rustprocesses):
                 demo_executable_path = "/opt/supervision_demo/cpp_supervised_app"
-                print(f"CPP Process with index {i} in process group {process_group_index}")
+                print(
+                    f"CPP Process with index {i} in process group {process_group_index}"
+                )
             else:
                 demo_executable_path = "/opt/supervision_demo/rust_supervised_app"
-                print(f"Rust Process with index {i} in process group {process_group_index}")
+                print(
+                    f"Rust Process with index {i} in process group {process_group_index}"
+                )
 
             demo_process = conf_gen.process_group_add_process(
                 pg,
@@ -478,7 +508,7 @@ if __name__ == "__main__":
                 enter_timeout=2.0,
                 exit_timeout=2.0,
                 depends_on=exec_dependency,
-                use_in=["Startup"]
+                use_in=["Startup"],
             )
 
         for i in range(args.non_supervised_processes):
@@ -493,8 +523,8 @@ if __name__ == "__main__":
                 demo_process_wo_hm,
                 f"lifecycle_app_startup_config_{i}_{process_group_name}_",
                 # uncomment one of the two following lines to inject error
-                #process_arguments=["-c", "2000"] if i == 1 else [],
-                #process_arguments=["-s"] if i == 1 else [],
+                # process_arguments=["-c", "2000"] if i == 1 else [],
+                # process_arguments=["-s"] if i == 1 else [],
                 env_variables={
                     "PROCESSIDENTIFIER": f"{process_group_name}_lc{i}",
                 },
