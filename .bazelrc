@@ -21,8 +21,8 @@ common --registry=https://raw.githubusercontent.com/eclipse-score/bazel_registry
 common --registry=https://bcr.bazel.build
 
 # score::mw::log
-common --@score-baselibs//score/mw/log/flags:KRemote_Logging=False
-common --@score-baselibs//score/json:base_library=nlohmann
+common --@score_baselibs//score/mw/log/flags:KRemote_Logging=False
+common --@score_baselibs//score/json:base_library=nlohmann
 ## default is a stdout logger which looks like dlt logs
 ## uncomment below to use score::mw::log instead of the stdout logger
 # build --cxxopt=-DLC_LOG_SCORE_MW_LOG
