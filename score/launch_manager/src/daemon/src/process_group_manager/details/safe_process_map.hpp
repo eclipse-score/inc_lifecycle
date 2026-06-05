@@ -14,9 +14,10 @@
 #ifndef SAFE_PROCESS_MAP_HPP_INCLUDED
 #define SAFE_PROCESS_MAP_HPP_INCLUDED
 
-#include "score/mw/launch_manager/process_group_manager/iprocess.hpp"
 #include <atomic>
 #include <cstdint>
+#include "score/mw/launch_manager/process_group_manager/details/icomponent_controller.hpp"
+#include "score/mw/launch_manager/process_group_manager/iprocess.hpp"
 
 namespace score
 {
@@ -27,32 +28,11 @@ namespace lcm
 namespace internal
 {
 
-/// @brief Callback interface for process termination notification.
-///
-/// Decouples SafeProcessMap from concrete node types. Any object that needs to
-/// be notified when a tracked process terminates implements this interface.
-class ITerminationCallback
-{
-  public:
-    virtual ~ITerminationCallback() = default;
-
-    /// @brief Called when the associated process has terminated.
-    /// @param process_status The exit status reported by the operating system.
-    virtual void terminated(int32_t process_status) = 0;
-
-  protected:
-    ITerminationCallback() = default;
-    ITerminationCallback(const ITerminationCallback&) = default;
-    ITerminationCallback& operator=(const ITerminationCallback&) = default;
-    ITerminationCallback(ITerminationCallback&&) = default;
-    ITerminationCallback& operator=(ITerminationCallback&&) = default;
-};
-
 /// @brief Struct representing data in a map item
 struct ProcessInfoData
 {
     int32_t status_ = -1;                  ///< Exit status for process
-    ITerminationCallback* pin_ = nullptr;  ///< Pointer to the termination callback associated with this item.
+    IComponent* pin_ = nullptr;  ///< Pointer to the termination callback associated with this item.
 };
 /// @brief Struct representing an item in the map.
 struct ProcessTreeNode
@@ -87,10 +67,11 @@ class SafeProcessMap final
         /// @brief The state is not defined.
         kUndefined = 2,
     };
-    /// @brief Constructs a SafeProcessMap with a specified capacity.
-    /// This constructor initializes the SafeProcessMap with the given capacity.
-    /// @param capacity The maximum number of entries that the SafeProcessMap can hold.
-    explicit SafeProcessMap(uint32_t capacity);
+
+    /// @brief Constructs a SafeProcessMap.
+    /// @param capacity The maximum number of entries the map can hold.
+    /// @param termination_handler Called when a terminated process is matched with its component.
+    SafeProcessMap(uint32_t capacity, IComponentController& termination_handler);
 
     /// @brief Destructor to clean up resources used by the SafeProcessMap object.
     ~SafeProcessMap() = default;
@@ -118,7 +99,7 @@ class SafeProcessMap final
     ///         kYield if the key was found (indicating the process has terminated), and updated with the provided
     ///         object, kInsertionError if an error occurred during insertion (e.g., out of memory), or kInvalidIdError
     ///         if the provided process ID (`key`) is not valid ( < 0).
-    SafeProcessMapReturnType insertIfNotTerminated(osal::ProcessID key, ITerminationCallback* object);
+    SafeProcessMapReturnType insertIfNotTerminated(osal::ProcessID key, IComponent* object);
 
   private:
     /// @brief Searches for a process with the given process ID (key) in the map.
@@ -224,6 +205,8 @@ class SafeProcessMap final
     /// This variable represents the current index used for traversal within the SafeProcessMap.
     /// It initially starts with LINK_NO_VALUE, indicating no valid position.
     uint32_t rover_{LINK_NO_VALUE};
+
+    IComponentController& termination_handler_;
 };
 
 }  // namespace internal

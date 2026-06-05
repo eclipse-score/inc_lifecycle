@@ -182,9 +182,11 @@ cc_library(
     deps = [
         ":component_event_queue",
         ":component_task",
+        ":dependency_graph",
         ":process_info_node",
         ":run_target",
         ":safe_process_map",
+        ":task",
         "//score/launch_manager/src/daemon/src/common:identifier_hash",
         "//score/launch_manager/src/daemon/src/control:control_client_channel",
         "//score/launch_manager/src/daemon/src/osal:semaphore",
@@ -289,6 +291,39 @@ cc_library(
     ],
 )
 
+cc_library(
+    name = "dependency_graph",
+    include_prefix = "score/mw/launch_manager/process_group_manager/details",
+    strip_include_prefix = "/score/launch_manager/src/daemon/src/process_group_manager/details",
+    hdrs = [
+        "dependency_graph.hpp"
+    ],
+    deps = [
+        ":reservable_queue"
+    ],
+    visibility = ["//score/launch_manager/src/daemon/src/process_group_manager:__pkg__"],
+)
+
+cc_library(
+    name = "reservable_queue",
+    include_prefix = "score/mw/launch_manager/process_group_manager/details",
+    strip_include_prefix = "/score/launch_manager/src/daemon/src/process_group_manager/details",
+    hdrs = [
+        "reservable_queue.hpp"
+    ],
+    visibility = ["//score/launch_manager/src/daemon/src/process_group_manager:__pkg__"],
+)
+
+cc_test(
+    name = "dependency_graph_UT",
+    srcs = ["dependency_graph_UT.cpp"],
+    deps = [
+        ":dependency_graph",
+        "//score/src/launch_manager/daemon/src/common:identifier_hash",
+        "@googletest//:gtest_main",
+    ],
+)
+
 # graph.cpp, process_info_node.cpp, and process_group_manager.cpp include
 # process_group_manager.hpp which in turn includes graph.hpp and process_info_node.hpp —
 # circular at link time, so all three must share a target.
@@ -308,6 +343,7 @@ cc_library(
         ":component_event_queue",
         ":graph",
         ":os_handler",
+        ":process_monitor",
         ":process_info_node",
         ":process_launcher",
         ":process_monitor",

@@ -162,7 +162,6 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
     // osal::IpcCommsSync::control_client_handler_nudge_fd (fd4) for communication tpyes: kNoComms !fd3 & !fd4
     // kReporting  fd3 & !fd4
     // kControlClient  fd3 & fd4
-    // kLaunchManager  does not matter
     // the file descriptors are closed inside the handleComms function.
     reserveFD(osal::IpcCommsSync::sync_fd);
     reserveFD(osal::IpcCommsSync::control_client_handler_nudge_fd);

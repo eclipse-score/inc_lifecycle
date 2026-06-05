@@ -14,6 +14,7 @@
 #include <ctime>
 
 #include <score/span.hpp>
+#include <functional>
 
 #include "score/mw/launch_manager/common/log.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/graph.hpp"
@@ -32,9 +33,7 @@ namespace internal
 
 Graph::Graph(uint32_t max_num_nodes, ProcessGroupManager* pgm)
     : pg_index_(0U),
-      nodes_(),
-      nodes_to_execute_(0U),
-      nodes_in_flight_(0U),
+      nodes_(max_num_nodes),
       starting_(false),
       state_(GraphState::kSuccess),
       semaphore_(),
@@ -49,7 +48,6 @@ Graph::Graph(uint32_t max_num_nodes, ProcessGroupManager* pgm)
       request_start_time_()
 {
     LM_LOG_DEBUG() << "Creating graph with" << max_num_nodes << "nodes";
-    nodes_.reserve(max_num_nodes);
     last_state_manager_.process_index_ = 0xFFFFU;  // an invalid state manager
     last_state_manager_.process_group_index_ = 0xFFFFU;
     cancel_message_.request_or_response_ = ControlClientCode::kNotSet;
@@ -57,7 +55,6 @@ Graph::Graph(uint32_t max_num_nodes, ProcessGroupManager* pgm)
 
 Graph::~Graph()
 {
-    nodes_.clear();
     LM_LOG_DEBUG() << "Graph destroyed";
 }
 
@@ -81,15 +78,53 @@ void Graph::initProcessGroupNodes(IdentifierHash pg_name, uint32_t num_processes
 
 inline void Graph::createProcessInfoNodes(uint32_t num_processes)
 {
-    nodes_.reserve(num_processes);  // Reserve space for efficiency
-
     for (uint32_t process_id = 0U; process_id < num_processes; ++process_id)
     {
         LM_LOG_DEBUG() << "Creating process node with id:" << process_id;
-        nodes_.push_back(std::make_shared<ProcessInfoNode>());
-        nodes_.back()->initNode(this, process_id);
+        auto ready_condition = nodeHasTerminatedDeps(getProcessGroupName(), process_id)
+                                   ? ProcessInfoNode::ReadyCondition::kTerminated
+                                   : ProcessInfoNode::ReadyCondition::kRunning;
+
+        auto report_state_lambda = [this](IdentifierHash id, ProcessState state, timespec timestamp) {
+            score::lcm::PosixProcess process_info;
+            process_info.id = id;
+            process_info.processStateId = state;
+            process_info.processGroupStateId = getProcessGroupState();
+            process_info.systemClockTimestamp = timestamp;
+            return getProcessGroupManager()->queuePosixProcess(process_info);
+        };
+
+        const auto* config = pgm_->getConfigurationManager()
+                                 ->getOsProcessConfiguration(getProcessGroupName(), process_id)
+                                 .value_or(nullptr);
+        if (!config)
+        {
+            LM_LOG_ERROR() << "No configuration for process" << process_id << "of process group"
+                           << getProcessGroupName();
+        }
+
+        const auto index = nodes_.emplace(config,
+                                          process_id,
+                                          ready_condition,
+                                          report_state_lambda,
+                                          pgm_->getProcessInterface(),
+                                          pgm_->getProcessMap());
+        assert(index == process_id && "Graph indicies must line up with os process indices");
     }
     LM_LOG_DEBUG() << "Created" << nodes_.size() << "process nodes";
+}
+
+bool Graph::nodeHasTerminatedDeps(IdentifierHash pg_name, uint32_t node_index)
+{
+    const DependencyList* dep_list =
+        pgm_->getConfigurationManager()->getOsProcessDependencies(pg_name, node_index).value_or(nullptr);
+
+    if (dep_list && dep_list->size() > 0)
+    {
+        return (*dep_list)[0].process_state_ == ProcessState::kTerminated;
+    }
+
+    return false;
 }
 
 inline void Graph::createSuccessorLists(IdentifierHash pg_name)
@@ -97,12 +132,10 @@ inline void Graph::createSuccessorLists(IdentifierHash pg_name)
     LM_LOG_DEBUG() << "Creating successor lists for process group" << pg_name;
 
     // Now create the successor lists for each process in this process group
-    for (auto& node : nodes_)
+    for (std::size_t i = 0; i < nodes_.size(); i++)
     {
-        // If the other process has a dependency on this one, put it on the correct list
-        auto node_index = node->getNodeIndex();
         const DependencyList* dep_list =
-            pgm_->getConfiguration()->getOsProcessDependencies(pg_name, node_index).value_or(nullptr);
+            pgm_->getConfiguration()->getOsProcessDependencies(pg_name, i).value_or(nullptr);
 
         if (dep_list)
         {
@@ -110,8 +143,8 @@ inline void Graph::createSuccessorLists(IdentifierHash pg_name)
             {
                 if (dep.os_process_index_ < nodes_.size())
                 {
-                    nodes_[dep.os_process_index_]->addSuccessorNode(node, dep.process_state_);
-                    LM_LOG_DEBUG() << "Added successor node dependency:" << dep.os_process_index_ << "->" << node_index;
+                    nodes_.addDependency(i, dep.os_process_index_);
+                    LM_LOG_DEBUG() << "Added successor node dependency:" << dep.os_process_index_ << "->" << i;
                 }
             }
         }
@@ -142,6 +175,16 @@ void Graph::setState(GraphState new_state)
 
             if (state_.compare_exchange_strong(old_state, target_state))
             {
+                if (target_state == GraphState::kInTransition && old_state != GraphState::kInTransition)
+                {
+                    stop_source_ = score::cpp::stop_source{};
+                }
+                else if (target_state != GraphState::kInTransition && old_state == GraphState::kInTransition)
+                {
+                    // If we've left the transition state, we should stop any continuing jobs
+                    static_cast<void>(stop_source_.request_stop());
+                }
+
                 LM_LOG_DEBUG() << "Graph::setState changes from" << toString(old_state) << "to"
                                << toString(target_state) << "for PG" << pg_index_ << "(" << requested_state_.pg_name_
                                << ")";
@@ -164,58 +207,50 @@ void Graph::setState(GraphState new_state)
     }
 }
 
-bool Graph::queueHeadNodes(bool start)
+bool Graph::queueActivationHeadNodes(const ProcessInfoNode& node)
 {
-    // Count the number of nodes in this graph
-    starting_ = start;
+    starting_ = true;
 
-    uint32_t executing_nodes = countExecutableNodes(start);
+    const auto& head_nodes = nodes_.activate(node.getIndex(), [](ProcessInfoNode& node) {
+        // This means that nodes with a terminated ready condition will only be restarted if they've been deactivated,
+        // rather than on every run target activation... Both functionalities may have use-cases, so an additional ready
+        // condition could be useful.
+        //
+        // It is also worth noting that a self-terminating component with ready state running will be restarted on
+        // activation if it has finished its work and terminated. This may or may not be desired.
+        return node.active();
+    });
 
-    nodes_to_execute_.store(executing_nodes);
-    nodes_in_flight_.store(0);
-
-    if (executing_nodes > 0U)
+    for (auto i : head_nodes)
     {
-        queueHeadNodesForExecution();
+        tryQueueNode(Task{TaskType::kActivate, nodes_[i], stop_source_.get_token()});
     }
 
-    return (executing_nodes > 0);
+    return head_nodes.size() > 0;
 }
 
-inline uint32_t Graph::countExecutableNodes(bool start)
+bool Graph::queueDeactivationHeadNodes(const ProcessInfoNode& node)
 {
-    uint32_t executable_nodes = 0U;
+    starting_ = false;
 
-    for (const auto& node : nodes_)
+    const auto& head_nodes = nodes_.deactivate(node.getIndex());
+
+    for (auto i : head_nodes)
     {
-        if (node->constructGraphNode(start))
-        {
-            ++executable_nodes;
-        }
+        tryQueueNode(Task{TaskType::kDeactivate, nodes_[i], stop_source_.get_token()});
     }
 
-    return executable_nodes;
+    return head_nodes.size() > 0;
 }
 
-inline void Graph::queueHeadNodesForExecution()
-{
-    for (const auto& node : nodes_)
-    {
-        if (node->isHeadNode())
-        {
-            tryQueueNode(node);
-        }
-    }
-}
-
-inline void Graph::tryQueueNode(const std::shared_ptr<ProcessInfoNode>& node)
+inline void Graph::tryQueueNode(Task task)
 {
     while (GraphState::kInTransition == getState())
     {
-        auto push_res = pgm_->getWorkerJobs()->push(node, kMaxQueueDelay);
+        auto push_res = pgm_->getWorkerJobs()->push(task, kMaxQueueDelay);
         if (push_res)
         {
-            markNodeInFlight();
+            jobs_in_progress_++;
             break;
         }
         else if (push_res.error() == ConcurrencyErrc::kTimeout)
@@ -228,8 +263,7 @@ inline void Graph::tryQueueNode(const std::shared_ptr<ProcessInfoNode>& node)
             // here
             LM_LOG_ERROR() << "Failed to queue node for execution " << push_res.error();
 
-            abort(getLastExecutionError(), ControlClientCode::kSetStateFailed);
-            markNodeInFlight();  // This will be decremented below, avoid it going negative
+            abort(getLastExecutionError(), IComponent::ComponentError::kErrorBeforeReady);
             // Also, we need to be careful not to recurse or deadlock here. The below function does not lock any mutex
             // nor call this function
             handleNonTransitionExecution(GraphState::kAborting);
@@ -238,33 +272,14 @@ inline void Graph::tryQueueNode(const std::shared_ptr<ProcessInfoNode>& node)
     }
 }
 
-void Graph::queueStopJobs(const std::vector<uint32_t>* process_index_list)
+bool Graph::queueStopJobs(uint32_t process_index)
 {
-    // p is not nullptr - guaranteed by caller.
-    // First mark all processes as being not in the requested state
-    for (auto node : nodes_)
-    {
-        node->markRequested(false);
-    }
-
-    // Then go through the processes in the requested state and mark them true
-    for (uint32_t index : *process_index_list)
-    {
-        if (index < nodes_.size())
-        {
-            nodes_[index]->markRequested(true);
-        }
-    }
-
-    if (!queueHeadNodes(false))
-    {
-        queueStartJobs();
-    }
+    return queueDeactivationHeadNodes(nodes_[process_index]);
 }
 
-void Graph::queueStartJobs()
+void Graph::queueStartJobs(const uint32_t process_index)
 {
-    if (!queueHeadNodes(true))
+    if (!queueActivationHeadNodes(nodes_[process_index]))
     {
         setState(GraphState::kSuccess);  // nothing to do, done nothing, success!
         setPendingEvent(ControlClientCode::kSetStateSuccess);
@@ -284,11 +299,35 @@ bool Graph::startTransition(ProcessGroupStateID pg_state)
 
     if (nullptr != process_index_list)
     {
-        setState(GraphState::kInTransition);
+        last_target = target_node;
+        // TODO
+        target_node = process_index_list->size() > 0 ? static_cast<int32_t>(process_index_list->back()) : -1;
+
+        {
+            std::shared_lock lock(transition_completion_mutex_);
+            setState(GraphState::kInTransition);
+        }
 
         if (GraphState::kInTransition == getState())
         {
-            queueStopJobs(process_index_list);
+            if (last_target >= 0 && target_node >= 0)
+            {
+                // Exclude processes we want to keep running
+                nodes_.exclude(target_node);
+                if (!queueStopJobs(last_target))
+                {
+                    nodes_.exclude(last_target);
+                    queueStartJobs(target_node);
+                }
+            }
+            else if (last_target >= 0)
+            {
+                queueStopJobs(last_target);
+            }
+            else
+            {
+                queueStartJobs(target_node);
+            }
             return true;
         }
     }
@@ -330,98 +369,142 @@ bool Graph::startTransitionToOffState()
     }
     if (GraphState::kInTransition == getState())
     {
-        std::vector<uint32_t> empty_list{};
-        queueStopJobs(&empty_list);
+        last_target = target_node;
+        target_node = -1;
+        if (last_target == -1 || !queueStopJobs(last_target))
+        {
+            // Nothing to do
+            setState(GraphState::kSuccess);
+        }
         result = true;
     }
     return result;
 }
 
-void Graph::nodeExecuted()
+void Graph::nodeExecuted(uint32_t node, score::cpp::expected_blank<IComponent::ComponentError> error)
 {
+    bool was_last_in_queue = jobs_in_progress_.fetch_sub(1) == 1;
+
+    if (!error.has_value())
+    {
+        abort(1, error.error());
+    }
+
     std::unique_lock lock(transition_completion_mutex_);
 
     GraphState current_state = getState();
 
     if (current_state == GraphState::kInTransition)
     {
-        handleTransitionExecution();
+        handleTransitionExecution(node);
     }
-    else
+    else if (was_last_in_queue)
     {
         handleNonTransitionExecution(current_state);
     }
 }
 
-inline void Graph::handleTransitionExecution()
+inline void Graph::handleTransitionExecution(uint32_t node)
 {
-    if (nodes_to_execute_.load() > 0U)
+    // TODO (only supports 1 target)
+    auto enqueue = [this](TaskType type) {
+        return [this, type](ProcessInfoNode& enqueuee) {
+            tryQueueNode(Task{type, enqueuee, stop_source_.get_token()});
+        };
+    };
+
+    bool last_node = starting_ ? nodes_.enqueueActivationSuccessors(node, enqueue(TaskType::kActivate))
+                               : nodes_.enqueueDeactivationSuccessors(node, enqueue(TaskType::kDeactivate));
+
+    if (!last_node)
     {
-        --nodes_in_flight_;
+        return;  // Successors have been enqueued
+    }
 
-        if (0U == --nodes_to_execute_)
+    if (starting_)
+    {
+        if (is_initial_state_transition_)
         {
-            if (starting_)
-            {
-                if (is_initial_state_transition_)
-                {
-                    is_initial_state_transition_ = false;
-                    pgm_->setInitialStateTransitionResult(ControlClientCode::kInitialMachineStateSuccess);
+            is_initial_state_transition_ = false;
+            pgm_->setInitialStateTransitionResult(ControlClientCode::kInitialMachineStateSuccess);
 
-                    // RULECHECKER_comment(1, 3, check_c_style_cast, "This is the definition provided by the OS and does
-                    // a C-style cast.", true)
-                    LM_LOG_DEBUG() << "clock() at successful initial state transition:"
-                                   // coverity[cert_err33_c_violation:INTENTIONAL] Does not matter if clock() gives a
-                                   // weird value in debug messages.
-                                   << (static_cast<double>(clock()) / (static_cast<double>(CLOCKS_PER_SEC) / 1000.0))
-                                   << "ms";
-                }
-                setState(GraphState::kSuccess);
-                setPendingEvent(ControlClientCode::kSetStateSuccess);
-            }
-            else
-            {
-                queueStartJobs();
-            }
+            // RULECHECKER_comment(1, 3, check_c_style_cast, "This is the definition provided by the OS and does
+            // a C-style cast.", true)
+            LM_LOG_DEBUG() << "clock() at successful initial state transition:"
+                           // coverity[cert_err33_c_violation:INTENTIONAL] Does not matter if clock() gives a
+                           // weird value in debug messages.
+                           << (static_cast<double>(clock()) / (static_cast<double>(CLOCKS_PER_SEC) / 1000.0)) << "ms";
         }
+        setState(GraphState::kSuccess);
+        setPendingEvent(ControlClientCode::kSetStateSuccess);
+    }
+    else if (target_node >= 0)
+    {
+        // Last node to terminate finished, now start the nodes we want
+        if (last_target >= 0)
+        {
+            nodes_.exclude(last_target);
+        }
+        queueStartJobs(target_node);
+    }
+    else
+    {
+        // This is the transition to the off state. There's no target node and we're not starting, but we've finished
+        // the last job. When we model run targets as nodes, this will be the same case as above and queue start jobs
+        // will set state to success
+        setState(GraphState::kSuccess);
+        setPendingEvent(ControlClientCode::kSetStateSuccess);
     }
 }
 
 inline void Graph::handleNonTransitionExecution(GraphState current_state)
 {
-    if (0 >= --nodes_in_flight_)
+    nodes_.reset();
+    if (is_initial_state_transition_)
     {
-        if (is_initial_state_transition_)
-        {
-            is_initial_state_transition_ = false;
-            pgm_->setInitialStateTransitionResult(ControlClientCode::kInitialMachineStateFailed);
+        is_initial_state_transition_ = false;
+        pgm_->setInitialStateTransitionResult(ControlClientCode::kInitialMachineStateFailed);
 
-            // RULECHECKER_comment(1, 3, check_c_style_cast, "This is the definition provided by the OS and does a
-            // C-style cast.", true)
-            LM_LOG_FATAL() << "clock() at failed initial state transition:"
-                           // coverity[cert_err33_c_violation:INTENTIONAL] Does not matter if clock() gives a weird
-                           // value in debug messages.
-                           << (static_cast<double>(clock()) / (static_cast<double>(CLOCKS_PER_SEC) / 1000.0)) << "ms";
-        }
-        setState(GraphState::kUndefinedState);
-        if (current_state == GraphState::kAborting)
-        {
-            setPendingEvent(abort_code_);
-        }
-        else
-        {
-            ControlClientChannel::nudgeControlClientHandler();
-        }
+        // RULECHECKER_comment(1, 3, check_c_style_cast, "This is the definition provided by the OS and does a
+        // C-style cast.", true)
+        LM_LOG_FATAL() << "clock() at failed initial state transition:"
+                       // coverity[cert_err33_c_violation:INTENTIONAL] Does not matter if clock() gives a weird
+                       // value in debug messages.
+                       << (static_cast<double>(clock()) / (static_cast<double>(CLOCKS_PER_SEC) / 1000.0)) << "ms";
+    }
+    setState(GraphState::kUndefinedState);
+    if (current_state == GraphState::kAborting)
+    {
+        setPendingEvent(abort_code_);
+    }
+    else
+    {
+        ControlClientChannel::nudgeControlClientHandler();
     }
 }
 
-void Graph::abort(uint32_t code, ControlClientCode reason)
+void Graph::abort(uint32_t code, IComponent::ComponentError reason)
 {
-    if (getState() < GraphState::kAborting)
+    auto from_state = getState();
+    if (from_state < GraphState::kAborting)
     {
         setState(GraphState::kAborting);
         last_execution_error_.store(code);
-        abort_code_.store(reason);
+        if (from_state != GraphState::kInTransition || reason == IComponent::ComponentError::kErrorAfterReady)
+        {
+            abort_code_.store(ControlClientCode::kFailedUnexpectedTermination);
+        }
+        else
+        {
+            if (reason == IComponent::ComponentError::kErrorBeforeReady)
+            {
+                abort_code_.store(ControlClientCode::kFailedUnexpectedTerminationOnEnter);
+            }
+            else
+            {
+                abort_code_.store(ControlClientCode::kSetStateFailed);
+            }
+        }
     }
 }
 
@@ -435,26 +518,28 @@ void Graph::cancel()
         setPendingEvent(ControlClientCode::kSetStateCancelled);
     }
 
-    if (0 == nodes_in_flight_)
+    if (jobs_in_progress_ > 0)
     {
-        if (is_initial_state_transition_)
-        {
-            is_initial_state_transition_ = false;
-            pgm_->setInitialStateTransitionResult(ControlClientCode::kInitialMachineStateFailed);
-            // Some may argue that not finishing MachineGF.Startup state transition, is a critical problem.
-            // Essentially, controller SM is requesting MachineGF.Startup transition, on an action list assigned to its
-            // initial state. RULECHECKER_comment(1, 3, check_c_style_cast, "This is the definition provided by the OS
-            // and does a C-style cast.", true)
-            LM_LOG_DEBUG() << "clock() at canceled initial state transition:"
-                           // coverity[cert_err33_c_violation:INTENTIONAL] Does not matter if clock() gives a weird
-                           // value in debug messages.
-                           << (static_cast<double>(clock()) / (static_cast<double>(CLOCKS_PER_SEC) / 1000.0)) << "ms";
-        }
-        setState(GraphState::kUndefinedState);
+        return;
     }
+
+    if (is_initial_state_transition_)
+    {
+        is_initial_state_transition_ = false;
+        pgm_->setInitialStateTransitionResult(ControlClientCode::kInitialMachineStateFailed);
+        // Some may argue that not finishing MachineGF.Startup state transition, is a critical problem.
+        // Essentially, controller SM is requesting MachineGF.Startup transition, on an action list assigned to its
+        // initial state. RULECHECKER_comment(1, 3, check_c_style_cast, "This is the definition provided by the OS
+        // and does a C-style cast.", true)
+        LM_LOG_DEBUG() << "clock() at canceled initial state transition:"
+                       // coverity[cert_err33_c_violation:INTENTIONAL] Does not matter if clock() gives a weird
+                       // value in debug messages.
+                       << (static_cast<double>(clock()) / (static_cast<double>(CLOCKS_PER_SEC) / 1000.0)) << "ms";
+    }
+    setState(GraphState::kUndefinedState);
 }
 
-void Graph::setStateManager(ControlClientID& control_client_id)
+void Graph::updateCancelMessage()
 {
     ControlClientCode code = getPendingEvent();
 
@@ -465,19 +550,21 @@ void Graph::setStateManager(ControlClientID& control_client_id)
         cancel_message_.request_or_response_ = code;
         clearPendingEvent(code);
     }
+}
+
+void Graph::setStateManager(ControlClientID& control_client_id)
+{
     last_state_manager_ = control_client_id;
 }
 
-std::shared_ptr<ProcessInfoNode> Graph::getProcessInfoNode(uint32_t process_index)
+ProcessInfoNode* Graph::getProcessInfoNode(uint32_t process_index)
 {
-    std::shared_ptr<ProcessInfoNode> node{};
-
-    if (process_index < nodes_.size())
+    if (process_index >= nodes_.size())
     {
-        node = nodes_[process_index];
+        return nullptr;
     }
 
-    return node;
+    return &nodes_[process_index];
 }
 
 ProcessGroupManager* Graph::getProcessGroupManager()
@@ -488,16 +575,6 @@ ProcessGroupManager* Graph::getProcessGroupManager()
 IdentifierHash Graph::getProcessGroupName()
 {
     return requested_state_.pg_name_;
-}
-
-bool Graph::isStarting() const
-{
-    return starting_;
-}
-
-void Graph::markNodeInFlight()
-{
-    ++nodes_in_flight_;
 }
 
 GraphState Graph::getState() const
@@ -516,7 +593,7 @@ uint32_t Graph::getProcessGroupIndex()
     return pg_index_;
 }
 
-NodeList& Graph::getNodes()
+DependencyGraph<ProcessInfoNode>& Graph::getNodes()
 {
     return nodes_;
 }

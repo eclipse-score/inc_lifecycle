@@ -17,6 +17,7 @@
 #include "score/mw/launch_manager/common/concurrency/mpmc_concurrent_queue.hpp"
 #include "score/mw/launch_manager/common/constants.hpp"
 #include "score/mw/launch_manager/common/log.hpp"
+#include "score/mw/launch_manager/process_group_manager/details/icomponent_controller.hpp"
 #include <memory>
 #include <thread>
 #include <vector>
@@ -31,14 +32,16 @@ namespace score::lcm::internal
 template <class T>
 class WorkerThread final
 {
-    using Queue = MPMCConcurrentQueue<std::shared_ptr<T>, static_cast<std::size_t>(ProcessLimits::kMaxProcesses)>;
+    using Queue = MPMCConcurrentQueue<std::optional<T>, static_cast<std::size_t>(ProcessLimits::kMaxProcesses)>;
 
   public:
     /// @brief Constructs a WorkerThread pool with the specified number of threads.
     ///
     /// @param queue The MpmcQueue from which threads will take work items.
     /// @param num_threads Number of threads in the pool.
-    WorkerThread(std::shared_ptr<Queue> queue, uint32_t num_threads) : the_job_queue_(queue)
+    /// @param component_controller_ The controller to delegate work to.
+    WorkerThread(std::shared_ptr<Queue> queue, uint32_t num_threads, IComponentController& component_controller)
+        : the_job_queue_(queue), component_controller_(component_controller)
     {
         worker_threads_.reserve(num_threads);
         for (uint32_t i = 0U; i < num_threads; ++i)
@@ -99,12 +102,14 @@ class WorkerThread final
                 LM_LOG_ERROR() << "Got an error getting a job: " << job.error();
                 continue;
             }
-            (*job)->doWork();
+            component_controller_.doWork(**job);
         }
     }
 
     /// @brief The queue from which each thread takes work.
     std::shared_ptr<Queue> the_job_queue_{};
+
+    IComponentController& component_controller_;
 
     /// @brief Vector of worker threads.
     std::vector<std::unique_ptr<std::thread>> worker_threads_{};

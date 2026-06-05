@@ -77,7 +77,8 @@ public:
                                     starting = static_cast<uint8_t>(score::lcm::ProcessState::kStarting),
                                     running = static_cast<uint8_t>(score::lcm::ProcessState::kRunning),
                                     sigterm = static_cast<uint8_t>(score::lcm::ProcessState::kTerminating),
-                                    off = static_cast<uint8_t>(score::lcm::ProcessState::kTerminated)};
+                                    off = static_cast<uint8_t>(score::lcm::ProcessState::kTerminated),
+                                    failed = static_cast<uint8_t>(score::lcm::ProcessState::kFailed)};
 
     /// @brief Get Process State
     /// @return     Returns Process State

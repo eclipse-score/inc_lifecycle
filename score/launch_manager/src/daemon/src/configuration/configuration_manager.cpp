@@ -966,14 +966,7 @@ osal::CommsType ConfigurationManager::getfunctionClusterAffiliation(osal::CommsT
     {
         // TODO - example introduce PHM enum.
         LM_LOG_DEBUG() << "Process is PLATFORM_HEALTH_MANAGEMENT function Cluster Affiliation";
-    }
-    else if (attribute && std::string_view(attribute) == "LAUNCH_MANAGEMENT")
-    {
-        comms_type = osal::CommsType::kLaunchManager;
-        LM_LOG_DEBUG() << "Process is LAUNCH_MANAGEMENT function Cluster Affiliation";
-    }
-    else
-    {
+    } else {
         LM_LOG_DEBUG() << "Process is NOT associated with any function Cluster Affiliation";
     }
 

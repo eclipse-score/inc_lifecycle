@@ -26,7 +26,8 @@ namespace lcm
 namespace internal
 {
 
-SafeProcessMap::SafeProcessMap(uint32_t capacity) : items_(std::make_unique<ProcessTreeNode[]>(capacity))
+SafeProcessMap::SafeProcessMap(uint32_t capacity, IComponentController& termination_handler)
+    : items_(std::make_unique<ProcessTreeNode[]>(capacity)), termination_handler_(termination_handler)
 {
     if (capacity)
     {
@@ -294,7 +295,7 @@ int32_t SafeProcessMap::search(osal::ProcessID key, ProcessInfoData data)
             }
             else if (target.pin_)
             {
-                target.pin_->terminated(target.status_);
+                termination_handler_.terminated(*target.pin_, target.status_);
             }
         }
     }
@@ -307,8 +308,7 @@ SafeProcessMap::SafeProcessMapReturnType SafeProcessMap::findTerminated(osal::Pr
     return static_cast<SafeProcessMapReturnType>(search(key, {status, nullptr}));
 }
 
-SafeProcessMap::SafeProcessMapReturnType SafeProcessMap::insertIfNotTerminated(osal::ProcessID key,
-                                                                               ITerminationCallback* object)
+SafeProcessMap::SafeProcessMapReturnType SafeProcessMap::insertIfNotTerminated(osal::ProcessID key, IComponent* object)
 {
     return static_cast<SafeProcessMapReturnType>(search(key, {0, object}));
 }

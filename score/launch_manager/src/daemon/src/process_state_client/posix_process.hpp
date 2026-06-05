@@ -29,7 +29,8 @@ enum class ProcessState : std::uint8_t {
     kStarting = 1,     ///< process in starting state.
     kRunning = 2,      ///< process in running state.
     kTerminating = 3,  ///< process in terminating state.
-    kTerminated = 4    ///< process in terminated state.
+    kTerminated = 4,   ///< process in terminated state.
+    kFailed = 5,       ///< process failed to start
 };
 
 /// @brief Structure containing the Process's current state, its mapped ProcessGroupState and the timestamp when the process state changed.

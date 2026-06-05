@@ -17,6 +17,7 @@
 #include <csignal>
 
 #include "score/mw/launch_manager/common/log.hpp"
+#include "score/mw/launch_manager/process_group_manager/details/process_monitor.hpp"
 #include "score/mw/launch_manager/process_group_manager/ialive_monitor_thread.hpp"
 #include "score/mw/launch_manager/process_group_manager/process_group_manager.hpp"
 
@@ -55,19 +56,6 @@ ProcessGroupManager::ProcessGroupManager(std::unique_ptr<IAliveMonitorThread> al
       watchdog_(std::move(watchdog))
 {
 }
-
-void ProcessGroupManager::setLaunchManagerConfiguration(const OsProcess* launch_manager_configuration)
-{
-    if (launch_manager_config_)
-    {
-        LM_LOG_WARN() << "More than one launch manager configured! (ignoring)";
-    }
-    else
-    {
-        launch_manager_config_ = launch_manager_configuration;
-    }
-}
-
 #ifdef USE_NEW_CONFIGURATION
 bool ProcessGroupManager::initialize(const Config& config)
 #else
@@ -146,6 +134,8 @@ void ProcessGroupManager::deinitialize()
 #ifdef USE_NEW_CONFIGURATION
     watchdog_->disable();
 #endif
+    os_handler_.reset();
+    process_monitor_.reset();
     alive_monitor_thread_->stop();
     configuration_.deinitialize();
     process_groups_.clear();
@@ -277,15 +267,21 @@ inline bool ProcessGroupManager::initializeProcessGroups()
 
 inline void ProcessGroupManager::createProcessComponentsObjects()
 {
+    LM_LOG_DEBUG() << "Creating process monitor...";
+    process_monitor_ = std::make_unique<ProcessMonitor>(*process_groups_.front());
+
     LM_LOG_DEBUG() << "Creating Safe Process Map with" << total_processes_ << "entries";
-    process_map_ = std::make_shared<SafeProcessMap>(total_processes_);
+    process_map_ = std::make_shared<SafeProcessMap>(total_processes_, *process_monitor_);
+
+    LM_LOG_DEBUG() << "Creating OS handler...";
+    os_handler_ = std::make_unique<OsHandler>(*process_map_);
 
     LM_LOG_DEBUG() << "Creating job queue with capacity" << static_cast<std::size_t>(ProcessLimits::kMaxProcesses);
     worker_jobs_ = std::make_shared<WorkerQueue>();
 
     LM_LOG_DEBUG() << "Creating worker threads...";
-    worker_threads_ = std::make_unique<WorkerThread<ProcessInfoNode>>(
-        worker_jobs_, static_cast<uint32_t>(ProcessLimits::kNumWorkerThreads));
+    worker_threads_ = std::make_unique<WorkerThread<Task>>(
+        worker_jobs_, static_cast<uint32_t>(ProcessLimits::kNumWorkerThreads), *process_monitor_);
 }
 
 inline void ProcessGroupManager::initializeGraphNodes()
@@ -311,8 +307,6 @@ bool ProcessGroupManager::run()
                    // coverity[cert_err33_c_violation:INTENTIONAL] Does not matter if clock() gives a weird value in
                    // debug messages.
                    << (static_cast<double>(clock()) / (static_cast<double>(CLOCKS_PER_SEC) / 1000.0)) << "ms";
-
-    OsHandler os_handler(*process_map_);
 
     bool result = startInitialTransition();
 
@@ -429,7 +423,7 @@ inline void ProcessGroupManager::allProcessGroupsOff()
         {
             for (auto& node : pg->getNodes())
             {
-                osal::ProcessID pid = node->getPid();
+                osal::ProcessID pid = node.getPid();
                 if (pid > 0)
                 {
                     // forceTermination already handles errors appropriately, so we can ignore its result.
@@ -507,6 +501,25 @@ bool ProcessGroupManager::sendResponse(ControlClientMessage msg)
     return ret;
 }
 
+const ProcessInfoNode* findControlClient(Graph& pg)
+{
+    const auto state_manager = pg.getStateManager();
+    if (state_manager.process_index_ < pg.getNodes().size())
+    {
+        return &pg.getNodes()[state_manager.process_index_];
+    }
+
+    for (const auto& node : pg.getNodes())
+    {
+        if (node.getControlClientChannel())
+        {
+            return &node;
+        }
+    }
+
+    return nullptr;
+}
+
 inline void ProcessGroupManager::controlClientRequests(Graph& pg)
 {
     // Perform the function of Control Client handler by polling for state transition requests
@@ -515,68 +528,74 @@ inline void ProcessGroupManager::controlClientRequests(Graph& pg)
     {
         return;
     }
-    for (auto node = pg.getNodes()[0U]; node; node = node->getNextStateManager())
+
+    const auto* control_client = findControlClient(pg);
+
+    if (!control_client)
     {
-        ControlClientChannelP scc = node->getControlClientChannel();
+        return;
+    }
 
-        if (scc)
+    ControlClientChannelP scc = control_client->getControlClientChannel();
+
+    if (!scc)
+    {
+        return;
+    }
+
+    if (scc->getRequest())
+    {
+        // Fill in some routing details
+        scc->request().originating_control_client_.process_group_index_ =
+            static_cast<uint16_t>(pg.getProcessGroupIndex() & 0xFFFFU);
+        scc->request().originating_control_client_.process_index_ =
+            static_cast<uint16_t>(control_client->getIndex() & 0xFFFFU);
+
+        LM_LOG_DEBUG() << "ProcessGroupManager::ControlClientHandler: got request"
+                       << scc->toString(scc->request().request_or_response_) << "("
+                       << static_cast<int>(scc->request().request_or_response_) << ") re state"
+                       << scc->request().process_group_state_.pg_state_name_ << "of PG"
+                       << scc->request().process_group_state_.pg_name_;
+
+        // Now process the request
+        switch (scc->request().request_or_response_)
         {
-            if (scc->getRequest())
-            {
-                // Fill in some routing details
-                scc->request().originating_control_client_.process_group_index_ =
-                    static_cast<uint16_t>(pg.getProcessGroupIndex() & 0xFFFFU);
-                scc->request().originating_control_client_.process_index_ =
-                    static_cast<uint16_t>(node->getNodeIndex() & 0xFFFFU);
+            case ControlClientCode::kSetStateRequest:
+                processStateTransition(scc);
+                break;
 
-                LM_LOG_DEBUG() << "ProcessGroupManager::ControlClientHandler: got request"
-                               << scc->toString(scc->request().request_or_response_) << "("
-                               << static_cast<int>(scc->request().request_or_response_) << ") re state"
-                               << scc->request().process_group_state_.pg_state_name_ << "of PG"
-                               << scc->request().process_group_state_.pg_name_;
+            case ControlClientCode::kGetExecutionErrorRequest:
+                processGetExecutionError(scc);
+                break;
 
-                // Now process the request
-                switch (scc->request().request_or_response_)
-                {
-                    case ControlClientCode::kSetStateRequest:
-                        processStateTransition(scc);
-                        break;
+            case ControlClientCode::kGetInitialMachineStateRequest:
+                processGetInitialMachineStateTransitionResult(scc);
+                break;
 
-                    case ControlClientCode::kGetExecutionErrorRequest:
-                        processGetExecutionError(scc);
-                        break;
+            case ControlClientCode::kValidateProcessGroupState:
+                processValidateFunctionStateID(scc);
+                break;
 
-                    case ControlClientCode::kGetInitialMachineStateRequest:
-                        processGetInitialMachineStateTransitionResult(scc);
-                        break;
+            default:  // Error, this is not a recognised request!
+                scc->request().request_or_response_ = ControlClientCode::kInvalidRequest;
+                break;
+        }
+        scc->acknowledgeRequest();
+    }
 
-                    case ControlClientCode::kValidateProcessGroupState:
-                        processValidateFunctionStateID(scc);
-                        break;
-
-                    default:  // Error, this is not a recognised request!
-                        scc->request().request_or_response_ = ControlClientCode::kInvalidRequest;
-                        break;
-                }
-                scc->acknowledgeRequest();
-            }
-
-            // now process deferred requests for initial state transition results
-            if (ControlClientCode::kInitialMachineStateNotSet != initial_state_transition_result_ &&
-                scc->initial_result_count_)
-            {
-                ControlClientMessage msg;
-                msg.request_or_response_ = initial_state_transition_result_;
-                msg.originating_control_client_ = scc->request().originating_control_client_;
-                if (scc->sendResponse(msg))
-                {
-                    scc->initial_result_count_--;
-                }
-                else
-                {
-                    ControlClientChannel::nudgeControlClientHandler();  // will need to try again
-                }
-            }
+    // now process deferred requests for initial state transition results
+    if (ControlClientCode::kInitialMachineStateNotSet != initial_state_transition_result_ && scc->initial_result_count_)
+    {
+        ControlClientMessage msg;
+        msg.request_or_response_ = initial_state_transition_result_;
+        msg.originating_control_client_ = scc->request().originating_control_client_;
+        if (scc->sendResponse(msg))
+        {
+            scc->initial_result_count_--;
+        }
+        else
+        {
+            ControlClientChannel::nudgeControlClientHandler();  // will need to try again
         }
     }
 }
@@ -684,6 +703,7 @@ inline void ProcessGroupManager::processStateTransition(ControlClientChannelP sc
             // get state transition start time stamp
             pg->setRequestStartTime();
         }
+        pg->updateCancelMessage();
         pg->setStateManager(scc->request().originating_control_client_);
     }
 }
@@ -798,16 +818,14 @@ void ProcessGroupManager::setInitialStateTransitionResult(ControlClientCode resu
     ControlClientChannel::nudgeControlClientHandler();
 }
 
-std::shared_ptr<ProcessInfoNode> ProcessGroupManager::getProcessInfoNode(uint32_t pg_index, uint32_t process_index)
+ProcessInfoNode* ProcessGroupManager::getProcessInfoNode(uint32_t pg_index, uint32_t process_index)
 {
-    std::shared_ptr<ProcessInfoNode> result = nullptr;
-
     if (pg_index < process_groups_.size())
     {
-        result = process_groups_[pg_index]->getProcessInfoNode(process_index);
+        return process_groups_[pg_index]->getProcessInfoNode(process_index);
     }
 
-    return result;
+    return nullptr;
 }
 
 std::shared_ptr<Graph> ProcessGroupManager::getProcessGroupByProcessId(const IdentifierHash& process_id)
