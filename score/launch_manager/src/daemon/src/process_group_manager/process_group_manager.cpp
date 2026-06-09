@@ -41,7 +41,7 @@ void ProcessGroupManager::cancel()
 ProcessGroupManager::ProcessGroupManager(
     std::unique_ptr<IAliveMonitorThread> alive_monitor_thread,
     std::shared_ptr<IRecoveryClient> recovery_client,
-    std::unique_ptr<score::lcm::IProcessStateNotifier> process_state_notifier,
+    std::unique_ptr<score::lcm::ISupervisionControlNotifier> supervision_control_notifier,
     std::unique_ptr<score::lcm::watchdog::IWatchdogIf> watchdog)
     : configuration_(),
       process_interface_(),
@@ -50,7 +50,7 @@ ProcessGroupManager::ProcessGroupManager(
       worker_jobs_(nullptr),
       num_process_groups_(0U),
       process_groups_(),
-      process_state_notifier_(std::move(process_state_notifier)),
+      supervision_control_notifier_(std::move(supervision_control_notifier)),
       alive_monitor_thread_(std::move(alive_monitor_thread)),
       recovery_client_(recovery_client),
       watchdog_(std::move(watchdog))
@@ -245,7 +245,7 @@ bool ProcessGroupManager::initializeProcessGroups()
                 worker_jobs_,
                 &process_interface_,
                 process_map_,
-                process_state_notifier_.get(),
+                supervision_control_notifier_.get(),
                 this));
         }
     }

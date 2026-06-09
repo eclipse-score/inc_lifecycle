@@ -11,7 +11,7 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include "score/mw/launch_manager/process_state_client/details/process_state_receiver.hpp"
+#include "score/mw/launch_manager/supervision_control_client/details/supervision_control_receiver.hpp"
 #include "score/mw/launch_manager/common/log.hpp"
 
 namespace score
@@ -19,38 +19,38 @@ namespace score
 
 namespace lcm
 {
-ProcessStateReceiver::ProcessStateReceiver(BufferP ring_buffer) noexcept : ring_buffer_(ring_buffer)
+SupervisionControlReceiver::SupervisionControlReceiver(BufferP ring_buffer) noexcept : ring_buffer_(ring_buffer)
 {
 }
 
-ProcessStateReceiver::~ProcessStateReceiver() noexcept
+SupervisionControlReceiver::~SupervisionControlReceiver() noexcept
 {
 }
 
-score::Result<std::optional<PosixProcess>> ProcessStateReceiver::getNextChangedPosixProcess() noexcept
+score::Result<std::optional<SupervisionEvent>> SupervisionControlReceiver::getNextSupervisionEvent() noexcept
 {
-    score::lcm::PosixProcess changedProcess;
+    score::lcm::SupervisionEvent event;
     if (ring_buffer_->getOverflowFlag())
     {
-        LM_LOG_ERROR() << "ProcessStateReceiver::getNextChangedPosixProcess: Overflow occurred, "
+        LM_LOG_ERROR() << "SupervisionControlReceiver::getNextSupervisionEvent: Overflow occurred, "
                           "will be reported as kCommunicationError";
-        return score::Result<std::optional<score::lcm::PosixProcess>>{
+        return score::Result<std::optional<score::lcm::SupervisionEvent>>{
             score::MakeUnexpected(score::mw::lifecycle::ExecErrc::kCommunicationError)};
     }
 
     if (ring_buffer_->empty())
     {
-        return score::Result<std::optional<score::lcm::PosixProcess>>{std::nullopt};
+        return score::Result<std::optional<score::lcm::SupervisionEvent>>{std::nullopt};
     }
 
-    auto res = ring_buffer_->tryDequeue(changedProcess);
+    auto res = ring_buffer_->tryDequeue(event);
     if (res)
     {
-        return score::Result<std::optional<score::lcm::PosixProcess>>{changedProcess};
+        return score::Result<std::optional<score::lcm::SupervisionEvent>>{event};
     }
     else
     {
-        return score::Result<std::optional<score::lcm::PosixProcess>>{
+        return score::Result<std::optional<score::lcm::SupervisionEvent>>{
             score::MakeUnexpected(score::mw::lifecycle::ExecErrc::kGeneralError)};
     }
 }

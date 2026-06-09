@@ -19,8 +19,8 @@
 #include "score/mw/launch_manager/alive_monitor/details/common/Types.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ProcessState.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
-#include "score/mw/launch_manager/process_state_client/iprocess_state_receiver.hpp"
-#include "score/mw/launch_manager/process_state_client/posix_process.hpp"
+#include "score/mw/launch_manager/supervision_control_client/isupervision_control_receiver.hpp"
+#include "score/mw/launch_manager/supervision_control_client/supervision_event.hpp"
 
 namespace score
 {
@@ -32,14 +32,13 @@ namespace ifexm
 {
 
 /// @brief Process State reader
-/// @details The Process State reader fetches process state updates via the lcm library and distributes
+/// @details The Process State reader fetches supervision events via the lcm library and distributes
 /// the information to the Process State classes.
 class ProcessStateReader
 {
   public:
-    using LcmProcessState = score::lcm::ProcessState;
-    using LcmPosixProcess = score::lcm::PosixProcess;
-    using LcmProcessStateReceiver = score::lcm::IProcessStateReceiver;
+    using LcmSupervisionEvent = score::lcm::SupervisionEvent;
+    using LcmProcessStateReceiver = score::lcm::ISupervisionControlReceiver;
 
     /// @brief Constructor
     /// @param [in] f_process_state_receiver   Process state receiver implementation
@@ -68,27 +67,20 @@ class ProcessStateReader
     void deregisterProcessState(const common::ProcessId f_processId) noexcept;
 
     /// @brief Distribute changes
-    /// @details Distribute process state changes to the registered Process State classes
+    /// @details Distribute supervision events to the registered Process State classes
     /// @param [in] f_syncTimestamp   Timestamp for cyclic synchronization
-    /// @return     true (successful process state distribution), false (failed process state distribution)
+    /// @return     true (successful distribution), false (failed distribution)
     bool distributeChanges(const timers::NanoSecondType f_syncTimestamp) noexcept;
 
   private:
     /// @brief Push update for changed registered process
-    /// @param [in] f_changedPosixProcess_r   Posix Process for which push update is needed
-    /// @param [in] f_syncTimestamp           Timestamp for cyclic synchronization
+    /// @param [in] f_event              Supervision event for which push update is needed
+    /// @param [in] f_syncTimestamp      Timestamp for cyclic synchronization
     /// @return     true (sync timestamp is reached), false (sync timestamp is not yet reached)
-    bool pushUpdateTill(
-        const ProcessStateReader::LcmPosixProcess& f_changedPosixProcess_r,
-        const timers::NanoSecondType f_syncTimestamp) noexcept;
-
-    /// @brief Translate Lcm State to ProcessState::EProcState
-    /// @param [in]  f_processStateLcm   Process state from Lcm
-    /// @return     Process state (e.g: idle, running, off)
-    static constexpr ProcessState::EProcState translateProcessState(const LcmProcessState f_processStateLcm) noexcept;
+    bool pushUpdateTill(const LcmSupervisionEvent& f_event, const timers::NanoSecondType f_syncTimestamp) noexcept;
 
     /// @brief Process state receiver for HM thread
-    std::unique_ptr<ProcessStateReader::LcmProcessStateReceiver> processStateReceiverHM;
+    std::unique_ptr<LcmProcessStateReceiver> processStateReceiverHM;
 
     /// @brief Map for process id and process state object
     std::map<common::ProcessId, ProcessState*> processStateMap{};

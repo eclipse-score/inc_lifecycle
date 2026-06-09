@@ -32,11 +32,11 @@ class MockProcessMap : public SafeProcessMapInserter
     MOCK_METHOD(SafeProcessMapReturnType, insertIfNotTerminated, (osal::ProcessID key, IComponent* object), (override));
 };
 
-class MockProcessStateNotifier : public IProcessStateNotifier
+class MockProcessStateNotifier : public ISupervisionControlNotifier
 {
   public:
-    MOCK_METHOD(std::unique_ptr<score::lcm::IProcessStateReceiver>, constructReceiver, (), (override));
-    MOCK_METHOD(bool, queuePosixProcess, (const score::lcm::PosixProcess& f_posixProcess), (override, noexcept));
+    MOCK_METHOD(std::unique_ptr<score::lcm::ISupervisionControlReceiver>, constructReceiver, (), (override));
+    MOCK_METHOD(bool, queueSupervisionEvent, (const score::lcm::SupervisionEvent& f_event), (override, noexcept));
 };
 
 class MockTransitionResultPublisher : public ITransitionResultPublisher
@@ -53,7 +53,7 @@ class GraphTest : public ::testing::Test
         RecordProperty("TestType", "interface-test");
         RecordProperty("DerivationTechnique", "equivalence-classes");
 
-        ON_CALL(mock_process_state_notifier_, queuePosixProcess).WillByDefault(Return(true));
+        ON_CALL(mock_supervision_control_notifier_, queuePosixProcess).WillByDefault(Return(true));
 
         auto procs = SetConfig();
 
@@ -185,7 +185,7 @@ class GraphTest : public ::testing::Test
     std::shared_ptr<WorkerQueue> job_queue_ = std::make_shared<WorkerQueue>();
     StrictMock<osal::MockIProcess> process_interface_{};
     std::shared_ptr<MockProcessMap> mock_process_map = std::make_shared<MockProcessMap>();
-    NiceMock<MockProcessStateNotifier> mock_process_state_notifier_{};
+    NiceMock<MockProcessStateNotifier> mock_supervision_control_notifier_{};
     MockTransitionResultPublisher mock_transition_result_publisher_{};
     Graph graph_{
         10U,
@@ -193,7 +193,7 @@ class GraphTest : public ::testing::Test
         job_queue_,
         &process_interface_,
         mock_process_map,
-        &mock_process_state_notifier_,
+        &mock_supervision_control_notifier_,
         &mock_transition_result_publisher_};
 
     static constexpr std::string_view pg_string{"MainPG"};

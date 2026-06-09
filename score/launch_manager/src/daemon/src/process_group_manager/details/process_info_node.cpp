@@ -116,17 +116,24 @@ bool ProcessInfoNode::setState(score::lcm::ProcessState new_state)
         score::lcm::ProcessState::kIdle != new_state)
     {
         // for a reporting process, report a process state change to PHM
-        // Note the following system call will not fail by design.
-        // Possible failure modes would be:
-        // a) CLOCK_MONOTONIC is not supported, but we assert that in all systems it is supported
-        // b) &timestamp points outside the accessible address space, but it does not
+        std::optional<score::lcm::SupervisionEventType> eventType;
+        if (new_state == score::lcm::ProcessState::kRunning)
+        {
+            eventType = score::lcm::SupervisionEventType::kActivation;
+        }
+        else if (
+            new_state == score::lcm::ProcessState::kTerminating || new_state == score::lcm::ProcessState::kTerminated)
+        {
+            eventType = score::lcm::SupervisionEventType::kDeactivation;
+        }
+
         timespec timestamp{};
         static_cast<void>(clock_gettime(CLOCK_MONOTONIC, &timestamp));
         // Note that we ignore the return value.
         // An error would indicate that PHM is not reading values fast enough from the shared memory; the buffer
         // over-run should be visible at the PHM side and handled there. If PHM is not responding do we need to handle
         // this? If PHM terminates state manager will be informed in any case.
-        static_cast<void>(report_state_(config_->process_id_, new_state, timestamp));
+        static_cast<void>(report_state_(config_->process_id_, eventType, timestamp));
     }
 
     return success;

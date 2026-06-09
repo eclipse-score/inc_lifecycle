@@ -28,7 +28,6 @@
 using namespace testing;
 
 using EStatus = score::lcm::saf::supervision::Alive::EStatus;
-using EProcState = score::lcm::saf::ifexm::ProcessState::EProcState;
 
 namespace
 {
@@ -118,27 +117,19 @@ struct AliveFixture
         processState.attachObserver(*alive);
     }
 
-    /// Simulate the process reporting kRunning at the given timestamp.
+    /// Simulate supervision activation (process reached running state).
     void activateProcess(score::lcm::saf::timers::NanoSecondType timestamp)
     {
         processState.setTimestamp(timestamp);
-        processState.setState(EProcState::running);
+        processState.setEventType(score::lcm::SupervisionEventType::kActivation);
         processState.pushData();
     }
 
-    /// Simulate the process reporting sigterm at the given timestamp.
-    void sigtermProcess(score::lcm::saf::timers::NanoSecondType timestamp)
+    /// Simulate supervision deactivation (process terminating).
+    void deactivateProcess(score::lcm::saf::timers::NanoSecondType timestamp)
     {
         processState.setTimestamp(timestamp);
-        processState.setState(EProcState::sigterm);
-        processState.pushData();
-    }
-
-    /// Simulate the process crashing (off without sigterm) at the given timestamp.
-    void crashProcess(score::lcm::saf::timers::NanoSecondType timestamp)
-    {
-        processState.setTimestamp(timestamp);
-        processState.setState(EProcState::off);
+        processState.setEventType(score::lcm::SupervisionEventType::kDeactivation);
         processState.pushData();
     }
 
@@ -260,9 +251,9 @@ TEST_F(AliveSupervisionTest, AliveDebouncesThroughFailedBeforeExpired)
     EXPECT_EQ(fix.alive->getStatus(), EStatus::kExpired);
 }
 
-TEST_F(AliveSupervisionTest, DeactivatesOnProcessSigterm)
+TEST_F(AliveSupervisionTest, DeactivatesOnSupervisionDeactivation)
 {
-    RecordProperty("Description", "Verify that a clean shutdown (sigterm) deactivates the supervision from ok.");
+    RecordProperty("Description", "Verify that a deactivation event deactivates the supervision from ok.");
     AliveFixture fix = AliveFixture::Builder{}.build();
 
     EXPECT_CALL(*fix.mockClient, sendRecoveryRequest(_)).Times(0);
@@ -271,34 +262,17 @@ TEST_F(AliveSupervisionTest, DeactivatesOnProcessSigterm)
     fix.alive->evaluate(11U);
     EXPECT_EQ(fix.alive->getStatus(), EStatus::kOk);
 
-    fix.sigtermProcess(20U);
+    fix.deactivateProcess(20U);
     fix.alive->evaluate(21U);
     EXPECT_EQ(fix.alive->getStatus(), EStatus::kDeactivated);
 }
 
-TEST_F(AliveSupervisionTest, DeactivatesOnProcessCrash)
-{
-    RecordProperty(
-        "Description", "Verify that a process crash (off without sigterm) also deactivates the supervision.");
-    AliveFixture fix = AliveFixture::Builder{}.build();
-
-    EXPECT_CALL(*fix.mockClient, sendRecoveryRequest(_)).Times(0);
-
-    fix.activateProcess(10U);
-    fix.alive->evaluate(11U);
-    EXPECT_EQ(fix.alive->getStatus(), EStatus::kOk);
-
-    fix.crashProcess(20U);
-    fix.alive->evaluate(21U);
-    EXPECT_EQ(fix.alive->getStatus(), EStatus::kDeactivated);
-}
-
-TEST_F(AliveSupervisionTest, ReactivatesAfterCrash)
+TEST_F(AliveSupervisionTest, ReactivatesAfterDeactivation)
 {
     RecordProperty(
         "Description",
-        "Verify that after a crash (off) the supervision can be reactivated when the process"
-        " reports running again, without any special recovery path.");
+        "Verify that after a deactivation the supervision can be reactivated when an activation"
+        " event is received again.");
     AliveFixture fix = AliveFixture::Builder{}.build();
 
     EXPECT_CALL(*fix.mockClient, sendRecoveryRequest(_)).Times(0);
@@ -307,42 +281,12 @@ TEST_F(AliveSupervisionTest, ReactivatesAfterCrash)
     fix.alive->evaluate(11U);
     EXPECT_EQ(fix.alive->getStatus(), EStatus::kOk);
 
-    // Process crashes
-    fix.crashProcess(20U);
+    fix.deactivateProcess(20U);
     fix.alive->evaluate(21U);
     EXPECT_EQ(fix.alive->getStatus(), EStatus::kDeactivated);
 
-    // Process restarts
     fix.activateProcess(30U);
     fix.alive->evaluate(31U);
-    EXPECT_EQ(fix.alive->getStatus(), EStatus::kOk);
-}
-
-TEST_F(AliveSupervisionTest, IgnoresIrrelevantProcessStates)
-{
-    RecordProperty(
-        "Description",
-        "Verify that process states other than running/sigterm/off are ignored and do not"
-        " affect the supervision state.");
-    AliveFixture fix = AliveFixture::Builder{}.build();
-
-    EXPECT_CALL(*fix.mockClient, sendRecoveryRequest(_)).Times(0);
-
-    // idle and starting before activation — supervision must stay deactivated
-    fix.processState.setTimestamp(5U);
-    fix.processState.setState(EProcState::idle);
-    fix.processState.pushData();
-
-    fix.processState.setTimestamp(6U);
-    fix.processState.setState(EProcState::starting);
-    fix.processState.pushData();
-
-    fix.alive->evaluate(7U);
-    EXPECT_EQ(fix.alive->getStatus(), EStatus::kDeactivated);
-
-    // Normal activation still works after ignored events
-    fix.activateProcess(10U);
-    fix.alive->evaluate(11U);
     EXPECT_EQ(fix.alive->getStatus(), EStatus::kOk);
 }
 

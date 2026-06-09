@@ -20,7 +20,7 @@
 #include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
 #include <string>
 
-#include "score/mw/launch_manager/process_state_client/posix_process.hpp"
+#include "score/mw/launch_manager/supervision_control_client/supervision_event.hpp"
 
 namespace score
 {
@@ -32,7 +32,7 @@ namespace ifexm
 {
 
 /// @brief Process State
-/// @details The Process State class dispatches process state changes to the attached observers.
+/// @details The Process State class dispatches supervision events to the attached observers.
 class ProcessState : public saf::common::Observable<ProcessState>
 {
   public:
@@ -72,24 +72,13 @@ class ProcessState : public saf::common::Observable<ProcessState>
     /// @return     Returns process ID
     common::ProcessId getProcessId(void) const noexcept;
 
-    /// @brief Enumeration of process states
-    enum class EProcState : uint8_t
-    {
-        idle = static_cast<uint8_t>(score::lcm::ProcessState::kIdle),
-        starting = static_cast<uint8_t>(score::lcm::ProcessState::kStarting),
-        running = static_cast<uint8_t>(score::lcm::ProcessState::kRunning),
-        sigterm = static_cast<uint8_t>(score::lcm::ProcessState::kTerminating),
-        off = static_cast<uint8_t>(score::lcm::ProcessState::kTerminated),
-        failed = static_cast<uint8_t>(score::lcm::ProcessState::kFailed)
-    };
+    /// @brief Get supervision event type
+    /// @return     Returns the current event type
+    score::lcm::SupervisionEventType getEventType() const noexcept;
 
-    /// @brief Get Process State
-    /// @return     Returns Process State
-    EProcState getState() const noexcept;
-
-    /// @brief Set process state
-    /// @param [in] f_processStateId   Process state id
-    void setState(ProcessState::EProcState f_processStateId) noexcept;
+    /// @brief Set supervision event type
+    /// @param [in] f_eventType   Supervision event type
+    void setEventType(score::lcm::SupervisionEventType f_eventType) noexcept;
 
     /// @brief Get Timestamp for current event
     /// @return     Timestamp of current event
@@ -100,7 +89,7 @@ class ProcessState : public saf::common::Observable<ProcessState>
     void setTimestamp(timers::NanoSecondType f_timestamp) noexcept;
 
     /// @brief Push Data
-    /// @details Push process state related information, which shall be distribute to observers.
+    /// @details Push supervision event related information, which shall be distributed to observers.
     void pushData(void) noexcept;
 
   private:
@@ -110,8 +99,8 @@ class ProcessState : public saf::common::Observable<ProcessState>
     /// @brief Process id
     const common::ProcessId k_processId;
 
-    /// @brief Current process state
-    EProcState eProcState{ProcessState::EProcState::idle};
+    /// @brief Current supervision event type
+    score::lcm::SupervisionEventType eventType_{score::lcm::SupervisionEventType::kDeactivation};
 
     /// @brief Current timestamp of process
     timers::NanoSecondType timestamp{UINT64_MAX};

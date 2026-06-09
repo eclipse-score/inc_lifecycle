@@ -35,8 +35,8 @@
 #include "score/mw/launch_manager/process_group_manager/details/safe_process_map.hpp"
 #include "score/mw/launch_manager/process_group_manager/ialive_monitor_thread.hpp"
 #include "score/mw/launch_manager/process_group_manager/iprocess.hpp"
-#include "score/mw/launch_manager/process_state_client/iprocess_state_notifier.hpp"
 #include "score/mw/launch_manager/recovery_client/recovery_client.hpp"
+#include "score/mw/launch_manager/supervision_control_client/isupervision_control_notifier.hpp"
 #include "score/mw/launch_manager/watchdog/IWatchdogIf.hpp"
 
 namespace score::lcm::internal
@@ -71,13 +71,14 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     /// @param alive_monitor_thread A unique pointer to an IAliveMonitorThread instance for managing health
     /// monitoring.
     /// @param recovery_client A shared pointer to an IRecoveryClient instance for handling recovery operations.
-    /// @param process_state_notifier A unique pointer to an IProcessStateNotifier instance for notifying the Alive
-    /// Monitor thread of process state changes.
-    /// @param watchdog A unique pointer to an IWatchdogIf instance serviced during the main loop. Must not be nullptr.
+    /// @param supervision_control_notifier A unique pointer to an ISupervisionControlNotifier instance for notifying
+    /// the Alive Monitor thread of process state changes.
+    /// @param watchdog A unique pointer to an IWatchdogIf instance serviced during the main loop. May be nullptr in
+    /// legacy configuration where no watchdog is wired.
     ProcessGroupManager(
         std::unique_ptr<IAliveMonitorThread> alive_monitor_thread,
         std::shared_ptr<IRecoveryClient> recovery_client,
-        std::unique_ptr<score::lcm::IProcessStateNotifier> process_state_notifier,
+        std::unique_ptr<score::lcm::ISupervisionControlNotifier> supervision_control_notifier,
         std::unique_ptr<score::lcm::watchdog::IWatchdogIf> watchdog);
 
     /// @brief Initializes the process group manager.
@@ -145,16 +146,12 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     /// @return Shared pointer to the MpmcQueue object for ProcessInfoNode jobs.
     std::shared_ptr<WorkerQueue> getWorkerJobs();
 
-    /// @brief Calls QueuePosixProcess method of psn data member
-    /// @details Writes via IPC the latest Process State change, so that PHM can be informed about it.
-    ///          the PosixProcess structure should be complete at his moment. That means:
-    ///          ProcessGroupStateId, ProcessModelled Id, current ProcessState, timestamp are known and set.
-    ///          if no more free shared memory, the PosixProcess is not sent.
-    /// @param[in]   f_posixProcess   The PosixProcess to be queued
-    /// @returns True on success, false for failure (corresponding to kCommunicationError).
-    bool queuePosixProcess(const score::lcm::PosixProcess& f_posixProcess)
+    /// @brief Control Activation / Deactivation of alive supervisions
+    /// @param[in]   f_event   The SupervisionEvent to be queued
+    /// @returns True on success, false for failure
+    bool queueSupervisionEvent(const score::lcm::SupervisionEvent& f_event)
     {
-        return process_state_notifier_->queuePosixProcess(f_posixProcess);
+        return supervision_control_notifier_->queueSupervisionEvent(f_event);
     }
 
     /// @brief Cancels processGroupManager main routine as though SIGTERM had been sent
@@ -318,7 +315,10 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     std::shared_ptr<Graph> machine_process_group_{nullptr};
 
     /// @brief Process state notifier object used to send data to PHM
-    std::unique_ptr<score::lcm::IProcessStateNotifier> process_state_notifier_;
+    std::unique_ptr<score::lcm::ISupervisionControlNotifier> supervision_control_notifier_;
+
+    /// @brief pointer to the configuration for Launch Manager
+    const OsProcess* launch_manager_config_{nullptr};
 
     std::unique_ptr<IAliveMonitorThread> alive_monitor_thread_;
 

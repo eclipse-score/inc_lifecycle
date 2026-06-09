@@ -13,15 +13,15 @@
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
 cc_library(
-    name = "process_state_receiver",
-    srcs = ["process_state_receiver.cpp"],
-    hdrs = ["process_state_receiver.hpp"],
-    include_prefix = "score/mw/launch_manager/process_state_client/details",
-    strip_include_prefix = "/score/launch_manager/src/daemon/src/process_state_client/details",
-    visibility = ["//score/launch_manager/src/daemon/src/process_state_client:__pkg__"],
+    name = "supervision_control_receiver",
+    srcs = ["supervision_control_receiver.cpp"],
+    hdrs = ["supervision_control_receiver.hpp"],
+    include_prefix = "score/mw/launch_manager/supervision_control_client/details",
+    strip_include_prefix = "/score/launch_manager/src/daemon/src/supervision_control_client/details",
+    visibility = ["//score/launch_manager/src/daemon/src/supervision_control_client:__pkg__"],
     deps = [
         "//externals/ipc_dropin",
         "//score/launch_manager/src/daemon/src/common:log",
-        "//score/launch_manager/src/daemon/src/process_state_client:iprocess_state_receiver",
+        "//score/launch_manager/src/daemon/src/supervision_control_client:isupervision_control_receiver",
     ],
 )

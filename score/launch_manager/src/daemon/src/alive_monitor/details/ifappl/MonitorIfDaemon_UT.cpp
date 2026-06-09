@@ -78,27 +78,19 @@ struct MonitorIfDaemonFixture
             << "CheckpointIpcServer init failed";
     }
 
-    /// Drive the process to the 'running' state and notify observers.
+    /// Send an activation event and notify observers.
     void activateProcess(timers::NanoSecondType ts)
     {
         processState.setTimestamp(ts);
-        processState.setState(ifexm::ProcessState::EProcState::running);
+        processState.setEventType(score::lcm::SupervisionEventType::kActivation);
         processState.pushData();
     }
 
-    /// Drive the process to the 'starting' state and notify observers.
-    void startProcess(timers::NanoSecondType ts)
-    {
-        processState.setTimestamp(ts);
-        processState.setState(ifexm::ProcessState::EProcState::starting);
-        processState.pushData();
-    }
-
-    /// Drive the process to the 'off' state and notify observers.
+    /// Send a deactivation event and notify observers.
     void deactivateProcess(timers::NanoSecondType ts)
     {
         processState.setTimestamp(ts);
-        processState.setState(ifexm::ProcessState::EProcState::off);
+        processState.setEventType(score::lcm::SupervisionEventType::kDeactivation);
         processState.pushData();
     }
 
@@ -185,7 +177,7 @@ TEST_F(MonitorIfDaemonTest, InitiallyInactive_CheckForNewData_DoesNotNotifyCheck
 {
     RecordProperty(
         "Description",
-        "Before any process-state update the monitor is kInactive; "
+        "Before any supervision event the monitor is kInactive; "
         "checkForNewData must not forward any data.");
 
     MonitorIfDaemonFixture fix;
@@ -193,11 +185,11 @@ TEST_F(MonitorIfDaemonTest, InitiallyInactive_CheckForNewData_DoesNotNotifyCheck
     fix.monitor.checkForNewData(mockClock());
 }
 
-TEST_F(MonitorIfDaemonTest, ProcessOffBeforeActivation_RemainsInactive)
+TEST_F(MonitorIfDaemonTest, DeactivationBeforeActivation_RemainsInactive)
 {
     RecordProperty(
         "Description",
-        "A process-off event before the monitor has been activated "
+        "A deactivation event before the monitor has been activated "
         "must not cause checkForNewData to read IPC data.");
 
     MonitorIfDaemonFixture fix;
@@ -210,11 +202,11 @@ TEST_F(MonitorIfDaemonTest, ProcessOffBeforeActivation_RemainsInactive)
     fix.monitor.checkForNewData(mockClock());
 }
 
-TEST_F(MonitorIfDaemonTest, ProcessRunning_ActivatesMonitorOnNextCheckForNewData)
+TEST_F(MonitorIfDaemonTest, ActivationEvent_ActivatesMonitorOnNextCheckForNewData)
 {
     RecordProperty(
         "Description",
-        "A running process-state update must set isActivateRequest so that "
+        "An activation event must set isActivateRequest so that "
         "the next checkForNewData transitions the monitor to kActive.");
 
     MonitorIfDaemonFixture fix;
@@ -228,29 +220,11 @@ TEST_F(MonitorIfDaemonTest, ProcessRunning_ActivatesMonitorOnNextCheckForNewData
     EXPECT_EQ(fix.checkpoint.getTimestamp(), checkpoint_time);
 }
 
-TEST_F(MonitorIfDaemonTest, ProcessStarting_AlsoActivatesMonitor)
+TEST_F(MonitorIfDaemonTest, DeactivationEvent_DeactivatesMonitor_NoFurtherDataForwarded)
 {
     RecordProperty(
         "Description",
-        "EProcState::starting must be treated as an activation trigger, "
-        "identical to running.");
-
-    MonitorIfDaemonFixture fix;
-    EXPECT_CALL(fix.checkpointMock, updateData).Times(1);
-    fix.initIpc();
-    fix.startProcess(mockClock());
-    const auto checkpoint_time = mockClockOffset();
-    fix.sendCheckpoint(MonitorIfDaemonFixture::kCheckpointId, checkpoint_time);
-    fix.monitor.checkForNewData(mockClock());
-
-    EXPECT_EQ(fix.checkpoint.getTimestamp(), checkpoint_time);
-}
-
-TEST_F(MonitorIfDaemonTest, ProcessOff_DeactivatesMonitor_NoFurtherDataForwarded)
-{
-    RecordProperty(
-        "Description",
-        "After a process-off event checkForNewData drains the IPC for the "
+        "After a deactivation event checkForNewData drains the IPC for the "
         "current cycle, then transitions to kInactive.  Subsequent cycles "
         "must not forward data even when the IPC buffer is non-empty.");
 

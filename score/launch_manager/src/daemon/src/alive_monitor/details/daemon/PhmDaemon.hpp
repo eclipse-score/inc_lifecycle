@@ -53,7 +53,7 @@ class PhmDaemon
 {
   public:
     using OsClock = score::lcm::saf::timers::OsClockInterface;
-    using ProcessStateReceiver = score::lcm::IProcessStateReceiver;
+    using ProcessStateReceiver = score::lcm::ISupervisionControlReceiver;
     using RecoveryClient = score::lcm::IRecoveryClient;
     using SupervisionBufferConfig = factory::SupervisionBufferConfig;
     using CycleTimer = score::lcm::saf::timers::CycleTimer;
@@ -70,7 +70,7 @@ class PhmDaemon
     /// tests)
     /* RULECHECKER_comment(3,1, check_expensive_to_copy_in_parameter, "Move only types cannot be passed by const ref",
        true_no_defect) */
-    PhmDaemon(OsClock& f_osClock, std::unique_ptr<ProcessStateReceiver> f_process_state_receiver);
+    PhmDaemon(OsClock& f_osClock, std::unique_ptr<ISupervisionControlReceiver> f_process_state_receiver);
 
     /* RULECHECKER_comment(0, 4, check_min_instructions, "Default destructor is not provided\
        a function body", true_no_defect) */

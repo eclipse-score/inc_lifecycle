@@ -70,29 +70,27 @@ bool ProcessStateReader::distributeChanges(const timers::NanoSecondType f_syncTi
     bool flagContinue{true};
     do
     {
-        score::Result<std::optional<ProcessStateReader::LcmPosixProcess>> resultChangedProcess{
-            processStateReceiverHM->getNextChangedPosixProcess()};
+        score::Result<std::optional<LcmSupervisionEvent>> resultEvent{
+            processStateReceiverHM->getNextSupervisionEvent()};
 
-        if (resultChangedProcess)
+        if (resultEvent)
         {
-            const auto changedPosixProcess{resultChangedProcess.value()};
-            if (changedPosixProcess)
+            const auto event{resultEvent.value()};
+            if (event)
             {
-                LM_LOG_DEBUG() << "Process with Id" << changedPosixProcess->id << "changed state PG"
-                               << changedPosixProcess->processGroupStateId << "PS"
-                               << static_cast<int>(changedPosixProcess->processStateId);
-                isPushPending = pushUpdateTill(*changedPosixProcess, f_syncTimestamp);
+                LM_LOG_DEBUG() << "Process with Id" << event->id << "received supervision event"
+                               << static_cast<int>(event->eventType);
+                isPushPending = pushUpdateTill(*event, f_syncTimestamp);
                 flagContinue = (!isPushPending);
             }
             else
             {
-                // No more process to be parsed by PHM
                 flagContinue = false;
             }
         }
         else
         {
-            LM_LOG_ERROR() << "Process State Reader failed with error:" << resultChangedProcess.error().Message();
+            LM_LOG_DEBUG() << "Process State Reader failed with error:" << resultEvent.error().Message();
             flagContinue = false;
             flagSuccess = false;
         }
@@ -102,26 +100,26 @@ bool ProcessStateReader::distributeChanges(const timers::NanoSecondType f_syncTi
 }
 
 bool ProcessStateReader::pushUpdateTill(
-    const ProcessStateReader::LcmPosixProcess& f_changedPosixProcess_r,
+    const LcmSupervisionEvent& f_event,
     const timers::NanoSecondType f_syncTimestamp) noexcept
 {
     bool isSyncTimestampReached{false};
-    const common::ProcessId processId{f_changedPosixProcess_r.id.data()};
+    const common::ProcessId processId{f_event.id.data()};
 
     std::map<common::ProcessId, ProcessState*>::iterator processMapIterator{processStateMap.find(processId)};
     if (processMapIterator != processStateMap.end())
     {
-        processMapIterator->second->setState(translateProcessState(f_changedPosixProcess_r.processStateId));
+        processMapIterator->second->setEventType(f_event.eventType);
         timers::NanoSecondType changedProcessTimestamp{
-            timers::TimeConversion::convertToNanoSec(f_changedPosixProcess_r.systemClockTimestamp)};
+            timers::TimeConversion::convertToNanoSec(f_event.systemClockTimestamp)};
         processMapIterator->second->setTimestamp(changedProcessTimestamp);
 
-        // If process state change occurred before synchronization timestamp, push data for current cycle.
+        // If event occurred before synchronization timestamp, push data for current cycle.
         if (changedProcessTimestamp <= f_syncTimestamp)
         {
             processMapIterator->second->pushData();
         }
-        // If process state change occurred after synchronization timestamp, push data in the beginning of next cycle.
+        // If event occurred after synchronization timestamp, push data in the beginning of next cycle.
         else
         {
             lastChangedProcess_p = processMapIterator->second;
@@ -129,36 +127,6 @@ bool ProcessStateReader::pushUpdateTill(
         }
     }
     return isSyncTimestampReached;
-}
-
-constexpr ProcessState::EProcState ProcessStateReader::translateProcessState(
-    const ProcessStateReader::LcmProcessState f_processStateLcm) noexcept
-{
-    // Following static assertion ensures consistency of process states in EXM and PHM
-    static_assert(
-        static_cast<uint8_t>(ProcessState::EProcState::idle) == static_cast<uint8_t>(score::lcm::ProcessState::kIdle),
-        "Lcm State Enum and ProcessState::EProcState Enum do not match.");
-    static_assert(
-        static_cast<uint8_t>(ProcessState::EProcState::starting) ==
-            static_cast<uint8_t>(score::lcm::ProcessState::kStarting),
-        "Lcm State Enum and ProcessState::EProcState Enum do not match.");
-    static_assert(
-        static_cast<uint8_t>(ProcessState::EProcState::running) ==
-            static_cast<uint8_t>(score::lcm::ProcessState::kRunning),
-        "Lcm State Enum and ProcessState::EProcState Enum do not match.");
-    static_assert(
-        static_cast<uint8_t>(ProcessState::EProcState::sigterm) ==
-            static_cast<uint8_t>(score::lcm::ProcessState::kTerminating),
-        "Lcm State Enum and ProcessState::EProcState Enum do not match.");
-    static_assert(
-        static_cast<uint8_t>(ProcessState::EProcState::off) ==
-            static_cast<uint8_t>(score::lcm::ProcessState::kTerminated),
-        "Lcm State Enum and ProcessState::EProcState Enum do not match.");
-    static_assert(
-        static_cast<uint8_t>(ProcessState::EProcState::failed) ==
-            static_cast<uint8_t>(score::lcm::ProcessState::kFailed),
-        "Lcm State Enum and ProcessState::EProcState Enum do not match.");
-    return static_cast<ProcessState::EProcState>(f_processStateLcm);
 }
 
 }  // namespace ifexm

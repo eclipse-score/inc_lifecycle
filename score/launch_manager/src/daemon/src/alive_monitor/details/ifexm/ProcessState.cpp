@@ -40,14 +40,14 @@ common::ProcessId ProcessState::getProcessId() const noexcept
     return k_processId;
 }
 
-ProcessState::EProcState ProcessState::getState() const noexcept
+score::lcm::SupervisionEventType ProcessState::getEventType() const noexcept
 {
-    return eProcState;
+    return eventType_;
 }
 
-void ProcessState::setState(ProcessState::EProcState f_processStateId) noexcept
+void ProcessState::setEventType(score::lcm::SupervisionEventType f_eventType) noexcept
 {
-    eProcState = f_processStateId;
+    eventType_ = f_eventType;
 }
 
 timers::NanoSecondType ProcessState::getTimestamp() const noexcept

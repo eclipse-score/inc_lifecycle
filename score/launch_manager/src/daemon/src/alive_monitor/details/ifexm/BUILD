@@ -36,7 +36,7 @@ cc_library(
         "//score/launch_manager/src/daemon/src/alive_monitor/details/common:observer",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/common:types",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/timers:timers_os_clock",
-        "//score/launch_manager/src/daemon/src/process_state_client",
+        "//score/launch_manager/src/daemon/src/supervision_control_client",
     ],
 )
 
@@ -53,6 +53,6 @@ cc_library(
         "//score/launch_manager/src/daemon/src/alive_monitor/details/timers:time_conversion",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/timers:timers_os_clock",
         "//score/launch_manager/src/daemon/src/common:log",
-        "//score/launch_manager/src/daemon/src/process_state_client",
+        "//score/launch_manager/src/daemon/src/supervision_control_client",
     ],
 )

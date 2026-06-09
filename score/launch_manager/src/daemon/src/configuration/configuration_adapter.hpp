@@ -17,9 +17,9 @@
 #include "score/mw/launch_manager/common/constants.hpp"
 #include "score/mw/launch_manager/common/identifier_hash.hpp"
 #include "score/mw/launch_manager/common/process_group_state_id.hpp"
+#include "score/mw/launch_manager/common/process_state.hpp"
 #include "score/mw/launch_manager/configuration/config.hpp"
 #include "score/mw/launch_manager/process_group_manager/iprocess.hpp"
-#include "score/mw/launch_manager/process_state_client/posix_process.hpp"
 #include <chrono>
 #include <map>
 #include <optional>

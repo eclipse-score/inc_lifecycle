@@ -78,21 +78,12 @@ void Alive::updateData(const score::lcm::saf::ifappl::Checkpoint& f_observable_r
 // coverity[exn_spec_violation:FALSE] std::length_error is not thrown from push() which uses fixed-size-vector
 void Alive::updateData(const ifexm::ProcessState& f_observable_r) noexcept(true)
 {
-    const ifexm::ProcessState::EProcState state{f_observable_r.getState()};
-
-    const bool isRelevant =
-        (state == ifexm::ProcessState::EProcState::running) || (state == ifexm::ProcessState::EProcState::sigterm) ||
-        (state == ifexm::ProcessState::EProcState::failed) || (state == ifexm::ProcessState::EProcState::off);
-
-    if (isRelevant)
+    const timers::NanoSecondType timestamp{f_observable_r.getTimestamp()};
+    SupervisionEventSnapshot snapshot{timestamp, f_observable_r.getEventType()};
+    if (!timeSortingUpdateEventBuffer.push(snapshot, timestamp))
     {
-        const timers::NanoSecondType timestamp{f_observable_r.getTimestamp()};
-        ProcessStateSnapshot snapshot{timestamp, state};
-        if (!timeSortingUpdateEventBuffer.push(snapshot, timestamp))
-        {
-            dataLossReason = EDataLossReason::kBufferFull;
-            eventTimestamp = lastSyncTimestamp;
-        }
+        dataLossReason = EDataLossReason::kBufferFull;
+        eventTimestamp = lastSyncTimestamp;
     }
 }
 
@@ -273,16 +264,14 @@ Alive::EUpdateEventType Alive::getAliveEventType(
         return EUpdateEventType::kEvaluation;
     }
 
-    if (std::holds_alternative<ProcessStateSnapshot>(f_updateEvent))
+    if (std::holds_alternative<SupervisionEventSnapshot>(f_updateEvent))
     {
-        const auto& snapshot = std::get<ProcessStateSnapshot>(f_updateEvent);
-        if (snapshot.eProcState == ifexm::ProcessState::EProcState::running)
+        const auto& snapshot = std::get<SupervisionEventSnapshot>(f_updateEvent);
+        if (snapshot.eventType == score::lcm::SupervisionEventType::kActivation)
         {
             return EUpdateEventType::kActivation;
         }
-        if (snapshot.eProcState == ifexm::ProcessState::EProcState::sigterm ||
-            snapshot.eProcState == ifexm::ProcessState::EProcState::off ||
-            snapshot.eProcState == ifexm::ProcessState::EProcState::failed)
+        if (snapshot.eventType == score::lcm::SupervisionEventType::kDeactivation)
         {
             return EUpdateEventType::kDeactivation;
         }
@@ -591,9 +580,9 @@ void Alive::logExpiredFailedStateDetails() const noexcept(true)
 timers::NanoSecondType Alive::getTimestampOfUpdateEvent(const TimeSortedUpdateEvent f_updateEvent) noexcept(true)
 {
     timers::NanoSecondType timestamp{0U};
-    if (std::holds_alternative<ProcessStateSnapshot>(f_updateEvent))
+    if (std::holds_alternative<SupervisionEventSnapshot>(f_updateEvent))
     {
-        timestamp = std::get<ProcessStateSnapshot>(f_updateEvent).timestamp;
+        timestamp = std::get<SupervisionEventSnapshot>(f_updateEvent).timestamp;
     }
     else if (std::holds_alternative<CheckpointSnapshot>(f_updateEvent))
     {

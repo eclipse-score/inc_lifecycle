@@ -34,7 +34,7 @@ namespace daemon
 {
 
 using SptrIRecoveryClient = std::shared_ptr<score::lcm::IRecoveryClient>;
-using UptrIProcessStateReceiver = std::unique_ptr<score::lcm::IProcessStateReceiver>;
+using UptrISupervisionControlReceiver = std::unique_ptr<score::lcm::ISupervisionControlReceiver>;
 using UptrPhmDaemon = std::unique_ptr<score::lcm::saf::daemon::PhmDaemon>;
 using OsClock = score::lcm::saf::timers::OsClockInterface;
 using Config = score::mw::launch_manager::configuration::Config;
@@ -45,7 +45,7 @@ class AliveMonitorImpl : public IAliveMonitor
   public:
     AliveMonitorImpl(
         SptrIRecoveryClient recovery_client,
-        UptrIProcessStateReceiver process_state_receiver,
+        UptrISupervisionControlReceiver process_state_receiver,
         const Config& config);
 
     EInitCode init() noexcept override;
@@ -56,7 +56,7 @@ class AliveMonitorImpl : public IAliveMonitor
     SptrIRecoveryClient m_recovery_client{nullptr};
     UptrPhmDaemon m_daemon{nullptr};
     OsClock m_osClock{};
-    UptrIProcessStateReceiver m_process_state_receiver;
+    UptrISupervisionControlReceiver m_process_state_receiver;
     AliveMonitorConfig m_config;
 };
 

@@ -39,7 +39,7 @@ Graph::Graph(
     std::shared_ptr<WorkerQueue> job_queue,
     osal::IProcess* process_interface,
     std::shared_ptr<SafeProcessMapInserter> process_map,
-    IProcessStateNotifier* process_state_notifier,
+    ISupervisionControlNotifier* supervision_control_notifier,
     ITransitionResultPublisher* transition_result_receiver)
     : pg_index_(0U),
       nodes_(max_num_nodes),
@@ -50,7 +50,7 @@ Graph::Graph(
       job_queue_(job_queue),
       process_interface_(process_interface),
       process_map_(process_map),
-      process_state_notifier_(process_state_notifier),
+      supervision_control_notifier_(supervision_control_notifier),
       transition_result_receiver_(transition_result_receiver),
       last_state_manager_(),
       last_execution_error_(0U),
@@ -105,7 +105,7 @@ void Graph::createProcessInfoNodes(uint32_t num_processes)
             process_info.processStateId = state;
             process_info.processGroupStateId = getProcessGroupState();
             process_info.systemClockTimestamp = timestamp;
-            return process_state_notifier_->queuePosixProcess(process_info);
+            return supervision_control_notifier_->queuePosixProcess(process_info);
         };
 
         const auto* config =

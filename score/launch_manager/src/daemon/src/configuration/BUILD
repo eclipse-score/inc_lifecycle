@@ -135,7 +135,7 @@ cc_library(
         "//score/launch_manager/src/daemon/src/common:process_group_state_id",
         "//score/launch_manager/src/daemon/src/osal:num_cores",
         "//score/launch_manager/src/daemon/src/process_group_manager:iprocess",
-        "//score/launch_manager/src/daemon/src/process_state_client:posix_process",
+        "//score/launch_manager/src/daemon/src/common:process_state",
     ],
 )
 
@@ -147,7 +147,7 @@ lm_cc_test(
         ":configuration_adapter",
         "//score/launch_manager/src/daemon/src/osal:num_cores",
         "//score/launch_manager/src/daemon/src/process_group_manager:iprocess",
-        "//score/launch_manager/src/daemon/src/process_state_client:posix_process",
+        "//score/launch_manager/src/daemon/src/common:process_state",
         "@googletest//:gtest_main",
         "@score_baselibs//score/flatbuffers:flatbufferscpp",
     ],

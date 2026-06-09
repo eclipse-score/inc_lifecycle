@@ -11,9 +11,9 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include "score/mw/launch_manager/process_state_client/process_state_notifier.hpp"
+#include "score/mw/launch_manager/supervision_control_client/supervision_control_notifier.hpp"
 #include "score/mw/launch_manager/common/log.hpp"
-#include "score/mw/launch_manager/process_state_client/details/process_state_receiver.hpp"
+#include "score/mw/launch_manager/supervision_control_client/details/supervision_control_receiver.hpp"
 
 namespace score
 {
@@ -22,7 +22,7 @@ namespace lcm
 namespace internal
 {
 
-ProcessStateNotifier::ProcessStateNotifier() noexcept
+SupervisionControlNotifier::SupervisionControlNotifier() noexcept
 {
     ring_buffer_ = std::make_shared<ipc_dropin::RingBuffer<
         static_cast<size_t>(score::lcm::BufferConstants::BUFFER_QUEUE_SIZE),
@@ -31,28 +31,28 @@ ProcessStateNotifier::ProcessStateNotifier() noexcept
     ring_buffer_->initialize();
 }
 
-ProcessStateNotifier::~ProcessStateNotifier() noexcept
+SupervisionControlNotifier::~SupervisionControlNotifier() noexcept
 {
 }
 
-bool ProcessStateNotifier::queuePosixProcess(const score::lcm::PosixProcess& f_posixProcess) noexcept
+bool SupervisionControlNotifier::queueSupervisionEvent(const score::lcm::SupervisionEvent& f_event) noexcept
 {
     bool ret = true;
-    if (ring_buffer_->tryEnqueue(f_posixProcess))
+    if (ring_buffer_->tryEnqueue(f_event))
     {
         // nothing
     }
     else
     {
-        LM_LOG_ERROR() << "Failed to queue posix process";
+        LM_LOG_ERROR() << "Failed to queue supervision event";
         ret = false;
     }
     return ret;
 }
 
-std::unique_ptr<score::lcm::IProcessStateReceiver> ProcessStateNotifier::constructReceiver()
+std::unique_ptr<score::lcm::ISupervisionControlReceiver> SupervisionControlNotifier::constructReceiver()
 {
-    return std::make_unique<score::lcm::ProcessStateReceiver>(ring_buffer_);
+    return std::make_unique<score::lcm::SupervisionControlReceiver>(ring_buffer_);
 }
 
 }  // namespace internal

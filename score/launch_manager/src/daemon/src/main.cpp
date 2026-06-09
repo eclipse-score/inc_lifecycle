@@ -21,8 +21,8 @@
 #include "score/mw/launch_manager/configuration/flatbuffer_config_loader.hpp"
 #include "score/mw/launch_manager/process_group_manager/alive_monitor_thread.hpp"
 #include "score/mw/launch_manager/process_group_manager/process_group_manager.hpp"
-#include "score/mw/launch_manager/process_state_client/process_state_notifier.hpp"
 #include "score/mw/launch_manager/recovery_client/recovery_client.hpp"
+#include "score/mw/launch_manager/supervision_control_client/supervision_control_notifier.hpp"
 #include "score/mw/launch_manager/watchdog/WatchdogFactory.hpp"
 
 using namespace std;
@@ -157,16 +157,21 @@ int main(int argc, const char* argv[])
         }
         LM_LOG_DEBUG() << "Launch Manager Started !!!!";
         std::shared_ptr<score::lcm::IRecoveryClient> recoveryClient{std::make_shared<score::lcm::RecoveryClient>()};
-        auto process_state_notifier = std::make_unique<score::lcm::internal::ProcessStateNotifier>();
+        std::unique_ptr<score::lcm::saf::watchdog::IWatchdogIf> watchdog{
+            std::make_unique<score::lcm::saf::watchdog::WatchdogImpl>()};
+        auto supervision_control_notifier = std::make_unique<score::lcm::internal::SupervisionControlNotifier>();
         std::unique_ptr<score::lcm::saf::daemon::IAliveMonitor> healthMonitor{
             std::make_unique<score::lcm::saf::daemon::AliveMonitorImpl>(
-                recoveryClient, process_state_notifier->constructReceiver(), *config_result)};
+                recoveryClient, supervision_control_notifier->constructReceiver(), *config_result)};
         std::unique_ptr<score::lcm::internal::IAliveMonitorThread> aliveMonitorThread{
             std::make_unique<score::lcm::internal::AliveMonitorThread>(std::move(healthMonitor))};
 
         auto watchdog = score::lcm::watchdog::createWatchdog();
         auto process_group_manager = std::make_unique<ProcessGroupManager>(
-            std::move(aliveMonitorThread), recoveryClient, std::move(process_state_notifier), std::move(watchdog));
+            std::move(aliveMonitorThread),
+            recoveryClient,
+            std::move(supervision_control_notifier),
+            std::move(watchdog));
 
         if (process_group_manager->initialize(*config_result))
         {

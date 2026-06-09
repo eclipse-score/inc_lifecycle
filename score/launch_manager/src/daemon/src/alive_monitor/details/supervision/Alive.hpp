@@ -139,21 +139,21 @@ class Alive : public ISupervision,
         timers::NanoSecondType timestamp{UINT64_MAX};
     };
 
-    /// @brief Time sorted process state snapshot (activation / deactivation event)
-    struct ProcessStateSnapshot final
+    /// @brief Time sorted supervision event snapshot (activation / deactivation event)
+    struct SupervisionEventSnapshot final
     {
-        /// @brief Timestamp of the process state change
+        /// @brief Timestamp of the supervision event
         timers::NanoSecondType timestamp{UINT64_MAX};
-        /// @brief Process state that triggered this snapshot
+        /// @brief Supervision event type that triggered this snapshot
         // cppcheck-suppress unusedStructMember
-        ifexm::ProcessState::EProcState eProcState{ifexm::ProcessState::EProcState::idle};
+        score::lcm::SupervisionEventType eventType{score::lcm::SupervisionEventType::kDeactivation};
     };
 
     /// @brief Sync snapshot stores sync timestamp in the time sorting buffer
     using SyncSnapshot = timers::NanoSecondType;
 
     /// @brief Defines one element of time sorted update event
-    using TimeSortedUpdateEvent = std::variant<ProcessStateSnapshot, CheckpointSnapshot, SyncSnapshot>;
+    using TimeSortedUpdateEvent = std::variant<SupervisionEventSnapshot, CheckpointSnapshot, SyncSnapshot>;
 
     /// @brief Enumeration of supervision update events
     enum class EUpdateEventType : std::uint8_t

@@ -36,7 +36,7 @@
 #include "score/mw/launch_manager/process_group_manager/details/run_target.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/transition.hpp"
 #include "score/mw/launch_manager/process_group_manager/iprocess.hpp"
-#include "score/mw/launch_manager/process_state_client/iprocess_state_notifier.hpp"
+#include "score/mw/launch_manager/supervision_control_client/isupervision_control_notifier.hpp"
 #include <score/stop_token.hpp>
 
 namespace score
@@ -157,7 +157,7 @@ class Graph final
         std::shared_ptr<WorkerQueue> job_queue,
         osal::IProcess* process_interface,
         std::shared_ptr<SafeProcessMapInserter> process_map,
-        IProcessStateNotifier* process_state_notifier,
+        ISupervisionControlNotifier* supervision_control_notifier,
         ITransitionResultPublisher* transition_result_receiver);
 
     /// @brief Destructor to clean up resources used by the Graph object.
@@ -391,7 +391,7 @@ class Graph final
     std::shared_ptr<SafeProcessMapInserter> process_map_;
 
     /// @brief Interface to pass process nodes for alive monitor notifications
-    IProcessStateNotifier* process_state_notifier_;
+    ISupervisionControlNotifier* supervision_control_notifier_;
 
     /// @brief Class to receive information about the initial state transition result
     ITransitionResultPublisher* transition_result_receiver_;
