@@ -19,6 +19,7 @@
 #include "score/mw/launch_manager/configuration/configuration_manager.hpp"
 #include "score/mw/launch_manager/osal/num_cores.hpp"
 
+#include <algorithm>
 #include <fstream>
 
 using namespace std;
@@ -181,6 +182,19 @@ std::optional<const std::vector<uint32_t>*> ConfigurationManager::getProcessInde
     {
         LM_LOG_DEBUG() << "Process group state '" << pg_state_id.pg_state_name_ << "' not found in group '"
                        << pg_state_id.pg_name_ << "'.";
+    }
+
+    return result;
+}
+
+std::optional<const std::vector<ProcessGroupState>*> ConfigurationManager::getListOfProcessGroupStates(
+    const IdentifierHash& pg_name) const
+{
+    std::optional<const std::vector<ProcessGroupState>*> result = std::nullopt;
+
+    if (const auto* pg = getProcessGroupByID(pg_name))
+    {
+        result = &pg->states_;
     }
 
     return result;
@@ -390,11 +404,13 @@ bool ConfigurationManager::parseModeGroups(const ModeGroup* node, ProcessGroup& 
     bool result = false;
 
     const auto* mode_declaration_list = node ? node->mode_declaration() : nullptr;
-    if (mode_declaration_list && (mode_declaration_list->size())) {
+    if (mode_declaration_list && (mode_declaration_list->size()))
+    {
         process_group_data.off_state_ = IdentifierHash("Off");  // default value if no other path is defined
 
         const flatbuffers::String* recovery_state_name = node->recovery_mode_name();
-        if (recovery_state_name) {
+        if (recovery_state_name)
+        {
             process_group_data.recovery_state_ = getStringViewFromFlatBuffer(recovery_state_name);
         }
         else
@@ -421,6 +437,20 @@ bool ConfigurationManager::parseModeGroups(const ModeGroup* node, ProcessGroup& 
                     process_group_data.off_state_ = pg_state.name_;
                 }
             }
+        }
+
+        // Guarantee an Off state exists so it always has a RunTarget node. When no state name
+        // ends in "/Off", off_state_ stays the default "Off" with no matching entry above; add an
+        // empty one (no processes == everything stopped).
+        const bool has_off_state =
+            std::any_of(process_group_data.states_.cbegin(),
+                        process_group_data.states_.cend(),
+                        [&](const ProcessGroupState& s) { return s.name_ == process_group_data.off_state_; });
+        if (!has_off_state)
+        {
+            ProcessGroupState off_state;
+            off_state.name_ = process_group_data.off_state_;  // process_indexes_ left empty
+            process_group_data.states_.push_back(off_state);
         }
 
         // Successfully parsed machine configurations
@@ -468,8 +498,10 @@ static void setSchedulingParameters(const Process& node, const ProcessStartupCon
     instance.startup_config_.scheduling_policy_ = ConfigurationManager::kDefaultSchedulingPolicy;
     instance.startup_config_.scheduling_priority_ = ConfigurationManager::kDefaultNormalSchedulingPriority;
     auto attribute = config.scheduling_policy();
-    if (attribute != nullptr) {
-        if (strcasecmp("SCHED_FIFO", attribute->c_str()) == 0) {
+    if (attribute != nullptr)
+    {
+        if (strcasecmp("SCHED_FIFO", attribute->c_str()) == 0)
+        {
             instance.startup_config_.scheduling_policy_ = SCHED_FIFO;
             instance.startup_config_.scheduling_priority_ = ConfigurationManager::kDefaultRealtimeSchedulingPriority;
         }
@@ -489,7 +521,8 @@ static void setSchedulingParameters(const Process& node, const ProcessStartupCon
         }
     }
     attribute = config.scheduling_priority();
-    if (attribute != nullptr) {
+    if (attribute != nullptr)
+    {
         instance.startup_config_.scheduling_priority_ = std::stoi(attribute->c_str());
     }
     attribute = node.coremask();
@@ -562,7 +595,8 @@ bool ConfigurationManager::parseProcessConfigurations(const Process* node)
                 std::chrono::milliseconds(startup_config_node->exit_timeout_value());
 
             auto execution_error_string = startup_config_node->execution_error();
-            if (execution_error_string) {
+            if (execution_error_string)
+            {
                 instance.pgm_config_.execution_error_code_ =
                     static_cast<uint32_t>(std::stoi(execution_error_string->c_str()));
             }
@@ -741,10 +775,12 @@ void ConfigurationManager::parseExecutionDependency(
                 Dependency dep{};
                 auto state_name = getStringViewFromFlatBuffer(process_dependency_node->state_name());
                 dep.process_state_ = getProcessState(state_name);
-                dep.target_process_id_ = getStringViewFromFlatBuffer(process_dependency_node->target_process_identifier());
+                dep.target_process_id_ =
+                    getStringViewFromFlatBuffer(process_dependency_node->target_process_identifier());
                 LM_LOG_DEBUG() << "ParseProcessExecutionDependency: target process path:"
-                                << std::string_view{getStringFromFlatBuffer(process_dependency_node->target_process_identifier())}
-                                << "ID:" << dep.target_process_id_;
+                               << std::string_view{getStringFromFlatBuffer(
+                                      process_dependency_node->target_process_identifier())}
+                               << "ID:" << dep.target_process_id_;
                 process_instance.dependencies_.push_back(dep);
             }
         }
@@ -966,7 +1002,9 @@ osal::CommsType ConfigurationManager::getfunctionClusterAffiliation(osal::CommsT
     {
         // TODO - example introduce PHM enum.
         LM_LOG_DEBUG() << "Process is PLATFORM_HEALTH_MANAGEMENT function Cluster Affiliation";
-    } else {
+    }
+    else
+    {
         LM_LOG_DEBUG() << "Process is NOT associated with any function Cluster Affiliation";
     }
 

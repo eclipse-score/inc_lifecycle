@@ -182,15 +182,42 @@ cc_library(
     deps = [
         ":component_event_queue",
         ":component_task",
+        ":component_of",
         ":dependency_graph",
         ":process_info_node",
         ":run_target",
         ":safe_process_map",
-        ":task",
+        ":transition",
         "//score/launch_manager/src/daemon/src/common:identifier_hash",
         "//score/launch_manager/src/daemon/src/control:control_client_channel",
         "//score/launch_manager/src/daemon/src/osal:semaphore",
         "//score/launch_manager/src/daemon/src/process_group_manager:iprocess",
+    ],
+)
+
+cc_library(
+    name = "transition",
+    hdrs = ["transition.hpp"],
+    include_prefix = "score/mw/launch_manager/process_group_manager/details",
+    strip_include_prefix = "/score/launch_manager/src/daemon/src/process_group_manager/details",
+    visibility = ["//score/launch_manager/src/daemon/src/process_group_manager:__pkg__"],
+    deps = [
+        ":dependency_graph",
+        ":reservable_queue",
+        "@score_baselibs//score/language/futurecpp",
+    ],
+)
+
+cc_library(
+    name = "component_of",
+    hdrs = ["component_of.hpp"],
+    include_prefix = "score/mw/launch_manager/process_group_manager/details",
+    strip_include_prefix = "/score/launch_manager/src/daemon/src/process_group_manager/details",
+    visibility = ["//score/launch_manager/src/daemon/src/process_group_manager:__pkg__"],
+    deps = [
+        ":icomponent",
+        ":process_info_node",
+        ":run_target",
     ],
 )
 
@@ -311,7 +338,10 @@ cc_library(
     hdrs = [
         "reservable_queue.hpp"
     ],
-    visibility = ["//score/launch_manager/src/daemon/src/process_group_manager:__pkg__"],
+    visibility = [
+        "//score/launch_manager/src/daemon/src/graph_poc:__pkg__",
+        "//score/launch_manager/src/daemon/src/process_group_manager:__pkg__",
+    ],
 )
 
 cc_test(
@@ -319,7 +349,18 @@ cc_test(
     srcs = ["dependency_graph_UT.cpp"],
     deps = [
         ":dependency_graph",
-        "//score/src/launch_manager/daemon/src/common:identifier_hash",
+        "//score/launch_manager/src/daemon/src/common:identifier_hash",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "transition_UT",
+    srcs = ["transition_UT.cpp"],
+    deps = [
+        ":dependency_graph",
+        ":icomponent",
+        ":transition",
         "@googletest//:gtest_main",
     ],
 )

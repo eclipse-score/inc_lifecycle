@@ -17,13 +17,13 @@
 #include <memory>
 #include <optional>
 
-#include "score/mw/launch_manager/common/identifier_hash.hpp"
-#include "score/mw/launch_manager/recovery_client/irecovery_client.h"
 #include "score/mw/launch_manager/alive_monitor/details/ifappl/Checkpoint.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ProcessCfg.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ProcessState.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/supervision/Alive.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/supervision/SupervisionCfg.hpp"
+#include "score/mw/launch_manager/common/identifier_hash.hpp"
+#include "score/mw/launch_manager/recovery_client/irecovery_client.h"
 
 using namespace testing;
 
@@ -36,12 +36,14 @@ namespace
 class MockRecoveryClient : public score::lcm::IRecoveryClient
 {
   public:
+    MOCK_METHOD(void,
+                setRecoveryRequestCallback,
+                (score::lcm::IRecoveryClient::RecoveryRequestCallback callback),
+                (noexcept, override));
     MOCK_METHOD(bool,
                 sendRecoveryRequest,
                 (const score::lcm::IdentifierHash& process_group_identifier),
                 (noexcept, override));
-    MOCK_METHOD(std::optional<score::lcm::IdentifierHash>, getNextRequest, (), (noexcept, override));
-    MOCK_METHOD(bool, hasOverflow, (), (const, noexcept, override));
 };
 
 /// Helper: build a minimal Alive under test.
@@ -256,8 +258,7 @@ TEST_F(AliveSupervisionTest, AliveDebouncesThroughFailedBeforeExpired)
 
 TEST_F(AliveSupervisionTest, DeactivatesOnProcessSigterm)
 {
-    RecordProperty("Description",
-                   "Verify that a clean shutdown (sigterm) deactivates the supervision from ok.");
+    RecordProperty("Description", "Verify that a clean shutdown (sigterm) deactivates the supervision from ok.");
     AliveFixture fix = AliveFixture::Builder{}.build();
 
     EXPECT_CALL(*fix.mockClient, sendRecoveryRequest(_)).Times(0);
@@ -341,14 +342,11 @@ TEST_F(AliveSupervisionTest, IgnoresIrrelevantProcessStates)
 
 TEST_F(AliveSupervisionTest, MaxIndicationViolationExpires)
 {
-    RecordProperty("Description",
-                   "Verify that exceeding the maximum allowed heartbeats per cycle leads to failure.");
+    RecordProperty("Description", "Verify that exceeding the maximum allowed heartbeats per cycle leads to failure.");
     // max=1, tolerance=0: more than 1 heartbeat per cycle expires immediately
     AliveFixture fix = AliveFixture::Builder{}.withMaxIndications(1U).build();
 
-    EXPECT_CALL(*fix.mockClient, sendRecoveryRequest(fix.kProcessIdentifier))
-        .Times(1)
-        .WillOnce(Return(true));
+    EXPECT_CALL(*fix.mockClient, sendRecoveryRequest(fix.kProcessIdentifier)).Times(1).WillOnce(Return(true));
 
     fix.activateProcess(10U);
     fix.alive->evaluate(11U);

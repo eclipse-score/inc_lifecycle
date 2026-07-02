@@ -45,6 +45,7 @@ class MockComponent : public IComponent
     MOCK_METHOD(RequestResult, deactivate, (score::cpp::stop_token stop_token), (override));
     MOCK_METHOD(RequestResult, tryHandleTermination, (int32_t status), (override));
     MOCK_METHOD(bool, active, (), (const override));
+    MOCK_METHOD(bool, stopped, (), (const override));
     MOCK_METHOD(uint32_t, getIndex, (), (const override));
 };
 
@@ -165,7 +166,8 @@ TEST_F(OsHandlerTest, WaitReturnsProcessIdBeforeRegistration_LaterRegistrationRe
     // insertIfNotTerminated must detect the previously stored termination, return 1, and invoke the
     // callback immediately with the saved exit status instead of creating a new live entry.
     EXPECT_CALL(ccontroller_, terminated(_, 99)).Times(1);
-    EXPECT_EQ(process_map_.insertIfNotTerminated(4000, &component_), 1);
+    EXPECT_EQ(process_map_.insertIfNotTerminated(4000, &component_),
+              score::lcm::internal::SafeProcessMap::SafeProcessMapReturnType::kYield);
 
     sut_.reset();
 }

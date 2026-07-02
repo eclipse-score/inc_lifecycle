@@ -18,18 +18,25 @@
 #include <chrono>
 #include <memory>
 #include <mutex>
-#include <shared_mutex>
 #include <string_view>
+#include <utility>
+#include <variant>
 #include <vector>
 
 #include "score/mw/launch_manager/common/identifier_hash.hpp"
 #include "score/mw/launch_manager/control/control_client_channel.hpp"
 #include "score/mw/launch_manager/osal/semaphore.hpp"
+#include "score/mw/launch_manager/process_group_manager/details/component_event.hpp"
+#include "score/mw/launch_manager/process_group_manager/details/component_of.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/dependency_graph.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/process_info_node.hpp"
+#include "score/mw/launch_manager/process_group_manager/details/run_target.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/task.hpp"
+#include "score/mw/launch_manager/process_group_manager/details/transition.hpp"
 #include "score/mw/launch_manager/process_group_manager/iprocess.hpp"
 #include <score/stop_token.hpp>
+namespace score
+{
 
 namespace lcm
 {
@@ -111,6 +118,7 @@ enum class GraphState : std::uint_least8_t
 /// kUndefinedState -> kSuccess         kUndefinedState
 /// kUndefinedState -> kAborting        kUndefinedState
 // coverity[autosar_cpp14_m3_4_1_violation:INTENTIONAL] The value is used in a global context.
+// clang-format off
 static constexpr GraphState state_results[][static_cast<uint>(GraphState::kUndefinedState) + 1U] = {
     // from kSuccess                     kInTransition               kAborting                 kCancelled
     // kUndefinedState              to new_state
@@ -140,6 +148,7 @@ static constexpr GraphState state_results[][static_cast<uint>(GraphState::kUndef
      GraphState::kUndefinedState,
      GraphState::kUndefinedState}  // kUndefinedState
 };
+// clang-format on
 
 /// @brief Manages the processes and state transitions for a single process group.
 ///
@@ -177,14 +186,16 @@ class Graph final
     /// @param index The index of the process group in the vector of process groups
     void initProcessGroupNodes(IdentifierHash pg, uint32_t num_processes, uint32_t index);
 
-    /// @brief Reports that a node has finished executing, enqueuing successors or updating the graph state if a
-    /// transition has finished.
-    void nodeExecuted(uint32_t node, score::cpp::expected_blank<IComponent::ComponentError> error);
-
-    /// @brief Abort the current transition due to a process error.
-    /// @deprecated @param code The execution error for the process that caused the abort.
-    /// @param reason The process error that triggered the abort.
-    void abort(uint32_t code, IComponent::ComponentError reason);
+    /// @brief Applies a ComponentEvent — produced by ProcessMonitor from worker/OS-handler thread
+    /// callbacks and drained on the main thread — to this graph.
+    /// @details Dispatches on the event's variant:
+    ///   - ActivationSuccessful / DeactivationComplete: `nodeExecuted(node_index, {})`
+    ///   - ActivationFailed: `nodeExecuted(node_index, make_unexpected(reason))`
+    ///   - UnexpectedTermination: `abort(1, kErrorAfterReady)` — ProcessMonitor::terminated() only
+    ///     pushes this event once a process has already reached its ready condition, so it is
+    ///     always a post-ready crash.
+    /// @param event The event to process.
+    void handleComponentEvent(const ComponentEvent& event);
 
     /// @brief Cancel the current transition because a new state has been requested.
     /// Sets the graph state to kCancelled and posts a kSetStateCancelled pending event.
@@ -210,11 +221,15 @@ class Graph final
     /// @return True if the transition was started. False if the graph could not enter kInTransition.
     bool startTransitionToOffState();
 
+    /// @return True if the graph is currently transitioning to the Off state.
+    bool isTransitioningToOff() const;
+
     /// @return The current graph state.
     GraphState getState() const;
 
     /// @param process_index Index of the process node to retrieve.
-    /// @return The ProcessInfoNode at the given index, or nullptr if out of bounds.
+    /// @return The ProcessInfoNode at the given index, or nullptr if out of bounds or if the node
+    /// at that index is a RunTarget rather than a ProcessInfoNode.
     ProcessInfoNode* getProcessInfoNode(uint32_t process_index);
 
     /// @brief Helper function to identify a node with ready state "Terminated" from the legacy configuration
@@ -233,8 +248,8 @@ class Graph final
     /// @return The index of this graph within the ProcessGroupManager's graph list.
     uint32_t getProcessGroupIndex();
 
-    /// @return The dependency graph containing all process nodes.
-    DependencyGraph<ProcessInfoNode>& getNodes();
+    /// @return The ProcessInfoNode that has a ControlClientChannel, or nullptr if none exists.
+    const ProcessInfoNode* findControlClient();
 
     /// @brief Sets the control client that is managing state transitions for this process group.
     /// @param control_client_id The identifier of the new state manager.
@@ -287,30 +302,30 @@ class Graph final
     std::chrono::time_point<std::chrono::steady_clock> getRequestStartTime();
 
   private:
+    /// @brief Reports that a node has finished executing, enqueuing successors or updating the graph state if a
+    /// transition has finished.
+    void nodeExecuted(uint32_t node, score::cpp::expected_blank<IComponent::ComponentError> error);
+
+    /// @brief Abort the current transition due to a process error.
+    /// @deprecated @param code The execution error for the process that caused the abort.
+    /// @param reason The process error that triggered the abort.
+    void abort(uint32_t code, IComponent::ComponentError reason);
+
     /// @brief Sets the current state of the graph.
     /// @param new_state The new state to set for the graph.
     void setState(GraphState new_state);
 
-    /// @brief Queues the first nodes of the activation graph for the given node's dependencies.
-    /// @return True if at least one node was queued.
-    bool queueActivationHeadNodes(const ProcessInfoNode& node);
-
-    /// @brief Queues the first nodes of the deactivation graph for the given node's dependencies.
-    /// @return True if at least one node was queued.
-    bool queueDeactivationHeadNodes(const ProcessInfoNode& node);
-
-    /// @brief Queues deactivation jobs for the process at the given index.
-    /// @param p The process index identifying the root node we wish to stop.
-    /// @return True if at least one deactivation job was queued.
-    bool queueStopJobs(uint32_t p);
-
-    /// @brief Queues jobs to start processes. If there are no jobs to enqueue, sets the graph to
-    /// kSuccess and posts a kSetStateSuccess event.
-    void queueStartJobs(uint32_t process_index_list);
-
     /// @brief Creates one ProcessInfoNode per process and adds it to the dependency graph.
     /// @param num_processes The number of processes in this process group.
     inline void createProcessInfoNodes(uint32_t num_processes);
+
+    /// @brief Creates one RunTarget node per configured ProcessGroupState and wires it to depend
+    /// on the processes listed for that state.
+    /// @param pg_name The identifier of the process group.
+    inline void createRunTargetNodes(IdentifierHash pg_name);
+
+    /// @return The index of the RunTarget node for @p pg_state, or -1 if not found.
+    int32_t getRunTargetIndex(IdentifierHash pg_state) const;
 
     /// @brief Reads process dependencies from the configuration and adds the corresponding
     /// edges to the dependency graph.
@@ -322,14 +337,21 @@ class Graph final
     /// @param task The task to enqueue.
     inline void tryQueueNode(Task task);
 
-    /// @brief Processes a completed node during a transition. Enqueues successor
-    /// nodes and, when the final node completes, sets the graph to kSuccess.
-    /// @param node The index of the node that just completed.
-    inline void handleTransitionExecution(uint32_t node);
+    /// @brief Every node that is ready to execute is either executed in place (RunTarget) or queued for execution (ProcessInfoNode).
+    void queueReadyNodes();
+
+    /// @brief Executes a RunTarget's activation/deactivation in place
+    /// @details Since a RunTarget is a virtual node with no work to do
+    /// and reports its completion to the current transition immediately.
+    void updateRunTargetInPlace(RunTarget& run_target, TaskType task_type);
+
+    /// @brief Common tail of a transition that finished without error: moves the graph to
+    /// kSuccess, posts kSetStateSuccess, and reports initial-state-transition success if this
+    /// was the initial transition.
+    void finalizeTransitionSuccess();
 
     /// @brief Finalizes a failed or cancelled transition after the last in-flight job
-    /// completes. Resets the dependency graph, moves the graph state to kUndefinedState,
-    /// and posts the appropriate event.
+    /// completes. Moves the graph state to kUndefinedState and posts the appropriate event.
     /// @param current_state The graph state when the last job completed (not kInTransition).
     inline void handleNonTransitionExecution(GraphState current_state);
 
@@ -337,16 +359,23 @@ class Graph final
     uint32_t pg_index_;
 
     /// @brief Number of jobs that have been queued but are not yet executed
-    std::atomic_int32_t jobs_in_progress_{0};
+    int32_t jobs_in_progress_{0};
 
-    /// @brief Nodes for all unique processes in this process group.
-    DependencyGraph<ProcessInfoNode> nodes_;
+    /// @brief Nodes for all unique processes in this process group, plus a virtual RunTarget node
+    /// per configured ProcessGroupState.
+    DependencyGraph<std::variant<ProcessInfoNode, RunTarget>> nodes_;
 
-    /// @brief Indicates whether the graph is starting processes or stopping them.
-    std::atomic_bool starting_{false};
+    /// @brief Maps a ProcessGroupState name to the index of its RunTarget node in @c nodes_.
+    std::vector<std::pair<IdentifierHash, uint32_t>> run_targets_;
+
+    /// @brief Builder for creating the transition object for the current state transition.
+    TransitionBuilder<std::variant<ProcessInfoNode, RunTarget>> transition_builder_;
+
+    /// @brief The currently active transition or nullptr before the first one starts.
+    Transition<std::variant<ProcessInfoNode, RunTarget>>* current_transition_{nullptr};
 
     /// @brief Current state of the graph.
-    std::atomic<GraphState> state_{GraphState::kSuccess};
+    GraphState state_{GraphState::kSuccess};
 
     /// @brief Graph semaphore for synchronization.
     /// @deprecated Not required when Control Client handler is implemented, to be removed
@@ -354,12 +383,8 @@ class Graph final
 
     /// @brief the requested (target) Process Group State
     ProcessGroupStateID requested_state_{};
-    /// @brief Mutex protecting concurrent access to requested_state_.pg_state_name_
+    /// @brief Mutex protecting concurrent access to requested_state_.pg_state_name_.
     mutable std::mutex requested_state_mutex_{};
-
-    /// @brief Mutex protecting new transitions from interfering with concluding transitions.
-    /// This enforces that, when a transition has completed successfully, it cannot then be cancelled.
-    std::shared_mutex transition_completion_mutex_;
 
     /// @brief Pointer to the ProcessGroupManager.
     ProcessGroupManager* pgm_;
@@ -368,7 +393,7 @@ class Graph final
     ControlClientID last_state_manager_;
 
     /// @brief The last execution error set on an unexpected termination
-    std::atomic_uint32_t last_execution_error_;
+    uint32_t last_execution_error_;
 
     /// @brief Set the true if this is the MainPG and this is the initial state transition
     bool is_initial_state_transition_{false};
@@ -377,10 +402,10 @@ class Graph final
     IdentifierHash pending_state_{""};
 
     /// @brief Any pending event to report
-    std::atomic<ControlClientCode> event_{ControlClientCode::kNotSet};
+    ControlClientCode event_{ControlClientCode::kNotSet};
 
     /// @brief Reason that tha graph was aborted
-    std::atomic<ControlClientCode> abort_code_{ControlClientCode::kNotSet};
+    ControlClientCode abort_code_{ControlClientCode::kNotSet};
 
     /// @brief The message to send when a transition is cancelled
     ControlClientMessage cancel_message_;
@@ -391,15 +416,12 @@ class Graph final
     /// @brief Stores the timestamp based on the system clock when starting a request
     std::chrono::time_point<std::chrono::steady_clock> request_start_time_;
 
-    int32_t last_target = -1;
-    int32_t target_node = -1;
-
     score::cpp::stop_source stop_source_;
 };
 
-}  // namespace lcm
-
 }  // namespace internal
+
+}  // namespace lcm
 
 }  // namespace score
 

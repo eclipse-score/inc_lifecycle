@@ -48,5 +48,5 @@ TEST(MissingBinaryFailure, ControlClientMock)
 
 int main()
 {
-    return TestRunner(__FILE__, TerminationBehavior::kContinue, TerminationNotification::kTestEnd).RunTests();
+    return TestRunner(__FILE__, TerminationBehavior::kWait, TerminationNotification::kTestEnd).RunTests();
 }

@@ -272,7 +272,6 @@ ProcessGroupState ConfigurationAdapter::buildProcessGroupState(
 std::vector<ProcessGroupState> ConfigurationAdapter::buildProcessGroupStates(
     const Config& config) const {
     std::vector<ProcessGroupState> states;
-    states.push_back(ProcessGroupState{IdentifierHash{"MainPG/Off"}, {}});
 
     const auto& run_targets = config.runTargets();
     DependsOnMap depends_on_by_name;
@@ -288,6 +287,17 @@ std::vector<ProcessGroupState> ConfigurationAdapter::buildProcessGroupStates(
     }
 
     states.push_back(buildProcessGroupState("MainPG/fallback_run_target", fallback_cfg.depends_on, depends_on_by_name));
+
+    // Guarantee an Off state exists so it always has a RunTarget node. Add an empty one (no
+    // processes == everything stopped) unless a run target already produced it.
+    const IdentifierHash off_name{"MainPG/Off"};  // matches pg.off_state_ set in buildFromConfig
+    const bool has_off = std::any_of(
+        states.cbegin(), states.cend(), [&](const ProcessGroupState& s) { return s.name_ == off_name; });
+    if (!has_off)
+    {
+        states.push_back(ProcessGroupState{off_name, {}});
+    }
+
     return states;
 }
 
@@ -403,6 +413,19 @@ std::optional<const std::vector<uint32_t>*> ConfigurationAdapter::getProcessInde
     LM_LOG_DEBUG() << "Process group state '" << pg_state_id.pg_state_name_
                    << "' not found in group '" << pg_state_id.pg_name_ << "'.";
     return std::nullopt;
+}
+
+std::optional<const std::vector<ProcessGroupState>*> ConfigurationAdapter::getListOfProcessGroupStates(
+    const IdentifierHash& pg_name) const
+{
+    std::optional<const std::vector<ProcessGroupState>*> result = std::nullopt;
+
+    if (const auto* pg = getProcessGroupByID(pg_name))
+    {
+        result = &pg->states_;
+    }
+
+    return result;
 }
 
 std::optional<const OsProcess*> ConfigurationAdapter::getOsProcessConfiguration(

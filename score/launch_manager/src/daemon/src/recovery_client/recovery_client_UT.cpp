@@ -12,10 +12,14 @@
  ********************************************************************************/
 #include <gtest/gtest.h>
 
+#include <vector>
+
 #include "score/mw/launch_manager/recovery_client/recovery_client.hpp"
 
-namespace score {
-namespace lcm {
+namespace score
+{
+namespace lcm
+{
 
 class RecoveryClientTest : public ::testing::Test
 {
@@ -27,87 +31,77 @@ class RecoveryClientTest : public ::testing::Test
     }
 };
 
-TEST_F(RecoveryClientTest, SendSingleRequest)
+TEST_F(RecoveryClientTest, SendRecoveryRequestInvokesRegisteredCallback)
 {
     RecordProperty("Description",
-                   "RecoveryClient can send single request successfully.");
+                   "RecoveryClient invokes the registered callback with the provided process identifier.");
 
     RecoveryClient client;
+    IdentifierHash received{""};
+    client.setRecoveryRequestCallback([&received](const IdentifierHash& process_identifier) {
+        received = process_identifier;
+    });
+
     const bool result = client.sendRecoveryRequest(IdentifierHash("proc_a"));
     EXPECT_TRUE(result);
-    EXPECT_FALSE(client.hasOverflow());
+    EXPECT_EQ(received, IdentifierHash("proc_a"));
 }
 
-TEST_F(RecoveryClientTest, GetNextRequest)
+TEST_F(RecoveryClientTest, SendRecoveryRequestReturnsFalseWithoutRegisteredCallback)
 {
-    RecordProperty("Description",
-                   "RecoveryClient can send and retrieve single request successfully.");
+    RecordProperty("Description", "RecoveryClient returns false and does not crash when no callback is registered.");
 
     RecoveryClient client;
-    const IdentifierHash expected_proc("proc_b");
-    client.sendRecoveryRequest(expected_proc);
-
-    const auto req = client.getNextRequest();
-    ASSERT_TRUE(req.has_value());
-    EXPECT_EQ(*req, expected_proc);
+    EXPECT_FALSE(client.sendRecoveryRequest(IdentifierHash("proc_b")));
 }
 
-TEST_F(RecoveryClientTest, GetNextRequestEmpty)
+TEST_F(RecoveryClientTest, MultipleRequestsInvokeCallbackInOrder)
 {
     RecordProperty("Description",
-                   "RecoveryClient returns no request when buffer is empty.");
+                   "RecoveryClient invokes the callback once per request in the same order requests are sent.");
 
     RecoveryClient client;
-    EXPECT_FALSE(client.getNextRequest().has_value());
-}
+    std::vector<IdentifierHash> received;
+    client.setRecoveryRequestCallback([&received](const IdentifierHash& process_identifier) {
+        received.push_back(process_identifier);
+    });
 
-TEST_F(RecoveryClientTest, RingBufferFull)
-{
-    RecordProperty("Description",
-                   "RecoveryClient sets overflow flag if buffer is full.");
-
-    RecoveryClient client;
-    const IdentifierHash proc("proc_c");
-
-    // Fill the ring buffer
-    for (std::size_t i = 0U; i < RecoveryClient::kBufferCapacity; ++i)
-    {
-        EXPECT_TRUE(client.sendRecoveryRequest(proc));
-    }
-
-    // One more should fail and set overflow
-    EXPECT_FALSE(client.sendRecoveryRequest(proc));
-    EXPECT_TRUE(client.hasOverflow());
-}
-
-TEST_F(RecoveryClientTest, FIFOOrdering)
-{
-    RecordProperty("Description",
-                   "RecoveryClient maintains the order of inserted requests");
-
-    RecoveryClient client;
     const IdentifierHash proc_first("proc_first");
     const IdentifierHash proc_second("proc_second");
     const IdentifierHash proc_third("proc_third");
 
-    client.sendRecoveryRequest(proc_first);
-    client.sendRecoveryRequest(proc_second);
-    client.sendRecoveryRequest(proc_third);
+    EXPECT_TRUE(client.sendRecoveryRequest(proc_first));
+    EXPECT_TRUE(client.sendRecoveryRequest(proc_second));
+    EXPECT_TRUE(client.sendRecoveryRequest(proc_third));
 
-    const auto req1 = client.getNextRequest();
-    ASSERT_TRUE(req1.has_value());
-    EXPECT_EQ(req1.value(), proc_first);
-
-    const auto req2 = client.getNextRequest();
-    ASSERT_TRUE(req2.has_value());
-    EXPECT_EQ(req2.value(), proc_second);
-
-    const auto req3 = client.getNextRequest();
-    ASSERT_TRUE(req3.has_value());
-    EXPECT_EQ(req3.value(), proc_third);
-
-    EXPECT_FALSE(client.getNextRequest().has_value());
+    ASSERT_EQ(received.size(), 3U);
+    EXPECT_EQ(received[0], proc_first);
+    EXPECT_EQ(received[1], proc_second);
+    EXPECT_EQ(received[2], proc_third);
 }
 
-} // namespace lcm
-} // namespace score
+TEST_F(RecoveryClientTest, ReRegisteringCallbackReplacesPreviousCallback)
+{
+    RecordProperty("Description",
+                   "RecoveryClient uses the latest callback when setRecoveryRequestCallback is called again.");
+
+    RecoveryClient client;
+    std::size_t callback1_calls = 0U;
+    std::size_t callback2_calls = 0U;
+
+    client.setRecoveryRequestCallback([&callback1_calls](const IdentifierHash&) {
+        ++callback1_calls;
+    });
+    ASSERT_TRUE(client.sendRecoveryRequest(IdentifierHash("proc_before_replace")));
+
+    client.setRecoveryRequestCallback([&callback2_calls](const IdentifierHash&) {
+        ++callback2_calls;
+    });
+    ASSERT_TRUE(client.sendRecoveryRequest(IdentifierHash("proc_after_replace")));
+
+    EXPECT_EQ(callback1_calls, 1U);
+    EXPECT_EQ(callback2_calls, 1U);
+}
+
+}  // namespace lcm
+}  // namespace score

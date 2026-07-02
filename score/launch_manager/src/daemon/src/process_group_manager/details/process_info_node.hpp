@@ -35,9 +35,13 @@ namespace internal
 
 using ReportStateFn = std::function<bool(IdentifierHash, ProcessState, timespec)>;
 
-/// @brief Represents one process within a process group.
-/// Tracks the process's current state and performs the actions needed to start and stop it
-/// during state transitions
+/// @brief Represents both a process and a component in the graph.
+/// @details A ProcessInfoNode is a node in the dependency graph that represents an OS process and its associated component.
+/// It manages the lifecycle of the process, including activation, deactivation, and state reporting. 
+/// The node tracks the process's PID, status, and state, and provides methods to activate or deactivate the process, as well as to report its completion or error state.
+/// At the same time it implements the IComponent interface, allowing it to be treated as a component in the graph's transition engine.
+/// @note A Component and a Process have distinct state machines. The component may be in kActive state while the process is in kTerminated state, for example, if the process self-terminates after reaching its ready condition.
+///       In the future, this class shall be split up to properly separate Component and Process lifecycle.
 class ProcessInfoNode final : public IComponent
 {
   public:
@@ -70,6 +74,7 @@ class ProcessInfoNode final : public IComponent
           pid_(other.pid_),
           status_(other.status_.load()),
           process_state_(other.process_state_.load()),
+          reached_ready_(other.reached_ready_.load()),
           ready_condition_(other.ready_condition_),
           config_(other.config_),
           control_client_channel_(std::move(other.control_client_channel_)),
@@ -93,6 +98,8 @@ class ProcessInfoNode final : public IComponent
     RequestResult tryHandleTermination(int32_t process_status) override;
 
     bool active() const override;
+
+    bool stopped() const override;
 
     /// @return The OS process ID, or zero if the process has never been started.
     osal::ProcessID getPid() const;
@@ -122,8 +129,8 @@ class ProcessInfoNode final : public IComponent
     /// @return The provided error if the result has not been reported yet. A waiting result otherwise.
     RequestResult tryReportError(ComponentError error);
 
-    /// @return The provided state if the result has not been reported yet. A waiting result otherwise.
-    RequestResult tryReportState(RequestState state);
+    /// @return Success state if the callback has not been used yet, waiting otherwise.
+    RequestResult tryReportSuccess();
 
     /// @brief Requests the OS to terminate this process and waits for it to exit.
     /// This operation cannot fail. If the process does not terminate, the function does not return.
@@ -180,6 +187,10 @@ class ProcessInfoNode final : public IComponent
 
     /// @brief The current state of the OS process
     std::atomic<score::lcm::ProcessState> process_state_{score::lcm::ProcessState::kIdle};
+
+    /// @brief Flag indicating whether the Ready Condition has been satisfied.
+    /// The flag is reset when deactivate() is called.
+    std::atomic_bool reached_ready_{false};
 
     /// @brief Enum representing the criteria for this process to be considered "ready"
     ReadyCondition ready_condition_;

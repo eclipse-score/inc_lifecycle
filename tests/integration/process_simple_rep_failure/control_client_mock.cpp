@@ -77,7 +77,7 @@ TEST(RecoveryActionSimpleRepFailure, ControlClientMock) {
 }
 
 int main() {
-  return TestRunner(__FILE__, TerminationBehavior::kContinue,
+  return TestRunner(__FILE__, TerminationBehavior::kWait,
                     TerminationNotification::kTestEnd)
       .RunTests();
 }

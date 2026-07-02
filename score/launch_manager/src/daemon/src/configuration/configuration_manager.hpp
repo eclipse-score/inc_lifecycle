@@ -186,6 +186,13 @@ class ConfigurationManager final
     std::optional<const std::vector<uint32_t>*> getProcessIndexesList(
         const ProcessGroupStateID& process_group_state_id) const;
 
+    /// @brief Get the names of all states configured for a particular process group.
+    /// @param[in] pg_name The name of the process group.
+    /// @return Returns a pointer to a vector of the process group's configured state names, or no
+    /// value if the process group does not exist.
+    std::optional<const std::vector<ProcessGroupState>*> getListOfProcessGroupStates(
+        const IdentifierHash& pg_name) const;
+
     /// @brief Get startup configuration for a given process.
     /// @param[in] pg_name_ The name of the process group for which to retrieve the OS Configurations. .
     /// @param[in] index The index of the OS process.

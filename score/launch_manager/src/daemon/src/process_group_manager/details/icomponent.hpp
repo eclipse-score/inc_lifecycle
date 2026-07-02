@@ -73,6 +73,9 @@ class IComponent
     /// @returns True if the component is active in the active run target.
     [[nodiscard]] virtual bool active() const = 0;
 
+    /// @return True once deactivation of this component is complete.
+    virtual bool stopped() const = 0;
+
     virtual ~IComponent() = default;
 };
 

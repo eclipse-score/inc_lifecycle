@@ -357,6 +357,10 @@ run_targets (object, optional)
     * **Description:** Defines an individual **Run Target's** configuration, specifying the components and dependencies that constitute a particular operational mode.
     * **Reference:** This property refers to the ``run_target`` reusable type defined in this schema.
 
+The name "Off" is reserved for a special **Run Target** that represents the system's shutdown state.
+If a **Run Target** with this name is configured explicitly, the **Launch Manager** will transition to this **Run Target** when receiving a SIGTERM signal.
+If not configured explicitly, the **Launch Manager** will automatically create a default **Run Target** named "Off" with no dependencies.
+
 .. _lm_conf_initial_run_target_string_required_:
 
 initial_run_target (string, required)

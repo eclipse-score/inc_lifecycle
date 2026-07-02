@@ -11,10 +11,13 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include "score/mw/launch_manager/common/identifier_hash.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/dependency_graph.hpp"
+
+#include <vector>
 
 namespace score::lcm
 {
@@ -22,139 +25,117 @@ namespace score::lcm
 TEST(DependencyGraphTest, EmplaceAndAccessByIndex)
 {
     const std::string_view text = "AAAAA";
-    score::lcm::DependencyGraph<IdentifierHash> graph(1);
+    DependencyGraph<IdentifierHash> graph(1);
     const auto res = graph.emplace(text);
 
     auto& hash = graph[res];
     EXPECT_EQ(hash, IdentifierHash{text});
 }
 
-TEST(DependencyGraphTest, EnqueueStartNodesEnqueuesOnlyReadyNodes)
+TEST(DependencyGraphTest, EmplaceReturnsSequentialIndices)
+{
+    DependencyGraph<IdentifierHash> graph(3);
+    const auto first = graph.emplace("a");
+    const auto second = graph.emplace("b");
+    const auto third = graph.emplace("c");
+
+    EXPECT_EQ(first, 0U);
+    EXPECT_EQ(second, 1U);
+    EXPECT_EQ(third, 2U);
+}
+
+TEST(DependencyGraphTest, AddDependencyWiresDependsOnAndDependents)
 {
     DependencyGraph<IdentifierHash> graph(2);
     const auto dep = graph.emplace("dep");
     const auto root = graph.emplace("root");
     graph.addDependency(root, dep);
 
-    const auto& nodes = graph.activate(root);
-
-    ASSERT_EQ(nodes.size(), 1);
-    EXPECT_EQ(graph[nodes[0]], IdentifierHash{"dep"});
+    EXPECT_THAT(graph.dependsOn(root), ::testing::ElementsAre(dep));
+    EXPECT_THAT(graph.dependents(dep), ::testing::ElementsAre(root));
+    EXPECT_TRUE(graph.dependsOn(dep).empty());
+    EXPECT_TRUE(graph.dependents(root).empty());
 }
 
-TEST(DependencyGraphTest, CompletingDependencyEnqueuesDependent)
+TEST(DependencyGraphTest, SizeReflectsNumberOfEmplacedNodes)
 {
     DependencyGraph<IdentifierHash> graph(2);
-    const auto dep = graph.emplace("dep");
+    EXPECT_EQ(graph.size(), 0U);
+    graph.emplace("a");
+    EXPECT_EQ(graph.size(), 1U);
+    graph.emplace("b");
+    EXPECT_EQ(graph.size(), 2U);
+}
+
+TEST(DependencyGraphTest, TraverseVisitsWholeChainThroughDependsOn)
+{
+    // root -> mid -> leaf (X -> Y means X depends_on Y)
+    DependencyGraph<IdentifierHash> graph(3);
+    const auto leaf = graph.emplace("leaf");
+    const auto mid = graph.emplace("mid");
     const auto root = graph.emplace("root");
-    graph.addDependency(root, dep);
+    graph.addDependency(root, mid);
+    graph.addDependency(mid, leaf);
 
-    std::vector<IdentifierHash> enqueued;
-    auto collect = [&](IdentifierHash& hash) {
-        enqueued.push_back(hash);
-    };
+    std::vector<IdentifierHash> visited;
+    graph.traverse(
+        root,
+        [&](GraphIndex i) -> const std::vector<GraphIndex>& {
+            visited.push_back(graph[i]);
+            return graph.dependsOn(i);
+        },
+        [](GraphIndex) { return true; });
 
-    const auto& head_nodes = graph.activate(root);
-    for (const auto i : head_nodes) {
-        collect(graph[i]);
-    }
-    graph.enqueueActivationSuccessors(dep, collect);
-    EXPECT_TRUE(graph.enqueueActivationSuccessors(root, collect));
-
-    ASSERT_EQ(enqueued.size(), 2);
-    EXPECT_EQ(enqueued[0], IdentifierHash{"dep"});
-    EXPECT_EQ(enqueued[1], IdentifierHash{"root"});
+    EXPECT_THAT(visited, ::testing::UnorderedElementsAre(IdentifierHash{"root"}, IdentifierHash{"mid"}, IdentifierHash{"leaf"}));
 }
 
-TEST(DependencyGraphTest, DependencyCleanupOrder)
+TEST(DependencyGraphTest, TraverseVisitsSharedDependencyExactlyOnce)
 {
-    DependencyGraph<IdentifierHash> graph(2);
-    const auto dep = graph.emplace("dep");
+    // Diamond: both a and b depend on shared; root depends on both a and b.
+    DependencyGraph<IdentifierHash> graph(4);
+    const auto shared = graph.emplace("shared");
+    const auto a = graph.emplace("a");
+    const auto b = graph.emplace("b");
     const auto root = graph.emplace("root");
-    const auto root2 = graph.emplace("1.41");
-    graph.addDependency(root, dep);
+    graph.addDependency(a, shared);
+    graph.addDependency(b, shared);
+    graph.addDependency(root, a);
+    graph.addDependency(root, b);
 
-    std::vector<IdentifierHash> enqueued;
-    auto collect = [&](IdentifierHash& hash) {
-        enqueued.push_back(hash);
-    };
+    std::size_t shared_visits = 0;
+    graph.traverse(
+        root,
+        [&](GraphIndex i) -> const std::vector<GraphIndex>& {
+            if (i == shared)
+            {
+                ++shared_visits;
+            }
+            return graph.dependsOn(i);
+        },
+        [](GraphIndex) { return true; });
 
-    const auto& activation_head_nodes = graph.activate(root);
-    ASSERT_EQ(activation_head_nodes.size(), 1);
-    EXPECT_FALSE(graph.enqueueActivationSuccessors(dep, collect));
-    EXPECT_TRUE(graph.enqueueActivationSuccessors(root, collect));
-    enqueued.clear();
-    graph.exclude(root2);
-    const auto& deactivation_head_nodes = graph.deactivate(root);
-    ASSERT_EQ(deactivation_head_nodes.size(), 1);
-    enqueued.push_back(graph[activation_head_nodes[0]]);
-    EXPECT_FALSE(graph.enqueueDeactivationSuccessors(root, collect));
-    EXPECT_TRUE(graph.enqueueDeactivationSuccessors(dep, collect));
-
-    ASSERT_EQ(enqueued.size(), 2);
-    EXPECT_EQ(enqueued[0], IdentifierHash{"root"});
-    EXPECT_EQ(enqueued[1], IdentifierHash{"dep"});
+    EXPECT_EQ(shared_visits, 1U);
 }
 
-TEST(DependencyGraphTest, ActivateTopLayerAndThenDeactivate)
+TEST(DependencyGraphTest, TraverseFilterBoundsWhichNodesAreVisited)
 {
-    DependencyGraph<IdentifierHash> graph(2);
-    const auto base = graph.emplace("base");
-    const auto icing = graph.emplace("icing");
-    graph.addDependency(icing, base);
+    DependencyGraph<IdentifierHash> graph(3);
+    const auto excluded = graph.emplace("excluded");
+    const auto included = graph.emplace("included");
+    const auto root = graph.emplace("root");
+    graph.addDependency(root, included);
+    graph.addDependency(root, excluded);
 
-    std::vector<IdentifierHash> enqueued;
-    auto collect = [&](IdentifierHash& hash) {
-        enqueued.push_back(hash);
-    };
+    std::vector<GraphIndex> visited;
+    graph.traverse(
+        root,
+        [&](GraphIndex i) -> const std::vector<GraphIndex>& {
+            visited.push_back(i);
+            return graph.dependsOn(i);
+        },
+        [excluded](GraphIndex neighbor) { return neighbor != excluded; });
 
-    // Activate base
-    enqueued.clear();
-    for (const auto i : graph.activate(base)) {
-        collect(graph[i]);
-    }
-    EXPECT_TRUE(graph.enqueueActivationSuccessors(base, collect));
-
-    ASSERT_EQ(enqueued.size(), 1);
-    EXPECT_EQ(enqueued[0], IdentifierHash{"base"});
-
-    enqueued.clear();
-    // Then activate icing
-    graph.exclude(icing);
-    // Nothing to deactivate
-    EXPECT_EQ(graph.deactivate(base).size(), 0);
-
-    for (const auto i : graph.activate(icing)) {
-        collect(graph[i]);
-    }
-    EXPECT_FALSE(graph.enqueueActivationSuccessors(base, collect));
-    EXPECT_TRUE(graph.enqueueActivationSuccessors(icing, collect));
-
-    ASSERT_EQ(enqueued.size(), 2);
-    EXPECT_EQ(enqueued[0], IdentifierHash{"base"});
-    EXPECT_EQ(enqueued[1], IdentifierHash{"icing"});
-
-    enqueued.clear();
-    // Switch back to base
-    graph.exclude(base);
-
-    for (const auto i : graph.deactivate(icing)) {
-        collect(graph[i]);
-    }
-    EXPECT_TRUE(graph.enqueueDeactivationSuccessors(icing, collect));
-
-    ASSERT_EQ(enqueued.size(), 1);
-    EXPECT_EQ(enqueued[0], IdentifierHash{"icing"});
-
-    enqueued.clear();
-    graph.exclude(icing);
-    for (const auto i : graph.activate(base)) {
-        collect(graph[i]);
-    }
-    EXPECT_TRUE(graph.enqueueActivationSuccessors(base, collect));
-
-    ASSERT_EQ(enqueued.size(), 1);
-    EXPECT_EQ(enqueued[0], IdentifierHash{"base"});
+    EXPECT_THAT(visited, ::testing::UnorderedElementsAre(root, included));
 }
 
 }  // namespace score::lcm

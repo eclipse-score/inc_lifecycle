@@ -11,11 +11,11 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include <unistd.h>
-
 #include "process_info_node.hpp"
 #include "score/mw/launch_manager/common/log.hpp"
 #include "score/mw/launch_manager/osal/ipc_comms.hpp"
+#include <unistd.h>
+#include <cassert>
 
 namespace score
 {
@@ -72,16 +72,17 @@ IComponent::RequestResult ProcessInfoNode::tryReportCompletion(score::lcm::Proce
     }
     if (new_state == desired_state.value())
     {
-        return tryReportState(IComponent::RequestState::kSuccess);
+        return tryReportSuccess();
     }
     return {IComponent::RequestState::kWaiting};
 }
 
-IComponent::RequestResult ProcessInfoNode::tryReportState(RequestState state)
+IComponent::RequestResult ProcessInfoNode::tryReportSuccess()
 {
     if (!callback_used_.test_and_set())
     {
-        return {state};
+        reached_ready_.store(true);
+        return {RequestState::kSuccess};
     }
     return {IComponent::RequestState::kWaiting};
 }
@@ -90,6 +91,7 @@ IComponent::RequestResult ProcessInfoNode::tryReportError(ComponentError error)
 {
     if (!callback_used_.test_and_set())
     {
+        // Activation failed to reach its ready condition.
         return score::cpp::make_unexpected(error);
     }
     return {IComponent::RequestState::kWaiting};
@@ -156,7 +158,7 @@ IComponent::RequestResult ProcessInfoNode::tryHandleTermination(int32_t process_
         // Termination was requested, we don't care if status is not 0 (a SIGKILL will set status to 9)
         setState(ProcessState::kTerminated);
         unblockSync();
-        terminator_.post();
+        static_cast<void>(terminator_.post());
     }
     else if (getState() < ProcessState::kRunning)
     {
@@ -261,7 +263,7 @@ IComponent::RequestResult ProcessInfoNode::startProcess(score::cpp::stop_token s
     }
 
     setState(ProcessState::kRunning);  // Can fail if we've terminated already
-    return tryReportCompletion(getState());
+    return tryReportCompletion(ProcessState::kRunning);
 }
 
 inline void ProcessInfoNode::setupControlClientChannel()
@@ -402,9 +404,10 @@ inline void ProcessInfoNode::handleForcedTermination(const score::cpp::stop_toke
 IComponent::RequestResult ProcessInfoNode::activate(score::cpp::stop_token stop_token)
 {
     callback_used_.clear();
-    if (getState() == ProcessState::kRunning)
-    {  // Already running, nothing to do
-        return tryReportCompletion(ProcessState::kRunning);
+    if (reached_ready_.load())
+    {  // Already activated (still active — even if the process has since self-terminated),
+       // nothing to do. A component is only restarted after it has been deactivated.
+        return tryReportSuccess();
     }
     auto res = startProcess(std::move(stop_token));
     return res;
@@ -413,6 +416,7 @@ IComponent::RequestResult ProcessInfoNode::activate(score::cpp::stop_token stop_
 IComponent::RequestResult ProcessInfoNode::deactivate(score::cpp::stop_token stop_token)
 {
     callback_used_.clear();
+    reached_ready_.store(false);
     terminateProcess(stop_token);
     setState(ProcessState::kIdle);
     return IComponent::RequestState::kSuccess;
@@ -420,23 +424,12 @@ IComponent::RequestResult ProcessInfoNode::deactivate(score::cpp::stop_token sto
 
 bool ProcessInfoNode::active() const
 {
-    std::optional<ProcessState> desired_state = std::nullopt;
-    switch (ready_condition_)
-    {
-        case ReadyCondition::kRunning:
-            desired_state = ProcessState::kRunning;
-            break;
-        case ReadyCondition::kTerminated:
-            desired_state = ProcessState::kTerminated;
-            break;
-        default:
-            break;
-    }
-    if (!desired_state.has_value())
-    {
-        return false;
-    }
-    return getState() == desired_state;
+    return reached_ready_.load();
+}
+
+bool ProcessInfoNode::stopped() const
+{
+    return process_state_.load() == ProcessState::kIdle;
 }
 
 osal::ProcessID ProcessInfoNode::getPid() const

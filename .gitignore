@@ -83,3 +83,6 @@ compile_commands.json
 .cache
 rust-project.json
 **/tmp
+
+# AI
+.claude

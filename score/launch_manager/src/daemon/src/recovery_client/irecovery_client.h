@@ -14,7 +14,7 @@
 #define SCORE_LCM_IRECOVERYCLIENT_H_
 
 #include "score/mw/launch_manager/common/identifier_hash.hpp"
-#include <optional>
+#include <functional>
 
 namespace score
 {
@@ -22,12 +22,13 @@ namespace lcm
 {
 
 /// @brief The RecoveryClient allows the AliveMonitor component to report supervision failures to the
-/// ProcessGroupManager thus requesting recovery for a specific process group. The requests are queued and periodically
-/// processed by the ProcessGroupManager. In case the buffer is full and request cannot be queued, the overflow flag is
-/// set. A detected overflow shall be handled as a critical failure by the ProcessGroupManager.
+/// ProcessGroupManager. Requests are forwarded through a registered callback, which is expected
+/// to hand off work to the ProcessGroupManager's main-thread event queue.
 class IRecoveryClient
 {
   public:
+    using RecoveryRequestCallback = std::function<void(const score::lcm::IdentifierHash&)>;
+
     IRecoveryClient() noexcept = default;
     virtual ~IRecoveryClient() noexcept = default;
     IRecoveryClient(const IRecoveryClient&) = delete;
@@ -35,20 +36,15 @@ class IRecoveryClient
     IRecoveryClient(IRecoveryClient&&) = delete;
     IRecoveryClient& operator=(IRecoveryClient&&) = delete;
 
-    /// @brief Send recovery request for a specific process.
-    /// @details If the internal buffer is full, the request is discarded and the overflow flag is set.
-    /// @param process_identifier The process that requires recovery.
-    /// @return true if the request was queued, false if the buffer was full.
-    virtual bool sendRecoveryRequest(const score::lcm::IdentifierHash& process_identifier) noexcept = 0;
-    /// @brief Retrieve the latest request from the queue, removing it from the queue
-    /// @return The request, or std::nullopt if no request is available
-    virtual std::optional<score::lcm::IdentifierHash> getNextRequest() noexcept = 0;
+    /// @brief Registers the callback invoked by sendRecoveryRequest().
+    /// @details Must be called before the Alive monitor thread can emit recovery requests.
+    virtual void setRecoveryRequestCallback(RecoveryRequestCallback callback) noexcept = 0;
 
-    /// @brief Checks if overflow has been set, by previously calling `sendRecoveryRequest` while the queue was already
-    /// full
-    /// @details Since overflow is a critical error, the flag is never reset
-    /// @return True if overflow has occurred, else false.
-    virtual bool hasOverflow() const noexcept = 0;
+    /// @brief Send recovery request for a specific process.
+    /// @details Invokes the registered callback with the provided process identifier.
+    /// @param process_identifier The process that requires recovery.
+    /// @return true if a callback was registered and invoked, false otherwise.
+    virtual bool sendRecoveryRequest(const score::lcm::IdentifierHash& process_identifier) noexcept = 0;
 };
 }  // namespace lcm
 }  // namespace score

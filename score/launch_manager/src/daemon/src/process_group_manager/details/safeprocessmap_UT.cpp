@@ -42,6 +42,24 @@ constexpr int kPidsPerThread = 256;
 
 constexpr uint32_t kCapacity = static_cast<uint32_t>(ProcessLimits::kMaxProcesses);
 
+class MockComponentController : public IComponentController
+{
+  public:
+    MOCK_METHOD(void, terminated, (IComponent & component, int32_t process_status), (override));
+    MOCK_METHOD(void, doWork, (Task task), (override));
+};
+
+class MockComponent : public IComponent
+{
+  public:
+    MOCK_METHOD(RequestResult, activate, (score::cpp::stop_token stop_token), (override));
+    MOCK_METHOD(RequestResult, deactivate, (score::cpp::stop_token stop_token), (override));
+    MOCK_METHOD(RequestResult, tryHandleTermination, (int32_t status), (override));
+    MOCK_METHOD(bool, active, (), (const override));
+    MOCK_METHOD(bool, stopped, (), (const override));
+    MOCK_METHOD(uint32_t, getIndex, (), (const override));
+};
+
 class SafeProcessMapTest : public ::testing::Test
 {
   protected:
@@ -51,8 +69,9 @@ class SafeProcessMapTest : public ::testing::Test
         RecordProperty("DerivationTechnique", "explorative-testing");
     }
 
-    SafeProcessMap sut_{kCapacity};
-    MockTerminationCallback callback_;
+    NiceMock<MockComponentController> controller;
+    SafeProcessMap sut_{kCapacity, controller};
+    MockComponent callback_;
 };
 
 // --- Construction ---
@@ -62,7 +81,7 @@ TEST_F(SafeProcessMapTest, ConstructWithZeroCapacity)
     RecordProperty("Description", "SafeProcessMap can be constructed with zero capacity.");
 
     // when
-    SafeProcessMap map(0);
+    SafeProcessMap map(0, controller);
 }
 
 // --- findTerminated ---
@@ -102,7 +121,7 @@ TEST_F(SafeProcessMapTest, FindTerminatedMatchesExistingInsertAndCallsCallback)
     sut_.insertIfNotTerminated(1000, &callback_);
 
     // then
-    EXPECT_CALL(callback_, terminated(42));
+    EXPECT_CALL(controller, terminated(Ref(callback_), 42));
 
     // when
     score::lcm::internal::SafeProcessMap::SafeProcessMapReturnType result = sut_.findTerminated(1000, 42);
@@ -132,7 +151,7 @@ TEST_F(SafeProcessMapTest, InsertMatchesExistingFindTerminatedEntry)
     // given
     sut_.findTerminated(1000, 0);
 
-    EXPECT_CALL(callback_, terminated(0));
+    EXPECT_CALL(controller, terminated(Ref(callback_), 0));
 
     // when
     score::lcm::internal::SafeProcessMap::SafeProcessMapReturnType result =
@@ -148,7 +167,7 @@ TEST_F(SafeProcessMapTest, InsertMultipleNodesThenFindTerminatedRemovesAll)
                    "Inserting kMaxProcesses nodes and then calling findTerminated for each returns kOk (0).");
 
     // given
-    NiceMock<MockTerminationCallback> callbacks[kCapacity];
+    NiceMock<MockComponent> callbacks[kCapacity];
     for (uint32_t i = 1; i <= kCapacity; ++i)
     {
         sut_.insertIfNotTerminated(static_cast<int32_t>(i), &callbacks[i - 1]);
@@ -169,7 +188,7 @@ TEST_F(SafeProcessMapTest, InsertBeyondCapacityReturnsOutOfMemory)
         "insertIfNotTerminated returns kInsertionError (-1) when the map is full and a new entry is attempted.");
 
     // given
-    NiceMock<MockTerminationCallback> callbacks[kCapacity];
+    NiceMock<MockComponent> callbacks[kCapacity];
     for (uint32_t i = 0; i < kCapacity; ++i)
     {
         EXPECT_EQ(sut_.insertIfNotTerminated(static_cast<int32_t>(i), &callbacks[i]),
@@ -198,7 +217,7 @@ TEST_F(SafeProcessMapTest, InsertSamePidTwiceYieldsUntilFindTerminatedResolves)
     score::lcm::internal::SafeProcessMap::SafeProcessMapReturnType ret2 =
         score::lcm::internal::SafeProcessMap::SafeProcessMapReturnType::kUndefined;
 
-    NiceMock<MockTerminationCallback> cb;
+    NiceMock<MockComponent> cb;
 
     std::thread inserter([&]() {
         ret1 = sut_.insertIfNotTerminated(42, &cb);
@@ -236,7 +255,7 @@ TEST_F(SafeProcessMapTest, FindTerminatedSamePidTwiceYieldsUntilInsertResolves)
     score::lcm::internal::SafeProcessMap::SafeProcessMapReturnType ret2 =
         score::lcm::internal::SafeProcessMap::SafeProcessMapReturnType::kUndefined;
 
-    NiceMock<MockTerminationCallback> cb;
+    NiceMock<MockComponent> cb;
 
     std::thread finder([&]() {
         ret1 = sut_.findTerminated(42, 0);
@@ -345,7 +364,7 @@ TEST_F(SafeProcessMapTest, FindTerminatedWorksAtMaxTreeDepth)
               score::lcm::internal::SafeProcessMap::SafeProcessMapReturnType::kInvalidIdError);
 
     // when / then — retrieve entries using insertIfNotTerminated
-    NiceMock<MockTerminationCallback> cb;
+    NiceMock<MockComponent> cb;
     EXPECT_EQ(sut_.insertIfNotTerminated(0x0000FFFE, &cb),
               score::lcm::internal::SafeProcessMap::SafeProcessMapReturnType::kYield);
     EXPECT_EQ(sut_.insertIfNotTerminated(0x00010000, &cb),
@@ -363,7 +382,7 @@ TEST_F(SafeProcessMapTest, ConcurrentInsertAndFindFromMultipleThreads)
     RecordProperty("Description",
                    "Multiple threads concurrently inserting and finding terminated processes completes without error.");
 
-    NiceMock<MockTerminationCallback> stubs[kNumThreads];
+    NiceMock<MockComponent> stubs[kNumThreads];
     score::lcm::internal::SafeProcessMap::SafeProcessMapReturnType results[kNumThreads] = {};
 
     // when
@@ -404,7 +423,7 @@ TEST_F(SafeProcessMapTest, ConcurrentFindAndInsertFromMultipleThreads)
     RecordProperty("Description",
                    "Multiple threads concurrently finding and inserting processes completes without error.");
 
-    NiceMock<MockTerminationCallback> stubs[kNumThreads];
+    NiceMock<MockComponent> stubs[kNumThreads];
     score::lcm::internal::SafeProcessMap::SafeProcessMapReturnType results[kNumThreads] = {};
 
     // when

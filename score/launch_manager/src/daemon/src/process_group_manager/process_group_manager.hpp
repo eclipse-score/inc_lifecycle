@@ -29,6 +29,9 @@
 #include "score/mw/launch_manager/common/concurrency/mpmc_concurrent_queue.hpp"
 #include "score/mw/launch_manager/common/concurrency/workerthread.hpp"
 #include "score/mw/launch_manager/common/constants.hpp"
+#include "score/mw/launch_manager/common/identifier_hash.hpp"
+#include "score/mw/launch_manager/control/control_client_channel.hpp"
+#include "score/mw/launch_manager/process_group_manager/details/component_event.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/graph.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/os_handler.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/process_info_node.hpp"
@@ -199,8 +202,16 @@ class ProcessGroupManager final
     /// @param pg Reference of the process group (Graph) to check for pending responses
     void controlClientResponses(Graph& pg);
 
-    /// @brief Handle recovery actions requested by the Alive Monitor
-    void recoveryActionHandler();
+    /// @brief Handle a single recovery request emitted by Alive supervision.
+    void handleRecoveryRequest(const IdentifierHash& process_identifier);
+
+    /// @brief Drains every ComponentEvent currently queued to the (single) graph managed by this
+    /// ProcessGroupManager.
+    /// @details Single-graph assumption: PGM creates one ProcessMonitor bound to the first (only)
+    /// graph. SupervisionFailure is routed by process identifier through handleRecoveryRequest(),
+    /// while all other events are forwarded to Graph::handleComponentEvent(). Multi-graph routing
+    /// is deferred to a future revision.
+    void processComponentEvents();
 
     /// @brief Manage the process group by starting any pending transitions that were requested
     /// @details If the Graph is in the correct state to start a transition (i.e. `kSuccess` or `kUndefined`)
@@ -336,6 +347,10 @@ class ProcessGroupManager final
     std::unique_ptr<ProcessMonitor> process_monitor_;
 
     std::unique_ptr<OsHandler> os_handler_;
+
+    /// @brief Queue of ComponentEvents produced by worker/OS-handler threads and drained by run()
+    /// on the main thread, so all Graph state mutations happen from a single thread.
+    std::unique_ptr<ComponentEventQueue> event_queue_;
 
     std::shared_ptr<score::lcm::IRecoveryClient> recovery_client_{};
 
