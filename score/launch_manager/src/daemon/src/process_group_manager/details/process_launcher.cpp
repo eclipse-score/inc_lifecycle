@@ -118,6 +118,7 @@ void handleComms(score::lcm::internal::osal::ChildProcessConfig& param)
             {
                 LM_LOG_ERROR() << "[New process] fcntl() at line" << __LINE__
                                << "failed:" << score::lcm::internal::errno_message(errno);
+                sysexit(EXIT_FAILURE);
             }
             break;
         case CommsType::kLaunchManager:
