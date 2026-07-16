@@ -19,7 +19,7 @@ from attribute_plugin import add_test_properties
 @add_test_properties(
     fully_verifies=[
         "comp_req__launch_man__failure_detect",
-        "feat_req__lifecycle__retries_configurable", #TODO: Add another process with another amount of retries configured to fully verify requirement
+        "feat_req__lifecycle__retries_configurable",
         "feat_req__lifecycle__recov_run_target_switch",
     ],
     partially_verifies=["feat_req__lifecycle__recovery_action_support"],

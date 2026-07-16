@@ -43,6 +43,8 @@ TEST(CrashOnStartup, ControlClientMock)
         EXPECT_FALSE(std::filesystem::exists(fallback_file)) << "Fallback run target should not be activated yet";
     }
 
+    EXPECT_TRUE(std::filesystem::remove(crash_count_file)) << "Count file must be removed successfully, before reused in the next run target";
+
     // Given a process that crashes on startup five times, but is configured to retry five times - so still succeeds
     TEST_STEP("Launch process crashing on startup five times")
     {
