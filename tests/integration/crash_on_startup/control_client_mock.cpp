@@ -43,6 +43,21 @@ TEST(CrashOnStartup, ControlClientMock)
         EXPECT_FALSE(std::filesystem::exists(fallback_file)) << "Fallback run target should not be activated yet";
     }
 
+    // Given a process that crashes on startup five times, but is configured to retry five times - so still succeeds
+    TEST_STEP("Launch process crashing on startup five times")
+    {
+        score::cpp::stop_token stop_token;
+        auto result = client.ActivateRunTarget("run_target_crash_on_startup_five_times").Get(stop_token);
+        // Then, the LM should restart it and eventually succeed
+        EXPECT_TRUE(result.has_value()) << "Activating run_target_crash_on_startup_five_times failed: "
+                                        << result.error().Message();
+    }
+
+    TEST_STEP("Verify fallback run target was not activated, i.e. process eventually started successfully")
+    {
+        EXPECT_FALSE(std::filesystem::exists(fallback_file)) << "Fallback run target should not be activated yet";
+    }
+
     // Given a process that crashes on startup more times than the configured restart attempts
     TEST_STEP("Attempt to launch process crashing on startup always")
     {
