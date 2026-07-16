@@ -46,13 +46,8 @@ inline testing::AssertionResult touch_file(const std::string_view file_path)
 /// @brief Location to store a file signalling that the fallback state has been reached.
 constexpr std::string_view fallback_file = "fallback_reached";
 
-/// @brief Location to store a file signalling that a process has been killed on first try - used to test ready recovery
-/// action
-constexpr std::string_view crashed_once_file = "crashed_once";
-
-/// @brief Location to store a file signalling that a process has been killed on second try - used to test ready
-/// recovery action
-constexpr std::string_view crashed_twice_file = "crashed_twice";
+/// @brief Location to store the number of times a process has crashed so far - used to test ready recovery action
+constexpr std::string_view crash_count_file = "crash_count";
 
 /// @brief Where to store the test_end signal file. This must be kept consistent with where the test framework
 /// searches for files.

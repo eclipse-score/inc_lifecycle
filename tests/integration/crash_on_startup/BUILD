@@ -25,8 +25,8 @@ cc_binary(
 )
 
 cc_binary(
-    name = "process_crashing_on_startup_twice",
-    srcs = ["process_crashing_on_startup_twice.cpp"],
+    name = "process_crashing_on_startup_n_times",
+    srcs = ["process_crashing_on_startup_n_times.cpp"],
     deps = [
         "//score/launch_manager:lifecycle_cc",
         "//tests/utils/test_helper",
@@ -45,7 +45,7 @@ integration_test(
     binaries = [
         ":control_client_mock",
         ":process_crashing_on_startup_always",
-        ":process_crashing_on_startup_twice",
+        ":process_crashing_on_startup_n_times",
         "//score/launch_manager",
         "//tests/utils/test_helper:verification_process",
     ],

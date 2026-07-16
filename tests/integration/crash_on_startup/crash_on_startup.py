@@ -19,6 +19,7 @@ from attribute_plugin import add_test_properties
 @add_test_properties(
     fully_verifies=[
         "comp_req__launch_man__failure_detect",
+        "feat_req__lifecycle__retries_configurable", #TODO: Add another process with another amount of retries configured to fully verify requirement
         "feat_req__lifecycle__recov_run_target_switch",
     ],
     partially_verifies=["feat_req__lifecycle__recovery_action_support"],
@@ -48,5 +49,5 @@ def test_crash_on_startup(target, setup_test, assert_test_results, remote_test_d
     )
 
     assert_test_results(
-        {"control_client_mock.xml", "process_crashing_on_startup_twice.xml"}
+        {"control_client_mock.xml", "process_crashing_on_startup_n_times.xml"}
     )
