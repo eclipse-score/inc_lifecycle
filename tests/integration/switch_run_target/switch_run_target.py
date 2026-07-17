@@ -24,16 +24,17 @@ from attribute_plugin import add_test_properties
         "feat_req__lifecycle__process_termination",
         "feat_req__lifecycle__terminationn_dependency",
         "feat_req__lifecycle__process_ordering",
+        "feat_req__lifecycle__launch_manager_shutdown"
     ],
     test_type="requirements-based",
     derivation_technique="requirements-analysis",
 )
 def test_switch_run_target(target, setup_test, assert_test_results, remote_test_dir):
     """
-    Objective: Verifies that the launch manager respects component and run target dependencies when switching run targets, enforcing correct startup and termination order.
+    Objective: Verifies that the launch manager respects component and run target dependencies when switching run targets and shuting down, enforcing correct startup and termination order.
 
-    The control client activates run_target_a, which depends on run_target_c (containing component_d) and component_a (which depends on component_b). After activation it switches back to Startup and then Off.
-    Expected Behaviour: Component B starts before component A, component D is started, component A terminates before component B, and component E (not in the dependency chain) is never launched.
+    The control client activates run_target_a, which depends on run_target_c (containing component_d) and component_a (which depends on component_b). After activation it switches back to Startup, then again to run_target_a, and then Off.
+    Expected Behaviour: During activation resp. deactivation of run_target_a, component B starts before component A, component D is started, component A terminates before component B, and component E (not in the dependency chain) is never launched.
     """
 
     config_path = str(remote_test_dir / "etc/switch_run_target.bin")
