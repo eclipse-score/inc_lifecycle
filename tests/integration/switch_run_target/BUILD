@@ -46,18 +46,9 @@ cc_binary(
         "component_a",
         "component_b",
         "component_d",
+        "component_e",
     ]
 ]
-
-cc_binary(
-    name = "component_e",
-    srcs = ["//tests/utils/test_helper:reporting_process.cpp"],
-    deps = [
-        "//score/launch_manager:lifecycle_cc",
-        "//tests/utils/test_helper",
-        "@googletest//:gtest_main",
-    ],
-)
 
 integration_test(
     name = "switch_run_target",

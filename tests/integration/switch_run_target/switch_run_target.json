@@ -83,7 +83,7 @@
         },
         "component_e": {
             "component_properties": {
-                "binary_name": "reporting_process"
+                "binary_name": "component_e"
             },
             "deployment_config": {
                 "environmental_variables": {
