@@ -1,0 +1,124 @@
+{
+    "schema_version": 1,
+    "defaults": {
+        "deployment_config": {
+            "bin_dir": "/tmp/tests/sandbox_options",
+            "ready_timeout": 1.0,
+            "shutdown_timeout": 1.0,
+            "ready_recovery_action": {
+                "restart": {
+                    "number_of_attempts": 0
+                }
+            },
+            "recovery_action": {
+                "switch_run_target": {
+                    "run_target": "fallback_run_target"
+                }
+            },
+            "environmental_variables": {
+                "LD_LIBRARY_PATH": "/opt/lib"
+            },
+            "sandbox": {
+                "uid": 0,
+                "gid": 0,
+                "scheduling_policy": "SCHED_OTHER",
+                "scheduling_priority": 0
+            }
+        },
+        "component_properties": {
+            "application_profile": {
+                "application_type": "Reporting",
+                "is_self_terminating": false,
+                "alive_supervision": {
+                    "reporting_cycle": 0.1,
+                    "min_indications": 1,
+                    "max_indications": 3,
+                    "failed_cycles_tolerance": 1
+                }
+            },
+            "ready_condition": {
+                "process_state": "Running"
+            }
+        }
+    },
+    "components": {
+        "control_daemon": {
+            "component_properties": {
+                "binary_name": "control_daemon_mock",
+                "application_profile": {
+                    "application_type": "State_Manager",
+                    "alive_supervision": {
+                        "min_indications": 0
+                    }
+                }
+            },
+            "deployment_config": {
+                "ready_timeout": 1.0,
+                "shutdown_timeout": 1.0,
+                "environmental_variables": {
+                    "PROCESSIDENTIFIER": "control_daemon"
+                }
+            }
+        },
+        "sandbox_process": {
+            "component_properties": {
+                "binary_name": "sandbox_process",
+                "working_dir": "/tmp/sandbox/test",
+                "application_profile": {
+                    "application_type": "Reporting"
+                }
+            },
+            "deployment_config": {
+                "environmental_variables": {
+                    "PROCESSIDENTIFIER": "DefaultPG_app0"
+                },
+                "sandbox": {
+                    "uid": 666,
+                    "gid": 666,
+                    "supplementary_group_ids": [123, 321, 456],
+                    "scheduling_policy": "SCHED_FIFO",
+                    "scheduling_priority": 10
+                }
+            }
+        }
+    },
+    "run_targets": {
+        "Startup": {
+            "depends_on": [
+                "control_daemon"
+            ],
+            "recovery_action": {
+                "switch_run_target": {
+                    "run_target": "fallback_run_target"
+                }
+            }
+        },
+        "Running": {
+            "depends_on": [
+                "control_daemon",
+                "sandbox_process"
+            ],
+            "recovery_action": {
+                "switch_run_target": {
+                    "run_target": "fallback_run_target"
+                }
+            }
+        },
+        "Off": {
+            "depends_on": [],
+            "recovery_action": {
+                "switch_run_target": {
+                    "run_target": "fallback_run_target"
+                
+                }
+            }
+        }
+    },
+    "initial_run_target": "Startup",
+    "alive_supervision": {
+        "evaluation_cycle": 0.05
+    },
+    "fallback_run_target": {
+        "depends_on": []
+    }
+}
