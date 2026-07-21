@@ -50,4 +50,4 @@ def test_sandbox_options(target, setup_test, assert_test_results, remote_test_di
         timeout_s=3.0,
     )
 
-    assert_test_results({"control_daemon_mock.xml", "gtest_process.xml"})
+    assert_test_results({"control_daemon_mock.xml", "sandbox_options_process.xml"})

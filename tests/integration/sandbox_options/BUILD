@@ -31,8 +31,8 @@ cc_binary(
 )
 
 cc_binary(
-    name = "sandbox_process",
-    srcs = ["sandbox_process.cpp"],
+    name = "sandbox_options_process",
+    srcs = ["sandbox_options_process.cpp"],
     deps = [
         "//score/launch_manager:control_cc",
         "//score/launch_manager:lifecycle_cc",
@@ -42,12 +42,12 @@ cc_binary(
 )
 
 integration_test(
-    name = "smoke",
-    srcs = ["smoke.py"],
+    name = "sandbox_options",
+    srcs = ["sandbox_options.py"],
     binaries = [
         ":control_daemon_mock",
-        ":sandbox_process",
+        ":sandbox_options_process",
         "//score/launch_manager",
     ],
-    config = ":lifecycle_smoketest.json",
+    config = ":sandbox_options.json",
 )

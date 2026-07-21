@@ -140,6 +140,16 @@ void handleComms(score::lcm::internal::osal::ChildProcessConfig& param)
 /// @details The implementation should be async signal safe.
 void changeCurrentWorkingDirectory(const score::lcm::internal::osal::OsalConfig& config)
 {
+    if (!config.working_dir_.empty())
+    {
+        if (-1 == chdir(config.working_dir_.c_str()))
+        {
+            LM_LOG_ERROR() << "[New process] chdir(" << config.working_dir_ << ") failed:" << score::lcm::internal::errno_message(errno);
+            sysexit(EXIT_FAILURE);
+        }
+        return;
+    }
+
     // Change current working directory to the same as the executable
     constexpr size_t string_size = static_cast<size_t>(PATH_MAX);
     // Notice that this next static variable is duplicated by the fork() and so does not need

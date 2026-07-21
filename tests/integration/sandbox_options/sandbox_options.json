@@ -60,10 +60,9 @@
                 }
             }
         },
-        "sandbox_process": {
+        "sandbox_options_process": {
             "component_properties": {
-                "binary_name": "sandbox_process",
-                "working_dir": "/tmp/sandbox/test",
+                "binary_name": "sandbox_options_process",
                 "application_profile": {
                     "application_type": "Reporting"
                 }
@@ -78,7 +77,8 @@
                     "supplementary_group_ids": [123, 321, 456],
                     "scheduling_policy": "SCHED_FIFO",
                     "scheduling_priority": 10
-                }
+                },
+                "working_dir": "/tmp"
             }
         }
     },
@@ -96,7 +96,7 @@
         "Running": {
             "depends_on": [
                 "control_daemon",
-                "sandbox_process"
+                "sandbox_options_process"
             ],
             "recovery_action": {
                 "switch_run_target": {
