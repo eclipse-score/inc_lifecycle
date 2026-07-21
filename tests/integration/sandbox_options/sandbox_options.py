@@ -11,10 +11,20 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 import logging
+import pytest
+from score.itf.plugins.core import determine_target_scope
 from tests.utils.testing_utils.run_until_file_deployed import run_until_file_deployed
 from tests.utils.testing_utils.setup_test import setup_test
 from tests.utils.testing_utils.test_results import assert_test_results
 from attribute_plugin import add_test_properties
+
+
+@pytest.fixture(scope=determine_target_scope)
+def docker_configuration():
+    """Grant the container CAP_SYS_NICE so the launch manager can apply the
+    SCHED_FIFO real-time scheduling policy configured in sandbox_options.json.
+    Without it, sched_setscheduler() fails with 'Operation not permitted'."""
+    return {"cap_add": ["SYS_NICE"]}
 
 
 @add_test_properties(
