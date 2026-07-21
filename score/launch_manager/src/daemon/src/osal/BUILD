@@ -10,7 +10,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 cc_library(
     name = "return_types",
@@ -106,6 +106,38 @@ cc_library(
     deps = [
         ":semaphore",
         "//score/launch_manager/src/daemon/src/common:log",
+    ],
+)
+
+
+cc_library(
+    name = "inotify_iterator",
+    hdrs = [
+        "inotify_iterator.hpp",
+    ],
+    srcs = [
+        "details/posix/inotify_iterator.cpp"
+    ],
+    include_prefix = "score/mw/launch_manager/osal",
+    strip_include_prefix = "/score/launch_manager/src/daemon/src/osal",
+    visibility = [
+        "//score:__subpackages__",
+        "//tests:__subpackages__",
+    ],
+    deps = [
+        "//score/launch_manager/src/daemon/src/common:log",
+        "@score_baselibs//score/result",
+        "//score/launch_manager:error"
+    ],
+)
+
+cc_test(
+    name = "inotify_iterator_UT",
+    srcs = ["details/posix/inotify_iterator_UT.cpp"],
+    visibility = ["//tests:__subpackages__"],
+    deps = [
+        ":inotify_iterator",
+        "@googletest//:gtest_main",
     ],
 )
 
