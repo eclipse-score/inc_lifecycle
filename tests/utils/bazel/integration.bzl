@@ -73,24 +73,38 @@ def integration_test(
         name = name,
         srcs = srcs,
         tags = kwargs.pop("tags", []) + [
+            # The QEMU plugin uses a hardcoded port so we can only run one test at a time.
+            # The Docker plugin works in parallel but tags cannot be conditional.
+            "exclusive",
             "integration",
-            "no-asan",  # The test container does not ship the sanitizer runtime; daemon fails to start.
+            # The test container does not ship the sanitizer runtime; daemon fails to start.
+            "no-asan",
         ],
         deps = kwargs.pop("deps", []) + all_requirements + [
             "@score_tooling//python_basics/score_pytest:attribute_plugin",
             "//tests/utils/testing_utils",
         ],
         data = kwargs.pop("data", []) + [":environment"] + select({
-            "//config:host": [],
-            "//conditions:default": ["//tests/utils/environments:test_environment"],
+            "//config:x86_64-linux": [
+                "//tests/utils/environments/x86_64-linux",
+            ],
+            "//config:x86_64-qnx": [
+                "//tests/utils/environments/x86_64-qnx:qemu_config.json",
+                "//tests/utils/environments/x86_64-qnx:qemu_image",
+            ],
+            "//conditions:default": [],
         }),
         args = kwargs.pop("args", []) + [
             "--score-test-binary-path=$(locations :environment)",
             "--score-test-remote-directory={}/tests/{}".format(install_prefix, name),
         ] + select({
             "//config:x86_64-linux": [
-                "--docker-image-bootstrap=$(location //tests/utils/environments:test_environment)",
+                "--docker-image-bootstrap=$(location //tests/utils/environments/x86_64-linux)",
                 "--docker-image=score_itf_examples:latest",
+            ],
+            "//config:x86_64-qnx": [
+                "--qemu-config=$(location //tests/utils/environments/x86_64-qnx:qemu_config.json)",
+                "--qemu-image=$(location //tests/utils/environments/x86_64-qnx:qemu_image)",
             ],
             "//config:host": [
                 "--local-dir=/tmp/score_itf_host/{}".format(name),
@@ -99,7 +113,7 @@ def integration_test(
         }),
         plugins = ["//tests/utils/plugins:integration_plugin"] + select({
             "//config:x86_64-linux": ["@score_itf//score/itf/plugins:docker_plugin"],
-            "//config:x86_64-qnx": ["@score_itf//score/itf/plugins/qemu"],
+            "//config:x86_64-qnx": ["@score_itf//score/itf/plugins:qemu_plugin"],
             "//config:host": ["//tests/utils/plugins:localhost_plugin"],
             "//conditions:default": [],
         }),

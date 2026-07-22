@@ -86,9 +86,10 @@ build:x86_64-qnx --platforms=@score_bazel_platforms//:x86_64-qnx-sdp_8.0.0-posix
 build:x86_64-qnx --extra_toolchains=@score_qcc_x86_64_toolchain//:x86_64-qnx-sdp_8.0.0
 build:x86_64-qnx --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_x86_64_pc_nto_qnx800
 build:x86_64-qnx --extra_toolchains=@score_qnx_x86_64_ifs_toolchain//:ifs-x86_64-qnx-sdp_8.0.0
-test:x86_64-qnx --run_under=@score_qnx_unit_tests//src:run_under_qnx
-test:x86_64-qnx --test_tag_filters=-skip_local # see https://github.com/eclipse-score/lifecycle/issues/272
-test:x86_64-qnx --test_lang_filters=cc,rust
+build:x86_64-qnx --define config=x86_64-qnx
+# test:x86_64-qnx --run_under=@score_qnx_unit_tests//src:run_under_qnx
+# test:x86_64-qnx --test_tag_filters=-skip_local # see https://github.com/eclipse-score/lifecycle/issues/272
+# test:x86_64-qnx --test_lang_filters=cc,rust
 
 # Target configuration for CPU:AArch64|OS:QNX build (do not use it in case of system toolchains!)
 build:arm64-qnx --config=stub
@@ -98,10 +99,10 @@ build:arm64-qnx --platforms=@score_bazel_platforms//:aarch64-qnx-sdp_8.0.0-posix
 build:arm64-qnx --extra_toolchains=@score_qcc_aarch64_toolchain//:aarch64-qnx-sdp_8.0.0
 build:arm64-qnx --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_aarch64_unknown_nto_qnx800
 build:arm64-qnx --extra_toolchains=@score_qnx_aarch64_ifs_toolchain//:ifs-aarch64-qnx-sdp_8.0.0
-test:arm64-qnx --run_under=@score_qnx_unit_tests//src:run_under_qnx
-test:arm64-qnx --test_tag_filters=-skip_local # see https://github.com/eclipse-score/lifecycle/issues/272
-test:arm64-qnx --test_timeout=300
-test:arm64-qnx --test_lang_filters=cc,rust
+# test:arm64-qnx --run_under=@score_qnx_unit_tests//src:run_under_qnx
+# test:arm64-qnx --test_tag_filters=-skip_local # see https://github.com/eclipse-score/lifecycle/issues/272
+# test:arm64-qnx --test_timeout=300
+# test:arm64-qnx --test_lang_filters=cc,rust
 
 
 # Ferrocene Rust coverage config

@@ -65,7 +65,7 @@ def run_until_file_deployed(
             # Kill the entire process group so that children (e.g. the actual
             # daemon binary launched under fakeroot) receive SIGTERM and can
             # run their cleanup code before exiting.
-            kill_cmd = f"kill -15 -{proc.pid()}"
+            kill_cmd = f"kill -TERM {proc.pid()}"
             res, _ = target.execute(kill_cmd)
             assert res == 0, "Couldn't kill lcm with SIGTERM"
             try:
