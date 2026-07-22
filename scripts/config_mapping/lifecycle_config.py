@@ -184,9 +184,13 @@ def preprocess_defaults(global_defaults, config):
         merged_defaults["watchdog"], config.get("watchdog", {})
     )
 
-    new_config["initial_run_target"] = config.get(
-        "initial_run_target", merged_defaults["initial_run_target"]
-    )
+    # Only emit initial_run_target when it can be derived from the input config
+    # or the defaults. This keeps preprocess_defaults usable with minimal
+    # defaults that don't define run-target keys.
+    if "initial_run_target" in config or "initial_run_target" in merged_defaults:
+        new_config["initial_run_target"] = config.get(
+            "initial_run_target", merged_defaults.get("initial_run_target")
+        )
 
     if "fallback_run_target" in config:
         fallback_defaults = {

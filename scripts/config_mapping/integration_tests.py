@@ -28,6 +28,7 @@ schema_path = (
     script_dir.parent.parent
     / "score"
     / "launch_manager"
+    / "src"
     / "daemon"
     / "src"
     / "configuration"

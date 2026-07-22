@@ -20,6 +20,7 @@
             ],
             "security_policy_details": "policy_name",
             "number_of_restart_attempts": 1,
+            "working_dir": "/tmp",
             "executable_reporting_behavior": "DoesNotReportExecutionState",
             "startup_config": [
                 {
@@ -84,6 +85,7 @@
             ],
             "security_policy_details": "policy_name",
             "number_of_restart_attempts": 1,
+            "working_dir": "/tmp",
             "executable_reporting_behavior": "DoesNotReportExecutionState",
             "startup_config": [
                 {
@@ -152,6 +154,7 @@
             ],
             "security_policy_details": "policy_name",
             "number_of_restart_attempts": 1,
+            "working_dir": "/tmp",
             "executable_reporting_behavior": "ReportsExecutionState",
             "startup_config": [
                 {
@@ -219,6 +222,7 @@
             ],
             "security_policy_details": "policy_name",
             "number_of_restart_attempts": 1,
+            "working_dir": "/tmp",
             "executable_reporting_behavior": "ReportsExecutionState",
             "startup_config": [
                 {
@@ -295,6 +299,7 @@
             ],
             "security_policy_details": "policy_name",
             "number_of_restart_attempts": 1,
+            "working_dir": "/tmp",
             "executable_reporting_behavior": "ReportsExecutionState",
             "function_cluster_affiliation": "STATE_MANAGEMENT",
             "startup_config": [
