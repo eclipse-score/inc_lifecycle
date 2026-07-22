@@ -11,7 +11,6 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-
 #ifndef CONSTANTS_HPP_INCLUDED
 #define CONSTANTS_HPP_INCLUDED
 
@@ -19,11 +18,14 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace score {
+namespace score
+{
 
-namespace lcm {
+namespace lcm
+{
 
-namespace internal {
+namespace internal
+{
 
 // coverity[autosar_cpp14_a0_1_1_violation:INTENTIONAL] These are constants that are used globally.
 constexpr std::size_t kMaxArg = 20U;  ///< Maximum number of arguments
@@ -36,29 +38,42 @@ constexpr std::size_t kArgvArraySize =
 constexpr std::size_t kEnvArraySize =
     kMaxEnv + 1U;  ///< As required by posix we need extra space in envp_ for NULL pointer
 
-constexpr std::chrono::milliseconds kMaxQueueDelay{500};  ///< The maximum time to wait trying to add items to, or get items from, a queue
-constexpr std::chrono::milliseconds kGraphTimeout{10000};  ///< Timeout duration for graph operations.
+constexpr std::chrono::milliseconds kMaxQueueDelay{
+    500};  ///< The maximum time to wait trying to add items to, or get items from, a queue
+constexpr std::chrono::milliseconds kGraphTimeout{10000};   ///< Timeout duration for graph operations.
 constexpr std::chrono::milliseconds kMaxSigKillDelay{500};  ///< The maximum time to wait for a process termination
 
-constexpr std::chrono::milliseconds kControlClientPollingDelay{1};  ///< Time Control Client will wait during polling for acknowledgement
+constexpr std::chrono::milliseconds kControlClientPollingDelay{
+    1};  ///< Time Control Client will wait during polling for acknowledgement
 
-constexpr std::chrono::milliseconds kMaxRunningDelay{1000};  ///< report_running() API will wait for Launch Manager to respond
+constexpr std::chrono::milliseconds kMaxRunningDelay{
+    1000};  ///< report_running() API will wait for Launch Manager to respond
 
-constexpr std::chrono::milliseconds kControlClientMaxIpcDelay{500};  ///< The maximum time to wait, when trying to communicate with LCM. When this time is exceeded kCommunicationError will be returned
+constexpr std::chrono::milliseconds kControlClientMaxIpcDelay{
+    500};  ///< The maximum time to wait, when trying to communicate with LCM. When this time is exceeded
+           ///< kCommunicationError will be returned
 constexpr std::chrono::milliseconds kControlClientBgThreadSleepTime{100};
 
-enum class ControlClientLimits : uint16_t {
-    kControlClientMaxInstances =
-        256U,  ///< Maximum number of ControlClient instances that should be created by state manager. If state manager create more instances than kMaxInstances, those instances will always return kCommunicationError when used
+enum class ControlClientLimits : uint16_t
+{
+    kControlClientMaxInstances = 256U,  ///< Maximum number of ControlClient instances that should be created by state
+                                        ///< manager. If state manager create more instances than kMaxInstances, those
+                                        ///< instances will always return kCommunicationError when used
     kControlClientMaxRequests =
-        512U  ///< Maximum number of active requests, for example SetState call, that ControlClient instance can send to LCM. If that number is exceeded ControlClient API will return kFailed, until one of the current requests is completed by LCM
+        512U  ///< Maximum number of active requests, for example SetState call, that ControlClient instance can send to
+              ///< LCM. If that number is exceeded ControlClient API will return kFailed, until one of the current
+              ///< requests is completed by LCM
 };
 
-enum class ProcessLimits : std::uint32_t {
+enum class ProcessLimits : std::uint32_t
+{
     kMaxProcesses = 1024U,    ///< Maximum number of processes allowed
     kNumWorkerThreads = 32U,  ///< Maximum number of worker threads allowed
     maxLocalBuffSize = 32U    ///< Maximum size for local buffer
 };
+
+/// @brief Capacity of the ComponentEventQueue.
+constexpr std::size_t kComponentEventQueueSize = 1024U;
 
 }  // namespace internal
 
