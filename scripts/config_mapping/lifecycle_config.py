@@ -27,7 +27,6 @@ score_defaults = json.loads("""
         "shutdown_timeout": 0.5,
         "environmental_variables": {},
         "bin_dir": "/opt",
-        "working_dir": "/tmp",
         "ready_recovery_action": {
             "restart": {
                 "number_of_attempts": 0,
@@ -289,7 +288,11 @@ def gen_config(output_dir, config, input_filename, schema_version=None):
             "ready_timeout": depl_cfg["ready_timeout"],
             "shutdown_timeout": depl_cfg["shutdown_timeout"],
             "bin_dir": depl_cfg["bin_dir"],
-            "working_dir": depl_cfg["working_dir"],
+            # Default the working directory to bin_dir (the directory the
+            # executable lives in) when not set explicitly. This matches the
+            # launch manager's own fallback of chdir'ing to the executable's
+            # directory when no working_dir is configured.
+            "working_dir": depl_cfg.get("working_dir", depl_cfg["bin_dir"]),
             "sandbox": sandbox_out,
         }
 
@@ -668,6 +671,10 @@ def gen_launch_manager_config(output_dir, config):
         process["number_of_restart_attempts"] = component_config["deployment_config"][
             "ready_recovery_action"
         ]["restart"]["number_of_attempts"]
+        process["working_dir"] = component_config["deployment_config"].get(
+            "working_dir",
+            component_config["deployment_config"]["bin_dir"]
+        )
 
         match component_config["component_properties"]["application_profile"][
             "application_type"

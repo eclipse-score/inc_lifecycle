@@ -43,6 +43,7 @@ table Process {
   uid: uint (id:4);
   gid: uint (id:5);
   path: string (id:6);
+  working_dir: string (id:11);
   security_policy_details: string (id:7);
   executable_reporting_behavior: ExecutionStateReportingBehaviorEnum (id:8);
   startup_config: [ProcessStartupConfig] (id:9);

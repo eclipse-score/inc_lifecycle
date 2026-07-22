@@ -25,7 +25,6 @@ TEST(Smoke, Daemon)
     ASSERT_TRUE(check_clean({test_end_location}));
     TEST_STEP("Control daemon report running")
     {
-        // report running
         score::mw::lifecycle::report_running();
     }
 
@@ -47,7 +46,7 @@ TEST(Smoke, Daemon)
     }
 }
 
-int main(int argc, char** argv)
+int main()
 {
     return TestRunner(__FILE__, TerminationBehavior::kWait, TerminationNotification::kTestEnd).RunTests();
 }

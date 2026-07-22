@@ -521,8 +521,10 @@ bool ConfigurationManager::parseProcessConfigurations(const Process* node)
             setSchedulingParameters(*node, *startup_config_node, instance);
             // Set executable path from node's path
             instance.startup_config_.executable_path_ = getStringFromFlatBuffer(node->path());
+            instance.startup_config_.working_dir_ = getStringFromFlatBuffer(node->working_dir());
             LM_LOG_DEBUG() << "parseProcessConfigurations: Process index:" << instance.process_number_
-                           << "executable_path_:" << instance.startup_config_.executable_path_;
+                           << "executable_path_:" << instance.startup_config_.executable_path_
+                           << " working_dir_:" << instance.startup_config_.working_dir_;
 
             instance.startup_config_.short_name_ = node->identifier() ? node->identifier()->c_str() : "Unknown";
             instance.startup_config_.uid_ = node->uid() & 0x7FFFFFFFU;

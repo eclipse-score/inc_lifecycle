@@ -60,4 +60,10 @@ def test_sandbox_options(target, setup_test, assert_test_results, remote_test_di
         timeout_s=3.0,
     )
 
-    assert_test_results({"control_daemon_mock.xml", "sandbox_options_process.xml"})
+    # The managed process is configured with a custom working directory (see the
+    # "working_dir" entries in sandbox_options.json), so its XML result file is
+    # written there rather than into remote_test_dir. Search those directories too.
+    assert_test_results(
+        {"control_daemon_mock.xml", "sandbox_options_process.xml"},
+        additional_search_dirs=["/tmp/tests/sandbox_options", "/tmp"],
+    )

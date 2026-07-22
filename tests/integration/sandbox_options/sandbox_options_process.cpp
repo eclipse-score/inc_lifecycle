@@ -12,17 +12,18 @@
  ********************************************************************************/
 
 #include <gtest/gtest.h>
-#include <csignal>
 #include <unistd.h>
 #include <limits.h>
-#include <array>
-#include <fstream>
 #include <algorithm>
+#include <array>
+#include <csignal>
+#include <fstream>
 
-#include <score/mw/lifecycle/report_running.h>
 #include "tests/utils/test_helper/test_helper.hpp"
+#include <score/mw/lifecycle/report_running.h>
 
-namespace {
+namespace
+{
 
 bool verify_sandbox_options()
 {
@@ -67,8 +68,8 @@ bool verify_sandbox_options()
         for (const gid_t expected_group : expected_supp_groups)
         {
             const bool found = std::find(groups.begin(), groups.begin() + count, expected_group) != groups.end();
-            EXPECT_TRUE(found) << "Expected supplementary group " << expected_group << " not found (groups: ["
-                               << count << " total)]";
+            EXPECT_TRUE(found) << "Expected supplementary group " << expected_group << " not found (groups: [" << count
+                               << " total)]";
             if (!found)
             {
                 all_pass = false;
@@ -100,13 +101,15 @@ bool verify_sandbox_options()
     return all_pass;
 }
 
-} // namespace
+}  // namespace
 
-TEST(SandboxOptions, RunAndVerify) {
+TEST(SandboxOptions, RunAndVerify)
+{
     ASSERT_TRUE(verify_sandbox_options()) << "Sandbox options verification failed";
     score::mw::lifecycle::report_running();
 }
 
-int main() {
+int main()
+{
     return TestRunner(__FILE__).RunTests();
 }
