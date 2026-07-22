@@ -11,7 +11,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 load("@rules_python//python:defs.bzl", "py_library")
-load("@score_lifecycle_pip//:requirements.bzl", "requirement")
 
 py_library(
     name = "testing_utils",
@@ -25,7 +24,6 @@ py_library(
         "//tests:__subpackages__",
     ],
     deps = [
-        requirement("junitparser"),
         "@score_itf//score/itf/core/process",
         "@score_itf//score/itf/core/target",
     ],

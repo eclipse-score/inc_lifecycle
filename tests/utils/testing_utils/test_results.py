@@ -12,9 +12,9 @@
 # *******************************************************************************
 from pathlib import Path
 from typing import Iterable, Sequence, Set, Union
+from xml.etree import ElementTree
 
 import pytest
-from junitparser import JUnitXml
 
 
 def download_xml_results(
@@ -57,8 +57,11 @@ def get_failing_files(path: Path):
     failing_files = set()
     all_files = set()
     for file in path.glob("*.xml"):
-        xml = JUnitXml.fromfile(str(file))
-        if xml.failures > 0 or xml.errors > 0:
+        test_suites = ElementTree.parse(str(file)).getroot()
+        failures = int(test_suites.attrib["failures"])
+        errors = int(test_suites.attrib["errors"])
+
+        if failures > 0 or errors > 0:
             failing_files.add(file.name)
         all_files.add(file.name)
 
