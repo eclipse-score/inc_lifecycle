@@ -293,9 +293,7 @@ def gen_config(output_dir, config, input_filename, schema_version=None):
             "shutdown_timeout": depl_cfg["shutdown_timeout"],
             "bin_dir": depl_cfg["bin_dir"],
             # Default the working directory to bin_dir (the directory the
-            # executable lives in) when not set explicitly. This matches the
-            # launch manager's own fallback of chdir'ing to the executable's
-            # directory when no working_dir is configured.
+            # executable lives in) when not set explicitly.
             "working_dir": depl_cfg.get("working_dir", depl_cfg["bin_dir"]),
             "sandbox": sandbox_out,
         }
