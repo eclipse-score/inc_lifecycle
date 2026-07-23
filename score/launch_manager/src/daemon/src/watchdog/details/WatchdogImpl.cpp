@@ -481,6 +481,12 @@ void WatchdogImpl::waitForever() const noexcept
 /* RULECHECKER_comment(1:0,1:0, check_pragma_usage, "External tooling requires pragma", true_no_defect) */
 #pragma CTC ENDSKIP
 #endif
+
+std::unique_ptr<IWatchdogIf> createWatchdog()
+{
+    return std::make_unique<WatchdogImpl>();
+}
+
 }  // namespace watchdog
 }  // namespace lcm
 }  // namespace score

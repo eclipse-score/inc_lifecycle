@@ -201,8 +201,15 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
         std::unique_ptr<score::lcm::internal::IAliveMonitorThread> aliveMonitorThread{
             std::make_unique<score::lcm::internal::AliveMonitorThread>(std::move(healthMonitor))};
 
-        std::unique_ptr<ProcessGroupManager> process_group_manager = std::make_unique<ProcessGroupManager>(
-            std::move(aliveMonitorThread), recoveryClient, std::move(process_state_notifier));
+#ifdef USE_NEW_CONFIGURATION
+        auto watchdog = score::lcm::watchdog::createWatchdog();
+        auto process_group_manager = std::make_unique<ProcessGroupManager>(
+            std::move(aliveMonitorThread), recoveryClient, std::move(process_state_notifier), std::move(watchdog));
+#else
+        // Legacy configuration wires no watchdog; the watchdog usage in PGM is #ifdef-guarded off.
+        auto process_group_manager = std::make_unique<ProcessGroupManager>(
+            std::move(aliveMonitorThread), recoveryClient, std::move(process_state_notifier), nullptr);
+#endif
 
 #ifdef USE_NEW_CONFIGURATION
         if (process_group_manager->initialize(*config_result))
