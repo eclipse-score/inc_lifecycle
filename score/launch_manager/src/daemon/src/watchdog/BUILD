@@ -37,12 +37,16 @@ cc_library(
     ],
 )
 
-lm_cc_test(
-    name = "watchdog_factory_UT",
-    srcs = ["WatchdogFactory_UT.cpp"],
+cc_library(
+    name = "i_watchdog_if_mock",
+    testonly = True,
+    hdrs = ["IWatchdogIfMock.hpp"],
+    include_prefix = "score/mw/launch_manager/watchdog",
+    strip_include_prefix = "/score/launch_manager/src/daemon/src/watchdog",
+    visibility = ["//score:__subpackages__"],
     deps = [
-        ":watchdog_factory",
-        "//score/launch_manager/src/daemon/src/watchdog/details:watchdog_impl",
-        "@googletest//:gtest_main",
+        ":i_watchdog_if",
+        "@googletest//:gtest",
     ],
 )
+
