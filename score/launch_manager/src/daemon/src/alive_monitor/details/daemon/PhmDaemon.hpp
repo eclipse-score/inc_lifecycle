@@ -25,7 +25,6 @@
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ProcessStateReader.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/CycleTimeValidator.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/CycleTimer.hpp"
-#include "score/mw/launch_manager/watchdog/IWatchdogIf.hpp"
 #ifdef USE_NEW_CONFIGURATION
 #include "score/mw/launch_manager/configuration/config.hpp"
 #endif
@@ -45,8 +44,6 @@ enum class EInitCode : std::int8_t
     kNotInitialized,                    ///< Init was not performed
     kCycleTimeInitFailed,              ///< Cyclic Timer initialization failed
     kConstructFlatCfgFactoryFailed,    ///< FlatCfgFactory failed loading SWCL configurations
-    kWatchdogInitFailed,               ///< Watchdog Initialization failed
-    kWatchdogEnableFailed,             ///< Enabling watchdog device failed
     kMachineConfigInitFailed,          ///< MachineConfigFactory failed loading the machine configuration
     kSignalHandlerRegistrationFailed,  ///< Failed to register signal handler for termination signals
     kGeneralError                      ///< General error
@@ -60,7 +57,6 @@ class PhmDaemon
 {
 public:
     using OsClock = score::lcm::saf::timers::OsClockInterface;
-    using Watchdog = watchdog::IWatchdogIf;
     using ProcessStateReceiver = score::lcm::IProcessStateReceiver;
     using RecoveryClient = score::lcm::IRecoveryClient;
     using MachineConfigFactory = factory::MachineConfigFactory;
@@ -77,12 +73,10 @@ public:
      as same as generated function", true_no_defect) */
     /// @brief Set the OS clock interface
     /// @param[in] f_osClock Access to the system clock (dependency injection possible in tests)
-    /// @param[in] f_watchdog watchdog implementation (dependency injection possible in tests)
     /// @param[in] f_process_state_receiver process state receiver implementation (dependency injection possible in tests)
     /* RULECHECKER_comment(3,1, check_expensive_to_copy_in_parameter, "Move only types cannot be passed by const ref",
        true_no_defect) */
     PhmDaemon(OsClock& f_osClock,
-              std::unique_ptr<Watchdog> f_watchdog,
               std::unique_ptr<ProcessStateReceiver> f_process_state_receiver);
 
     /* RULECHECKER_comment(0, 4, check_min_instructions, "Default destructor is not provided\
@@ -148,18 +142,6 @@ public:
         {
             LM_LOG_ERROR() << "Phm Daemon: Initialization of CycleTimer instance failed!";
             return EInitCode::kCycleTimeInitFailed;
-        }
-
-        if (!watchdog->init(cycleTimeModified, machineConfig))
-        {
-            LM_LOG_ERROR() << "Phm Daemon: Initialization of watchdog failed!";
-            return EInitCode::kWatchdogInitFailed;
-        }
-
-        if (!watchdog->enable())
-        {
-            LM_LOG_ERROR() << "Phm Daemon: Enabling of watchdog failed!";
-            return EInitCode::kWatchdogEnableFailed;
         }
 
         return EInitCode::kNoError;
@@ -234,7 +216,6 @@ public:
         }
         LM_LOG_INFO() << "Phm Daemon: Received termination request - shutting down";
 
-        watchdog->disable();
         return true;
     }
 
@@ -267,9 +248,6 @@ private:
 
     /// @brief Process State Reader for PHM daemon
     ProcessStateReader processStateReader;
-
-    /// @brief Connection to watchdog devices
-    std::unique_ptr<Watchdog> watchdog;
 };
 
 }  // namespace daemon

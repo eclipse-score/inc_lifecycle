@@ -18,7 +18,6 @@
 #include <score/assert.hpp>
 
 #include "score/mw/launch_manager/alive_monitor/details/daemon/AliveMonitorImpl.hpp"
-#include "score/mw/launch_manager/watchdog/details/WatchdogImpl.hpp"
 
 namespace score
 {
@@ -31,21 +30,17 @@ namespace daemon
 
 #ifdef USE_NEW_CONFIGURATION
 AliveMonitorImpl::AliveMonitorImpl(SptrIRecoveryClient recovery_client,
-                                   UptrIWatchdogIf watchdog,
                                    UptrIProcessStateReceiver process_state_receiver,
                                    const Config& config)
     : m_recovery_client(recovery_client),
-      m_watchdog(std::move(watchdog)),
       m_process_state_receiver{std::move(process_state_receiver)},
       m_config(config)
 {
 }
 #else
 AliveMonitorImpl::AliveMonitorImpl(SptrIRecoveryClient recovery_client,
-                                   UptrIWatchdogIf watchdog,
                                    UptrIProcessStateReceiver process_state_receiver)
     : m_recovery_client(recovery_client),
-      m_watchdog(std::move(watchdog)),
       m_process_state_receiver{std::move(process_state_receiver)}
 {
 }
@@ -58,8 +53,7 @@ EInitCode AliveMonitorImpl::init() noexcept
     {
         m_osClock.startMeasurement();
 
-        m_daemon = std::make_unique<PhmDaemon>(m_osClock, std::move(m_watchdog),
-                                               std::move(m_process_state_receiver));
+        m_daemon = std::make_unique<PhmDaemon>(m_osClock, std::move(m_process_state_receiver));
     #ifdef USE_NEW_CONFIGURATION
         initResult = m_daemon->init(m_recovery_client, m_config);
     #else

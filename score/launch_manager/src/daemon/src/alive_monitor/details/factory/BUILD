@@ -49,7 +49,7 @@ cc_library(
     }),
     include_prefix = "score/mw/launch_manager/alive_monitor/details/factory",
     strip_include_prefix = "/score/launch_manager/src/daemon/src/alive_monitor/details/factory",
-    visibility = ["//score/launch_manager/src/daemon/src/alive_monitor:__subpackages__"],
+    visibility = ["//score/launch_manager/src/daemon:__subpackages__"],
     deps = [
         ":static_config",
         "//score/launch_manager/src/daemon/src/alive_monitor/config",

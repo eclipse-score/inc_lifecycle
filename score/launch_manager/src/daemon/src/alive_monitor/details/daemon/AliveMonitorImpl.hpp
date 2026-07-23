@@ -26,16 +26,11 @@ namespace lcm {
 
 class IRecoveryClient;
 
-namespace watchdog {
-class IWatchdogIf;
-}
-
 namespace saf {
 
 namespace daemon {
 
 using SptrIRecoveryClient = std::shared_ptr<score::lcm::IRecoveryClient>;
-using UptrIWatchdogIf = std::unique_ptr<watchdog::IWatchdogIf>;
 using UptrIProcessStateReceiver = std::unique_ptr<score::lcm::IProcessStateReceiver>;
 using UptrPhmDaemon = std::unique_ptr<score::lcm::saf::daemon::PhmDaemon>;
 using OsClock = score::lcm::saf::timers::OsClockInterface;
@@ -47,12 +42,10 @@ class AliveMonitorImpl : public IAliveMonitor {
    public:
 #ifdef USE_NEW_CONFIGURATION
     AliveMonitorImpl(SptrIRecoveryClient recovery_client,
-                     UptrIWatchdogIf watchdog,
                      UptrIProcessStateReceiver process_state_receiver,
                      const Config& config);
 #else
-    AliveMonitorImpl(SptrIRecoveryClient recovery_client, 
-                     UptrIWatchdogIf watchdog, 
+    AliveMonitorImpl(SptrIRecoveryClient recovery_client,
                      UptrIProcessStateReceiver process_state_receiver);
 #endif
 
@@ -62,7 +55,6 @@ class AliveMonitorImpl : public IAliveMonitor {
 
    private:
     SptrIRecoveryClient m_recovery_client{nullptr};
-    UptrIWatchdogIf m_watchdog{nullptr};
     UptrPhmDaemon m_daemon{nullptr};
     OsClock m_osClock{};
     UptrIProcessStateReceiver m_process_state_receiver;

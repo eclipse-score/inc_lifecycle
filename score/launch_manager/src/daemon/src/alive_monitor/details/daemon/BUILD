@@ -74,7 +74,6 @@ cc_library(
         "//score/launch_manager/src/daemon/src/alive_monitor/details/timers:cycle_timer",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/timers:timers_os_clock",
         "//score/launch_manager/src/daemon/src/common:log",
-        "//score/launch_manager/src/daemon/src/watchdog:i_watchdog_if",
         "//score/launch_manager/src/lifecycle_client",
     ] + select({
         "//config:lm_use_new_configuration": [
@@ -106,7 +105,6 @@ cc_library(
     visibility = ["//score/launch_manager/src/daemon:__subpackages__"],
     deps = [
         ":i_health_monitor",
-        "//score/launch_manager/src/daemon/src/watchdog/details:watchdog_impl",
         "@score_baselibs//score/language/futurecpp",
     ],
 )

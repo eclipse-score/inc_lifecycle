@@ -31,22 +31,17 @@ namespace daemon
    true_no_defect) */
 /* RULECHECKER_comment(0, 4, check_incomplete_data_member_construction, "Default constructor is used for\
  processStateReader.", true_no_defect) */
-PhmDaemon::PhmDaemon(OsClock& f_osClock,
-                     std::unique_ptr<Watchdog> f_watchdog,
-                     std::unique_ptr<ProcessStateReceiver> f_process_state_receiver)
+PhmDaemon::PhmDaemon(OsClock& f_osClock, std::unique_ptr<ProcessStateReceiver> f_process_state_receiver)
     : osClock{f_osClock},
       cycleTimer{&osClock},
       swClusterHandlers{},
-      processStateReader{std::move(f_process_state_receiver)},
-      watchdog(std::move(f_watchdog))
+      processStateReader{std::move(f_process_state_receiver)}
 {
     static_cast<void>(f_osClock);
 }
 
 void PhmDaemon::performCyclicTriggers(void)
 {
-    bool isCriticalFailure{false};
-
     NanoSecondType syncTimestamp{timers::OsClock::getMonotonicSystemClock()};
     if (syncTimestamp == 0U)
     {
@@ -55,28 +50,12 @@ void PhmDaemon::performCyclicTriggers(void)
         syncTimestamp = UINT64_MAX;
     }
 
-    isCriticalFailure = (!processStateReader.distributeChanges(syncTimestamp));
-
-    if (!isCriticalFailure)
+    if (processStateReader.distributeChanges(syncTimestamp))
     {
         for (auto& phmHandler : swClusterHandlers)
         {
             phmHandler.performCyclicTriggers(syncTimestamp);
-            isCriticalFailure = isCriticalFailure || phmHandler.hasAnyRecoveryEnqueueFailed();
         }
-    }
-
-    // watchdog is fired iff:
-    //  * isCriticalFailure is set (e.g. process state distribution error, recovery ring buffer full)
-    // else:
-    //  * watchdog is serviced
-    if (!isCriticalFailure)
-    {
-        watchdog->serviceWatchdog();
-    }
-    else
-    {
-        watchdog->fireWatchdogReaction();
     }
 }
 
