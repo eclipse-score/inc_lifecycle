@@ -19,7 +19,7 @@
 #include <score/mw/lifecycle/control_client.h>
 #include <score/mw/lifecycle/report_running.h>
 
-TEST(Smoke, Daemon)
+TEST(SandboxOptions, Daemon)
 {
     score::mw::lifecycle::ControlClient client{};
     ASSERT_TRUE(check_clean({test_end_location}));
