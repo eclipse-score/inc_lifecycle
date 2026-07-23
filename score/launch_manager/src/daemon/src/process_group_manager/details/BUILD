@@ -208,6 +208,15 @@ cc_library(
 )
 
 cc_test(
+    name = "process_monitor_UT",
+    srcs = ["process_monitor_UT.cpp"],
+    deps = [
+        ":process_monitor",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
     name = "oshandler_UT",
     srcs = ["oshandler_UT.cpp"],
     deps = [
