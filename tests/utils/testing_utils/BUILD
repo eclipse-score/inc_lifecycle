@@ -19,6 +19,7 @@ py_library(
         "setup_test.py",
         "test_results.py",
     ],
+    target_compatible_with = ["@platforms//os:linux"],
     visibility = [
         "//examples:__subpackages__",
         "//tests:__subpackages__",
