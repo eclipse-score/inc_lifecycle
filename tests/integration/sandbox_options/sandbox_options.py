@@ -31,6 +31,7 @@ def docker_configuration():
     fully_verifies=[
         "feat_req__lifecycle__uid_gid_support",
         "feat_req__lifecycle__launch_priority_support",
+        "feat_req__lifecycle__scheduling_policy",
         "feat_req__lifecycle__cwd_support",
         "feat_req__lifecycle__supplementary_groups"
     ],

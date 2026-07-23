@@ -12,18 +12,77 @@
  ********************************************************************************/
 
 #include <gtest/gtest.h>
+#include <pthread.h>
+#include <sched.h>
 #include <unistd.h>
 #include <limits.h>
 #include <algorithm>
 #include <array>
+#include <atomic>
 #include <csignal>
 #include <fstream>
+#include <string>
+#include <thread>
 
 #include "tests/utils/test_helper/test_helper.hpp"
 #include <score/mw/lifecycle/report_running.h>
 
 namespace
 {
+
+// Values configured for sandbox_options_process in sandbox_options.json.
+constexpr int expected_policy = SCHED_FIFO;
+constexpr int expected_priority = 10;
+
+const char* policy_name(const int policy)
+{
+    switch (policy)
+    {
+        case SCHED_FIFO:
+            return "SCHED_FIFO";
+        case SCHED_RR:
+            return "SCHED_RR";
+        case SCHED_OTHER:
+            return "SCHED_OTHER";
+        default:
+            return "UNKNOWN";
+    }
+}
+
+/// @brief Verify that the calling thread runs with the expected scheduling policy and priority.
+/// @param[in] context Human readable name of the thread, used in failure messages.
+/// @param[in] file_prefix Prefix for the result files written for debugging.
+/// @return true if the policy and priority match the configured values.
+bool verify_scheduling(const std::string& context, const std::string& file_prefix)
+{
+    int policy = -1;
+    sched_param param{};
+    const int rc = pthread_getschedparam(pthread_self(), &policy, &param);
+    EXPECT_EQ(rc, 0) << context << ": pthread_getschedparam failed rc=" << rc;
+
+    std::ofstream policy_file{file_prefix + "_policy.txt"};
+    policy_file << policy;
+    std::ofstream prio_file{file_prefix + "_priority.txt"};
+    prio_file << param.sched_priority;
+
+    bool pass = (rc == 0);
+
+    EXPECT_EQ(policy, expected_policy) << context << ": Expected scheduling policy=" << policy_name(expected_policy)
+                                       << " but got " << policy_name(policy);
+    if (policy != expected_policy)
+    {
+        pass = false;
+    }
+
+    EXPECT_EQ(param.sched_priority, expected_priority)
+        << context << ": Expected scheduling priority=" << expected_priority << " but got " << param.sched_priority;
+    if (param.sched_priority != expected_priority)
+    {
+        pass = false;
+    }
+
+    return pass;
+}
 
 bool verify_sandbox_options()
 {
@@ -95,6 +154,30 @@ bool verify_sandbox_options()
             {
                 all_pass = false;
             }
+        }
+    }
+
+    TEST_STEP("Verify scheduling policy and priority in the main thread")
+    {
+        if (!verify_scheduling("main thread", "sandbox_sched_main"))
+        {
+            all_pass = false;
+        }
+    }
+
+    TEST_STEP("Verify scheduling policy and priority in a spawned thread")
+    {
+        // A thread created with default attributes inherits the scheduling policy and
+        // priority of its creating thread, so the configured real-time settings must
+        // apply here as well.
+        std::atomic<bool> thread_pass{false};
+        std::thread worker(
+            [&thread_pass]() { thread_pass = verify_scheduling("spawned thread", "sandbox_sched_thread"); });
+        worker.join();
+
+        if (!thread_pass)
+        {
+            all_pass = false;
         }
     }
 
