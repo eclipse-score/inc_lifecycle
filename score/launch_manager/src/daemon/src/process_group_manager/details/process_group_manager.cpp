@@ -117,12 +117,35 @@ bool ProcessGroupManager::initialize()
         return false;
     }
 
+#ifdef USE_NEW_CONFIGURATION
+    const auto watchdog_config = config.watchdog();
+
+    // Watchdog config may not be available if no watchdog is configured
+    if (watchdog_config.has_value())
+    {
+        if (!watchdog_->init(watchdog_config.value(), score::lcm::internal::kMainLoopCycleTimeNs))
+        {
+            LM_LOG_ERROR() << "Watchdog initialization failed";
+            return false;
+        }
+        if (!watchdog_->enable())
+        {
+            LM_LOG_ERROR() << "Watchdog enable failed";
+            return false;
+        }
+    }
+
+#endif
+
     return true;
 }
 
 void ProcessGroupManager::deinitialize()
 {
     // ucm_polling_thread_.stopPolling();
+#ifdef USE_NEW_CONFIGURATION
+    watchdog_->disable();
+#endif
     alive_monitor_thread_->stop();
     configuration_.deinitialize();
     process_groups_.clear();
@@ -310,6 +333,16 @@ bool ProcessGroupManager::run()
                 processGroupHandler(*pg);
             }
             recoveryActionHandler();
+
+#ifdef USE_NEW_CONFIGURATION
+            if (recovery_client_ && recovery_client_->hasOverflow())
+            {
+                LM_LOG_ERROR() << "Recovery client overflow detected, firing watchdog";
+                watchdog_->fireWatchdogReaction();
+            }
+
+            watchdog_->serviceWatchdog();
+#endif
         }
 
     allProcessGroupsOff();
