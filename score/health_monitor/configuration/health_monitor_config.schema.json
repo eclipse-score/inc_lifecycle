@@ -1,0 +1,202 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "health_monitor_config.schema.json",
+  "title": "HealthMonitorConfig",
+  "description": "Configuration schema for HealthMonitor (compatible with health_monitor_config.fbs)",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "supervisor_api_cycle_ms",
+    "internal_processing_cycle_ms"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "description": "Schema version",
+      "enum": [
+        1
+      ]
+    },
+    "supervisor_api_cycle_ms": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Cycle duration in ms for supervisor API notifications"
+    },
+    "internal_processing_cycle_ms": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Cycle duration in ms for internal deadline checks"
+    },
+    "thread_parameters": {
+      "$ref": "#/$defs/ThreadParameters"
+    },
+    "deadline_monitors": {
+      "$ref": "#/$defs/DeadlineMonitors",
+      "description": "Map of deadline monitor groups"
+    },
+    "heartbeat_monitors": {
+      "$ref": "#/$defs/HeartbeatMonitors",
+      "description": "Map of heartbeat monitors"
+    },
+    "logic_monitors": {
+      "$ref": "#/$defs/LogicMonitors",
+      "description": "Map of logic monitors"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "SchedulerPolicy": {
+      "type": "string",
+      "enum": [
+        "POSIX_OTHER",
+        "POSIX_FIFO",
+        "POSIX_RR"
+      ],
+      "description": "Scheduler policy for the monitoring thread"
+    },
+    "ThreadParameters": {
+      "type": "object",
+      "properties": {
+        "policy": {
+          "$ref": "#/$defs/SchedulerPolicy",
+          "description": "Scheduler policy for the monitoring thread"
+        },
+        "priority": {
+          "type": "integer",
+          "description": "Thread priority"
+        },
+        "affinity": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "description": "CPU core IDs the thread can run on"
+        },
+        "stack_size_bytes": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Stack size in bytes"
+        }
+      },
+      "additionalProperties": false
+    },
+    "TimeRange": {
+      "type": "object",
+      "required": [
+        "min_ms",
+        "max_ms"
+      ],
+      "properties": {
+        "min_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Minimum duration in milliseconds"
+        },
+        "max_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Maximum duration in milliseconds"
+        }
+      },
+      "additionalProperties": false
+    },
+    "DeadlineEntry": {
+      "type": "object",
+      "required": [
+        "min_ms",
+        "max_ms"
+      ],
+      "properties": {
+        "min_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Minimum duration in milliseconds"
+        },
+        "max_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Maximum duration in milliseconds"
+        }
+      },
+      "additionalProperties": false
+    },
+    "DeadlineMonitorEntryMap": {
+      "type": "object",
+      "propertyNames": {
+        "minLength": 1
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/TimeRange"
+      }
+    },
+    "DeadlineMonitors": {
+      "type": "object",
+      "propertyNames": {
+        "minLength": 1
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/DeadlineMonitorEntryMap"
+      }
+    },
+    "HeartbeatMonitors": {
+      "type": "object",
+      "propertyNames": {
+        "minLength": 1
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/TimeRange"
+      }
+    },
+    "StateTransitions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "List of states reachable from this state"
+    },
+    "StateNode": {
+      "type": "object",
+      "minProperties": 1,
+      "maxProperties": 1,
+      "propertyNames": {
+        "minLength": 1
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/StateTransitions"
+      }
+    },
+    "LogicMonitor": {
+      "type": "object",
+      "required": [
+        "initial_state",
+        "states"
+      ],
+      "properties": {
+        "initial_state": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Starting state of the logic monitor"
+        },
+        "states": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/StateNode"
+          },
+          "minItems": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "LogicMonitors": {
+      "type": "object",
+      "propertyNames": {
+        "minLength": 1
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/LogicMonitor"
+      }
+    }
+  }
+}

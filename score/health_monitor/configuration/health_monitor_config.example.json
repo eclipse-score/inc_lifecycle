@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "supervisor_api_cycle_ms": 100,
+  "internal_processing_cycle_ms": 50,
+  "thread_parameters": {
+    "policy": "POSIX_FIFO",
+    "priority": 20,
+    "affinity": [
+      0,
+      1
+    ],
+    "stack_size_bytes": 262144
+  },
+  "deadline_monitors": {
+    "control_loop_deadlines": {
+      "read_inputs": {
+        "min_ms": 1,
+        "max_ms": 5
+      },
+      "publish_outputs": {
+        "min_ms": 2,
+        "max_ms": 10
+      }
+    },
+    "communication_deadlines": {
+      "receive": {
+        "min_ms": 1,
+        "max_ms": 3
+      },
+      "transmit": {
+        "min_ms": 2,
+        "max_ms": 8
+      }
+    }
+  },
+  "heartbeat_monitors": {
+    "planner_heartbeat": {
+      "min_ms": 90,
+      "max_ms": 110
+    },
+    "worker_heartbeat": {
+      "min_ms": 40,
+      "max_ms": 60
+    }
+  },
+  "logic_monitors": {
+    "operation_mode_flow": {
+      "initial_state": "init",
+      "states": [
+        {
+          "init": [
+            "run",
+            "deinit"
+          ]
+        },
+        {
+          "run": [
+            "deinit"
+          ]
+        },
+        {
+          "deinit": []
+        }
+      ]
+    }
+  }
+}
