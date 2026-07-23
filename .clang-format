@@ -63,6 +63,7 @@ IncludeCategories:
 FixNamespaceComments: true
 ReflowComments: true # Automatically wraps long comments to ColumnLimit
 CommentPragmas: '^.*A2Lfactory:'
+InsertNewlineAtEOF: true
 
 Language: Cpp
 Standard: c++17
