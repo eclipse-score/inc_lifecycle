@@ -71,7 +71,6 @@ cc_library(
         "//score/launch_manager/src/daemon/src/process_group_manager/details:safe_process_map",
         "//score/launch_manager/src/daemon/src/process_state_client:iprocess_state_notifier",
         "//score/launch_manager/src/daemon/src/recovery_client",
-        "//score/launch_manager/src/daemon/src/watchdog:i_device_config_factory",
         "//score/launch_manager/src/daemon/src/watchdog:i_watchdog_if",
         "@score_baselibs//score/language/futurecpp",
     ] + select({

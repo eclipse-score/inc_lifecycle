@@ -18,7 +18,7 @@
 #include "score/mw/launch_manager/common/log.hpp"
 
 #include "score/mw/launch_manager/alive_monitor/details/daemon/AliveMonitorImpl.hpp"
-#include "score/mw/launch_manager/watchdog/details/WatchdogImpl.hpp"
+#include "score/mw/launch_manager/watchdog/IWatchdogIf.hpp"
 #include "score/mw/launch_manager/process_group_manager/alive_monitor_thread.hpp"
 #include "score/mw/launch_manager/process_group_manager/process_group_manager.hpp"
 #include "score/mw/launch_manager/process_state_client/process_state_notifier.hpp"
