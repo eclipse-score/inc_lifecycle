@@ -30,18 +30,9 @@ repos:
     hooks:
       - id: clang-format
         name: clang-format
-        entry: ./scripts/run_clang_format_precommit.sh
+        entry: bazel run //:format.fix_C++_with_clang-format
         language: system
         files: '\.(c|cc|cpp|h|hpp)$'
-        # all relevant files are currently excluded the format is not 
-        # clarified yet, so we don't want to run clang-format on any files
-        exclude: |
-          (?x)^(
-            externals/|
-            examples/|
-            tests/|
-            score/
-          )
       - id: clang-tidy
         name: clang-tidy
         # Run through a wrapper that sanitizes unsupported linker flags in

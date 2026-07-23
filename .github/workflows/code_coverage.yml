@@ -24,7 +24,7 @@ on:
 
 jobs:
   cpp:
-    uses: eclipse-score/cicd-workflows/.github/workflows/cpp-coverage.yml@ea19fcae9aeeb4ac678b750c6c197eaf75414f39 # v0.0.0
+    uses: eclipse-score/cicd-workflows/.github/workflows/cpp-coverage.yml@main
     with:
       bazel-target: "//score/..."
       bazel-config: "x86_64-linux"
@@ -33,7 +33,7 @@ jobs:
       retention-days: 10
       min-coverage: 76
   rust:
-    uses: eclipse-score/cicd-workflows/.github/workflows/rust-coverage.yml@ea19fcae9aeeb4ac678b750c6c197eaf75414f39 # v0.0.0
+    uses: eclipse-score/cicd-workflows/.github/workflows/rust-coverage.yml@main
     with:
       bazel-test-targets: "//score/..."
       bazel-test-config-flags: "--config=x86_64-linux --config=ferrocene-coverage --lockfile_mode=error --test_lang_filters=-cc,-miri"

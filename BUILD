@@ -106,7 +106,13 @@ dash_license_checker(
 )
 
 # Add target for formatting checks
-use_format_targets()
+use_format_targets(languages = [
+    "python",
+    "rust",
+    "starlark",
+    "yaml",
+    "cpp",
+])
 
 # Rust coverage report generation target
 rust_coverage_report(
