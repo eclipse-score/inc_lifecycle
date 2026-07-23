@@ -15,10 +15,15 @@
 #ifndef IWATCHDOGIF_HPP_INCLUDED
 #define IWATCHDOGIF_HPP_INCLUDED
 
+#include "score/mw/launch_manager/common/constants.hpp"
+
 #include <cstdint>
 #include <memory>
 
-#include "score/mw/launch_manager/watchdog/IDeviceConfigFactory.hpp"
+namespace score::mw::launch_manager::configuration
+{
+struct WatchdogConfig;
+}
 
 namespace score
 {
@@ -49,6 +54,11 @@ public:
     /// @brief Maximum supported timeout value in ms
     static constexpr std::uint16_t kTimeoutMaxMillis{30U /*seconds*/ * 1000U /*millis per second*/};
 
+    /// The main loop cycle time must be strictly less than the minimum watchdog timeout to ensure that
+    /// the watchdog timeout cannot expire during an unblocked run of the main loop.
+    static_assert(score::lcm::internal::kMainLoopCycleTimeMs < kTimeoutMinMillis,
+                  "Main loop cycle time must be less than the minimum watchdog timeout");
+
     /// @brief Destructor.
     /* RULECHECKER_comment(0, 2, check_min_instructions, "Default destructor has no body", true_no_defect) */
     virtual ~IWatchdogIf() noexcept = default;
@@ -62,11 +72,13 @@ public:
     /// @note Method is not reentrant safe.
     /// @note Only simple watchdogs are supported as of now, no windows watchdog (i.e. the min timeout value is always
     /// assumed 0).
-    /// @param[in] f_cycleTimeInNs The cycle time in nanoseconds in which serviceWatchdog() will be called
-    /// @param[in] f_configFactory The factory for retrieving the watchdog configuration(s)
+    /// @param[in] watchdog_config The configuration for the watchdog
+    /// @param[in] cycle_time_ns The period in nanoseconds at which serviceWatchdog() is called; used to validate
+    ///            that the configured watchdog timeout is long enough to be serviced in time.
     /// @return Status of configuration. True all device configurations are valid and has been successfully taken over
     /// by the Watchdog Interface library, false otherwise.
-    virtual bool init(std::int64_t f_cycleTimeInNs, const IDeviceConfigFactory& f_configFactory) noexcept = 0;
+    virtual bool init(const score::mw::launch_manager::configuration::WatchdogConfig& watchdog_config,
+                      std::int64_t cycle_time_ns) noexcept = 0;
 
     /// @brief Activate the watchdogs.
     /// @details Initialize and activate all watchdogs which are configured for use by the Watchdog Interface library.

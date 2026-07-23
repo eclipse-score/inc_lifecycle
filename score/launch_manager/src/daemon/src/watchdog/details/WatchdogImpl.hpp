@@ -57,7 +57,8 @@ class WatchdogImpl : public IWatchdogIf
     ~WatchdogImpl() override = default;
 
     /// @copydoc IWatchdogIf::init()
-    bool init(std::int64_t f_cycleTimeInNs, const IDeviceConfigFactory& f_configFactory) noexcept override;
+    bool init(const score::mw::launch_manager::configuration::WatchdogConfig& watchdog_config,
+              std::int64_t cycle_time_ns) noexcept override;
 
     /// @copydoc IWatchdogIf::enable()
     bool enable() noexcept override;

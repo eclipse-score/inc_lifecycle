@@ -47,6 +47,9 @@ constexpr std::chrono::milliseconds kMaxRunningDelay{1000};  ///< report_running
 constexpr std::chrono::milliseconds kControlClientMaxIpcDelay{500};  ///< The maximum time to wait, when trying to communicate with LCM. When this time is exceeded kCommunicationError will be returned
 constexpr std::chrono::milliseconds kControlClientBgThreadSleepTime{100};
 
+constexpr std::int64_t kMainLoopCycleTimeMs{50};  ///< The period at which the main loop services the watchdog
+constexpr std::int64_t kMainLoopCycleTimeNs{kMainLoopCycleTimeMs * 1'000'000LL};
+
 enum class ControlClientLimits : uint16_t {
     kControlClientMaxInstances =
         256U,  ///< Maximum number of ControlClient instances that should be created by state manager. If state manager create more instances than kMaxInstances, those instances will always return kCommunicationError when used

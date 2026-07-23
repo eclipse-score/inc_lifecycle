@@ -320,8 +320,10 @@ bool ProcessGroupManager::run()
         while (!em_cancelled.load())
         {
             // Wait for something to happen...
-            const auto osal_result =
-                ControlClientChannel::nudgeControlClientHandler_->timedWait(std::chrono::milliseconds(100));
+            // The wait is kept below the minimum watchdog timeout so that the wait plus per-iteration
+            // processing stays within budget for servicing the watchdog each cycle.
+            const auto osal_result = ControlClientChannel::nudgeControlClientHandler_->timedWait(
+                std::chrono::milliseconds(score::lcm::internal::kMainLoopCycleTimeMs));
 
             SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(
                 osal_result == OsalReturnType::kSuccess || osal_result == OsalReturnType::kTimeout,

@@ -20,6 +20,7 @@
 #include <unistd.h>
 
 #include "score/mw/launch_manager/alive_monitor/details/timers/OsClockInterface.hpp"
+#include "score/mw/launch_manager/configuration/config.hpp"
 #include "score/mw/launch_manager/watchdog/details/DeviceIf.hpp"
 #include "score/mw/launch_manager/watchdog/details/Watchdog.hpp"
 
@@ -55,31 +56,32 @@ T secToMs(const T f_timeout)
 /* RULECHECKER_comment(0:0,9:0, check_min_instructions, "Constructor with empty body is valid", true_no_defect) */
 WatchdogImpl::WatchdogImpl() noexcept : IWatchdogIf(), watchdogDevices(), state(ELibState::idle) {}
 
-bool WatchdogImpl::init(std::int64_t f_cycleTimeInNs, const IDeviceConfigFactory& f_configFactory) noexcept
+bool WatchdogImpl::init(const score::mw::launch_manager::configuration::WatchdogConfig& watchdog_config,
+                        std::int64_t cycle_time_ns) noexcept
 {
     bool isSuccess{true};
     try
     {
-        const auto configurations{f_configFactory.getDeviceConfigurations()};
-        if (!configurations)
+        if (watchdog_config.max_timeout_ms > std::numeric_limits<std::uint16_t>::max())
         {
-            LM_LOG_ERROR() << "Watchdog: Invalid watchdog device configuration. Watchdog initialization failed.";
-            isSuccess = false;
+            LM_LOG_ERROR() << "Watchdog: Invalid watchdog timeout value " << watchdog_config.max_timeout_ms
+                           << "ms. Watchdog initialization failed.";
+            return false;
         }
 
-        if (isSuccess)
-        {
-            watchdogDevices.reserve(configurations->size());
+        // Translate WatchdogConfig to DeviceConfig
+        DeviceConfig config{};
+        config.fileName = watchdog_config.device_file_path;
+        config.timeoutMin = 0U;
+        config.timeoutMax = static_cast<std::uint16_t>(watchdog_config.max_timeout_ms);
+        config.canBeDeactivated = watchdog_config.deactivate_on_shutdown;
+        config.needsMagicClose = watchdog_config.require_magic_close;
 
-            for (auto& config : *configurations)
-            {
-                if (!configureDevice(config, f_cycleTimeInNs))
-                {
-                    LM_LOG_ERROR() << "Watchdog: Error when configuring watchdog device" << config.fileName
-                                   << "- Watchdog initialization failed.";
-                    isSuccess = false;
-                }
-            }
+        if (!configureDevice(config, cycle_time_ns))
+        {
+            LM_LOG_ERROR() << "Watchdog: Error when configuring watchdog device " << config.fileName
+                           << " - Watchdog initialization failed.";
+            isSuccess = false;
         }
     }
     catch (const std::exception& e)

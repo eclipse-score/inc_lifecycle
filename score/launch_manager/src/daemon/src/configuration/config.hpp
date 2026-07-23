@@ -13,11 +13,11 @@
 #ifndef CONFIG_HPP
 #define CONFIG_HPP
 
+#include <sys/types.h>
 #include <cstdint>
 #include <optional>
 #include <string>
 #include <string_view>
-#include <sys/types.h>
 #include <vector>
 
 namespace score::mw::launch_manager::configuration
@@ -291,4 +291,4 @@ class ConfigBuilder
 
 }  // namespace score::mw::launch_manager::configuration
 
-#endif // CONFIG_HPP
+#endif  // CONFIG_HPP
