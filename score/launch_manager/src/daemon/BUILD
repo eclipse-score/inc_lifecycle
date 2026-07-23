@@ -33,10 +33,13 @@ cc_binary(
         "//score/launch_manager/src/daemon/src/process_group_manager:alive_monitor_thread",
         "//score/launch_manager/src/daemon/src/process_state_client:process_state_notifier",
         "//score/launch_manager/src/daemon/src/recovery_client",
+        "//score/launch_manager/src/daemon/src/watchdog:i_watchdog_if",
         "@score_baselibs//score/language/futurecpp",
     ] + select({
         "//config:lm_use_new_configuration": [
+            "//score/launch_manager/src/daemon/src/alive_monitor/details/factory:machine_config_factory",
             "//score/launch_manager/src/daemon/src/configuration:flatbuffer_config_loader",
+            "//score/launch_manager/src/daemon/src/watchdog/details:watchdog_impl",
         ],
         "//conditions:default": [],
     }),

@@ -42,6 +42,7 @@ cc_library(
         ":watchdog",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/timers:os_clock_interface",
         "//score/launch_manager/src/daemon/src/common:log",
+        "//score/launch_manager/src/daemon/src/configuration:config",
         "//score/launch_manager/src/daemon/src/watchdog:i_device_config_factory",
         "//score/launch_manager/src/daemon/src/watchdog:i_watchdog_if",
         "@score_baselibs//score/language/futurecpp",
