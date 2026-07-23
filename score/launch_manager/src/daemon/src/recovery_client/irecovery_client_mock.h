@@ -27,12 +27,11 @@ namespace lcm
 class MockRecoveryClient : public IRecoveryClient
 {
   public:
+    MOCK_METHOD(void, setRecoveryRequestCallback, (RecoveryRequestCallback callback), (noexcept, override));
     MOCK_METHOD(bool,
                 sendRecoveryRequest,
                 (const score::lcm::IdentifierHash& process_group_identifier),
                 (noexcept, override));
-    MOCK_METHOD(std::optional<score::lcm::IdentifierHash>, getNextRequest, (), (noexcept, override));
-    MOCK_METHOD(bool, hasOverflow, (), (const, noexcept, override));
 };
 
 }  // namespace lcm
