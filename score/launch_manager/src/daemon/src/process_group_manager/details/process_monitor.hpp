@@ -14,8 +14,8 @@
 #ifndef PROCESS_MONITOR_HPP_INCLUDED
 #define PROCESS_MONITOR_HPP_INCLUDED
 
-#include "score/mw/launch_manager/process_group_manager/details/component_event.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/icomponent_controller.hpp"
+#include "score/mw/launch_manager/process_group_manager/details/icomponent_event_receiver.hpp"
 
 namespace score::lcm::internal
 {
@@ -26,7 +26,7 @@ namespace score::lcm::internal
 class ProcessMonitor final : public IComponentController
 {
   public:
-    explicit ProcessMonitor(ComponentEventQueue& event_queue);
+    explicit ProcessMonitor(IComponentEventReceiver& event_queue);
     ~ProcessMonitor() override;
 
     ProcessMonitor(const ProcessMonitor&) = delete;
@@ -40,7 +40,7 @@ class ProcessMonitor final : public IComponentController
   private:
     void taskFinished(const Task& task, const score::cpp::expected_blank<IComponent::ComponentError>& error);
 
-    ComponentEventQueue& event_queue_;
+    IComponentEventReceiver& event_queue_;
 };
 
 }  // namespace score::lcm::internal

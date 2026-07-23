@@ -16,7 +16,6 @@
 
 #include <score/stop_token.hpp>
 #include <cstdint>
-#include <functional>
 
 namespace score::lcm::internal
 {
