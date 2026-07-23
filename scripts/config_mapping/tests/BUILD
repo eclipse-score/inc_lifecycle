@@ -32,7 +32,6 @@ score_py_pytest(
         "//score/launch_manager/src/daemon/src/configuration/config_schema:launch_manager.schema.json",
         "//scripts/config_mapping:lifecycle_config.py",
     ],
-    tags = ["manual"],
     deps = [
         requirement("pytest"),
         requirement("jsonschema"),
