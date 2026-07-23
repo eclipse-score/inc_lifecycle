@@ -36,7 +36,8 @@
 #include "score/mw/launch_manager/common/concurrency/workerthread.hpp"
 #include "score/mw/launch_manager/process_group_manager/ialive_monitor_thread.hpp"
 #include "score/mw/launch_manager/recovery_client/recovery_client.hpp"
-#include "score/mw/launch_manager/common/constants.hpp"
+#include "score/mw/launch_manager/watchdog/IDeviceConfigFactory.hpp"
+#include "score/mw/launch_manager/watchdog/IWatchdogIf.hpp"
 
 namespace score::lcm::internal
 {
@@ -76,9 +77,12 @@ class ProcessGroupManager final
     /// @param recovery_client A shared pointer to an IRecoveryClient instance for handling recovery operations.
     /// @param process_state_notifier A unique pointer to an IProcessStateNotifier instance for notifying the Alive
     /// Monitor thread of process state changes.
+    /// @param watchdog A unique pointer to an IWatchdogIf instance serviced during the main loop. May be nullptr in
+    /// legacy configuration where no watchdog is wired.
     ProcessGroupManager(std::unique_ptr<IAliveMonitorThread> alive_monitor_thread,
                         std::shared_ptr<IRecoveryClient> recovery_client,
-                        std::unique_ptr<score::lcm::IProcessStateNotifier> process_state_notifier);
+                        std::unique_ptr<score::lcm::IProcessStateNotifier> process_state_notifier,
+                        std::unique_ptr<score::lcm::watchdog::IWatchdogIf> watchdog);
 
     /// @brief Initializes the process group manager.
     /// Loads the flat configuration through ConfigurationManager.
@@ -282,7 +286,6 @@ class ProcessGroupManager final
     inline bool initializeProcessGroups();
 #endif
 
-
     /// @brief Creates process component objects, including the job queue and worker threads.
     inline void createProcessComponentsObjects();
 
@@ -336,6 +339,9 @@ class ProcessGroupManager final
     std::unique_ptr<IAliveMonitorThread> alive_monitor_thread_;
 
     std::shared_ptr<score::lcm::IRecoveryClient> recovery_client_{};
+
+    /// @brief The watchdog serviced during the main loop. May be nullptr in legacy configuration.
+    std::unique_ptr<score::lcm::watchdog::IWatchdogIf> watchdog_;
 };
 
 }  // namespace score::lcm::internal

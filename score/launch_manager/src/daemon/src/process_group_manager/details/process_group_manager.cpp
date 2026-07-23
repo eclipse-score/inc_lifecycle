@@ -39,7 +39,8 @@ void ProcessGroupManager::cancel()
 
 ProcessGroupManager::ProcessGroupManager(std::unique_ptr<IAliveMonitorThread> alive_monitor_thread,
                                          std::shared_ptr<IRecoveryClient> recovery_client,
-                                         std::unique_ptr<score::lcm::IProcessStateNotifier> process_state_notifier)
+                                         std::unique_ptr<score::lcm::IProcessStateNotifier> process_state_notifier,
+                                         std::unique_ptr<score::lcm::watchdog::IWatchdogIf> watchdog)
     : configuration_(),
       process_interface_(),
       process_map_(nullptr),
@@ -50,10 +51,8 @@ ProcessGroupManager::ProcessGroupManager(std::unique_ptr<IAliveMonitorThread> al
       process_groups_(),
       process_state_notifier_(std::move(process_state_notifier)),
       alive_monitor_thread_(std::move(alive_monitor_thread)),
-      recovery_client_(recovery_client)  //,
-                                         // ucm_polling_thread_(
-//  [this](const Message::Action act, const Message::UpdateContext updateCtx, const lib::fun::string& swc) -> bool
-//                      { return reloadConfiguration(act, updateCtx, IdentifierHash(swc.c_str())); })
+      recovery_client_(recovery_client),
+      watchdog_(std::move(watchdog))
 {
 }
 
@@ -165,7 +164,6 @@ inline bool ProcessGroupManager::initializeControlClientHandler()
                 ::close(fd2);
                 return false;
             }
-
 
             if (osal::IpcCommsSync::control_client_handler_nudge_fd == fd2)
             {
