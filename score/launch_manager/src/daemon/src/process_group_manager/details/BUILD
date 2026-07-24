@@ -20,7 +20,7 @@ cc_library(
     visibility = ["//score:__subpackages__"],
     deps = [
         ":icomponent",
-    ]
+    ],
 )
 
 cc_library(
@@ -30,8 +30,8 @@ cc_library(
     strip_include_prefix = "/score/launch_manager/src/daemon/src/process_group_manager/details",
     visibility = ["//score:__subpackages__"],
     deps = [
-        ":task",
         ":icomponent",
+        ":task",
     ],
 )
 
@@ -42,8 +42,8 @@ cc_library(
     strip_include_prefix = "/score/launch_manager/src/daemon/src/process_group_manager/details",
     visibility = ["//score:__subpackages__"],
     deps = [
-        "@score_baselibs//score/language/futurecpp"
-    ]
+        "@score_baselibs//score/language/futurecpp",
+    ],
 )
 
 cc_library(
@@ -55,7 +55,7 @@ cc_library(
     deps = [
         ":icomponent",
         "//score/launch_manager/src/daemon/src/common:identifier_hash",
-    ]
+    ],
 )
 
 cc_library(
@@ -69,7 +69,7 @@ cc_library(
         "//score/launch_manager/src/daemon/src/common:constants",
         "//score/launch_manager/src/daemon/src/common:identifier_hash",
         "//score/launch_manager/src/daemon/src/common/concurrency:mpsc_bounded_queue",
-    ]
+    ],
 )
 
 cc_library(
@@ -198,12 +198,12 @@ cc_library(
     strip_include_prefix = "/score/launch_manager/src/daemon/src/process_group_manager/details",
     visibility = ["//score/launch_manager/src/daemon/src/process_group_manager:__pkg__"],
     deps = [
+        ":graph",
+        ":icomponent_controller",
         ":icomponent_event_receiver",
         ":os_handler",
         ":process_info_node",
         ":safe_process_map",
-        ":graph",
-        ":icomponent_controller",
     ],
 )
 
@@ -262,9 +262,9 @@ cc_library(
         ":component_event_queue",
         ":graph",
         ":os_handler",
-        ":process_monitor",
         ":process_info_node",
         ":process_launcher",
+        ":process_monitor",
         ":safe_process_map",
         "//score/launch_manager/src/daemon/src/common:log",
         "//score/launch_manager/src/daemon/src/common/concurrency:mpmc_concurrent_queue",

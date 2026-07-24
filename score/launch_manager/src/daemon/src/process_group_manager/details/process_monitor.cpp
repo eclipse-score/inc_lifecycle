@@ -16,7 +16,9 @@
 namespace score::lcm::internal
 {
 
-ProcessMonitor::ProcessMonitor(IComponentEventReceiver& event_queue) : event_queue_(event_queue) {}
+ProcessMonitor::ProcessMonitor(IComponentEventReceiver& event_queue) : event_queue_(event_queue)
+{
+}
 
 ProcessMonitor::~ProcessMonitor() = default;
 

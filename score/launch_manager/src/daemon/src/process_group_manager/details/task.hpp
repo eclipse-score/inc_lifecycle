@@ -19,20 +19,23 @@
 #include <cstdint>
 #include <functional>
 
-
 namespace score::lcm::internal
 {
 
 enum class TaskType : std::uint_least8_t
 {
-    kActivate = 0U,
-    kDeactivate = 1U,
+    kActivate = 0U,    /// This task is to start activation of the component
+    kDeactivate = 1U,  /// This task is to deactivate the component
 };
 
+/// @brief Work to perform on a component that can be sent to the job queue to be executed in parallel.
 struct Task
 {
+    /// @brief What kind of work to do
     TaskType type;
+    /// @brief The component to be acted upon
     std::reference_wrapper<IComponent> component;
+    /// @brief Token to exit and abandon the task early
     score::cpp::stop_token stop_token;
 };
 

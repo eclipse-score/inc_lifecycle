@@ -27,9 +27,13 @@ namespace score::lcm::internal
 class RunTarget final : public IComponent
 {
   public:
-    explicit RunTarget(uint32_t index) : index_(index) {}
+    explicit RunTarget(uint32_t index) : index_(index)
+    {
+    }
 
-    RunTarget(RunTarget&& other) noexcept : index_(other.index_), active_(other.active_.load()) {}
+    RunTarget(RunTarget&& other) noexcept : index_(other.index_), active_(other.active_.load())
+    {
+    }
     RunTarget(const RunTarget&) = delete;
     RunTarget& operator=(const RunTarget&) = delete;
     RunTarget& operator=(RunTarget&&) = delete;

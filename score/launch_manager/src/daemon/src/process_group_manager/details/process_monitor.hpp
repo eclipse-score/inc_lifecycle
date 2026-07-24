@@ -22,7 +22,6 @@ namespace score::lcm::internal
 
 /// @brief Translates IComponentController callbacks (from worker threads and the OsHandler thread)
 /// into ComponentEvents pushed onto the event queue for processing on the main thread.
-/// @note Assumes a single graph/process group; events carry no process-group identifier.
 class ProcessMonitor final : public IComponentController
 {
   public:
@@ -34,7 +33,10 @@ class ProcessMonitor final : public IComponentController
     ProcessMonitor(ProcessMonitor&&) = delete;
     ProcessMonitor& operator=(ProcessMonitor&&) = delete;
 
+    /// @brief Start work on @p task and push the result to the event queue if the task completes
     void doWork(Task task) override;
+    /// @brief Notify @p component that it has terminated with status @p status. If this is an error or finishes a
+    /// component activation, report to the event queue
     void terminated(IComponent& component, int32_t status) override;
 
   private:
