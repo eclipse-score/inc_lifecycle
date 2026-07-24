@@ -13,11 +13,6 @@
 load("@rules_cc//cc:defs.bzl", "cc_binary")
 load("//tests/utils/bazel:integration.bzl", "integration_test")
 
-exports_files(
-    ["lm_demo.json"],
-    visibility = ["//examples:__subpackages__"],
-)
-
 cc_binary(
     name = "control_daemon_mock",
     srcs = ["control_daemon_mock.cpp"],
