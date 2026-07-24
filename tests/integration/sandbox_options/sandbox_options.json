@@ -65,7 +65,15 @@
                 "binary_name": "sandbox_options_process",
                 "application_profile": {
                     "application_type": "Reporting"
-                }
+                },
+                "process_arguments": [
+                    "--uid=666",
+                    "--gid=666",
+                    "--supplementary-groups=123,321,456",
+                    "--scheduling-policy=SCHED_FIFO",
+                    "--scheduling-priority=10",
+                    "--working-dir=/tmp"
+                ]
             },
             "deployment_config": {
                 "environmental_variables": {
