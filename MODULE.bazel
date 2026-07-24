@@ -161,18 +161,6 @@ use_repo(pip, "score_lifecycle_pip")
 
 bazel_dep(name = "score_itf", version = "0.5.0", dev_dependency = True)
 
-# Patch the Docker plugin so tests can request extra container privileges
-# (e.g. cap_add=["SYS_NICE"], needed for SCHED_FIFO/sched_setscheduler) via the
-# `docker_configuration` fixture.
-# FIXME: With next release, this is no longer needed.
-# See also https://github.com/eclipse-score/itf/blob/54cab4f6ebc1fb40d0b93a8c1a451a03bda77b6a/score/itf/plugins/docker.py#L381
-single_version_override(
-    module_name = "score_itf",
-    patch_strip = 1,
-    patches = ["//patches:score_itf_docker_cap_add.patch"],
-    version = "0.3.0",
-)
-
 oci = use_extension("@rules_oci//oci:extensions.bzl", "oci", dev_dependency = True)
 oci.pull(
     name = "debian-test-runtime",
