@@ -20,7 +20,7 @@
             ],
             "security_policy_details": "policy_name",
             "number_of_restart_attempts": 1,
-            "working_dir": "/tmp",
+            "working_dir": "/opt/scripts",
             "executable_reporting_behavior": "DoesNotReportExecutionState",
             "startup_config": [
                 {
@@ -85,7 +85,7 @@
             ],
             "security_policy_details": "policy_name",
             "number_of_restart_attempts": 1,
-            "working_dir": "/tmp",
+            "working_dir": "/opt/apps/dlt-daemon",
             "executable_reporting_behavior": "DoesNotReportExecutionState",
             "startup_config": [
                 {
@@ -154,7 +154,7 @@
             ],
             "security_policy_details": "policy_name",
             "number_of_restart_attempts": 1,
-            "working_dir": "/tmp",
+            "working_dir": "/opt/apps/someip",
             "executable_reporting_behavior": "ReportsExecutionState",
             "startup_config": [
                 {
@@ -222,7 +222,7 @@
             ],
             "security_policy_details": "policy_name",
             "number_of_restart_attempts": 1,
-            "working_dir": "/tmp",
+            "working_dir": "/opt/apps/test_app1",
             "executable_reporting_behavior": "ReportsExecutionState",
             "startup_config": [
                 {
@@ -299,7 +299,7 @@
             ],
             "security_policy_details": "policy_name",
             "number_of_restart_attempts": 1,
-            "working_dir": "/tmp",
+            "working_dir": "/opt/apps/state_manager",
             "executable_reporting_behavior": "ReportsExecutionState",
             "function_cluster_affiliation": "STATE_MANAGEMENT",
             "startup_config": [

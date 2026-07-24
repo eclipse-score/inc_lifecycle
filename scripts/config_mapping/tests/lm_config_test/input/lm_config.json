@@ -85,7 +85,8 @@
                     "scheduling_priority": 99,
                     "max_memory_usage": 2048,
                     "max_cpu_usage": 50
-                }
+                },
+                "working_dir": "/opt/apps/test_app2"
             }
         },
         "setup_filesystem_sh": {

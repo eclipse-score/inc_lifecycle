@@ -10,7 +10,6 @@
                 "EMPTY_GLOBAL_ENV_VAR": ""
             },
             "bin_dir": "/opt",
-            "working_dir": "/tmp",
             "ready_recovery_action": {
                 "restart": {
                     "number_of_attempts": 1,
