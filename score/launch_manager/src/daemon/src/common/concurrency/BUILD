@@ -26,6 +26,29 @@ cc_library(
 )
 
 cc_library(
+    name = "fixed_size_queue",
+    hdrs = [
+        "fixed_size_queue.hpp",
+    ],
+    include_prefix = "score/mw/launch_manager/common/concurrency",
+    strip_include_prefix = "/score/launch_manager/src/daemon/src/common/concurrency",
+    visibility = ["//score:__subpackages__"],
+    deps = [
+        "@score_baselibs//score/language/futurecpp",
+    ],
+)
+
+cc_test(
+    name = "fixed_size_queue_test",
+    srcs = ["fixed_size_queue_test.cpp"],
+    visibility = ["//tests:__subpackages__"],
+    deps = [
+        ":fixed_size_queue",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "mpmc_concurrent_queue",
     hdrs = [
         "concurrency_error_domain.hpp",
@@ -68,6 +91,7 @@ cc_library(
     strip_include_prefix = "/score/launch_manager/src/daemon/src/common/concurrency",
     visibility = ["//score:__subpackages__"],
     deps = [
+        ":fixed_size_queue",
         "@score_baselibs//score/language/futurecpp",
     ],
 )
