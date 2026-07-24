@@ -51,6 +51,7 @@ def download_xml_results(
             except Exception:
                 pass
 
+
 def get_failing_files(path: Path):
     """Collects all produced xml files and returns that set as well as the subset of failing files"""
     failing_files = set()
@@ -83,7 +84,8 @@ def assert_test_results(target, remote_test_dir, test_output_dir):
     """
 
     def _assert(
-        expected_xml_files: Set[str], additional_search_dirs: Iterable[Union[Path, str]] = ()
+        expected_xml_files: Set[str],
+        additional_search_dirs: Iterable[Union[Path, str]] = (),
     ):
         # Show the error as coming from the call in the test rather than here
         __tracebackhide__ = True

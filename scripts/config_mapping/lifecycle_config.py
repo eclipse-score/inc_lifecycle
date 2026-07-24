@@ -674,8 +674,7 @@ def gen_launch_manager_config(output_dir, config):
             "ready_recovery_action"
         ]["restart"]["number_of_attempts"]
         process["working_dir"] = component_config["deployment_config"].get(
-            "working_dir",
-            component_config["deployment_config"]["bin_dir"]
+            "working_dir", component_config["deployment_config"]["bin_dir"]
         )
 
         match component_config["component_properties"]["application_profile"][
