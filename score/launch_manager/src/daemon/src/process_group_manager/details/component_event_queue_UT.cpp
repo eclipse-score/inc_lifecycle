@@ -28,14 +28,14 @@ class ComponentEventQueueTest : public ::testing::Test
 TEST_F(ComponentEventQueueTest, WaitForEventsReturnsFalseOnEmptyQueue)
 {
     RecordProperty("Description", "Verify waitForEvents returns false promptly when no event has been pushed.");
-    EXPECT_FALSE(queue_.waitForEvents(std::chrono::milliseconds{1}));
+    EXPECT_FALSE(queue_.waitForEvents(std::chrono::milliseconds{0}));
 }
 
 TEST_F(ComponentEventQueueTest, WaitForEventsReturnsTrueAfterPush)
 {
     RecordProperty("Description", "Verify waitForEvents returns true once an event has been pushed.");
     queue_.push(ActivationSuccessful{7U});
-    EXPECT_TRUE(queue_.waitForEvents(std::chrono::milliseconds{1}));
+    EXPECT_TRUE(queue_.waitForEvents(std::chrono::milliseconds{0}));
 }
 
 TEST_F(ComponentEventQueueTest, GetNextEventReturnsNulloptWhenEmpty)
@@ -81,7 +81,7 @@ TEST_F(ComponentEventQueueTest, GetNextEventDrainsMultipleEventsInFifoOrder)
     queue_.push(DeactivationComplete{2U});
     queue_.push(UnexpectedTermination{3U});
 
-    ASSERT_TRUE(queue_.waitForEvents(std::chrono::milliseconds{20}));
+    ASSERT_TRUE(queue_.waitForEvents(std::chrono::milliseconds{0}));
 
     auto first = queue_.getNextEvent();
     ASSERT_TRUE(first.has_value());
