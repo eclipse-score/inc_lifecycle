@@ -54,9 +54,6 @@ Requirements related to the external monitoring
 These parameters specify how the :term:`Launch Manager` itself is monitored.
 
 - :need:`feat_req__lifecycle__lm_self_health_check`
-- :need:`comp_req__launch_man__lm_ext_watchdog_notify`
-- :need:`comp_req__launch_man__lm_ext_wdg_failed_test`
-- :need:`comp_req__launch_man__lm_ext_watchdog_cfg`
 
 
 Static Architecture

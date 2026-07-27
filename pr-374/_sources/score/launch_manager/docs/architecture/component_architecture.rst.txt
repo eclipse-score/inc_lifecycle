@@ -20,8 +20,8 @@ Component Architecture Documentation
    :status: draft
    :safety: ASIL_B
    :security: YES
-   :realizes: wp__component_arch
-   :tags: template
+   :version: 1
+   :realizes: wp__component_arch[version==1]
 
 
 Overview

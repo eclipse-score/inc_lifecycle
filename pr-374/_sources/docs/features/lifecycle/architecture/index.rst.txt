@@ -20,7 +20,8 @@ Feature Architecture
    :status: valid
    :safety: ASIL_B
    :security: YES
-   :realizes: wp__feature_arch
+   :version: 1
+   :realizes: wp__feature_arch[version==1]
 
 Overview
 --------
@@ -62,8 +63,9 @@ Static Architecture
    :security: YES
    :safety: ASIL_B
    :status: valid
-   :fulfils: feat_req__lifecycle__launch_support
-   :includes: logic_arc_int__lifecycle__lifecycle_if, logic_arc_int__lifecycle__alive_if, logic_arc_int__lifecycle__controlif, logic_arc_int__lifecycle__deadline_monitor_if, logic_arc_int__lifecycle__logical_monitor_if
+   :version: 1
+   :fulfils: feat_req__lifecycle__launch_support[version==1]
+   :includes: logic_arc_int__lifecycle__lifecycle_if[version==1], logic_arc_int__lifecycle__alive_if[version==1], logic_arc_int__lifecycle__controlif[version==1], logic_arc_int__lifecycle__deadline_monitor_if[version==1], logic_arc_int__lifecycle__logical_monitor_if[version==1]
    :belongs_to: feat__lifecycle
 
    .. needarch::
@@ -97,6 +99,7 @@ Module Viewpoint
 
 .. mod_view_sta:: Module architecture
    :id: mod_view_sta__lifecycle__all
+   :version: 1
    :includes: comp__lifecycle_launch_manager, comp__health_monitor
 
    .. needarch::

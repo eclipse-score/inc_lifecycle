@@ -23,7 +23,6 @@ Component Architecture
    :safety: ASIL_B
    :security: NO
    :realizes: wp__component_arch
-   :tags: template
 
 .. attention::
     The above directive must be updated according to your needs.
@@ -76,7 +75,7 @@ Static Architecture
    :security: NO
    :uses: logic_arc_int__lifecycle__alive_if[version==1]
    :belongs_to: comp__health_monitor[version==1]
-   :fulfils: comp_req__health_monitor__dummy[version==0]
+   :fulfils: comp_req__health_monitor__dummy
 
    .. needarch::
       :scale: 50
@@ -89,9 +88,10 @@ Static Architecture
    :security: NO
    :safety: ASIL_B
    :status: valid
+   :version: 1
    :implements:
    :fulfils: comp_req__health_monitor__dummy
-   :belongs_to: comp__health_monitor
+   :belongs_to: comp__health_monitor[version==1]
    :includes:
 
    .. uml::  assets/dm_static_architecture.puml
@@ -101,9 +101,10 @@ Static Architecture
    :security: NO
    :safety: ASIL_B
    :status: valid
+   :version: 1
    :implements:
    :fulfils: comp_req__health_monitor__dummy
-   :belongs_to: comp__health_monitor
+   :belongs_to: comp__health_monitor[version==1]
    :includes:
 
    .. uml::  assets/lm_static_architecture.puml
@@ -113,9 +114,10 @@ Static Architecture
    :security: NO
    :safety: ASIL_B
    :status: valid
+   :version: 1
    :implements:
    :fulfils: comp_req__health_monitor__dummy
-   :belongs_to: comp__health_monitor
+   :belongs_to: comp__health_monitor[version==1]
    :includes:
 
    .. uml::  assets/hm_static_architecture.puml
@@ -128,8 +130,9 @@ Dynamic Architecture
    :security: NO
    :safety: ASIL_B
    :status: valid
+   :version: 1
    :fulfils: comp_req__health_monitor__dummy
-   :belongs_to: comp__health_monitor
+   :belongs_to: comp__health_monitor[version==1]
 
    .. uml::  assets/hm_creation.puml
 
@@ -138,8 +141,9 @@ Dynamic Architecture
    :security: NO
    :safety: ASIL_B
    :status: valid
+   :version: 1
    :fulfils: comp_req__health_monitor__dummy
-   :belongs_to: comp__health_monitor
+   :belongs_to: comp__health_monitor[version==1]
 
    .. uml::  assets/hm_background_thread.puml
 
@@ -148,8 +152,9 @@ Dynamic Architecture
    :security: NO
    :safety: ASIL_B
    :status: valid
+   :version: 1
    :fulfils: comp_req__health_monitor__dummy
-   :belongs_to: comp__health_monitor
+   :belongs_to: comp__health_monitor[version==1]
 
    .. uml::  assets/dm_usage.puml
 
@@ -158,8 +163,9 @@ Dynamic Architecture
    :security: NO
    :safety: ASIL_B
    :status: valid
+   :version: 1
    :fulfils: comp_req__health_monitor__dummy
-   :belongs_to: comp__health_monitor
+   :belongs_to: comp__health_monitor[version==1]
 
    .. uml::  assets/lm_usage.puml
 
@@ -168,8 +174,9 @@ Dynamic Architecture
    :security: NO
    :safety: ASIL_B
    :status: valid
+   :version: 1
    :fulfils: comp_req__health_monitor__dummy
-   :belongs_to: comp__health_monitor
+   :belongs_to: comp__health_monitor[version==1]
 
    .. uml::  assets/hbm_usage.puml
 
@@ -178,8 +185,9 @@ Dynamic Architecture
    :security: NO
    :safety: ASIL_B
    :status: valid
+   :version: 1
    :fulfils: comp_req__health_monitor__dummy
-   :belongs_to: comp__health_monitor
+   :belongs_to: comp__health_monitor[version==1]
 
    .. uml::  assets/hm_startup.puml
 
@@ -188,8 +196,9 @@ Dynamic Architecture
    :security: NO
    :safety: ASIL_B
    :status: valid
+   :version: 1
    :fulfils: comp_req__health_monitor__dummy
-   :belongs_to: comp__health_monitor
+   :belongs_to: comp__health_monitor[version==1]
 
    .. uml::  assets/hm_shutdown.puml
 
@@ -201,6 +210,7 @@ Interfaces
    :security: NO
    :safety: ASIL_B
    :status: valid
+   :version: 1
    :fulfils: comp_req__health_monitor__dummy
    :language: rust
 
@@ -211,6 +221,7 @@ Interfaces
    :security: NO
    :safety: ASIL_B
    :status: valid
+   :version: 1
    :fulfils: comp_req__health_monitor__dummy
    :language: rust
 
@@ -221,6 +232,7 @@ Interfaces
    :security: NO
    :safety: ASIL_B
    :status: valid
+   :version: 1
    :fulfils: comp_req__health_monitor__dummy
    :language: rust
 
@@ -231,6 +243,7 @@ Interfaces
    :security: NO
    :safety: ASIL_B
    :status: valid
+   :version: 1
    :fulfils: comp_req__health_monitor__dummy
    :language: rust
 
