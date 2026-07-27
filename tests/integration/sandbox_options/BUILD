@@ -25,8 +25,22 @@ cc_binary(
     ],
 )
 
+# Two binaries are built from the same source. Each verifies the sandbox options passed to it on
+# the command line (see sandbox_options.json), and derives its GTest XML result file name from its
+# own executable name so the results do not collide.
 cc_binary(
-    name = "sandbox_options_process",
+    name = "sandbox_options_process_a",
+    srcs = ["sandbox_options_process.cpp"],
+    deps = [
+        "//score/launch_manager:control_cc",
+        "//score/launch_manager:lifecycle_cc",
+        "//tests/utils/test_helper",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_binary(
+    name = "sandbox_options_process_b",
     srcs = ["sandbox_options_process.cpp"],
     deps = [
         "//score/launch_manager:control_cc",
@@ -41,7 +55,8 @@ integration_test(
     srcs = ["sandbox_options.py"],
     binaries = [
         ":control_daemon_mock",
-        ":sandbox_options_process",
+        ":sandbox_options_process_a",
+        ":sandbox_options_process_b",
         "//score/launch_manager",
     ],
     config = ":sandbox_options.json",

@@ -61,10 +61,15 @@ def test_sandbox_options(target, setup_test, assert_test_results, remote_test_di
         timeout_s=3.0,
     )
 
-    # The managed process is configured with a custom working directory (see the
-    # "working_dir" entries in sandbox_options.json), so its XML result file is
-    # written there rather than into remote_test_dir. Search those directories too.
+    # sandbox_options_process_a is configured with a custom working directory ("working_dir": "/tmp"
+    # in sandbox_options.json), so its XML result file is written there rather than into
+    # remote_test_dir. sandbox_options_process_b has no working directory configured and therefore
+    # writes into remote_test_dir. Search all relevant directories.
     assert_test_results(
-        {"control_daemon_mock.xml", "sandbox_options_process.xml"},
+        {
+            "control_daemon_mock.xml",
+            "sandbox_options_process_a.xml",
+            "sandbox_options_process_b.xml",
+        },
         additional_search_dirs=["/tmp/tests/sandbox_options", "/tmp"],
     )

@@ -60,9 +60,9 @@
                 }
             }
         },
-        "sandbox_options_process": {
+        "sandbox_options_process_a": {
             "component_properties": {
-                "binary_name": "sandbox_options_process",
+                "binary_name": "sandbox_options_process_a",
                 "application_profile": {
                     "application_type": "Reporting"
                 },
@@ -88,6 +88,31 @@
                 },
                 "working_dir": "/tmp"
             }
+        },
+        "sandbox_options_process_b": {
+            "component_properties": {
+                "binary_name": "sandbox_options_process_b",
+                "application_profile": {
+                    "application_type": "Reporting"
+                },
+                "process_arguments": [
+                    "--uid=0",
+                    "--gid=0",
+                    "--supplementary-groups=",
+                    "--scheduling-policy=SCHED_RR"
+                ]
+            },
+            "deployment_config": {
+                "environmental_variables": {
+                    "PROCESSIDENTIFIER": "DefaultPG_app1"
+                },
+                "sandbox": {
+                    "uid": 0,
+                    "gid": 0,
+                    "supplementary_group_ids": [],
+                    "scheduling_policy": "SCHED_RR"
+                }
+            }
         }
     },
     "run_targets": {
@@ -104,7 +129,8 @@
         "Running": {
             "depends_on": [
                 "control_daemon",
-                "sandbox_options_process"
+                "sandbox_options_process_a",
+                "sandbox_options_process_b"
             ],
             "recovery_action": {
                 "switch_run_target": {
