@@ -15,22 +15,29 @@
 Feature Architecture
 ====================
 
-.. document:: Lifecycle Architecture
-   :id: doc__lifecycle_architecture_feature
-   :status: draft
-   :version: 1
+.. document:: Lifecycle Module Architecture
+   :id: doc__lifecycle_module_architecture
+   :status: valid
    :safety: ASIL_B
-   :security: NO
+   :security: YES
+   :version: 1
    :realizes: wp__feature_arch[version==1]
 
 Overview
 --------
-<Brief summary>
+
+A brief overview of Lifecycle is described :need:`doc__lifecycle`.
 
 Description
 -----------
 
-<General Description>
+The concept is based on 2 major components:
+
+* **Launch Manager**: Responsible for starting and stopping components based on
+  the defined Run States and alive supervision of the started components
+
+* **Health Monitor**: Provides process local monitoring functionalities such as
+  deadline monitoring and logical program flow monitoring
 
 <Design Decisions - For the documentation of the decision the :need:`gd_temp__change_decision_record` can be used.>
 
@@ -39,7 +46,7 @@ Description
 Requirements
 ------------
 
-The requirements for the feature architecture are defined in the `requirements` section of the feature documentation in the project repository.
+The requirements for the feature architecture are defined in the `requirements` section of the feature documentation in the project repository: :need:`doc__lifecycle_requirements`
 
 Rationale Behind Architecture Decomposition
 *******************************************
@@ -51,25 +58,21 @@ Mandatory: A motivation for the decomposition
 Static Architecture
 -------------------
 
-The live feature architecture template snippets are maintained in the
-`module template documentation <https://eclipse-score.github.io/module_template/main/>`__.
+.. feat_arc_sta:: Lifecycle Static View
+   :id: feat_arc_sta__lifecycle__static_view_arch
+   :security: YES
+   :safety: ASIL_B
+   :status: valid
+   :version: 1
+   :fulfils: feat_req__lifecycle__launch_support[version==1]
+   :includes: logic_arc_int__lifecycle__lifecycle_if[version==1], logic_arc_int__lifecycle__alive_if[version==1], logic_arc_int__lifecycle__controlif[version==1], logic_arc_int__lifecycle__deadline_monitor_if[version==1], logic_arc_int__lifecycle__logical_monitor_if[version==1]
+   :belongs_to: feat__lifecycle
 
-.. code-block:: rst
+   .. needarch::
+      :scale: 50
+      :align: center
 
-   .. feat_arc_sta:: Feature Static View
-      :id: feat_arc_sta__feature_name__static_view
-      :security: YES
-      :safety: ASIL_B
-      :status: invalid
-      :fulfils: feat_req__feature_name__some_title
-      :includes: logic_arc_int__feature_name__interface_name1
-      :belongs_to: feat__feature_name
-
-      .. needarch::
-         :scale: 50
-         :align: center
-
-         {{ draw_feature(need(), needs) }}
+      {{ draw_feature(need(), needs) }}
 
 Dynamic Architecture
 --------------------
@@ -89,56 +92,38 @@ Dynamic Architecture
 Logical Interfaces
 ------------------
 
-The logical interfaces of the feature are defined in the `logical interfaces` section of the feature documentation in the project repository.
+The logical interfaces of the feature are defined in the `interfaces` section of the feature documentation in the project repository: :need:`doc__lifecycle_architecture`
 
 Module Viewpoint
 ----------------
 
-The following modules are needed to be defined to be able to draw the static feature view.
-They will be replaced by linking the proper module definitions in the used module's repositories as soon as those exist.
+.. mod_view_sta:: Module architecture
+   :id: mod_view_sta__lifecycle__all
+   :version: 1
+   :includes: comp__lifecycle_launch_manager, comp__health_monitor
 
-The rendered module and used-component examples are maintained in the
-`module template documentation <https://eclipse-score.github.io/module_template/main/>`_.
+   .. needarch::
+      :scale: 50
+      :align: center
 
-.. code-block:: rst
+      {{ draw_module(need(), needs) }}
+      LifecycleApplication --> logic_arc_int__lifecycle__lifecycle_if : implements
+      LifecycleApplication --> logic_arc_int__lifecycle__controlif : use
+      LifecycleApplication --> logic_arc_int__lifecycle__alive_if : use
+      LifecycleApplication --> logic_arc_int__lifecycle__logical_monitor_if : use
+      LifecycleApplication --> logic_arc_int__lifecycle__deadline_monitor_if :use
+      LifecycleApplication --> posix_signals : implements
+      NativeApplication --> posix_signals : implements
+      comp__lifecycle_launch_manager --> posix_signals : use
 
-   .. mod:: Module Name
-      :id: mod__module_name
-      :includes: comp__component_name_template
+Components Details
+------------------
 
+.. toctree::
+   :maxdepth: 1
+   :glob:
 
-   .. mod_view_sta:: Module Name Static View
-      :id: mod_view_sta__feature_name__module_name
-      :includes: comp__component_name_template
-
-      .. needarch::
-         :scale: 50
-         :align: center
-
-         {{ draw_module(need(), needs) }}
-
-Used Components
----------------
-
-The following components are needed to be defined to be able to draw the static feature view.
-They will be replaced by linking the proper SW component definitions in the used module's repositories as soon as those exist.
-
-.. code-block:: rst
-
-   .. comp:: Component Name
-      :id: comp__component_name_template
-      :safety: ASIL_B
-      :security: YES
-      :status: invalid
-      :implements: logic_arc_int__feature_name__interface_name1
-
-.. note::
-   Architecture can be split into multiple files, it is an high level architecture design
-   which can be shown without actual c++/rust interfaces and data types
-   and there will be link to internal architecture till code to get actual api descriptions.
-
-.. attention::
-    The above directives must be updated according to your feature architecture.
-
-    - Replace the example content by the real content (according to :need:`gd_guidl__arch_design`)
-    - Set the status to valid and start the review/merge process
+   ./launch_manager
+   ./launch_manager_configuration
+   ./health_monitor
+   ./external_monitoring

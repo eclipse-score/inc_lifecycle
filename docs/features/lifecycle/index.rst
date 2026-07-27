@@ -12,15 +12,15 @@
    # SPDX-License-Identifier: Apache-2.0
    # *******************************************************************************
 
-[Your Feature Name]
-###################
+Lifecycle
+#########
 
 Abstract
 ========
 
-[A short (~200 word) description of the feature.]
+The lifecycle feature provides a set of functionalities to manage the lifecycle of components in the S-SCORE platform. The goal is to ensure that components can be started, stopped, and monitored effectively, providing a robust framework for managing the state of the system.
 
-For the main feature description and requirements, see the belonging `Feature <https://eclipse-score.github.io/score/main/features/index.html#features>`_ in the project repository.
+For the main feature description and requirements, see the belonging Feature in the project repository: :need:`doc__lifecycle`
 
 .. toctree::
    :hidden:
@@ -32,3 +32,4 @@ For the main feature description and requirements, see the belonging `Feature <h
    safety_analysis/aou_requirements.rst
    safety_planning/index.rst
    security_planning/index.rst
+   glossary

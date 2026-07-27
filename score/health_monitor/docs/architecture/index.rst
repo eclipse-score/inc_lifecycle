@@ -24,7 +24,6 @@ Component Architecture
    :safety: ASIL_B
    :security: NO
    :realizes: wp__component_arch[version==1]
-   :tags: template
 
 .. attention::
     The above directive must be updated according to your needs.
@@ -45,11 +44,11 @@ Document describes HealthMonitor component architecture.
    :safety: ASIL_B
    :status: valid
    :version: 1
-   :belongs_to: feat__lifecycle
+   :belongs_to: feat__lifecycle[version==1]
+   :implements: logic_arc_int__lifecycle__deadline_monitor_if[version==1], logic_arc_int__lifecycle__logical_monitor_if[version==1]
+   :uses: logic_arc_int__lifecycle__alive_if[version==1]
 
    Health Monitor component provides a set of functionalities to verify the health of the system and its components. It includes monitoring deadlines, logic, and heartbeats to ensure proper system functioning.
-
-
 
 Description
 -----------
@@ -69,6 +68,22 @@ Architecture is not decomposed.
 Static Architecture
 -------------------
 
+.. comp_arc_sta:: Health Monitor Static View
+   :id: comp_arc_sta__health_mon__hm
+   :status: valid
+   :version: 1
+   :safety: ASIL_B
+   :security: NO
+   :uses: logic_arc_int__lifecycle__alive_if[version==1]
+   :belongs_to: comp__health_monitor[version==1]
+   :fulfils: comp_req__health_monitor__dummy
+
+   .. needarch::
+      :scale: 50
+      :align: center
+
+      {{ draw_component(need(), needs) }}
+
 .. comp_arc_sta:: Deadline Monitor
    :id: comp_arc_sta__deadline_monitor__static_view
    :security: NO
@@ -77,7 +92,7 @@ Static Architecture
    :version: 1
    :implements:
    :fulfils: comp_req__health_monitor__dummy
-   :belongs_to: comp__health_monitor
+   :belongs_to: comp__health_monitor[version==1]
    :includes:
 
    .. uml::  assets/dm_static_architecture.puml
@@ -90,12 +105,12 @@ Static Architecture
    :version: 1
    :implements:
    :fulfils: comp_req__health_monitor__dummy
-   :belongs_to: comp__health_monitor
+   :belongs_to: comp__health_monitor[version==1]
    :includes:
 
    .. uml::  assets/lm_static_architecture.puml
 
-.. comp_arc_sta:: Health Monitor  
+.. comp_arc_sta:: Health Monitor
    :id: comp_arc_sta__health_monitor__static_view
    :security: NO
    :safety: ASIL_B
@@ -103,7 +118,7 @@ Static Architecture
    :version: 1
    :implements:
    :fulfils: comp_req__health_monitor__dummy
-   :belongs_to: comp__health_monitor
+   :belongs_to: comp__health_monitor[version==1]
    :includes:
 
    .. uml::  assets/hm_static_architecture.puml
@@ -118,7 +133,7 @@ Dynamic Architecture
    :status: valid
    :version: 1
    :fulfils: comp_req__health_monitor__dummy
-   :belongs_to: comp__health_monitor
+   :belongs_to: comp__health_monitor[version==1]
 
    .. uml::  assets/hm_creation.puml
 
@@ -129,7 +144,7 @@ Dynamic Architecture
    :status: valid
    :version: 1
    :fulfils: comp_req__health_monitor__dummy
-   :belongs_to: comp__health_monitor
+   :belongs_to: comp__health_monitor[version==1]
 
    .. uml::  assets/hm_background_thread.puml
 
@@ -140,7 +155,7 @@ Dynamic Architecture
    :status: valid
    :version: 1
    :fulfils: comp_req__health_monitor__dummy
-   :belongs_to: comp__health_monitor
+   :belongs_to: comp__health_monitor[version==1]
 
    .. uml::  assets/dm_usage.puml
 
@@ -151,7 +166,7 @@ Dynamic Architecture
    :status: valid
    :version: 1
    :fulfils: comp_req__health_monitor__dummy
-   :belongs_to: comp__health_monitor
+   :belongs_to: comp__health_monitor[version==1]
 
    .. uml::  assets/lm_usage.puml
 
@@ -162,7 +177,7 @@ Dynamic Architecture
    :status: valid
    :version: 1
    :fulfils: comp_req__health_monitor__dummy
-   :belongs_to: comp__health_monitor
+   :belongs_to: comp__health_monitor[version==1]
 
    .. uml::  assets/hbm_usage.puml
 
@@ -173,7 +188,7 @@ Dynamic Architecture
    :status: valid
    :version: 1
    :fulfils: comp_req__health_monitor__dummy
-   :belongs_to: comp__health_monitor
+   :belongs_to: comp__health_monitor[version==1]
 
    .. uml::  assets/hm_startup.puml
 
@@ -184,7 +199,7 @@ Dynamic Architecture
    :status: valid
    :version: 1
    :fulfils: comp_req__health_monitor__dummy
-   :belongs_to: comp__health_monitor
+   :belongs_to: comp__health_monitor[version==1]
 
    .. uml::  assets/hm_shutdown.puml
 

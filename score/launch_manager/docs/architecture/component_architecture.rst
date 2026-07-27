@@ -22,13 +22,20 @@ Component Architecture Documentation
    :safety: ASIL_B
    :security: YES
    :realizes: wp__component_arch[version==1]
-   :tags: template
 
 
 Overview
 --------
 
-<Brief summary of the architecture.>
+.. comp:: Launch Manager
+   :id: comp__lifecycle_launch_manager
+   :status: valid
+   :version: 1
+   :safety: ASIL_B
+   :implements: logic_arc_int__lifecycle__controlif[version==1], logic_arc_int__lifecycle__alive_if[version==1]
+   :uses: logic_arc_int__logging__logging[version==1], logic_arc_int__baselibs__json[version==1], logic_arc_int__os__unistd[version==1], logic_arc_int__lifecycle__lifecycle_if[version==1]
+   :security: NO
+   :belongs_to: feat__lifecycle[version==1]
 
 Requirements Linked to Component Architecture
 ---------------------------------------------
@@ -60,12 +67,20 @@ Mandatory: A motivation for the decomposition or reason for not further splittin
 Static Architecture
 -------------------
 
-The components are designed to cover the expectations from the feature architecture
-(i.e. if already exists a definition it should be taken over and enriched).
+.. comp_arc_sta:: Launch Manager Static View
+   :id: comp_arc_sta__launch_manager__lm
+   :status: valid
+   :version: 1
+   :safety: ASIL_B
+   :security: NO
+   :belongs_to: comp__lifecycle_launch_manager[version==1]
+   :fulfils: comp_req__launch_man__process_launch_args[version==1]
 
-A component can optional also consist of lower level components to further structure the architecture. The component and its static views can also optionally use interfaces provided by other components.
+   .. needarch::
+      :scale: 50
+      :align: center
 
-tbd
+      {{ draw_component(need(), needs) }}
 
 Dynamic Architecture
 --------------------
