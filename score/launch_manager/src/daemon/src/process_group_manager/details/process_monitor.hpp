@@ -40,8 +40,6 @@ class ProcessMonitor final : public IComponentController
     void terminated(IComponent& component, int32_t status) override;
 
   private:
-    void taskFinished(const ComponentTask& task, const score::cpp::expected_blank<IComponent::ComponentError>& error);
-
     IComponentEventReceiver& event_queue_;
 };
 

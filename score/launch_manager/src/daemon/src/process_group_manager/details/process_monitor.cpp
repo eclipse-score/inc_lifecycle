@@ -24,39 +24,75 @@ ProcessMonitor::~ProcessMonitor() = default;
 
 void ProcessMonitor::doWork(ComponentTask&& task)
 {
+    auto run_task = [&]() {
+        auto& component = task.component.get();
+        IComponent::RequestResult result;
+
+        switch (task.type)
+        {
+            case ComponentTaskType::kActivate:
+                result = component.activate(task.stop_token);
+                break;
+            case ComponentTaskType::kDeactivate:
+                result = component.deactivate(task.stop_token);
+                break;
+        }
+
+        return result;
+    };
+
+    auto handle_success = [&]() {
+        const uint32_t node_index = task.component.get().getIndex();
+
+        switch (task.type)
+        {
+            case ComponentTaskType::kActivate:
+                event_queue_.push(ActivationSuccessful{node_index});
+                break;
+            case ComponentTaskType::kDeactivate:
+                event_queue_.push(DeactivationComplete{node_index});
+                break;
+        }
+    };
+
+    auto handle_failure = [&](IComponent::ComponentError& error) {
+        const uint32_t node_index = task.component.get().getIndex();
+
+        switch (task.type)
+        {
+            case ComponentTaskType::kActivate:
+                event_queue_.push(ActivationFailed{node_index, error});
+                break;
+            case ComponentTaskType::kDeactivate:
+                break;
+        }
+    };
+
+    auto handle_state = [&](IComponent::RequestState& state) {
+        switch (state)
+        {
+            case IComponent::RequestState::kSuccess:
+                handle_success();
+                break;
+            case IComponent::RequestState::kWaiting:
+                break;
+        }
+    };
+
     if (task.stop_token.stop_requested())
     {
         return;
     }
 
-    auto& component = task.component.get();
+    auto result = run_task();
 
-    IComponent::RequestResult res;
-
-    switch (task.type)
+    if (result.has_value())
     {
-        case ComponentTaskType::kActivate:
-            res = component.activate(task.stop_token);
-            break;
-        case ComponentTaskType::kDeactivate:
-            res = component.deactivate(task.stop_token);
-            break;
-        default:
-            break;
-    }
-
-    if (res.has_value() && res.value() == IComponent::RequestState::kWaiting)
-    {
-        return;
-    }
-
-    if (res.has_value())
-    {
-        taskFinished(task, {});
+        handle_state(result.value());
     }
     else
     {
-        taskFinished(task, score::cpp::make_unexpected(res.error()));
+        handle_failure(result.error());
     }
 }
 
@@ -70,26 +106,6 @@ void ProcessMonitor::terminated(IComponent& component, int32_t status)
     else if (res.value() != IComponent::RequestState::kWaiting)
     {
         event_queue_.push(ActivationSuccessful{component.getIndex()});
-    }
-}
-
-void ProcessMonitor::taskFinished(
-    const ComponentTask& task,
-    const score::cpp::expected_blank<IComponent::ComponentError>& error)
-{
-    const uint32_t node_index = task.component.get().getIndex();
-
-    if (task.type == ComponentTaskType::kDeactivate)
-    {
-        event_queue_.push(DeactivationComplete{node_index});
-    }
-    else if (error.has_value())
-    {
-        event_queue_.push(ActivationSuccessful{node_index});
-    }
-    else
-    {
-        event_queue_.push(ActivationFailed{node_index, error.error()});
     }
 }
 
