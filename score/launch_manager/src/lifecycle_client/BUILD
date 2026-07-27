@@ -39,7 +39,7 @@ cc_library(
     include_prefix = "score/mw/lifecycle",
     strip_include_prefix = "/score/launch_manager/src/lifecycle_client/src",
     tags = ["FUSA"],
-    visibility = ["//visibility:public"],
+    visibility = ["//score/launch_manager:__subpackages__"],
     deps = [
         "@score_baselibs//score/memory:string_literal",
         "@score_baselibs//score/mw/log",
@@ -60,7 +60,7 @@ cc_library(
     include_prefix = "score/mw/lifecycle",
     strip_include_prefix = "/score/launch_manager/src/lifecycle_client/src",
     tags = ["FUSA"],
-    visibility = ["//visibility:public"],
+    visibility = ["//score/launch_manager:__subpackages__"],
     deps = [
         ":applicationcontext",
     ],
@@ -125,7 +125,7 @@ cc_library(
     include_prefix = "score/mw/lifecycle",
     strip_include_prefix = "/score/launch_manager/src/lifecycle_client/src",
     tags = ["FUSA"],
-    visibility = ["//visibility:public"],
+    visibility = ["//score/launch_manager:__subpackages__"],
     deps = [
         ":report_running",
         "@score_baselibs//score/mw/log",
@@ -210,16 +210,13 @@ cc_library(
     ],
 )
 
-# Single public entry point for external packages that need lifecycle mocks in their tests.
-# Prefer depending on this target rather than on individual mock targets.
-cc_library(
-    name = "lifecycle_test_mocks",
-    testonly = True,
-    visibility = ["//visibility:public"],
+cc_test(
+    name = "lifecycle_mocks_UT",
+    srcs = ["src/lifecycle_mocks_UT.cpp"],
     deps = [
-        ":applicationcontext_mock",
-        ":lifecycle_mock",
-        ":report_running_mock",
+        ":runapplication",
+        "//score/launch_manager:lifecycle_mock_cc",
+        "@googletest//:gtest_main",
     ],
 )
 

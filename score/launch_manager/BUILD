@@ -86,9 +86,13 @@ alias(
     actual = "//score/launch_manager/src/lifecycle_client:applicationcontext_mock",
 )
 
-alias(
+cc_library(
     name = "lifecycle_mock_cc",
-    actual = "//score/launch_manager/src/lifecycle_client:lifecycle_mock",
+    testonly = True,
+    deps = [
+        "//score/launch_manager/src/lifecycle_client:lifecycle_mock",
+        "//score/launch_manager/src/lifecycle_client:report_running_mock",
+    ],
 )
 
 alias(

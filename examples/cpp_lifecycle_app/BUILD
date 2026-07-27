@@ -10,18 +10,6 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_test")
-
-cc_test(
-    name = "lifecycle_mocks_UT",
-    srcs = ["lifecycle_mocks_UT.cpp"],
-    deps = [
-        "//score/launch_manager/src/lifecycle_client:lifecycle_test_mocks",
-        "//score/launch_manager/src/lifecycle_client:runapplication",
-        "@googletest//:gtest_main",
-    ],
-)
-
 cc_binary(
     name = "cpp_lifecycle_app",
     srcs = [
