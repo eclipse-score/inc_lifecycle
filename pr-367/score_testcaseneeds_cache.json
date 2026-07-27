@@ -336,6 +336,104 @@
     "FullyVerifies": null
   },
   {
+    "name": "FixedSizeQueue__StaticProperties",
+    "file": "score/launch_manager/src/daemon/src/common/concurrency/fixed_size_queue_test.cpp",
+    "line": "24",
+    "result": "passed",
+    "repo_name": "local_repo",
+    "hash": "",
+    "url": "",
+    "TestType": null,
+    "DerivationTechnique": null,
+    "result_text": "",
+    "PartiallyVerifies": null,
+    "FullyVerifies": null
+  },
+  {
+    "name": "FixedSizeQueue__ZeroCapacityAllMemberFunctionsReturns",
+    "file": "score/launch_manager/src/daemon/src/common/concurrency/fixed_size_queue_test.cpp",
+    "line": "42",
+    "result": "passed",
+    "repo_name": "local_repo",
+    "hash": "",
+    "url": "",
+    "TestType": null,
+    "DerivationTechnique": null,
+    "result_text": "",
+    "PartiallyVerifies": null,
+    "FullyVerifies": null
+  },
+  {
+    "name": "FixedSizeQueue__CapacityFunctions",
+    "file": "score/launch_manager/src/daemon/src/common/concurrency/fixed_size_queue_test.cpp",
+    "line": "68",
+    "result": "passed",
+    "repo_name": "local_repo",
+    "hash": "",
+    "url": "",
+    "TestType": null,
+    "DerivationTechnique": null,
+    "result_text": "",
+    "PartiallyVerifies": null,
+    "FullyVerifies": null
+  },
+  {
+    "name": "FixedSizeQueue__CapacityFunctionSizeRetrunsNumberOfElementsInTheQueue",
+    "file": "score/launch_manager/src/daemon/src/common/concurrency/fixed_size_queue_test.cpp",
+    "line": "87",
+    "result": "passed",
+    "repo_name": "local_repo",
+    "hash": "",
+    "url": "",
+    "TestType": null,
+    "DerivationTechnique": null,
+    "result_text": "",
+    "PartiallyVerifies": null,
+    "FullyVerifies": null
+  },
+  {
+    "name": "FixedSizeQueue__ModifierFunctionsPushAndTryPopImplementAFIFO",
+    "file": "score/launch_manager/src/daemon/src/common/concurrency/fixed_size_queue_test.cpp",
+    "line": "109",
+    "result": "passed",
+    "repo_name": "local_repo",
+    "hash": "",
+    "url": "",
+    "TestType": null,
+    "DerivationTechnique": null,
+    "result_text": "",
+    "PartiallyVerifies": null,
+    "FullyVerifies": null
+  },
+  {
+    "name": "FixedSizeQueue__ModifierFunctionPushReturnsFalseIfTheQueueIsFull",
+    "file": "score/launch_manager/src/daemon/src/common/concurrency/fixed_size_queue_test.cpp",
+    "line": "140",
+    "result": "passed",
+    "repo_name": "local_repo",
+    "hash": "",
+    "url": "",
+    "TestType": null,
+    "DerivationTechnique": null,
+    "result_text": "",
+    "PartiallyVerifies": null,
+    "FullyVerifies": null
+  },
+  {
+    "name": "FixedSizeQueue__TailAndHeadWrap",
+    "file": "score/launch_manager/src/daemon/src/common/concurrency/fixed_size_queue_test.cpp",
+    "line": "156",
+    "result": "passed",
+    "repo_name": "local_repo",
+    "hash": "",
+    "url": "",
+    "TestType": null,
+    "DerivationTechnique": null,
+    "result_text": "",
+    "PartiallyVerifies": null,
+    "FullyVerifies": null
+  },
+  {
     "name": "MPMCConcurrentQueueTest_Basic__PushAndPopSingleItem",
     "file": "score/launch_manager/src/daemon/src/common/concurrency/mpmc_concurrent_queue_test.cpp",
     "line": "35",
@@ -898,7 +996,7 @@
   {
     "name": "MpscBoundedQueueTest_MinimalCapacity__CapacityOfOneAllowsSingleItemAtATime",
     "file": "score/launch_manager/src/daemon/src/common/concurrency/mpsc_bounded_queue_test.cpp",
-    "line": "208",
+    "line": "207",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -912,7 +1010,7 @@
   {
     "name": "MpscBoundedQueueTest_Blocking__WaitReturnsTimeoutWhenEmpty",
     "file": "score/launch_manager/src/daemon/src/common/concurrency/mpsc_bounded_queue_test.cpp",
-    "line": "244",
+    "line": "243",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -926,7 +1024,7 @@
   {
     "name": "MpscBoundedQueueTest_Blocking__WaitSucceedsOnceProducerPushes",
     "file": "score/launch_manager/src/daemon/src/common/concurrency/mpsc_bounded_queue_test.cpp",
-    "line": "253",
+    "line": "252",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -940,7 +1038,7 @@
   {
     "name": "MpscBoundedQueueTest_Stop__PushReturnsStoppedAfterStop",
     "file": "score/launch_manager/src/daemon/src/common/concurrency/mpsc_bounded_queue_test.cpp",
-    "line": "290",
+    "line": "289",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -954,7 +1052,7 @@
   {
     "name": "MpscBoundedQueueTest_Stop__WaitReturnsStoppedAfterStopWhenEmpty",
     "file": "score/launch_manager/src/daemon/src/common/concurrency/mpsc_bounded_queue_test.cpp",
-    "line": "299",
+    "line": "298",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -968,7 +1066,7 @@
   {
     "name": "MpscBoundedQueueTest_Stop__TryPopStillDrainsQueuedItemsAfterStop",
     "file": "score/launch_manager/src/daemon/src/common/concurrency/mpsc_bounded_queue_test.cpp",
-    "line": "310",
+    "line": "309",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -982,7 +1080,7 @@
   {
     "name": "MpscBoundedQueueTest_Stop__StopUnblocksBlockedConsumerPromptly",
     "file": "score/launch_manager/src/daemon/src/common/concurrency/mpsc_bounded_queue_test.cpp",
-    "line": "330",
+    "line": "329",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -996,7 +1094,7 @@
   {
     "name": "MpscBoundedQueueTest_MultiProducer__AllItemsFromConcurrentProducersDeliveredExactlyOnce",
     "file": "score/launch_manager/src/daemon/src/common/concurrency/mpsc_bounded_queue_test.cpp",
-    "line": "366",
+    "line": "365",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1010,7 +1108,7 @@
   {
     "name": "MpscBoundedQueueTest__ToCallStopBeforeDestructionIsMandatory",
     "file": "score/launch_manager/src/daemon/src/common/concurrency/mpsc_bounded_queue_test.cpp",
-    "line": "447",
+    "line": "446",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1024,7 +1122,7 @@
   {
     "name": "MpscBoundedQueueTest__OnlyOneConsumerThreadIsAllowed",
     "file": "score/launch_manager/src/daemon/src/common/concurrency/mpsc_bounded_queue_test.cpp",
-    "line": "454",
+    "line": "453",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1178,7 +1276,7 @@
   {
     "name": "MpscBoundedQueueTest_MinimalCapacity__CapacityOfOneAllowsSingleItemAtATime",
     "file": "score/launch_manager/src/daemon/src/common/concurrency/mpsc_bounded_queue_test.cpp",
-    "line": "208",
+    "line": "207",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1192,7 +1290,7 @@
   {
     "name": "MpscBoundedQueueTest_Blocking__WaitReturnsTimeoutWhenEmpty",
     "file": "score/launch_manager/src/daemon/src/common/concurrency/mpsc_bounded_queue_test.cpp",
-    "line": "244",
+    "line": "243",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1206,7 +1304,7 @@
   {
     "name": "MpscBoundedQueueTest_Blocking__WaitSucceedsOnceProducerPushes",
     "file": "score/launch_manager/src/daemon/src/common/concurrency/mpsc_bounded_queue_test.cpp",
-    "line": "253",
+    "line": "252",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1220,7 +1318,7 @@
   {
     "name": "MpscBoundedQueueTest_Stop__PushReturnsStoppedAfterStop",
     "file": "score/launch_manager/src/daemon/src/common/concurrency/mpsc_bounded_queue_test.cpp",
-    "line": "290",
+    "line": "289",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1234,7 +1332,7 @@
   {
     "name": "MpscBoundedQueueTest_Stop__WaitReturnsStoppedAfterStopWhenEmpty",
     "file": "score/launch_manager/src/daemon/src/common/concurrency/mpsc_bounded_queue_test.cpp",
-    "line": "299",
+    "line": "298",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1248,7 +1346,7 @@
   {
     "name": "MpscBoundedQueueTest_Stop__TryPopStillDrainsQueuedItemsAfterStop",
     "file": "score/launch_manager/src/daemon/src/common/concurrency/mpsc_bounded_queue_test.cpp",
-    "line": "310",
+    "line": "309",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1262,7 +1360,7 @@
   {
     "name": "MpscBoundedQueueTest_Stop__StopUnblocksBlockedConsumerPromptly",
     "file": "score/launch_manager/src/daemon/src/common/concurrency/mpsc_bounded_queue_test.cpp",
-    "line": "330",
+    "line": "329",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1276,7 +1374,7 @@
   {
     "name": "MpscBoundedQueueTest_MultiProducer__AllItemsFromConcurrentProducersDeliveredExactlyOnce",
     "file": "score/launch_manager/src/daemon/src/common/concurrency/mpsc_bounded_queue_test.cpp",
-    "line": "366",
+    "line": "365",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1290,7 +1388,7 @@
   {
     "name": "MpscBoundedQueueTest__ToCallStopBeforeDestructionIsMandatory",
     "file": "score/launch_manager/src/daemon/src/common/concurrency/mpsc_bounded_queue_test.cpp",
-    "line": "447",
+    "line": "446",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1304,7 +1402,7 @@
   {
     "name": "MpscBoundedQueueTest__OnlyOneConsumerThreadIsAllowed",
     "file": "score/launch_manager/src/daemon/src/common/concurrency/mpsc_bounded_queue_test.cpp",
-    "line": "454",
+    "line": "453",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
