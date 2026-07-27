@@ -107,6 +107,14 @@ def get_recovery_process_group_state(config):
 def sec_to_ms(sec: float) -> int:
     return int(sec * 1000)
 
+def get_working_dir(deployment_config):
+    """
+    Get the working directory for a component. If not specified, default to the bin_dir.
+    """
+    return deployment_config.get(
+        "working_dir", deployment_config["bin_dir"]
+    )
+
 
 def preprocess_defaults(global_defaults, config):
     """
@@ -294,7 +302,7 @@ def gen_config(output_dir, config, input_filename, schema_version=None):
             "bin_dir": depl_cfg["bin_dir"],
             # Default the working directory to bin_dir (the directory the
             # executable lives in) when not set explicitly.
-            "working_dir": depl_cfg.get("working_dir", depl_cfg["bin_dir"]),
+            "working_dir": get_working_dir(depl_cfg),
             "sandbox": sandbox_out,
         }
 
@@ -673,9 +681,7 @@ def gen_launch_manager_config(output_dir, config):
         process["number_of_restart_attempts"] = component_config["deployment_config"][
             "ready_recovery_action"
         ]["restart"]["number_of_attempts"]
-        process["working_dir"] = component_config["deployment_config"].get(
-            "working_dir", component_config["deployment_config"]["bin_dir"]
-        )
+        process["working_dir"] = get_working_dir(component_config["deployment_config"])
 
         match component_config["component_properties"]["application_profile"][
             "application_type"
