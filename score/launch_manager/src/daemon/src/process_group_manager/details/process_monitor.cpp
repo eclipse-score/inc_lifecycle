@@ -22,7 +22,7 @@ ProcessMonitor::ProcessMonitor(IComponentEventReceiver& event_queue) : event_que
 
 ProcessMonitor::~ProcessMonitor() = default;
 
-void ProcessMonitor::doWork(Task&& task)
+void ProcessMonitor::doWork(ComponentTask&& task)
 {
     if (task.stop_token.stop_requested())
     {
@@ -35,10 +35,10 @@ void ProcessMonitor::doWork(Task&& task)
 
     switch (task.type)
     {
-        case TaskType::kActivate:
+        case ComponentTaskType::kActivate:
             res = component.activate(task.stop_token);
             break;
-        case TaskType::kDeactivate:
+        case ComponentTaskType::kDeactivate:
             res = component.deactivate(task.stop_token);
             break;
         default:
@@ -73,11 +73,13 @@ void ProcessMonitor::terminated(IComponent& component, int32_t status)
     }
 }
 
-void ProcessMonitor::taskFinished(const Task& task, const score::cpp::expected_blank<IComponent::ComponentError>& error)
+void ProcessMonitor::taskFinished(
+    const ComponentTask& task,
+    const score::cpp::expected_blank<IComponent::ComponentError>& error)
 {
     const uint32_t node_index = task.component.get().getIndex();
 
-    if (task.type == TaskType::kDeactivate)
+    if (task.type == ComponentTaskType::kDeactivate)
     {
         event_queue_.push(DeactivationComplete{node_index});
     }

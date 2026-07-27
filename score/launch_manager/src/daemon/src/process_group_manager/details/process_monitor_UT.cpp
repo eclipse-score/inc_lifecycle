@@ -60,7 +60,7 @@ TEST_F(ProcessMonitorTest, DoWorkNormalActivation)
     EXPECT_CALL(mock_queue, push(VariantWith<ActivationSuccessful>(Field(&ActivationSuccessful::node_index, 1))))
         .Times(1);
     // When
-    process_monitor.doWork(Task{TaskType::kActivate, mock_component, stop_source.get_token()});
+    process_monitor.doWork(ComponentTask{ComponentTaskType::kActivate, mock_component, stop_source.get_token()});
 }
 
 TEST_F(ProcessMonitorTest, DoWorkNormalDeactivation)
@@ -72,7 +72,7 @@ TEST_F(ProcessMonitorTest, DoWorkNormalDeactivation)
     EXPECT_CALL(mock_queue, push(VariantWith<DeactivationComplete>(Field(&DeactivationComplete::node_index, 1))))
         .Times(1);
     // When
-    process_monitor.doWork(Task{TaskType::kDeactivate, mock_component, stop_source.get_token()});
+    process_monitor.doWork(ComponentTask{ComponentTaskType::kDeactivate, mock_component, stop_source.get_token()});
 }
 
 TEST_F(ProcessMonitorTest, DoWorkOnTerminationDepProcess)
@@ -87,7 +87,7 @@ TEST_F(ProcessMonitorTest, DoWorkOnTerminationDepProcess)
     EXPECT_CALL(mock_queue, push(VariantWith<ActivationSuccessful>(Field(&ActivationSuccessful::node_index, 1))))
         .Times(1);
     // When
-    process_monitor.doWork(Task{TaskType::kActivate, mock_component, stop_source.get_token()});
+    process_monitor.doWork(ComponentTask{ComponentTaskType::kActivate, mock_component, stop_source.get_token()});
     // The OS thread detects the termination:
     process_monitor.terminated(mock_component, 0);
 }
@@ -120,5 +120,5 @@ TEST_F(ProcessMonitorTest, ActivationFailed)
     EXPECT_CALL(mock_component, activate).WillOnce(Return(score::cpp::make_unexpected(errc)));
     EXPECT_CALL(mock_queue, push(VariantWith<ActivationFailed>(Field(&ActivationFailed::reason, errc)))).Times(1);
     // When
-    process_monitor.doWork(Task{TaskType::kActivate, mock_component, stop_source.get_token()});
+    process_monitor.doWork(ComponentTask{ComponentTaskType::kActivate, mock_component, stop_source.get_token()});
 }
