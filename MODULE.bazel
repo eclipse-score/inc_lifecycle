@@ -182,3 +182,7 @@ git_override(
     patches = ["//patches:hedron_compile_commands_env_vars.patch"],
     remote = "https://github.com/hedronvision/bazel-compile-commands-extractor.git",
 )
+
+# Needed to fix bazel mod errors
+# see https://github.com/grpc/grpc-java/issues/12165
+bazel_dep(name = "grpc-java", version = "1.78.0")
