@@ -34,7 +34,7 @@ class ProcessMonitor final : public IComponentController
     ProcessMonitor& operator=(ProcessMonitor&&) = delete;
 
     /// @brief Start work on @p task and push the result to the event queue if the task completes
-    void doWork(Task task) override;
+    void doWork(Task&& task) override;
     /// @brief Notify @p component that it has terminated with status @p status. If this is an error or finishes a
     /// component activation, report to the event queue
     void terminated(IComponent& component, int32_t status) override;

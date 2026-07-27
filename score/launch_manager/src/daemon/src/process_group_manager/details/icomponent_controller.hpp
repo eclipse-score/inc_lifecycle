@@ -23,7 +23,7 @@ namespace score::lcm::internal
 class IComponentController
 {
   public:
-    virtual void doWork(Task task) = 0;
+    virtual void doWork(Task&& task) = 0;
     virtual void terminated(IComponent& component, int32_t status) = 0;
 
     virtual ~IComponentController() = default;

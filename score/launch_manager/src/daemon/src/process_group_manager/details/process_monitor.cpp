@@ -22,7 +22,7 @@ ProcessMonitor::ProcessMonitor(IComponentEventReceiver& event_queue) : event_que
 
 ProcessMonitor::~ProcessMonitor() = default;
 
-void ProcessMonitor::doWork(Task task)
+void ProcessMonitor::doWork(Task&& task)
 {
     if (task.stop_token.stop_requested())
     {
