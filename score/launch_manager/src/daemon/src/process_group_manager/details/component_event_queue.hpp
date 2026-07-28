@@ -21,14 +21,14 @@
 #include "score/mw/launch_manager/common/concurrency/concurrency_error_domain.hpp"
 #include "score/mw/launch_manager/common/concurrency/mpsc_bounded_queue.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/component_event.hpp"
-#include "score/mw/launch_manager/process_group_manager/details/icomponent_event_queue.hpp"
+#include "score/mw/launch_manager/process_group_manager/details/icomponent_event_publisher_consumer.hpp"
 
 namespace score::mw::lifecycle::internal
 {
 
 /// @brief Queue of ComponentEvents produced by worker/OS-handler threads and consumed
 /// exclusively by the main thread, backed by a fixed-capacity MpscBoundedQueue.
-class ComponentEventQueue final : public IComponentEventQueue
+class ComponentEventQueue final : public IComponentEventPublisherConsumer
 {
   public:
     explicit ComponentEventQueue(std::size_t components) : queue_(components * 3U), capacity_(components * 3U)

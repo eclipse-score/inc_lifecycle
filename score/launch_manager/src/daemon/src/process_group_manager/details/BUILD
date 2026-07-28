@@ -67,7 +67,7 @@ cc_library(
     strip_include_prefix = "/score/launch_manager/src/daemon/src/process_group_manager/details",
     visibility = ["//score:__subpackages__"],
     deps = [
-        ":icomponent_event_queue",
+        ":icomponent_event_publisher_consumer",
         "@googletest//:gtest_main",
     ],
 )
@@ -104,7 +104,7 @@ cc_library(
     strip_include_prefix = "/score/launch_manager/src/daemon/src/process_group_manager/details",
     visibility = ["//score/launch_manager/src/daemon/src/process_group_manager:__pkg__"],
     deps = [
-        ":icomponent_event_queue",
+        ":icomponent_event_publisher_consumer",
         "//score/launch_manager/src/daemon/src/common:constants",
         "//score/launch_manager/src/daemon/src/common:identifier_hash",
         "//score/launch_manager/src/daemon/src/common/concurrency:mpsc_bounded_queue",
@@ -112,8 +112,8 @@ cc_library(
 )
 
 cc_library(
-    name = "icomponent_event_queue",
-    hdrs = ["icomponent_event_queue.hpp"],
+    name = "icomponent_event_publisher_consumer",
+    hdrs = ["icomponent_event_publisher_consumer.hpp"],
     include_prefix = "score/mw/launch_manager/process_group_manager/details",
     strip_include_prefix = "/score/launch_manager/src/daemon/src/process_group_manager/details",
     visibility = ["//score/launch_manager/src/daemon/src/process_group_manager:__pkg__"],
@@ -240,7 +240,7 @@ cc_library(
     deps = [
         ":graph",
         ":icomponent_controller",
-        ":icomponent_event_queue",
+        ":icomponent_event_publisher_consumer",
         ":os_handler",
         ":process_info_node",
         ":safe_process_map",

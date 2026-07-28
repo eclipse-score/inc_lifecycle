@@ -15,7 +15,7 @@
 #define PROCESS_MONITOR_HPP_INCLUDED
 
 #include "score/mw/launch_manager/process_group_manager/details/icomponent_controller.hpp"
-#include "score/mw/launch_manager/process_group_manager/details/icomponent_event_queue.hpp"
+#include "score/mw/launch_manager/process_group_manager/details/icomponent_event_publisher_consumer.hpp"
 
 namespace score::mw::lifecycle::internal
 {

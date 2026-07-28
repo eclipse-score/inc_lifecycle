@@ -11,8 +11,8 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#ifndef SCORE_LCM_ICOMPONENT_EVENT_QUEUE_HPP_INCLUDED
-#define SCORE_LCM_ICOMPONENT_EVENT_QUEUE_HPP_INCLUDED
+#ifndef SCORE_LCM_ICOMPONENT_EVENT_PUBLISHER_CONSUMER_HPP_INCLUDED
+#define SCORE_LCM_ICOMPONENT_EVENT_PUBLISHER_CONSUMER_HPP_INCLUDED
 
 #include "score/mw/launch_manager/process_group_manager/details/component_event.hpp"
 
@@ -42,12 +42,12 @@ class IComponentEventConsumer
 };
 
 /// @brief Interface including publisher and consumer methods
-class IComponentEventQueue : public IComponentEventPublisher, public IComponentEventConsumer
+class IComponentEventPublisherConsumer : public IComponentEventPublisher, public IComponentEventConsumer
 {
   public:
-    virtual ~IComponentEventQueue() = default;
+    virtual ~IComponentEventPublisherConsumer() = default;
 };
 
 }  // namespace score::mw::lifecycle::internal
 
-#endif  // SCORE_LCM_ICOMPONENT_EVENT_QUEUE_HPP_INCLUDED
+#endif  // SCORE_LCM_ICOMPONENT_EVENT_PUBLISHER_CONSUMER_HPP_INCLUDED
