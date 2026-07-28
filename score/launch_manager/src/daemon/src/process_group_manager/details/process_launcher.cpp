@@ -50,6 +50,7 @@ using score::lcm::internal::osal::IpcCommsSync;
 using score::lcm::internal::osal::sysexit;
 
 /// @brief Applies the given limit.
+/// @details The implementation should be async signal safe.
 /// @warning This will sysexit if the set is not succesful.
 void applyLimitOrDie(const int resource, const rlimit& limit, const std::string_view rlimit_name) noexcept(false)
 {
@@ -61,6 +62,7 @@ void applyLimitOrDie(const int resource, const rlimit& limit, const std::string_
 }
 
 /// @brief Sets the limit if given a non-zero value, otherwise skips.
+/// @details The implementation should be async signal safe.
 /// @warning This will sysexit if the set is not succesful.
 void setLimit(const int resource, const std::size_t amount, const std::string_view rlimit_name) noexcept
 {
@@ -77,6 +79,7 @@ void setLimit(const int resource, const std::size_t amount, const std::string_vi
     applyLimitOrDie(resource, limit, rlimit_name);
 }
 
+/// @details The implementation should be async signal safe.
 void handleComms(score::lcm::internal::osal::ChildProcessConfig& param)
 {
     // kNoComms !fd3 & !fd4
@@ -134,6 +137,7 @@ void handleComms(score::lcm::internal::osal::ChildProcessConfig& param)
     }
 }
 
+/// @details The implementation should be async signal safe.
 void changeCurrentWorkingDirectory(const score::lcm::internal::osal::OsalConfig& config)
 {
     // Change current working directory to the same as the executable
@@ -157,6 +161,7 @@ void changeCurrentWorkingDirectory(const score::lcm::internal::osal::OsalConfig&
     }
 }
 
+/// @details The implementation should be async signal safe.
 void implementMemoryResourceLimits(const score::lcm::internal::osal::OsalConfig& config)
 {
     setLimit(RLIMIT_DATA, config.resource_limits_.data_, "RLIMIT_DATA");
@@ -170,6 +175,7 @@ void implementMemoryResourceLimits(const score::lcm::internal::osal::OsalConfig&
     setLimit(RLIMIT_CPU, config.resource_limits_.cpu_, "RLIMIT_CPU");
 }
 
+/// @details The implementation should be async signal safe.
 void changeSecurityPolicy(const score::lcm::internal::osal::OsalConfig& config)
 {
     if (config.security_policy_ != "")
@@ -229,6 +235,12 @@ OsalReturnType IProcess::startProcess(ProcessID* pid, IpcCommsP* block, const Os
 
             if (*pid == kPosixSuccess)
             {
+                /*
+                 * From this point on, only async signal safe functions can be
+                 * used. `fork` only copies the current thread, so any locks
+                 * which were held at that time will never be released.
+                 * See `man 2 fork`.
+                 */
                 ChildProcessConfig param = {config, fd, *block};
                 handleChildProcess(param);
                 result = OsalReturnType::kSuccess;
@@ -357,6 +369,7 @@ inline bool IProcess::initializeSemaphores(IpcCommsP shared_block)
     return result;
 }
 
+/// @details The implementation should be async signal safe.
 OsalReturnType IProcess::setSchedulingAndSecurity(const OsalConfig& config)
 {
     OsalReturnType retval = OsalReturnType::kSuccess;
@@ -427,6 +440,7 @@ OsalReturnType IProcess::setSchedulingAndSecurity(const OsalConfig& config)
     return retval;
 }
 
+/// @details The implementation should be async signal safe.
 inline void IProcess::handleChildProcess(ChildProcessConfig& param)
 {
     handleComms(param);
