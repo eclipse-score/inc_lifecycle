@@ -42,10 +42,10 @@ Requirements
    :safety: ASIL_B
    :security: YES
    :rationale: Dummy
-   :status: invalid
+   :status: valid
+   :valid_from: v1.1.9999
 
-   The platform shall ...
-
+    .. note:: This is a dummy stakeholder requirement. See https://github.com/eclipse-score/lifecycle/issues/366 for more information.
 
 .. feat_req:: Dummy Feature
    :id: feat_req__requirements__template
@@ -53,9 +53,10 @@ Requirements
    :safety: ASIL_B
    :security: YES
    :derived_from: stkh_req__requirements__dummy
-   :status: invalid
+   :status: valid
+   :valid_from: v1.1.9999
 
-    Dummy
+    .. note:: This is a dummy feature requirement. See https://github.com/eclipse-score/lifecycle/issues/366 for more information.
 
 .. comp_req:: Dummy Component
    :id: comp_req__health_monitor__dummy
@@ -64,20 +65,19 @@ Requirements
    :safety: ASIL_B
    :derived_from: feat_req__requirements__template
    :belongs_to: comp__health_monitor
-   :status: invalid
+   :status: valid
 
-   The Component shall do xyz to the user to bring him to this condition at this time
+    .. note:: This is a dummy component requirement. See https://github.com/eclipse-score/lifecycle/issues/366 for more information.
 
-   Note: (optional, not to be verified)
 
 .. aou_req:: Dummy AoU
    :id: aou_req__health_monitor__dummy
    :reqtype: Process
    :security: YES
    :safety: ASIL_B
-   :status: invalid
+   :status: valid
 
-   The Component User shall do xyz to use the component safely
+    .. note:: This is a dummy AoU requirement. See https://github.com/eclipse-score/lifecycle/issues/366 for more information.
 
 .. attention::
     The above directives must be updated according to your feature requirements.
