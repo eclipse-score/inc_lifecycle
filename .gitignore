@@ -71,6 +71,10 @@ target/
 tests/**/*.html
 tests/**/*.xml
 
+# Backup of the kernel core_pattern saved by the integration test core-dump
+# capture (--config=core_dump); auto-removed after restore
+/.original_core_pattern
+
 # IDE Code files
 *.orig
 .venv_docs

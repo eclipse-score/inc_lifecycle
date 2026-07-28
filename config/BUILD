@@ -50,6 +50,29 @@ config_setting(
     },
 )
 
+# Opt in with --config=core_dump: selects the gdb-equipped debug test image so
+# core dumps can be analysed in-container (see .bazelrc, tests/integration/readme.md).
+bool_flag(
+    name = "core_dump",
+    build_setting_default = False,
+)
+
+config_setting(
+    name = "core_dump_enabled",
+    flag_values = {
+        ":core_dump": "True",
+    },
+)
+
+# Specialization of :integration_docker; select() prefers it when both match.
+config_setting(
+    name = "integration_docker_core_dump",
+    flag_values = {
+        ":integration_mode": "docker",
+        ":core_dump": "True",
+    },
+)
+
 # How to run unit tests:
 #
 # - qemu: in a QEMU virtual machine

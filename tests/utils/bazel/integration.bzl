@@ -75,6 +75,11 @@ def integration_test(
         "//tests/utils/testing_utils",
     ]
     final_data = kwargs.pop("data", []) + [":environment"] + select({
+        # More specialized than :integration_docker; select() prefers it under
+        # --config=core_dump so cores can be analysed against matching libraries.
+        "//config:integration_docker_core_dump": [
+            "//tests/utils/environments/x86_64-linux:x86_64-linux-debug",
+        ],
         "//config:integration_docker": [
             "//tests/utils/environments/x86_64-linux",
         ],
@@ -89,6 +94,10 @@ def integration_test(
         "--score-test-binary-path=$(locations :environment)",
         "--score-test-remote-directory={}/tests/{}".format(install_prefix, name),
     ] + select({
+        "//config:integration_docker_core_dump": [
+            "--docker-image-bootstrap=$(location //tests/utils/environments/x86_64-linux:x86_64-linux-debug)",
+            "--docker-image=score_itf_examples_debug:latest",
+        ],
         "//config:integration_docker": [
             "--docker-image-bootstrap=$(location //tests/utils/environments/x86_64-linux)",
             "--docker-image=score_itf_examples:latest",
@@ -101,11 +110,15 @@ def integration_test(
             "--local-dir=/tmp/score_itf_host/{}".format(name),
         ],
     })
-    final_plugins = ["//tests/utils/plugins:integration_plugin"] + select({
+
+    # integration_plugin is listed last so pytest registers it after the
+    # target plugin: its docker_configuration fixture then overrides the
+    # score_itf default (last-registered -p plugin wins fixture overrides).
+    final_plugins = select({
         "//config:integration_docker": ["@score_itf//score/itf/plugins:docker_plugin"],
         "//config:integration_qemu": ["@score_itf//score/itf/plugins:qemu_plugin"],
         "//config:integration_host": ["//tests/utils/plugins:localhost_plugin"],
-    })
+    }) + ["//tests/utils/plugins:integration_plugin"]
 
     # The QEMU plugin uses a hardcoded port so we can only run one test at a time.
     # See https://github.com/eclipse-score/itf/issues/125.

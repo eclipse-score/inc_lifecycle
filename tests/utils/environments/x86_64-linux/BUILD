@@ -43,3 +43,28 @@ oci_load(
         "//tests:__subpackages__",
     ],
 )
+
+# Debug variant: the normal image plus gdb (and its dependency closure), selected
+# under --config=core_dump so core dumps can be analysed inside the container
+# against matching libraries. The gdb layer is built by rules_distroless from
+# gdb_apt.yaml (regenerate its lockfile with: bazel run @gdb_apt//:lock).
+oci_image(
+    name = "image_debug",
+    base = "@debian-test-runtime",
+    target_compatible_with = ["@platforms//os:linux"],
+    tars = [
+        ":ecu_logging_config_layer",
+        "@gdb_apt//:flat",
+    ],
+)
+
+oci_load(
+    name = "x86_64-linux-debug",
+    image = ":image_debug",
+    repo_tags = ["score_itf_examples_debug:latest"],
+    target_compatible_with = ["@platforms//os:linux"],
+    visibility = [
+        "//examples:__subpackages__",
+        "//tests:__subpackages__",
+    ],
+)

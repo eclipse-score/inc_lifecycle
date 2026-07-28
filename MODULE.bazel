@@ -19,6 +19,7 @@ bazel_dep(name = "rules_python", version = "1.8.5")
 bazel_dep(name = "rules_rust", version = "0.68.2-score")
 bazel_dep(name = "rules_cc", version = "0.2.17")
 bazel_dep(name = "rules_oci", version = "2.3.0")
+bazel_dep(name = "rules_distroless", version = "0.8.0")
 bazel_dep(name = "rules_shell", version = "0.6.1")
 bazel_dep(name = "aspect_rules_lint", version = "2.3.0")
 bazel_dep(name = "buildifier_prebuilt", version = "8.5.1")
@@ -174,6 +175,20 @@ oci.pull(
     tag = "bookworm-slim",
 )
 use_repo(oci, "debian-test-runtime", "debian-test-runtime_linux_amd64")
+
+# gdb (+ dependency closure) layered onto the debug test image; see
+# tests/utils/environments/x86_64-linux/gdb_apt.yaml. Regenerate the lockfile
+# with: bazel run @gdb_apt//:lock
+apt = use_extension("@rules_distroless//apt:extensions.bzl", "apt")
+apt.install(
+    name = "gdb_apt",
+    lock = "//tests/utils/environments/x86_64-linux:gdb_apt.lock.json",
+    manifest = "//tests/utils/environments/x86_64-linux:gdb_apt.yaml",
+    # Normalize to a merged-usr layout so the layer does not clobber the base
+    # image's /bin, /lib, ... usr-merge symlinks (which would break /bin/sh).
+    mergedusr = True,
+)
+use_repo(apt, "gdb_apt")
 
 bazel_dep(name = "score_baselibs", version = "0.2.10")
 
