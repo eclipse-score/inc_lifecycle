@@ -23,6 +23,8 @@ class MockComponentEventQueue : public IComponentEventPublisher
 {
   public:
     MOCK_METHOD(bool, push, (ComponentEvent && event), (override));
+    MOCK_METHOD(bool, getOverflow, (), (override, const));
+    MOCK_METHOD(std::size_t, capacity, (), ());
 };
 
 class ProcessMonitorTest : public ::testing::Test

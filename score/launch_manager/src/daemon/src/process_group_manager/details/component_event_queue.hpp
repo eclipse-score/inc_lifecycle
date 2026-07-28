@@ -20,16 +20,15 @@
 
 #include "score/mw/launch_manager/common/concurrency/concurrency_error_domain.hpp"
 #include "score/mw/launch_manager/common/concurrency/mpsc_bounded_queue.hpp"
-#include "score/mw/launch_manager/common/constants.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/component_event.hpp"
-#include "score/mw/launch_manager/process_group_manager/details/icomponent_event_receiver.hpp"
+#include "score/mw/launch_manager/process_group_manager/details/icomponent_event_queue.hpp"
 
 namespace score::mw::lifecycle::internal
 {
 
 /// @brief Queue of ComponentEvents produced by worker/OS-handler threads and consumed
 /// exclusively by the main thread, backed by a fixed-capacity MpscBoundedQueue.
-class ComponentEventQueue final : public IComponentEventPublisher
+class ComponentEventQueue final : public IComponentEventQueue
 {
   public:
     explicit ComponentEventQueue(std::size_t components) : queue_(components * 3U), capacity_(components * 3U)
@@ -64,32 +63,32 @@ class ComponentEventQueue final : public IComponentEventPublisher
     /// @param timeout Maximum time to wait. A `timeout` of zero means "check once, don't
     ///        block", NOT "wait forever" -- see MpscBoundedQueue::wait().
     /// @return true if an event is available (drain via getNextEvent()), false on timeout.
-    bool waitForEvents(std::chrono::milliseconds timeout)
+    bool waitForEvents(std::chrono::milliseconds timeout) override
     {
         return queue_.wait(timeout).has_value();
     }
 
     /// @brief Returns the next available event without blocking, or std::nullopt if none right
     /// now. Call repeatedly until nullopt to drain everything currently queued.
-    std::optional<ComponentEvent> getNextEvent()
+    std::optional<ComponentEvent> getNextEvent() override
     {
         return queue_.tryPop();
     }
 
     /// @return True if an event was ever dropped due to the queue being full.
-    bool getOverflow() const
+    bool getOverflow() const override
     {
         return overflow_.load(std::memory_order_acquire);
     }
 
     /// @brief Permanently marks the queue stopped and wakes any thread currently blocked in
     /// waitForEvents().
-    void stop()
+    void stop() override
     {
         queue_.stop();
     }
 
-    std::size_t capacity()
+    std::size_t capacity() override
     {
         return capacity_;
     }

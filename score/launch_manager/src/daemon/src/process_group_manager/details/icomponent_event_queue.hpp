@@ -11,8 +11,8 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#ifndef SCORE_LCM_ICOMPONENT_EVENT_RECEIVER_HPP_INCLUDED
-#define SCORE_LCM_ICOMPONENT_EVENT_RECEIVER_HPP_INCLUDED
+#ifndef SCORE_LCM_ICOMPONENT_EVENT_QUEUE_HPP_INCLUDED
+#define SCORE_LCM_ICOMPONENT_EVENT_QUEUE_HPP_INCLUDED
 
 #include "score/mw/launch_manager/process_group_manager/details/component_event.hpp"
 
@@ -23,12 +23,31 @@ namespace score::mw::lifecycle::internal
 class IComponentEventPublisher
 {
   public:
-    /// @brief Push an event to the reciever
-    /// @returns False if the event was dropped
     virtual bool push(ComponentEvent&& event) = 0;
+    virtual bool getOverflow() const = 0;
+    virtual std::size_t capacity() = 0;
+
     virtual ~IComponentEventPublisher() = default;
+};
+
+/// @brief Interface an event consumer can get component events from
+class IComponentEventConsumer
+{
+  public:
+    virtual bool waitForEvents(std::chrono::milliseconds timeout) = 0;
+    virtual std::optional<ComponentEvent> getNextEvent() = 0;
+    virtual void stop() = 0;
+
+    virtual ~IComponentEventConsumer() = default;
+};
+
+/// @brief Interface including publisher and consumer methods
+class IComponentEventQueue : public IComponentEventPublisher, public IComponentEventConsumer
+{
+  public:
+    virtual ~IComponentEventQueue() = default;
 };
 
 }  // namespace score::mw::lifecycle::internal
 
-#endif  // SCORE_LCM_ICOMPONENT_EVENT_RECEIVER_HPP_INCLUDED
+#endif  // SCORE_LCM_ICOMPONENT_EVENT_QUEUE_HPP_INCLUDED
