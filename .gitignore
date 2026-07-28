@@ -39,8 +39,9 @@ user.bazelrc
 # Ruff
 .ruff_cache
 
-# docs:incremental and docs:ide_support build artifacts
-/_build
+# docs build artifacts
+_build
+ubproject.toml
 
 # Vale - editorial style guide
 .vale.ini
@@ -74,7 +75,6 @@ tests/**/*.xml
 *.orig
 .venv_docs
 MODULE.lock.bazel
-_build/
 .clwb
 .idea
 external

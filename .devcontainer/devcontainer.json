@@ -1,11 +1,12 @@
 {
-    /// This devcontainer adds some ETAS-specific customizations to the S-CORE base devcontainer
+    /// This devcontainer adds some specific customizations to the S-CORE base devcontainer
     /// Such as:
     /// - CA Certificates
 
-    "name": "eclipse-s-core-etas",
-    // Use the same image as the project's devcontainer
-    "image": "ghcr.io/eclipse-score/devcontainer:latest",
+    "name": "eclipse-s-core",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
 
     "features": {
         "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
