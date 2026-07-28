@@ -26,32 +26,32 @@ namespace score::mw::lifecycle::internal
 using namespace score::lcm;
 
 /// @brief A node finished activating successfully.
-struct ActivationSuccessful
+struct [[nodiscard]] ActivationSuccessful
 {
     uint32_t node_index;
 };
 
 /// @brief A node failed to activate.
-struct ActivationFailed
+struct [[nodiscard]] ActivationFailed
 {
     uint32_t node_index;
     IComponent::ComponentError reason;
 };
 
 /// @brief A node finished deactivating.
-struct DeactivationComplete
+struct [[nodiscard]] DeactivationComplete
 {
     uint32_t node_index;
 };
 
 /// @brief A node terminated without having been requested to.
-struct UnexpectedTermination
+struct [[nodiscard]] UnexpectedTermination
 {
     uint32_t node_index;
 };
 
 /// @brief Alive supervision has failed for the given process identifier.
-struct SupervisionFailure
+struct [[nodiscard]] SupervisionFailure
 {
     IdentifierHash process_identifier;
 };

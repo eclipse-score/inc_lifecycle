@@ -48,7 +48,7 @@ class ComponentEventQueue final : public IComponentEventQueue
     /// @brief Enqueues an event. If the queue is full, the event is dropped immediately and
     /// getOverflow() will subsequently return true.
     /// @returns False if the event is dropped.
-    bool push(ComponentEvent&& event) override
+    [[nodiscard]] bool push(ComponentEvent&& event) override
     {
         auto result = queue_.push(std::move(event));
         if (!result.has_value() && result.error() == lcm::internal::ConcurrencyErrc::kOverflow)
@@ -63,20 +63,20 @@ class ComponentEventQueue final : public IComponentEventQueue
     /// @param timeout Maximum time to wait. A `timeout` of zero means "check once, don't
     ///        block", NOT "wait forever" -- see MpscBoundedQueue::wait().
     /// @return true if an event is available (drain via getNextEvent()), false on timeout.
-    bool waitForEvents(std::chrono::milliseconds timeout) override
+    [[nodiscard]] bool waitForEvents(std::chrono::milliseconds timeout) override
     {
         return queue_.wait(timeout).has_value();
     }
 
     /// @brief Returns the next available event without blocking, or std::nullopt if none right
     /// now. Call repeatedly until nullopt to drain everything currently queued.
-    std::optional<ComponentEvent> getNextEvent() override
+    [[nodiscard]] std::optional<ComponentEvent> getNextEvent() override
     {
         return queue_.tryPop();
     }
 
     /// @return True if an event was ever dropped due to the queue being full.
-    bool getOverflow() const override
+    [[nodiscard]] bool getOverflow() const override
     {
         return overflow_.load(std::memory_order_acquire);
     }
@@ -88,7 +88,8 @@ class ComponentEventQueue final : public IComponentEventQueue
         queue_.stop();
     }
 
-    std::size_t capacity() override
+    /// @brief Get the max number of items that can be stored in this queue
+    [[nodiscard]] std::size_t capacity() override
     {
         return capacity_;
     }

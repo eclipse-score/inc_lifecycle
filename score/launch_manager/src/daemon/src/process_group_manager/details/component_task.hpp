@@ -24,12 +24,14 @@ namespace score::mw::lifecycle::internal
 
 enum class ComponentTaskType : std::uint_least8_t
 {
-    kActivate = 0U,    /// This task is to start activation of the component
-    kDeactivate = 1U,  /// This task is to deactivate the component
+    /// @brief This task is to start activation of the component
+    kActivate = 0U,
+    /// @brief This task is to deactivate the component
+    kDeactivate = 1U,
 };
 
 /// @brief Work to perform on a component that can be sent to the job queue to be executed in parallel.
-struct ComponentTask
+struct [[nodiscard]] ComponentTask
 {
     /// @brief What kind of work to do
     ComponentTaskType type;

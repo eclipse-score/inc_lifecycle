@@ -23,9 +23,9 @@ namespace score::mw::lifecycle::internal
 class IComponentEventPublisher
 {
   public:
-    virtual bool push(ComponentEvent&& event) = 0;
-    virtual bool getOverflow() const = 0;
-    virtual std::size_t capacity() = 0;
+    [[nodiscard]] virtual bool push(ComponentEvent&& event) = 0;
+    [[nodiscard]] virtual bool getOverflow() const = 0;
+    [[nodiscard]] virtual std::size_t capacity() = 0;
 
     virtual ~IComponentEventPublisher() = default;
 };
@@ -34,8 +34,8 @@ class IComponentEventPublisher
 class IComponentEventConsumer
 {
   public:
-    virtual bool waitForEvents(std::chrono::milliseconds timeout) = 0;
-    virtual std::optional<ComponentEvent> getNextEvent() = 0;
+    [[nodiscard]] virtual bool waitForEvents(std::chrono::milliseconds timeout) = 0;
+    [[nodiscard]] virtual std::optional<ComponentEvent> getNextEvent() = 0;
     virtual void stop() = 0;
 
     virtual ~IComponentEventConsumer() = default;

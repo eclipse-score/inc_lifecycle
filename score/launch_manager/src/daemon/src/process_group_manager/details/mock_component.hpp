@@ -31,4 +31,4 @@ class MockComponent : public IComponent
 
 }  // namespace score::mw::lifecycle::internal
 
-#endif
+#endif  // MOCK_COMPONENT_HPP_INCLUDED

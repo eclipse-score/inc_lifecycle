@@ -217,6 +217,7 @@ cc_library(
         ":os_handler",
         ":process_info_node",
         ":safe_process_map",
+        "//score/launch_manager/src/daemon/src/common:log",
     ],
 )
 

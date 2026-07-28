@@ -49,20 +49,24 @@ class IComponent
     /// @p stop_token Token that can be stopped to exit the activation early.
     /// @returns kSuccess if the component is now ready, kWaiting if the component is waiting for a notification, or an
     /// error.
-    virtual RequestResult activate(score::cpp::stop_token stop_token) = 0;
+    [[nodiscard]] virtual RequestResult activate(score::cpp::stop_token stop_token) = 0;
+
     /// @brief Begin deactivation of the component.
     /// @p stop_token Token that can be stopped to exit the deactivation early.
     /// @returns kSuccess if the component is now ready, kWaiting if the component is waiting for a notification, or an
     /// error.
-    virtual RequestResult deactivate(score::cpp::stop_token stop_token) = 0;
+    [[nodiscard]] virtual RequestResult deactivate(score::cpp::stop_token stop_token) = 0;
+
     /// @brief Notify the component that it has terminated with status @p status
     /// @returns kSuccess if the component is now ready, kWaiting if the component is waiting for a notification, or an
     /// error if the termination was not expected.
-    virtual RequestResult tryHandleTermination(int32_t status) = 0;
+    [[nodiscard]] virtual RequestResult tryHandleTermination(int32_t status) = 0;
+
     /// @returns the index of the component in the graph.
-    virtual uint32_t getIndex() const = 0;
+    [[nodiscard]] virtual uint32_t getIndex() const = 0;
+    
     /// @returns True if the component is active in the active run target.
-    virtual bool active() const = 0;
+    [[nodiscard]] virtual bool active() const = 0;
 
     virtual ~IComponent() = default;
 };

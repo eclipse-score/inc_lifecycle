@@ -12,6 +12,7 @@
  ********************************************************************************/
 
 #include "score/mw/launch_manager/process_group_manager/details/process_monitor.hpp"
+#include "score/mw/launch_manager/common/log.hpp"
 
 namespace score::mw::lifecycle::internal
 {
@@ -43,15 +44,21 @@ void ProcessMonitor::doWork(ComponentTask&& task)
 
     auto handle_success = [&]() {
         const uint32_t node_index = task.component.get().getIndex();
+        bool push_res = true;
 
         switch (task.type)
         {
             case ComponentTaskType::kActivate:
-                event_queue_.push(ActivationSuccessful{node_index});
+                push_res = event_queue_.push(ActivationSuccessful{node_index});
                 break;
             case ComponentTaskType::kDeactivate:
-                event_queue_.push(DeactivationComplete{node_index});
+                push_res = event_queue_.push(DeactivationComplete{node_index});
                 break;
+        }
+
+        if (!push_res)
+        {
+            LM_LOG_ERROR() << "Failed to send success to event queue!";
         }
     };
 
@@ -61,7 +68,10 @@ void ProcessMonitor::doWork(ComponentTask&& task)
         switch (task.type)
         {
             case ComponentTaskType::kActivate:
-                event_queue_.push(ActivationFailed{node_index, error});
+                if (!event_queue_.push(ActivationFailed{node_index, error}))
+                {
+                    LM_LOG_ERROR() << "Failed to send activation failed event to event queue!";
+                }
                 break;
             case ComponentTaskType::kDeactivate:
                 break;
@@ -99,13 +109,19 @@ void ProcessMonitor::doWork(ComponentTask&& task)
 void ProcessMonitor::terminated(IComponent& component, int32_t status)
 {
     auto res = component.tryHandleTermination(status);
+    bool push_res = true;
     if (!res.has_value())
     {
-        event_queue_.push(UnexpectedTermination{component.getIndex()});
+        push_res = event_queue_.push(UnexpectedTermination{component.getIndex()});
     }
     else if (res.value() != IComponent::RequestState::kWaiting)
     {
-        event_queue_.push(ActivationSuccessful{component.getIndex()});
+        push_res = event_queue_.push(ActivationSuccessful{component.getIndex()});
+    }
+
+    if (!push_res)
+    {
+        LM_LOG_ERROR() << "Failed to push terminated result to event queue!";
     }
 }
 
