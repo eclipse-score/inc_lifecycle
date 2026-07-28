@@ -3,10 +3,7 @@
 # .*                                 @eclipse-score/infrastructure-tooling-community
 # .github/CODEOWNERS                 @eclipse-score/technical-lead
 
-# According to meeting minutes the codeowners file should contain @NicolasFussberger, @FScholPer, @ramceb, @pawelrutkaq 
-# + FSchoPer-PLC/TLC Proxies
-
-* @NicolasFussberger @pawelrutkaq @ramceb @FScholPer @antonkri @anmittag
+* @NicolasFussberger @pawelrutkaq @ramceb @MaciejKaszynski @FScholPer @antonkri @anmittag
 
 
 # in separate <module_name> repositories:
