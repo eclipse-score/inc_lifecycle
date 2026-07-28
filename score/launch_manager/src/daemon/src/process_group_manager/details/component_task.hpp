@@ -35,8 +35,10 @@ struct [[nodiscard]] ComponentTask
 {
     /// @brief What kind of work to do
     ComponentTaskType type;
+
     /// @brief The component to be acted upon
     std::reference_wrapper<IComponent> component;
+
     /// @brief Token to exit and abandon the task early
     score::cpp::stop_token stop_token;
 };
