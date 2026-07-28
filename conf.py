@@ -31,9 +31,7 @@ version = "0.1"
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 
-extensions = [
-    "score_sphinx_bundle"
-]
+extensions = ["score_sphinx_bundle"]
 
 include_patterns = [
     "index.rst",
