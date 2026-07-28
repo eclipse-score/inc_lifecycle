@@ -21,9 +21,12 @@ namespace score::mw::lifecycle::internal
 {
 
 /// @brief A class that implements IComponent is a node in the configuration that can be activated or deactivated.
-///        For example, for a 'Native' process that is not self terminating, @c activate() means start the process
-///        and @c deactivate() means terminate the process.
-///        A run target is also a type of component, where activation and deactivation are symbolic.
+///
+/// @details Each component type defines the implementation of how it shall reach the active and inactive states.
+///          When a component becomes active, components that depend on it may be activated. When a component becomes
+///          inactive, components it depends on may be deactivated.
+///          For example, for a process implementation of IComponent, @c activate() could involve starting the process
+///          and @c deactivate() could terminate the process.
 class IComponent
 {
   public:

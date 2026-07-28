@@ -29,7 +29,7 @@ namespace score::mw::lifecycle::internal
 
 /// @brief Queue of ComponentEvents produced by worker/OS-handler threads and consumed
 /// exclusively by the main thread, backed by a fixed-capacity MpscBoundedQueue.
-class ComponentEventQueue final : public IComponentEventReceiver
+class ComponentEventQueue final : public IComponentEventPublisher
 {
   public:
     explicit ComponentEventQueue(std::size_t components) : queue_(components * 3U), capacity_(components * 3U)
@@ -48,13 +48,16 @@ class ComponentEventQueue final : public IComponentEventReceiver
 
     /// @brief Enqueues an event. If the queue is full, the event is dropped immediately and
     /// getOverflow() will subsequently return true.
-    void push(ComponentEvent&& event) override
+    /// @returns False if the event is dropped.
+    bool push(ComponentEvent&& event) override
     {
         auto result = queue_.push(std::move(event));
         if (!result.has_value() && result.error() == lcm::internal::ConcurrencyErrc::kOverflow)
         {
             overflow_.store(true, std::memory_order_release);
+            return false;
         }
+        return true;
     }
 
     /// @brief Waits up to timeout for at least one event to become available.

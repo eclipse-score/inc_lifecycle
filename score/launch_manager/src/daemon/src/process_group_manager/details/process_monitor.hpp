@@ -25,7 +25,7 @@ namespace score::mw::lifecycle::internal
 class ProcessMonitor final : public IComponentController
 {
   public:
-    explicit ProcessMonitor(IComponentEventReceiver& event_queue);
+    explicit ProcessMonitor(IComponentEventPublisher& event_queue);
     ~ProcessMonitor() override;
 
     ProcessMonitor(const ProcessMonitor&) = delete;
@@ -35,12 +35,13 @@ class ProcessMonitor final : public IComponentController
 
     /// @brief Start work on @p task and push the result to the event queue if the task completes
     void doWork(ComponentTask&& task) override;
+
     /// @brief Notify @p component that it has terminated with status @p status. If this is an error or finishes a
     /// component activation, report to the event queue
     void terminated(IComponent& component, int32_t status) override;
 
   private:
-    IComponentEventReceiver& event_queue_;
+    IComponentEventPublisher& event_queue_;
 };
 
 }  // namespace score::mw::lifecycle::internal

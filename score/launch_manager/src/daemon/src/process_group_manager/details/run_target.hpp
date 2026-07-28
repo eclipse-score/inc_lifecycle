@@ -21,9 +21,9 @@
 namespace score::mw::lifecycle::internal
 {
 
-/// @brief A virtual node in the dependency graph corresponding to a ProcessGroupState.
-/// A RunTarget does not correspond to any OS process; it is immediately active once all
-/// of its dependencies are active, and immediately inactive once deactivated.
+/// @brief A virtual node in the dependency graph corresponding to a configured run target.
+/// A RunTarget does not have any resources and is immediately active once requested, provided
+/// all of its dependencies are active, and immediately inactive once deactivated.
 class RunTarget final : public IComponent
 {
   public:

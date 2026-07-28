@@ -28,10 +28,10 @@ class MockComponent : public IComponent
     MOCK_METHOD(bool, active, (), (override, const));
 };
 
-class MockComponentEventQueue : public IComponentEventReceiver
+class MockComponentEventQueue : public IComponentEventPublisher
 {
   public:
-    MOCK_METHOD(void, push, (ComponentEvent && event), (override));
+    MOCK_METHOD(bool, push, (ComponentEvent && event), (override));
 };
 
 class ProcessMonitorTest : public ::testing::Test

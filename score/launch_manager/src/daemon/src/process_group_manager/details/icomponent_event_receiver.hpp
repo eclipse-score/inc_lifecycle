@@ -19,11 +19,14 @@
 namespace score::mw::lifecycle::internal
 {
 
-class IComponentEventReceiver
+/// @brief Interface an event producer can push component events to
+class IComponentEventPublisher
 {
   public:
-    virtual void push(ComponentEvent&& event) = 0;
-    virtual ~IComponentEventReceiver() = default;
+    /// @brief Push an event to the reciever
+    /// @returns False if the event was dropped
+    virtual bool push(ComponentEvent&& event) = 0;
+    virtual ~IComponentEventPublisher() = default;
 };
 
 }  // namespace score::mw::lifecycle::internal

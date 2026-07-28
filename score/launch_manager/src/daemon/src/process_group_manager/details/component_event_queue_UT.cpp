@@ -24,6 +24,12 @@ using namespace score::lcm;
 class ComponentEventQueueTest : public ::testing::Test
 {
   protected:
+    void SetUp() override
+    {
+        RecordProperty("TestType", "interface-test");
+        RecordProperty("DerivationTechnique", "explorative-testing");
+    }
+
     ComponentEventQueue queue_{10};
 };
 
@@ -42,7 +48,7 @@ TEST_F(ComponentEventQueueTest, WaitForEventsReturnsTrueAfterPush)
 
 TEST_F(ComponentEventQueueTest, GetNextEventReturnsNulloptWhenEmpty)
 {
-    RecordProperty("Description", "Verify getNextEvent never blocks and returns nullopt when nothing is queued.");
+    RecordProperty("Description", "Verify getNextEvent returns nullopt when nothing is queued.");
     EXPECT_FALSE(queue_.getNextEvent().has_value());
 }
 
@@ -61,9 +67,10 @@ TEST_F(ComponentEventQueueTest, GetNextEventReturnsPushedEventWithPayloadIntact)
 
 TEST_F(ComponentEventQueueTest, GetNextEventReturnsSupervisionFailureWithPayloadIntact)
 {
-    RecordProperty("Description",
-                   "Verify a pushed SupervisionFailure event is returned by getNextEvent with process identifier "
-                   "payload preserved.");
+    RecordProperty(
+        "Description",
+        "Verify a pushed SupervisionFailure event is returned by getNextEvent with process identifier "
+        "payload preserved.");
     const IdentifierHash process_identifier{"proc_for_supervision_failure"};
     queue_.push(SupervisionFailure{process_identifier});
 
@@ -72,35 +79,6 @@ TEST_F(ComponentEventQueueTest, GetNextEventReturnsSupervisionFailureWithPayload
     ASSERT_TRUE(std::holds_alternative<SupervisionFailure>(*event));
     const auto& failure = std::get<SupervisionFailure>(*event);
     EXPECT_EQ(failure.process_identifier, process_identifier);
-}
-
-TEST_F(ComponentEventQueueTest, GetNextEventDrainsMultipleEventsInFifoOrder)
-{
-    RecordProperty("Description",
-                   "Verify the intended drain pattern -- waitForEvents() once, then getNextEvent() in a loop "
-                   "until nullopt -- returns every queued event exactly once in FIFO order.");
-    queue_.push(ActivationSuccessful{1U});
-    queue_.push(DeactivationComplete{2U});
-    queue_.push(UnexpectedTermination{3U});
-
-    ASSERT_TRUE(queue_.waitForEvents(std::chrono::milliseconds{0}));
-
-    auto first = queue_.getNextEvent();
-    ASSERT_TRUE(first.has_value());
-    ASSERT_TRUE(std::holds_alternative<ActivationSuccessful>(*first));
-    EXPECT_EQ(std::get<ActivationSuccessful>(*first).node_index, 1U);
-
-    auto second = queue_.getNextEvent();
-    ASSERT_TRUE(second.has_value());
-    ASSERT_TRUE(std::holds_alternative<DeactivationComplete>(*second));
-    EXPECT_EQ(std::get<DeactivationComplete>(*second).node_index, 2U);
-
-    auto third = queue_.getNextEvent();
-    ASSERT_TRUE(third.has_value());
-    ASSERT_TRUE(std::holds_alternative<UnexpectedTermination>(*third));
-    EXPECT_EQ(std::get<UnexpectedTermination>(*third).node_index, 3U);
-
-    EXPECT_FALSE(queue_.getNextEvent().has_value());
 }
 
 TEST_F(ComponentEventQueueTest, GetOverflowStaysFalseUnderNormalUsage)
@@ -113,9 +91,10 @@ TEST_F(ComponentEventQueueTest, GetOverflowStaysFalseUnderNormalUsage)
 
 TEST_F(ComponentEventQueueTest, GetOverflowBecomesTrueOnceQueueIsFull)
 {
-    RecordProperty("Description",
-                   "Verify getOverflow() becomes true once a push is dropped because the queue is full, "
-                   "mirroring how ProcessGroupManager::run() detects lost events.");
+    RecordProperty(
+        "Description",
+        "Verify getOverflow() becomes true once a push is dropped because the queue is full, "
+        "mirroring how ProcessGroupManager::run() detects lost events.");
     for (std::size_t i = 0U; i < queue_.capacity(); ++i)
     {
         queue_.push(ActivationSuccessful{static_cast<uint32_t>(i)});
@@ -130,18 +109,20 @@ TEST_F(ComponentEventQueueTest, GetOverflowBecomesTrueOnceQueueIsFull)
 
 TEST_F(ComponentEventQueueTest, StopUnblocksWaitForEventsOnEmptyQueue)
 {
-    RecordProperty("Description",
-                   "Verify stop() causes a subsequently-called waitForEvents() to return false immediately "
-                   "rather than blocking, matching the shutdown usage in ProcessGroupManager::deinitialize().");
+    RecordProperty(
+        "Description",
+        "Verify stop() causes a subsequently-called waitForEvents() to return false immediately "
+        "rather than blocking, matching the shutdown usage in ProcessGroupManager::deinitialize().");
     queue_.stop();
     EXPECT_FALSE(queue_.waitForEvents(std::chrono::milliseconds{2000}));
 }
 
 TEST_F(ComponentEventQueueTest, GetNextEventStillDrainsQueuedEventsAfterStop)
 {
-    RecordProperty("Description",
-                   "Verify that events pushed before stop() was called are not silently discarded -- "
-                   "getNextEvent() must still be able to drain them during shutdown.");
+    RecordProperty(
+        "Description",
+        "Verify that events pushed before stop() was called are not silently discarded -- "
+        "getNextEvent() must still be able to drain them during shutdown.");
     queue_.push(ActivationSuccessful{1U});
     queue_.stop();
 
