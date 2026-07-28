@@ -11,8 +11,8 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#ifndef SCORE_LCM_TASK_HPP_INCLUDED
-#define SCORE_LCM_TASK_HPP_INCLUDED
+#ifndef SCORE_LCM_COMPONENT_TASK_HPP_INCLUDED
+#define SCORE_LCM_COMPONENT_TASK_HPP_INCLUDED
 
 #include "score/mw/launch_manager/process_group_manager/details/icomponent.hpp"
 #include <score/stop_token.hpp>
@@ -41,4 +41,4 @@ struct ComponentTask
 
 }  // namespace score::mw::lifecycle::internal
 
-#endif  // SCORE_LCM_TASK_HPP_INCLUDED
+#endif  // SCORE_LCM_COMPONENT_TASK_HPP_INCLUDED

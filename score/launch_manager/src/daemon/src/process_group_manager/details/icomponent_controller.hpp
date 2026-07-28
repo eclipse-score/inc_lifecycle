@@ -14,8 +14,8 @@
 #ifndef SCORE_LCM_ICOMPONENT_CONTROLLER_HPP_INCLUDED
 #define SCORE_LCM_ICOMPONENT_CONTROLLER_HPP_INCLUDED
 
+#include "score/mw/launch_manager/process_group_manager/details/component_task.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/icomponent.hpp"
-#include "score/mw/launch_manager/process_group_manager/details/task.hpp"
 
 namespace score::mw::lifecycle::internal
 {

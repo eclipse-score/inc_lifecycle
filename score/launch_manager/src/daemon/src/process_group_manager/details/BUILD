@@ -13,8 +13,8 @@
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 cc_library(
-    name = "task",
-    hdrs = ["task.hpp"],
+    name = "component_task",
+    hdrs = ["component_task.hpp"],
     include_prefix = "score/mw/launch_manager/process_group_manager/details",
     strip_include_prefix = "/score/launch_manager/src/daemon/src/process_group_manager/details",
     visibility = ["//score:__subpackages__"],
@@ -30,8 +30,8 @@ cc_library(
     strip_include_prefix = "/score/launch_manager/src/daemon/src/process_group_manager/details",
     visibility = ["//score:__subpackages__"],
     deps = [
+        ":component_task",
         ":icomponent",
-        ":task",
     ],
 )
 
@@ -43,6 +43,18 @@ cc_library(
     visibility = ["//score:__subpackages__"],
     deps = [
         "@score_baselibs//score/language/futurecpp",
+    ],
+)
+
+cc_library(
+    name = "mock_component",
+    hdrs = ["mock_component.hpp"],
+    include_prefix = "score/mw/launch_manager/process_group_manager/details",
+    strip_include_prefix = "/score/launch_manager/src/daemon/src/process_group_manager/details",
+    visibility = ["//score:__subpackages__"],
+    deps = [
+        ":icomponent",
+        "@googletest//:gtest_main",
     ],
 )
 
@@ -141,10 +153,10 @@ cc_library(
     visibility = ["//score/launch_manager/src/daemon/src/process_group_manager:__pkg__"],
     deps = [
         ":component_event_queue",
+        ":component_task",
         ":process_info_node",
         ":run_target",
         ":safe_process_map",
-        ":task",
         "//score/launch_manager/src/daemon/src/common:identifier_hash",
         "//score/launch_manager/src/daemon/src/control:control_client_channel",
         "//score/launch_manager/src/daemon/src/osal:semaphore",
@@ -211,6 +223,7 @@ cc_test(
     name = "process_monitor_UT",
     srcs = ["process_monitor_UT.cpp"],
     deps = [
+        ":mock_component",
         ":process_monitor",
         "@googletest//:gtest_main",
     ],

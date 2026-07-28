@@ -11,22 +11,13 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
+#include "score/mw/launch_manager/process_group_manager/details/mock_component.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/process_monitor.hpp"
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 using namespace testing;
 using namespace score::mw::lifecycle::internal;
-
-class MockComponent : public IComponent
-{
-  public:
-    MOCK_METHOD(RequestResult, activate, (score::cpp::stop_token stop_token), (override));
-    MOCK_METHOD(RequestResult, deactivate, (score::cpp::stop_token stop_token), (override));
-    MOCK_METHOD(RequestResult, tryHandleTermination, (int32_t status), (override));
-    MOCK_METHOD(uint32_t, getIndex, (), (override, const));
-    MOCK_METHOD(bool, active, (), (override, const));
-};
 
 class MockComponentEventQueue : public IComponentEventPublisher
 {
