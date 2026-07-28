@@ -32,15 +32,20 @@ class IComponent
   public:
     enum class ComponentError : uint8_t
     {
-        kErrorBeforeReady,    // An error occurred during startup, before the component was considered ready.
-        kErrorAfterReady,     // An error occurred any time after the component was considered ready.
-        kActivationTimedOut,  // An error occurred during startup. Specifically, a timeout was reached.
+        /// @brief An error occurred during startup, before the component was considered ready.
+        kErrorBeforeReady,
+        /// @brief An error occurred any time after the component was considered ready.
+        kErrorAfterReady,
+        /// @brief An error occurred during startup. Specifically, a timeout was reached.
+        kActivationTimedOut,
     };
 
     enum class RequestState : uint8_t
     {
-        kSuccess,  // Activation was successful and the component is now ready.
-        kWaiting   // Activation is waiting on a notification from another thread. The component may not be ready.
+        /// @brief Activation was successful and the component is now ready.
+        kSuccess,
+        /// @brief Activation is waiting on a notification from another thread. The component may not be ready.  
+        kWaiting
     };
 
     using RequestResult = score::cpp::expected<RequestState, ComponentError>;
