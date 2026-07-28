@@ -60,6 +60,32 @@ cc_library(
 )
 
 cc_library(
+    name = "mock_component_event_queue",
+    testonly = True,
+    hdrs = ["mock_component_event_queue.hpp"],
+    include_prefix = "score/mw/launch_manager/process_group_manager/details",
+    strip_include_prefix = "/score/launch_manager/src/daemon/src/process_group_manager/details",
+    visibility = ["//score:__subpackages__"],
+    deps = [
+        ":icomponent_event_queue",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "mock_termination_callback",
+    testonly = True,
+    hdrs = ["mock_termination_callback.hpp"],
+    include_prefix = "score/mw/launch_manager/process_group_manager/details",
+    strip_include_prefix = "/score/launch_manager/src/daemon/src/process_group_manager/details",
+    visibility = ["//score:__subpackages__"],
+    deps = [
+        ":safe_process_map",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "component_event",
     hdrs = ["component_event.hpp"],
     include_prefix = "score/mw/launch_manager/process_group_manager/details",
@@ -183,6 +209,7 @@ cc_test(
     timeout = "long",
     srcs = ["safeprocessmap_UT.cpp"],
     deps = [
+        ":mock_termination_callback",
         ":safe_process_map",
         "@googletest//:gtest_main",
     ],
@@ -226,6 +253,7 @@ cc_test(
     srcs = ["process_monitor_UT.cpp"],
     deps = [
         ":mock_component",
+        ":mock_component_event_queue",
         ":process_monitor",
         "@googletest//:gtest_main",
     ],
@@ -235,6 +263,7 @@ cc_test(
     name = "oshandler_UT",
     srcs = ["oshandler_UT.cpp"],
     deps = [
+        ":mock_termination_callback",
         ":os_handler",
         ":safe_process_map",
         "@googletest//:gtest_main",

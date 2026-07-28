@@ -22,6 +22,7 @@
 
 #include "score/mw/launch_manager/common/constants.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/safe_process_map.hpp"
+#include "score/mw/launch_manager/process_group_manager/details/mock_termination_callback.hpp"
 #include "score/os/mocklib/sys_wait_mock.h"
 
 using namespace testing;
@@ -29,12 +30,6 @@ using namespace score::lcm::internal;
 
 namespace
 {
-
-class MockTerminationCallback : public ITerminationCallback
-{
-  public:
-    MOCK_METHOD(void, terminated, (int32_t process_status), (override));
-};
 
 class OsHandlerTest : public ::testing::Test
 {

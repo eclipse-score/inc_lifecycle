@@ -12,20 +12,13 @@
  ********************************************************************************/
 
 #include "score/mw/launch_manager/process_group_manager/details/mock_component.hpp"
+#include "score/mw/launch_manager/process_group_manager/details/mock_component_event_queue.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/process_monitor.hpp"
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 using namespace testing;
 using namespace score::mw::lifecycle::internal;
-
-class MockComponentEventQueue : public IComponentEventPublisher
-{
-  public:
-    MOCK_METHOD(bool, push, (ComponentEvent && event), (override));
-    MOCK_METHOD(bool, getOverflow, (), (override, const));
-    MOCK_METHOD(std::size_t, capacity, (), ());
-};
 
 class ProcessMonitorTest : public ::testing::Test
 {
