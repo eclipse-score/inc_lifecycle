@@ -14,7 +14,6 @@
 #ifndef MPSC_BOUNDED_QUEUE_HPP_INCLUDED
 #define MPSC_BOUNDED_QUEUE_HPP_INCLUDED
 
-#include <array>
 #include <chrono>
 #include <condition_variable>
 #include <cstddef>
@@ -22,8 +21,10 @@
 #include <optional>
 #include <thread>
 #include <utility>
+#include <vector>
 
 #include "concurrency_error_domain.hpp"
+#include "score/mw/launch_manager/common/concurrency/fixed_size_queue.hpp"
 
 #include <score/assert.hpp>
 #include <score/expected.hpp>
@@ -37,13 +38,19 @@ namespace score::lcm::internal
 ///          std::optional<T>, emplaced/reset under the lock rather than pre-constructed in place.
 /// @warning Only one thread shall call wait()/tryPop(). Multiple threads can call push() concurrently.
 /// @warning push() never blocks: if the queue is full, it returns ConcurrencyErrc::kOverflow.
-template <typename T, std::size_t Capacity>
+template <typename T>
 class MpscBoundedQueue
 {
-    static_assert(Capacity > 0U, "Capacity must be at least 1");
 
   public:
-    MpscBoundedQueue() = default;
+    MpscBoundedQueue() = delete;
+
+    /// @brief Constructs a MpscBoundedQueue with a fixed runtime capacity.
+    /// @details If the provided size is 0, the capacity automatically falls back to 1.
+    /// @param size The desired maximum number of elements.
+    explicit MpscBoundedQueue(std::size_t size) : queue_((size == 0U) ? 1U : size) {
+    }
+
     ~MpscBoundedQueue() {
         SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(is_stopped(), "Call stop() and join/shut down all threads" 
             "that might still call wait()/tryPop()/push() only then let the queue be destroyed.");
@@ -78,7 +85,7 @@ class MpscBoundedQueue
         SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(ensure_single_consumer(), "Only a single consumer thread is allowed.");
 
         const bool has_item = not_empty_cv_.wait_for(lock, timeout, [this] {
-            return count_ > 0U || stopped_;
+            return queue_.size() > 0U || stopped_;
         });
 
         if (stopped_)
@@ -100,17 +107,7 @@ class MpscBoundedQueue
         std::unique_lock lock(mutex_);
         SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(ensure_single_consumer(), "Only a single consumer thread is allowed.");
 
-        if (count_ == 0U)
-        {
-            return std::nullopt;
-        }
-
-        std::optional<T> item = std::move(slots_[head_]);
-        slots_[head_].reset();
-        head_ = (head_ + 1U) % Capacity;
-        --count_;
-
-        return item;
+        return queue_.tryPop();
     }
 
     /// @brief Permanently marks the queue stopped and wakes every thread currently blocked in
@@ -153,34 +150,25 @@ class MpscBoundedQueue
             return score::cpp::make_unexpected(ConcurrencyErrc::kStopped);
         }
 
-        if (count_ >= Capacity)
+        if (!queue_.push(std::forward<U>(item)))
         {
             return score::cpp::make_unexpected(ConcurrencyErrc::kOverflow);
         }
-
-        slots_[tail_].emplace(std::forward<U>(item));
-        tail_ = (tail_ + 1U) % Capacity;
-        ++count_;
 
         lock.unlock();
         not_empty_cv_.notify_one();
         return {};
     }
 
-    mutable std::mutex mutex_;
+    mutable std::mutex mutex_{};
     /// @brief Signaled by push()/stop(); waited on by wait().
-    std::condition_variable not_empty_cv_;
-    std::array<std::optional<T>, Capacity> slots_{};
-    /// @brief Index of the oldest item, valid only when count_ > 0.
-    std::size_t head_{0};
-    /// @brief Index where the next push lands.
-    std::size_t tail_{0};
-    /// @brief Number of occupied slots, guarded by mutex_.
-    std::size_t count_{0};
-    /// @brief Guarded by mutex_.
+    std::condition_variable not_empty_cv_{};
+    /// @brief Queue holding the elements.
+    FixedSizeQueue<T> queue_;
+    /// @brief True if the queue has been stopped, false otherwise.
     bool stopped_{false};
-    /// @brief Consumer thread id
-    std::thread::id consumer_thread_id_;
+    /// @brief Consumer thread id.
+    std::thread::id consumer_thread_id_{};
 };
 
 }  // namespace score::lcm::internal

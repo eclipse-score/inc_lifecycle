@@ -59,15 +59,19 @@ class Application
     /**
      * \brief Method dedicated for doing business logic of application
      *
-     * If application is doing cycle activity or doing some action and waits for exit,
-     * it should use utilites defined within score::concurrency(like wait_for, wait_until and ...)
+     * \details This method blocks the calling thread until the application is
+     *          requested to stop via the provided stop_token. All cyclic work,
+     *          event loops, or blocking waits shall run inside this method.
+     *          Use score::cpp utilities (e.g. stop_token::stop_requested()) to
+     *          cooperate with the stop signal and return promptly when triggered.
      *
-     * \param token The stop_token object used as synchronization mechanism
+     * \param token Stop token that signals the application to shut down.
+     *              Run() shall return as soon as the token is triggered.
      *
-     * \return 0 on successful initialization, non-zero otherwise.
+     * \return 0 on successful execution, non-zero on error.
      *
-     * \post If non-zero returned, application will exit with exit
-     *       code returned from Run
+     * \post If non-zero returned, the application will exit with the exit
+     *       code returned from Run.
      */
     virtual std::int32_t Run(const score::cpp::stop_token&) = 0;
 
