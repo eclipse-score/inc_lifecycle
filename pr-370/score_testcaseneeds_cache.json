@@ -1416,7 +1416,7 @@
   {
     "name": "OsHandlerTest__WaitReturnsProcessId_FindTerminatedIsCalled",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/oshandler_UT.cpp",
-    "line": "55",
+    "line": "50",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1430,7 +1430,7 @@
   {
     "name": "OsHandlerTest__WaitReturnsError_OsHandlerSleepsAndDoesNotCallFindTerminated",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/oshandler_UT.cpp",
-    "line": "82",
+    "line": "77",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1444,7 +1444,7 @@
   {
     "name": "OsHandlerTest__WaitReturnsZeroPid_OsHandlerSleepsAndDoesNotCallFindTerminated",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/oshandler_UT.cpp",
-    "line": "101",
+    "line": "96",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1458,7 +1458,7 @@
   {
     "name": "OsHandlerTest__WaitReturnsProcessIdBeforeRegistration_LaterRegistrationReceivesStoredTermination",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/oshandler_UT.cpp",
-    "line": "119",
+    "line": "114",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1472,7 +1472,7 @@
   {
     "name": "OsHandlerTest__WaitReturnsUnknownPidWhenMapIsFull_OutOfResourcesPathDoesNotNotifyCallbacks",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/oshandler_UT.cpp",
-    "line": "163",
+    "line": "158",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1486,7 +1486,7 @@
   {
     "name": "OsHandlerTest__WaitReturnsErrorThenProcessId_HandlerRecoversAndInvokesCallback",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/oshandler_UT.cpp",
-    "line": "192",
+    "line": "187",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1626,7 +1626,7 @@
   {
     "name": "SafeProcessMapTest__ConstructWithZeroCapacity",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/safeprocessmap_UT.cpp",
-    "line": "65",
+    "line": "60",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1640,7 +1640,7 @@
   {
     "name": "SafeProcessMapTest__FindTerminatedWithNegativePidReturnsInvalid",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/safeprocessmap_UT.cpp",
-    "line": "75",
+    "line": "70",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1654,7 +1654,7 @@
   {
     "name": "SafeProcessMapTest__FindTerminatedInsertsEntryWhenPidNotPresent",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/safeprocessmap_UT.cpp",
-    "line": "89",
+    "line": "84",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1668,7 +1668,7 @@
   {
     "name": "SafeProcessMapTest__FindTerminatedMatchesExistingInsertAndCallsCallback",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/safeprocessmap_UT.cpp",
-    "line": "101",
+    "line": "96",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1682,7 +1682,7 @@
   {
     "name": "SafeProcessMapTest__InsertIntoEmptyTreeReturnsZero",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/safeprocessmap_UT.cpp",
-    "line": "119",
+    "line": "114",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1696,7 +1696,7 @@
   {
     "name": "SafeProcessMapTest__InsertMatchesExistingFindTerminatedEntry",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/safeprocessmap_UT.cpp",
-    "line": "131",
+    "line": "126",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1710,7 +1710,7 @@
   {
     "name": "SafeProcessMapTest__InsertMultipleNodesThenFindTerminatedRemovesAll",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/safeprocessmap_UT.cpp",
-    "line": "150",
+    "line": "145",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1724,7 +1724,7 @@
   {
     "name": "SafeProcessMapTest__InsertBeyondCapacityReturnsOutOfMemory",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/safeprocessmap_UT.cpp",
-    "line": "170",
+    "line": "165",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1738,7 +1738,7 @@
   {
     "name": "SafeProcessMapTest__InsertSamePidTwiceYieldsUntilFindTerminatedResolves",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/safeprocessmap_UT.cpp",
-    "line": "194",
+    "line": "189",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1752,7 +1752,7 @@
   {
     "name": "SafeProcessMapTest__FindTerminatedSamePidTwiceYieldsUntilInsertResolves",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/safeprocessmap_UT.cpp",
-    "line": "231",
+    "line": "226",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1766,7 +1766,7 @@
   {
     "name": "SafeProcessMapTest__FindTerminatedWorksAtMaxTreeDepth",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/safeprocessmap_UT.cpp",
-    "line": "272",
+    "line": "267",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1780,7 +1780,7 @@
   {
     "name": "SafeProcessMapTest__ConcurrentInsertAndFindFromMultipleThreads",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/safeprocessmap_UT.cpp",
-    "line": "366",
+    "line": "361",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1794,7 +1794,7 @@
   {
     "name": "SafeProcessMapTest__ConcurrentFindAndInsertFromMultipleThreads",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/safeprocessmap_UT.cpp",
-    "line": "407",
+    "line": "402",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1808,7 +1808,7 @@
   {
     "name": "ProcessMonitorTest__DoWorkNormalActivation",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_monitor_UT.cpp",
-    "line": "47",
+    "line": "40",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1822,7 +1822,7 @@
   {
     "name": "ProcessMonitorTest__DoWorkNormalDeactivation",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_monitor_UT.cpp",
-    "line": "59",
+    "line": "52",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1836,7 +1836,7 @@
   {
     "name": "ProcessMonitorTest__DoWorkOnTerminationDepProcess",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_monitor_UT.cpp",
-    "line": "71",
+    "line": "64",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1850,7 +1850,7 @@
   {
     "name": "ProcessMonitorTest__TerminatedUnexpectedly",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_monitor_UT.cpp",
-    "line": "88",
+    "line": "81",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1864,7 +1864,7 @@
   {
     "name": "ProcessMonitorTest__ActivationFailed",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_monitor_UT.cpp",
-    "line": "104",
+    "line": "97",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
