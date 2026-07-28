@@ -107,14 +107,15 @@ TEST_F(ComponentEventQueueTest, GetOverflowBecomesTrueOnceQueueIsFull)
     EXPECT_TRUE(queue_.getOverflow());
 }
 
-TEST_F(ComponentEventQueueTest, StopUnblocksWaitForEventsOnEmptyQueue)
+TEST_F(ComponentEventQueueTest, StopFailsWaitForEventsOnEmptyQueue)
 {
     RecordProperty(
         "Description",
-        "Verify stop() causes a subsequently-called waitForEvents() to return false immediately "
-        "rather than blocking, matching the shutdown usage in ProcessGroupManager::deinitialize().");
+        "Verify stop() causes a subsequently-called waitForEvents() to return false, even if there's an event in the "
+        "queue");
+    queue_.push(ActivationSuccessful{1});
     queue_.stop();
-    EXPECT_FALSE(queue_.waitForEvents(std::chrono::milliseconds{2000}));
+    EXPECT_FALSE(queue_.waitForEvents(std::chrono::milliseconds{0}));
 }
 
 TEST_F(ComponentEventQueueTest, GetNextEventStillDrainsQueuedEventsAfterStop)
