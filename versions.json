@@ -94,5 +94,9 @@
   {
     "version": "pr-379",
     "url": "https://eclipse-score.github.io/lifecycle/pr-379/"
+  },
+  {
+    "version": "pr-381",
+    "url": "https://eclipse-score.github.io/lifecycle/pr-381/"
   }
 ]
