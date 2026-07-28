@@ -1,0 +1,24 @@
+# Packages layered onto the debian:bookworm-slim test image to build the
+# gdb-equipped debug variant (score_itf_examples_debug), selected under
+# --config=core_dump so core dumps can be analysed in-container.
+#
+# Pinned to a Debian bookworm snapshot for reproducibility; regenerate the
+# lockfile after any change with:  bazel run @gdb_apt//:lock
+version: 1
+
+sources:
+  - channel: bookworm main
+    urls:
+      - https://snapshot.debian.org/archive/debian/20250601T000000Z
+  - channel: bookworm-updates main
+    urls:
+      - https://snapshot.debian.org/archive/debian/20250601T000000Z
+  - channel: bookworm-security main
+    urls:
+      - https://snapshot.debian.org/archive/debian-security/20250601T000000Z
+
+archs:
+  - "amd64"
+
+packages:
+  - "gdb"

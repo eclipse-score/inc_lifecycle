@@ -644,4 +644,65 @@ TEST_F(GraphUtilitiesTest, gettersSetters)
     EXPECT_LE(graph_time, after_time);
 }
 
+class GraphMaxTerminationTimeoutTest : public GraphTest
+{
+  protected:
+    uint32_t SetConfig() override
+    {
+        auto procs = generateProcessComponents(3);
+        auto count = procs.size();
+        procs[0].deployment_config.shutdown_timeout_ms = 1500;
+        procs[0].component_properties.application_profile.is_self_terminating = true;
+        procs[1].deployment_config.shutdown_timeout_ms = 500;
+        procs[2].deployment_config.shutdown_timeout_ms = 5000;
+        auto rts = generateRunTargets(2);
+        rts[1].depends_on = {procs[0].name, procs[1].name};
+        rts[2].depends_on = {procs[2].name};
+        const auto config = ConfigBuilder{}
+                                .setComponents(std::move(procs))
+                                .setRunTargets(std::move(rts))
+                                .setInitialRunTarget("Startup")
+                                .setFallbackRunTarget(std::move(fallback))
+                                .build();
+        config_.initialize(config);
+
+        return count;
+    }
+};
+
+TEST_F(GraphMaxTerminationTimeoutTest, ignoresNodesWithoutLiveProcess)
+{
+    RecordProperty(
+        "Description",
+        "Test that getMaxTerminationTimeout returns the max shutdown_timeout over running processes and ignores "
+        "never-started (pid == 0) nodes");
+
+    // No process started yet, so there is nothing to wait on.
+    EXPECT_EQ(graph_.getMaxTerminationTimeout(), 0ms);
+
+    // Bring up RunTarget0 (proc0 + proc1); proc2, with the largest timeout, stays idle in RunTarget1.
+    completeTransition(state_name(run_target_name(0)));
+
+    // Max over the two live processes; proc2's 5000 ms is ignored because it never started.
+    EXPECT_EQ(graph_.getMaxTerminationTimeout(), 1500ms);
+}
+
+TEST_F(GraphMaxTerminationTimeoutTest, ignoresTerminatedProcesses)
+{
+    RecordProperty(
+        "Description",
+        "Test that getMaxTerminationTimeout ignores processes that have already terminated, even if they carry the "
+        "largest shutdown_timeout");
+
+    completeTransition(state_name(run_target_name(0)));
+    ASSERT_EQ(graph_.getMaxTerminationTimeout(), 1500ms);
+
+    // proc0 is a self-terminating one-shot with the largest timeout; it exits on its own
+    // (status 0) and stays kTerminated, so it no longer needs to be waited on at shutdown.
+    static_cast<void>(graph_.getProcessInfoNode(0)->tryHandleTermination(0));
+
+    // Only proc1 remains live, so its timeout bounds the wait.
+    EXPECT_EQ(graph_.getMaxTerminationTimeout(), 500ms);
+}
+
 }  // namespace score::mw::lifecycle::internal

@@ -285,6 +285,10 @@ class Graph final
     /// @brief For forced shutdown, kill all leftover processes
     void forceKillProcesses();
 
+    /// @brief Returns the largest configured shutdown_timeout across all running processes
+    /// @return The timeout in milliseconds, or zero if there are no live processes to stop.
+    std::chrono::milliseconds getMaxTerminationTimeout();
+
   private:
     /// @brief Reports that a node has finished executing, enqueuing successors or updating the graph state if a
     /// transition has finished.

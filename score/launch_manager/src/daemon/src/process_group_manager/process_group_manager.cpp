@@ -134,10 +134,17 @@ void ProcessGroupManager::deinitialize()
     os_handler_.reset();
     process_monitor_.reset();
     alive_monitor_thread_->stop();
-    graph_.reset();
 
+    // Stop and join the worker threads BEFORE destroying the graph.
+    // Worker threads run ProcessInfoNode::doWork(), which dereferences its Graph
+    // (nodeExecuted(), getState(), ...) via a raw back-pointer. If a transition is
+    // still completing on a worker thread (e.g. an in-progress switch to Off that
+    // is allowed to continue during shutdown), destroying the graph first would be
+    // a use-after-free.
     thread_pool_.reset();
     worker_jobs_.reset();
+
+    graph_.reset();
     process_map_.reset();
 }
 
@@ -255,6 +262,7 @@ bool ProcessGroupManager::run()
     bool overflow_logged = false;
 
     if (result)
+    {
         while (!em_cancelled.load())
         {
             // Wait for something to happen...
@@ -284,6 +292,8 @@ bool ProcessGroupManager::run()
 
             watchdog_->serviceWatchdog();
         }
+        LM_LOG_INFO() << "ProcessGroupManager::run() - received SIGTERM, exiting";
+    }
 
     allProcessGroupsOff();
 
@@ -372,11 +382,19 @@ void ProcessGroupManager::allProcessGroupsOff()
     }
 
     LM_LOG_DEBUG() << "Wait for process group to complete the transition";
-    if (!waitForStateCompletion(GraphState::kInTransition, 1000))
+
+    // Bound the whole transition-to-Off wait by the slowest still-running process's
+    // shutdown_timeout (plus the SIGKILL grace), so every component's configured
+    // timeout is honoured. Processes deactivate in parallel.
+    const auto off_transition_timeout = graph_->getMaxTerminationTimeout() + kMaxSigKillDelay;
+    if (!waitForStateCompletion(GraphState::kInTransition, static_cast<int32_t>(off_transition_timeout.count())))
     {
+        // Last resort: a process ignored even SIGKILL within its budget. Force-kill
+        // whatever is left and tear down the worker pool so shutdown can still proceed.
         LM_LOG_ERROR() << "NOTE: Transition to Off state timed out";
         thread_pool_->stop();
         graph_->forceKillProcesses();
+        thread_pool_.reset();
     }
 }
 

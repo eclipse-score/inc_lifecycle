@@ -14,6 +14,8 @@
 #include <ctime>
 
 #include <score/span.hpp>
+#include <algorithm>
+#include <chrono>
 #include <functional>
 #include <type_traits>
 #include <unordered_map>
@@ -482,6 +484,23 @@ void Graph::forceKillProcesses()
             }
         }
     }
+}
+
+std::chrono::milliseconds Graph::getMaxTerminationTimeout()
+{
+    std::chrono::milliseconds max_timeout{0};
+    for (const auto& component : nodes_)
+    {
+        if (const ProcessInfoNode* process = std::get_if<ProcessInfoNode>(&component))
+        {
+            // Only processes with a live OS process still to stop count
+            if (process->getPid() > 0 && process->getState() < ProcessState::kTerminated)
+            {
+                max_timeout = std::max(max_timeout, process->getTerminationTimeout());
+            }
+        }
+    }
+    return max_timeout;
 }
 
 void Graph::updateCancelMessage()
