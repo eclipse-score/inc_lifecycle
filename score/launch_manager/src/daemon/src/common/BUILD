@@ -51,6 +51,14 @@ cc_library(
 )
 
 cc_library(
+    name = "signal_safe_log",
+    hdrs = ["signal_safe_log.hpp"],
+    include_prefix = "score/mw/launch_manager/common",
+    strip_include_prefix = "/score/launch_manager/src/daemon/src/common",
+    visibility = ["//score/launch_manager/src/daemon:__subpackages__"],
+)
+
+cc_library(
     name = "constants",
     hdrs = ["constants.hpp"],
     include_prefix = "score/mw/launch_manager/common",
