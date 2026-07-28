@@ -20,8 +20,10 @@
 #include "score/mw/launch_manager/common/identifier_hash.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/icomponent.hpp"
 
-namespace score::lcm::internal
+namespace score::mw::lifecycle::internal
 {
+
+using namespace score::lcm;
 
 /// @brief A node finished activating successfully.
 struct ActivationSuccessful
@@ -59,6 +61,6 @@ struct SupervisionFailure
 using ComponentEvent = std::
     variant<ActivationSuccessful, ActivationFailed, DeactivationComplete, UnexpectedTermination, SupervisionFailure>;
 
-}  // namespace score::lcm::internal
+}  // namespace score::mw::lifecycle::internal
 
 #endif  // SCORE_LCM_COMPONENT_EVENT_HPP_INCLUDED

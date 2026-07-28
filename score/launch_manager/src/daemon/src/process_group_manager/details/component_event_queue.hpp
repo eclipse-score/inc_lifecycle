@@ -24,7 +24,7 @@
 #include "score/mw/launch_manager/process_group_manager/details/component_event.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/icomponent_event_receiver.hpp"
 
-namespace score::lcm::internal
+namespace score::mw::lifecycle::internal
 {
 
 /// @brief Queue of ComponentEvents produced by worker/OS-handler threads and consumed
@@ -32,7 +32,10 @@ namespace score::lcm::internal
 class ComponentEventQueue final : public IComponentEventReceiver
 {
   public:
-    ComponentEventQueue() = default;
+    explicit ComponentEventQueue(std::size_t components) : queue_(components * 3U), capacity_(components * 3U)
+    {
+    }
+
     ~ComponentEventQueue()
     {
         stop();
@@ -48,7 +51,7 @@ class ComponentEventQueue final : public IComponentEventReceiver
     void push(ComponentEvent&& event) override
     {
         auto result = queue_.push(std::move(event));
-        if (!result.has_value() && result.error() == ConcurrencyErrc::kOverflow)
+        if (!result.has_value() && result.error() == lcm::internal::ConcurrencyErrc::kOverflow)
         {
             overflow_.store(true, std::memory_order_release);
         }
@@ -83,11 +86,17 @@ class ComponentEventQueue final : public IComponentEventReceiver
         queue_.stop();
     }
 
+    std::size_t capacity()
+    {
+        return capacity_;
+    }
+
   private:
-    MpscBoundedQueue<ComponentEvent, kComponentEventQueueSize> queue_;
+    lcm::internal::MpscBoundedQueue<ComponentEvent> queue_;
+    std::size_t capacity_;
     std::atomic<bool> overflow_{false};
 };
 
-}  // namespace score::lcm::internal
+}  // namespace score::mw::lifecycle::internal
 
 #endif  // SCORE_LCM_COMPONENT_EVENT_QUEUE_HPP_INCLUDED

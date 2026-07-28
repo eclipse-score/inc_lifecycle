@@ -16,13 +16,15 @@
 #include <gtest/gtest.h>
 #include <chrono>
 
-namespace score::lcm::internal
+namespace score::mw::lifecycle::internal
 {
+
+using namespace score::lcm;
 
 class ComponentEventQueueTest : public ::testing::Test
 {
   protected:
-    ComponentEventQueue queue_;
+    ComponentEventQueue queue_{10};
 };
 
 TEST_F(ComponentEventQueueTest, WaitForEventsReturnsFalseOnEmptyQueue)
@@ -114,7 +116,7 @@ TEST_F(ComponentEventQueueTest, GetOverflowBecomesTrueOnceQueueIsFull)
     RecordProperty("Description",
                    "Verify getOverflow() becomes true once a push is dropped because the queue is full, "
                    "mirroring how ProcessGroupManager::run() detects lost events.");
-    for (std::size_t i = 0U; i < kComponentEventQueueSize; ++i)
+    for (std::size_t i = 0U; i < queue_.capacity(); ++i)
     {
         queue_.push(ActivationSuccessful{static_cast<uint32_t>(i)});
     }
@@ -149,4 +151,4 @@ TEST_F(ComponentEventQueueTest, GetNextEventStillDrainsQueuedEventsAfterStop)
     EXPECT_FALSE(queue_.getNextEvent().has_value());
 }
 
-}  // namespace score::lcm::internal
+}  // namespace score::mw::lifecycle::internal

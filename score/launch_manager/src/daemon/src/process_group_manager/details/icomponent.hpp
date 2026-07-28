@@ -17,7 +17,7 @@
 #include <score/stop_token.hpp>
 #include <cstdint>
 
-namespace score::lcm::internal
+namespace score::mw::lifecycle::internal
 {
 
 /// @brief A class that implements IComponent is a node in the configuration that can be activated or deactivated.
@@ -64,6 +64,6 @@ class IComponent
     virtual ~IComponent() = default;
 };
 
-}  // namespace score::lcm::internal
+}  // namespace score::mw::lifecycle::internal
 
 #endif  // SCORE_LCM_ICOMPONENT_HPP_INCLUDED

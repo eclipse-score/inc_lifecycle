@@ -72,9 +72,6 @@ enum class ProcessLimits : std::uint32_t
     maxLocalBuffSize = 32U    ///< Maximum size for local buffer
 };
 
-/// @brief Capacity of the ComponentEventQueue.
-constexpr std::size_t kComponentEventQueueSize = 1024U;
-
 }  // namespace internal
 
 }  // namespace lcm

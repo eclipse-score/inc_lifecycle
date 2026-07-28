@@ -16,7 +16,7 @@
 
 #include "score/mw/launch_manager/process_group_manager/details/component_event.hpp"
 
-namespace score::lcm::internal
+namespace score::mw::lifecycle::internal
 {
 
 class IComponentEventReceiver
@@ -26,6 +26,6 @@ class IComponentEventReceiver
     virtual ~IComponentEventReceiver() = default;
 };
 
-}  // namespace score::lcm::internal
+}  // namespace score::mw::lifecycle::internal
 
 #endif  // SCORE_LCM_ICOMPONENT_EVENT_RECEIVER_HPP_INCLUDED

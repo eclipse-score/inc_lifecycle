@@ -19,7 +19,7 @@
 #include <cstdint>
 #include <functional>
 
-namespace score::lcm::internal
+namespace score::mw::lifecycle::internal
 {
 
 enum class ComponentTaskType : std::uint_least8_t
@@ -39,6 +39,6 @@ struct ComponentTask
     score::cpp::stop_token stop_token;
 };
 
-}  // namespace score::lcm::internal
+}  // namespace score::mw::lifecycle::internal
 
 #endif  // SCORE_LCM_TASK_HPP_INCLUDED

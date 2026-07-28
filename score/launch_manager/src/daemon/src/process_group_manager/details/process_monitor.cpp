@@ -13,7 +13,7 @@
 
 #include "score/mw/launch_manager/process_group_manager/details/process_monitor.hpp"
 
-namespace score::lcm::internal
+namespace score::mw::lifecycle::internal
 {
 
 ProcessMonitor::ProcessMonitor(IComponentEventReceiver& event_queue) : event_queue_(event_queue)
@@ -109,4 +109,4 @@ void ProcessMonitor::terminated(IComponent& component, int32_t status)
     }
 }
 
-}  // namespace score::lcm::internal
+}  // namespace score::mw::lifecycle::internal

@@ -18,7 +18,7 @@
 
 #include <atomic>
 
-namespace score::lcm::internal
+namespace score::mw::lifecycle::internal
 {
 
 /// @brief A virtual node in the dependency graph corresponding to a ProcessGroupState.
@@ -71,6 +71,6 @@ class RunTarget final : public IComponent
     std::atomic<bool> active_{false};
 };
 
-}  // namespace score::lcm::internal
+}  // namespace score::mw::lifecycle::internal
 
 #endif  // SCORE_LCM_RUN_TARGET_HPP_INCLUDED

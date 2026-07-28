@@ -17,7 +17,7 @@
 #include "score/mw/launch_manager/process_group_manager/details/icomponent.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/task.hpp"
 
-namespace score::lcm::internal
+namespace score::mw::lifecycle::internal
 {
 
 class IComponentController
@@ -29,6 +29,6 @@ class IComponentController
     virtual ~IComponentController() = default;
 };
 
-}  // namespace score::lcm::internal
+}  // namespace score::mw::lifecycle::internal
 
 #endif  // SCORE_LCM_ICOMPONENT_CONTROLLER_HPP_INCLUDED

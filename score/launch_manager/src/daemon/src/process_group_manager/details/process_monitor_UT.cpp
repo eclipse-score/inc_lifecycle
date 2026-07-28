@@ -16,7 +16,7 @@
 #include <gtest/gtest.h>
 
 using namespace testing;
-using namespace score::lcm::internal;
+using namespace score::mw::lifecycle::internal;
 
 class MockComponent : public IComponent
 {
