@@ -1596,7 +1596,7 @@
     "FullyVerifies": null
   },
   {
-    "name": "ComponentEventQueueTest__StopUnblocksWaitForEventsOnEmptyQueue",
+    "name": "ComponentEventQueueTest__StopFailsWaitForEventsOnEmptyQueue",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/component_event_queue_UT.cpp",
     "line": "110",
     "result": "passed",
@@ -1612,7 +1612,7 @@
   {
     "name": "ComponentEventQueueTest__GetNextEventStillDrainsQueuedEventsAfterStop",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/component_event_queue_UT.cpp",
-    "line": "120",
+    "line": "121",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
