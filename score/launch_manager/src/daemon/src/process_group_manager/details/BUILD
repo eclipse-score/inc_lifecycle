@@ -48,10 +48,10 @@ cc_library(
 
 cc_library(
     name = "mock_component",
+    testonly = True,
     hdrs = ["mock_component.hpp"],
     include_prefix = "score/mw/launch_manager/process_group_manager/details",
     strip_include_prefix = "/score/launch_manager/src/daemon/src/process_group_manager/details",
-    testonly = True,
     visibility = ["//score:__subpackages__"],
     deps = [
         ":icomponent",
