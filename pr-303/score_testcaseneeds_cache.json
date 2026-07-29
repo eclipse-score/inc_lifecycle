@@ -338,7 +338,7 @@
   {
     "name": "signal_safe_log_test__signal_safe_log_test_simple",
     "file": "score/launch_manager/src/daemon/src/common/signal_safe_log_UT.cpp",
-    "line": "31",
+    "line": "32",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -352,7 +352,7 @@
   {
     "name": "signal_safe_log_test__signal_safe_log_test_simple_with_errno",
     "file": "score/launch_manager/src/daemon/src/common/signal_safe_log_UT.cpp",
-    "line": "41",
+    "line": "43",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -366,7 +366,7 @@
   {
     "name": "signal_safe_log_test__signal_safe_log_test_formatted",
     "file": "score/launch_manager/src/daemon/src/common/signal_safe_log_UT.cpp",
-    "line": "57",
+    "line": "55",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -380,7 +380,7 @@
   {
     "name": "signal_safe_log_test__signal_safe_log_test_formatted_with_errno",
     "file": "score/launch_manager/src/daemon/src/common/signal_safe_log_UT.cpp",
-    "line": "67",
+    "line": "65",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
