@@ -160,9 +160,10 @@ inline bool ProcessGroupManager::initializeControlClientHandler()
     ControlClientChannel::nudgeControlClientHandler_ = nullptr;
     char shm_name[static_cast<uint32_t>(score::lcm::internal::ProcessLimits::maxLocalBuffSize)];
 
-    static_cast<void>(snprintf(shm_name,
-                               static_cast<uint32_t>(score::lcm::internal::ProcessLimits::maxLocalBuffSize),
-                               "/_nudge~._.~me_"));  // random name
+    static_cast<void>(snprintf(
+        shm_name,
+        static_cast<uint32_t>(score::lcm::internal::ProcessLimits::maxLocalBuffSize),
+        "/_nudge~._.~me_"));  // random name
     int fd = shm_open(shm_name, O_CREAT | O_EXCL | O_RDWR, 0U);
 
     if (fd >= 0)
@@ -194,8 +195,8 @@ inline bool ProcessGroupManager::initializeControlClientHandler()
                     // coverity[cert_mem52_cpp_violation:FALSE] The allocated memory is checked by the containing if
                     // statement.
                     const auto osal_result = ControlClientChannel::nudgeControlClientHandler_->init(0U, true);
-                    SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(osal_result == OsalReturnType::kSuccess,
-                                                            "ControlClientChannel semaphore init failed");
+                    SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(
+                        osal_result == OsalReturnType::kSuccess, "ControlClientChannel semaphore init failed");
 
                     result = true;
                 }
@@ -274,12 +275,12 @@ inline bool ProcessGroupManager::initializeProcessGroups()
 inline void ProcessGroupManager::createProcessComponentsObjects()
 {
     LM_LOG_DEBUG() << "Creating component event queue...";
-    event_queue_ = std::make_unique<ComponentEventQueue>();
+    event_queue_ = std::make_unique<ComponentEventQueue>(total_processes_);
 
     if (recovery_client_)
     {
         recovery_client_->setRecoveryRequestCallback([this](const IdentifierHash& process_identifier) {
-            event_queue_->push(SupervisionFailure{process_identifier});
+            static_cast<void>(event_queue_->push(SupervisionFailure{process_identifier}));
         });
     }
 
@@ -296,7 +297,7 @@ inline void ProcessGroupManager::createProcessComponentsObjects()
     worker_jobs_ = std::make_shared<WorkerQueue>();
 
     LM_LOG_DEBUG() << "Creating worker threads...";
-    worker_threads_ = std::make_unique<WorkerThread<Task>>(
+    worker_threads_ = std::make_unique<WorkerThread<ComponentTask>>(
         worker_jobs_, static_cast<uint32_t>(ProcessLimits::kNumWorkerThreads), *process_monitor_);
 }
 
@@ -522,8 +523,8 @@ inline void ProcessGroupManager::controlClientResponses(Graph& pg)
 
 bool ProcessGroupManager::sendResponse(ControlClientMessage msg)
 {
-    auto pin = getProcessInfoNode(msg.originating_control_client_.process_group_index_,
-                                  msg.originating_control_client_.process_index_);
+    auto pin = getProcessInfoNode(
+        msg.originating_control_client_.process_group_index_, msg.originating_control_client_.process_index_);
     bool ret = true;
 
     if (pin)

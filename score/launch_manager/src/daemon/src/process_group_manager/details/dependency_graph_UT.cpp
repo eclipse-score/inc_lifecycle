@@ -19,8 +19,10 @@
 
 #include <vector>
 
-namespace score::lcm
+namespace score::mw::lifecycle
 {
+
+using namespace score::lcm;
 
 TEST(DependencyGraphTest, EmplaceAndAccessByIndex)
 {
@@ -84,9 +86,13 @@ TEST(DependencyGraphTest, TraverseVisitsWholeChainThroughDependsOn)
             visited.push_back(graph[i]);
             return graph.dependsOn(i);
         },
-        [](GraphIndex) { return true; });
+        [](GraphIndex) {
+            return true;
+        });
 
-    EXPECT_THAT(visited, ::testing::UnorderedElementsAre(IdentifierHash{"root"}, IdentifierHash{"mid"}, IdentifierHash{"leaf"}));
+    EXPECT_THAT(
+        visited,
+        ::testing::UnorderedElementsAre(IdentifierHash{"root"}, IdentifierHash{"mid"}, IdentifierHash{"leaf"}));
 }
 
 TEST(DependencyGraphTest, TraverseVisitsSharedDependencyExactlyOnce)
@@ -112,7 +118,9 @@ TEST(DependencyGraphTest, TraverseVisitsSharedDependencyExactlyOnce)
             }
             return graph.dependsOn(i);
         },
-        [](GraphIndex) { return true; });
+        [](GraphIndex) {
+            return true;
+        });
 
     EXPECT_EQ(shared_visits, 1U);
 }
@@ -133,9 +141,11 @@ TEST(DependencyGraphTest, TraverseFilterBoundsWhichNodesAreVisited)
             visited.push_back(i);
             return graph.dependsOn(i);
         },
-        [excluded](GraphIndex neighbor) { return neighbor != excluded; });
+        [excluded](GraphIndex neighbor) {
+            return neighbor != excluded;
+        });
 
     EXPECT_THAT(visited, ::testing::UnorderedElementsAre(root, included));
 }
 
-}  // namespace score::lcm
+}  // namespace score::mw::lifecycle

@@ -249,10 +249,10 @@ void Graph::setState(GraphState new_state)
     }
 }
 
-void Graph::updateRunTargetInPlace(RunTarget& run_target, TaskType task_type)
+void Graph::updateRunTargetInPlace(RunTarget& run_target, ComponentTaskType task_type)
 {
     // RunTargets are updated in place, no need to queue them on the thread pool.
-    if (task_type == TaskType::kActivate)
+    if (task_type == ComponentTaskType::kActivate)
     {
         run_target.activate(stop_source_.get_token());
     }
@@ -269,9 +269,11 @@ void Graph::queueReadyNodes()
     // completions reported inside the loop append successors that this same iteration picks up.
     for (const auto [node, action] : *current_transition_)
     {
-        const TaskType task_type = action == Action::Start ? TaskType::kActivate : TaskType::kDeactivate;
+        const ComponentTaskType task_type =
+            action == Action::Start ? ComponentTaskType::kActivate : ComponentTaskType::kDeactivate;
         LM_LOG_DEBUG() << "Node" << node << "is ready for"
-                       << (task_type == TaskType::kActivate ? std::string_view("activation") : std::string_view("deactivation"));
+                       << (task_type == ComponentTaskType::kActivate ? std::string_view("activation")
+                                                                     : std::string_view("deactivation"));
         std::visit(
             [this, task_type](auto& component) {
                 using ComponentT = std::decay_t<decltype(component)>;
@@ -283,7 +285,7 @@ void Graph::queueReadyNodes()
                 {
                     // Queue ProcessInfoNode for execution on worker thread; completion arrives later
                     // via a ComponentEvent, draining into nodeExecuted() -> onNodeFinished().
-                    tryQueueNode(Task{task_type, component, stop_source_.get_token()});
+                    tryQueueNode(ComponentTask{task_type, component, stop_source_.get_token()});
                 }
             },
             nodes_[node]);
@@ -308,7 +310,7 @@ void Graph::finalizeTransitionSuccess()
     setPendingEvent(ControlClientCode::kSetStateSuccess);
 }
 
-inline void Graph::tryQueueNode(Task task)
+inline void Graph::tryQueueNode(ComponentTask task)
 {
     while (GraphState::kInTransition == getState())
     {
@@ -317,7 +319,7 @@ inline void Graph::tryQueueNode(Task task)
         {
             jobs_in_progress_++;
             // LM_LOG_DEBUG() << "Queued node " << task.component.get().getIndex() << " for "
-            //                << (task.type == TaskType::kDeactivate ? "deactivation" : "activation")
+            //                << (task.type == ComponentTaskType::kDeactivate ? "deactivation" : "activation")
             //                << " execution, jobs in progress:" << jobs_in_progress_;
             break;
         }
@@ -434,8 +436,9 @@ void Graph::handleComponentEvent(const ComponentEvent& event)
             if constexpr (std::is_same_v<T, ActivationSuccessful> || std::is_same_v<T, DeactivationComplete>)
             {
                 LM_LOG_DEBUG() << "Component " << data.node_index << " finished "
-                           << (std::is_same_v<T, ActivationSuccessful> ? std::string_view("activation") : std::string_view("deactivation"))
-                           << " successfully";
+                               << (std::is_same_v<T, ActivationSuccessful> ? std::string_view("activation")
+                                                                           : std::string_view("deactivation"))
+                               << " successfully";
                 nodeExecuted(data.node_index, {});
             }
             else if constexpr (std::is_same_v<T, ActivationFailed>)

@@ -19,8 +19,10 @@
 
 #include <variant>
 
-namespace score::lcm::internal
+namespace score::mw::lifecycle::internal
 {
+
+using namespace score::lcm::internal;
 
 /// @brief Returns the IComponent reference from a variant type
 /// @details All types in the variant must implement the IComponent interface.
@@ -33,6 +35,6 @@ inline IComponent& componentOf(std::variant<ProcessInfoNode, RunTarget>& node)
         node);
 }
 
-}  // namespace score::lcm::internal
+}  // namespace score::mw::lifecycle::internal
 
 #endif  // SCORE_LCM_COMPONENT_OF_HPP_INCLUDED

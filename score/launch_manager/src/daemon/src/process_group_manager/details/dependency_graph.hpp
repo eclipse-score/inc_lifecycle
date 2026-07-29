@@ -19,7 +19,7 @@
 #include <cstddef>
 #include <vector>
 
-namespace score::lcm
+namespace score::mw::lifecycle
 {
 
 /// @brief Index type used to identify nodes in the graph.
@@ -138,6 +138,6 @@ class DependencyGraph
     std::vector<bool> visited;
 };
 
-}  // namespace score::lcm
+}  // namespace score::mw::lifecycle
 
 #endif  // SCORE_LCM_DEPENDENCY_GRAPH_HPP

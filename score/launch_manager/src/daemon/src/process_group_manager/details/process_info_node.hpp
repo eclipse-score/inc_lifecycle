@@ -99,8 +99,6 @@ class ProcessInfoNode final : public IComponent
 
     bool active() const override;
 
-    bool stopped() const override;
-
     /// @return The OS process ID, or zero if the process has never been started.
     osal::ProcessID getPid() const;
 

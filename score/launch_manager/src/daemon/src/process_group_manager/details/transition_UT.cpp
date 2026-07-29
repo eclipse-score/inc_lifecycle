@@ -20,9 +20,7 @@
 #include <memory>
 #include <vector>
 
-namespace score::lcm::internal
-{
-namespace
+namespace score::mw::lifecycle::internal
 {
 
 /// @brief Mock IComponent backed by two flags. Transition only ever reads active()/stopped();
@@ -33,7 +31,6 @@ class MockComponent : public IComponent
     MockComponent()
     {
         ON_CALL(*this, active()).WillByDefault(::testing::ReturnPointee(&active_));
-        ON_CALL(*this, stopped()).WillByDefault(::testing::ReturnPointee(&stopped_));
     }
 
     MOCK_METHOD(RequestResult, activate, (score::cpp::stop_token), (override));
@@ -41,7 +38,6 @@ class MockComponent : public IComponent
     MOCK_METHOD(RequestResult, tryHandleTermination, (int32_t), (override));
     MOCK_METHOD(uint32_t, getIndex, (), (const, override));
     MOCK_METHOD(bool, active, (), (const, override));
-    MOCK_METHOD(bool, stopped, (), (const, override));
 
     /// @brief Flip both flags together, mirroring a real component reaching a terminal state.
     void setActive(bool is_active)
@@ -55,21 +51,12 @@ class MockComponent : public IComponent
     bool stopped_ = true;
 };
 
-}  // namespace
-
 /// @brief Test-only projection for Transition<IComponent*>, mirroring component_of.hpp's
 /// production overload. Declared in this namespace so Transition<IComponent*> finds it via ADL.
 inline IComponent& componentOf(IComponent* node)
 {
     return *node;
 }
-
-}  // namespace score::lcm::internal
-
-namespace score::lcm
-{
-namespace
-{
 
 using ComponentType = internal::IComponent*;
 
@@ -158,17 +145,18 @@ using EmptyGraphDeathTest = EmptyGraphTest;
 
 TEST_F(EmptyGraphTest, BuilderConstructsButGraphIsEmpty)
 {
-    RecordProperty("Description",
-                   "A TransitionBuilder can be constructed over an empty graph (no nodes). There are no node "
-                   "indices, so no transition can be created or driven.");
+    RecordProperty(
+        "Description",
+        "A TransitionBuilder can be constructed over an empty graph (no nodes). There are no node "
+        "indices, so no transition can be created or driven.");
 
     EXPECT_EQ(graph_->size(), 0U);
 }
 
 TEST_F(EmptyGraphDeathTest, CreateTransitionAssertsOnOutOfRangeTarget)
 {
-    RecordProperty("Description",
-                   "createTransition() with an out-of-range target index aborts via a futurecpp assert.");
+    RecordProperty(
+        "Description", "createTransition() with an out-of-range target index aborts via a futurecpp assert.");
 
     EXPECT_DEATH(builder_->createTransition(0), "");
 }
@@ -195,9 +183,10 @@ class SingleNodeGraphTest : public TransitionTest
 
 TEST_F(SingleNodeGraphTest, TransitionStartsTheNode)
 {
-    RecordProperty("Description",
-                   "A single inactive node with no dependencies is immediately ready to start; the transition "
-                   "finishes once the node reports active.");
+    RecordProperty(
+        "Description",
+        "A single inactive node with no dependencies is immediately ready to start; the transition "
+        "finishes once the node reports active.");
 
     auto& transition = builder_->createTransition(node_);
 
@@ -212,9 +201,10 @@ TEST_F(SingleNodeGraphTest, TransitionStartsTheNode)
 
 TEST_F(SingleNodeGraphTest, TransitionToAlreadyActiveNodeIsImmediatelyFinished)
 {
-    RecordProperty("Description",
-                   "A node that is already active is not started again; the transition is finished "
-                   "immediately with nothing ready.");
+    RecordProperty(
+        "Description",
+        "A node that is already active is not started again; the transition is finished "
+        "immediately with nothing ready.");
 
     componentAt(node_).setActive(true);
 
@@ -226,9 +216,10 @@ TEST_F(SingleNodeGraphTest, TransitionToAlreadyActiveNodeIsImmediatelyFinished)
 
 TEST_F(SingleNodeGraphTest, TransitionToOffStopsTheRunningNodeThenStartsOff)
 {
-    RecordProperty("Description",
-                   "Transitioning to the Off target stops a running node not needed by Off, then activates the "
-                   "dependency-less Off node; the transition finishes once both reach their terminal state.");
+    RecordProperty(
+        "Description",
+        "Transitioning to the Off target stops a running node not needed by Off, then activates the "
+        "dependency-less Off node; the transition finishes once both reach their terminal state.");
 
     makeGraph(2);
     const GraphIndex node = addNode();
@@ -252,9 +243,10 @@ TEST_F(SingleNodeGraphTest, TransitionToOffStopsTheRunningNodeThenStartsOff)
 
 TEST_F(SingleNodeGraphTest, TransitionToOffFromAllStoppedStartsTheOffNode)
 {
-    RecordProperty("Description",
-                   "With nothing running, transitioning to the Off target skips the stopping phase and simply "
-                   "activates the dependency-less Off node, leaving the stopped application node untouched.");
+    RecordProperty(
+        "Description",
+        "With nothing running, transitioning to the Off target skips the stopping phase and simply "
+        "activates the dependency-less Off node, leaving the stopped application node untouched.");
 
     makeGraph(2);
     const GraphIndex node = addNode();  // an application node, left stopped
@@ -321,13 +313,15 @@ class SharedNodeGraphTest : public TransitionTest
 
 TEST_F(SharedNodeGraphTest, TransitionStartsDependenciesBeforeDependent)
 {
-    RecordProperty("Description",
-                   "Bringing up RT1 from scratch starts its dependencies B and C first; RT1 only becomes ready "
-                   "once both of them are active.");
+    RecordProperty(
+        "Description",
+        "Bringing up RT1 from scratch starts its dependencies B and C first; RT1 only becomes ready "
+        "once both of them are active.");
 
     auto& transition = builder_->createTransition(rt1_);
-    EXPECT_THAT(collectReady(transition),
-                ::testing::UnorderedElementsAre(ReadyNode{c_, Action::Start}, ReadyNode{b_, Action::Start}));
+    EXPECT_THAT(
+        collectReady(transition),
+        ::testing::UnorderedElementsAre(ReadyNode{c_, Action::Start}, ReadyNode{b_, Action::Start}));
 
     activate(transition, c_);
     EXPECT_THAT(collectReady(transition), ::testing::IsEmpty());  // still blocked on B
@@ -342,9 +336,10 @@ TEST_F(SharedNodeGraphTest, TransitionStartsDependenciesBeforeDependent)
 
 TEST_F(SharedNodeGraphTest, NextReadyInterleavedWithOnNodeFinishedKeepsPendingSibling)
 {
-    RecordProperty("Description",
-                   "Popping one of two simultaneously-ready siblings via nextReady() and finishing it before the "
-                   "other is popped must not discard the sibling still in the frontier.");
+    RecordProperty(
+        "Description",
+        "Popping one of two simultaneously-ready siblings via nextReady() and finishing it before the "
+        "other is popped must not discard the sibling still in the frontier.");
 
     auto& transition = builder_->createTransition(rt1_);
 
@@ -373,9 +368,10 @@ TEST_F(SharedNodeGraphTest, NextReadyInterleavedWithOnNodeFinishedKeepsPendingSi
 
 TEST_F(SharedNodeGraphTest, TransitionBetweenRunTargetsKeepsSharedNodeActive)
 {
-    RecordProperty("Description",
-                   "Transitioning RT1 -> RT2 stops RT1 then its exclusive node C, then starts A; the shared node "
-                   "B stays active throughout because RT2 still needs it.");
+    RecordProperty(
+        "Description",
+        "Transitioning RT1 -> RT2 stops RT1 then its exclusive node C, then starts A; the shared node "
+        "B stays active throughout because RT2 still needs it.");
 
     componentAt(b_).setActive(true);
     componentAt(c_).setActive(true);
@@ -405,9 +401,10 @@ TEST_F(SharedNodeGraphTest, TransitionBetweenRunTargetsKeepsSharedNodeActive)
 
 TEST_F(SharedNodeGraphTest, OnNodeFinishedDuringIterationDrivesWholeTransitionInOneLoop)
 {
-    RecordProperty("Description",
-                   "A single range-for loop that reports each node finished mid-iteration (as a synchronous "
-                   "driver would) discovers all newly-ready successors until the transition completes.");
+    RecordProperty(
+        "Description",
+        "A single range-for loop that reports each node finished mid-iteration (as a synchronous "
+        "driver would) discovers all newly-ready successors until the transition completes.");
 
     componentAt(b_).setActive(true);
     componentAt(c_).setActive(true);
@@ -424,11 +421,13 @@ TEST_F(SharedNodeGraphTest, OnNodeFinishedDuringIterationDrivesWholeTransitionIn
         transition.onNodeFinished(rn.node);
     }
 
-    EXPECT_THAT(visited,
-                ::testing::ElementsAre(ReadyNode{rt1_, Action::Stop},
-                                       ReadyNode{c_, Action::Stop},
-                                       ReadyNode{a_, Action::Start},
-                                       ReadyNode{rt2_, Action::Start}));
+    EXPECT_THAT(
+        visited,
+        ::testing::ElementsAre(
+            ReadyNode{rt1_, Action::Stop},
+            ReadyNode{c_, Action::Stop},
+            ReadyNode{a_, Action::Start},
+            ReadyNode{rt2_, Action::Start}));
     EXPECT_TRUE(transition.isFinished());
 
     // B was shared and never touched.
@@ -438,9 +437,10 @@ TEST_F(SharedNodeGraphTest, OnNodeFinishedDuringIterationDrivesWholeTransitionIn
 
 TEST_F(SharedNodeGraphTest, FailedTransitionIsRecoveredByAFreshFallbackTransition)
 {
-    RecordProperty("Description",
-                   "When activating C never completes, the RT2 -> RT1 transition is stuck; a fresh RT1 -> RT2 "
-                   "transition on the same builder recovers from the inconsistent state and brings RT2 back up.");
+    RecordProperty(
+        "Description",
+        "When activating C never completes, the RT2 -> RT1 transition is stuck; a fresh RT1 -> RT2 "
+        "transition on the same builder recovers from the inconsistent state and brings RT2 back up.");
 
     componentAt(a_).setActive(true);
     componentAt(b_).setActive(true);
@@ -479,11 +479,12 @@ TEST_F(SharedNodeGraphTest, FailedTransitionIsRecoveredByAFreshFallbackTransitio
 
 TEST_F(SharedNodeGraphTest, StopsOrphanLeftRunningOutsideTheLastTargetSubgraph)
 {
-    RecordProperty("Description",
-                   "A node left running outside the current target's subgraph — here A, orphaned by an earlier "
-                   "aborted RT2 attempt while RT1 is up — is still stopped. The stop set is every running node "
-                   "derived from live component state, not a traversal of one target's subgraph, so an orphan that "
-                   "is unreachable from RT1 is not missed.");
+    RecordProperty(
+        "Description",
+        "A node left running outside the current target's subgraph — here A, orphaned by an earlier "
+        "aborted RT2 attempt while RT1 is up — is still stopped. The stop set is every running node "
+        "derived from live component state, not a traversal of one target's subgraph, so an orphan that "
+        "is unreachable from RT1 is not missed.");
 
     // RT1 is up (needs B and C). A is a stray still running from an aborted RT2 attempt; nothing
     // reachable from RT1 leads to it, so a source-subgraph traversal from RT1 would leave it running.
@@ -523,10 +524,13 @@ TEST_F(SharedNodeGraphTest, StopsOrphanLeftRunningOutsideTheLastTargetSubgraph)
     EXPECT_TRUE(componentAt(b_).stopped_);
     EXPECT_TRUE(componentAt(c_).stopped_);
     EXPECT_TRUE(componentAt(rt1_).stopped_);
-    EXPECT_THAT(stopped_nodes, ::testing::UnorderedElementsAre(ReadyNode{a_, Action::Stop},
-                                                              ReadyNode{b_, Action::Stop},
-                                                              ReadyNode{c_, Action::Stop},
-                                                              ReadyNode{rt1_, Action::Stop}));
+    EXPECT_THAT(
+        stopped_nodes,
+        ::testing::UnorderedElementsAre(
+            ReadyNode{a_, Action::Stop},
+            ReadyNode{b_, Action::Stop},
+            ReadyNode{c_, Action::Stop},
+            ReadyNode{rt1_, Action::Stop}));
 }
 
 // ---------------------------------------------------------------------------
@@ -576,9 +580,10 @@ class LinearGraphTest : public TransitionTest
 
 TEST_F(LinearGraphTest, TransitionToAStartsChainBottomUp)
 {
-    RecordProperty("Description",
-                   "Bringing up A from scratch starts the whole chain in dependency order: D, then C, then B, "
-                   "then A. Each node becomes ready only once its single dependency is active.");
+    RecordProperty(
+        "Description",
+        "Bringing up A from scratch starts the whole chain in dependency order: D, then C, then B, "
+        "then A. Each node becomes ready only once its single dependency is active.");
 
     auto& transition = builder_->createTransition(a_);
 
@@ -597,10 +602,11 @@ TEST_F(LinearGraphTest, TransitionToAStartsChainBottomUp)
 
 TEST_F(LinearGraphTest, TransitionToOffStopsChainTopDownThenStartsOff)
 {
-    RecordProperty("Description",
-                   "Transitioning to Off from a fully-active chain stops it in reverse dependency order: A, then B, "
-                   "then C, then D (each ready only once its single dependent is stopped), then activates the "
-                   "dependency-less Off node.");
+    RecordProperty(
+        "Description",
+        "Transitioning to Off from a fully-active chain stops it in reverse dependency order: A, then B, "
+        "then C, then D (each ready only once its single dependent is stopped), then activates the "
+        "dependency-less Off node.");
 
     activateWholeChain();
 
@@ -625,10 +631,11 @@ TEST_F(LinearGraphTest, TransitionToOffStopsChainTopDownThenStartsOff)
 
 TEST_F(LinearGraphTest, TransitionToCStopsNodesNotNeededByC)
 {
-    RecordProperty("Description",
-                   "Transitioning to C while the whole chain A..D is active stops the higher-level nodes A and B "
-                   "that C does not need: the stop set is every running node outside the target subgraph, drained "
-                   "top-down (A, then B once A is stopped). C and its dependency D stay active throughout.");
+    RecordProperty(
+        "Description",
+        "Transitioning to C while the whole chain A..D is active stops the higher-level nodes A and B "
+        "that C does not need: the stop set is every running node outside the target subgraph, drained "
+        "top-down (A, then B once A is stopped). C and its dependency D stay active throughout.");
 
     activateWholeChain();
 
@@ -650,5 +657,4 @@ TEST_F(LinearGraphTest, TransitionToCStopsNodesNotNeededByC)
     EXPECT_TRUE(componentAt(d_).active_);
 }
 
-}  // namespace
-}  // namespace score::lcm
+}  // namespace score::mw::lifecycle::internal

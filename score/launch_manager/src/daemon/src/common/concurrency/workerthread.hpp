@@ -25,6 +25,8 @@
 namespace score::lcm::internal
 {
 
+using namespace score::mw::lifecycle::internal;
+
 /// @brief Templated worker thread pool for executing jobs from a queue.
 /// This class manages a pool of worker threads that continuously retrieve and execute jobs
 /// from an MPMCConcurrentQueue until the pool is stopped or destructed.
@@ -102,7 +104,7 @@ class WorkerThread final
                 LM_LOG_ERROR() << "Got an error getting a job: " << job.error();
                 continue;
             }
-            component_controller_.doWork(**job);
+            component_controller_.doWork(std::move(**job));
         }
     }
 

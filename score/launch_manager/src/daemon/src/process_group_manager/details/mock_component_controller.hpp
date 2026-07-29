@@ -10,32 +10,22 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
+#ifndef MOCK_COMPONENT_CONTROLLER_HPP_INCLUDED
+#define MOCK_COMPONENT_CONTROLLER_HPP_INCLUDED
 
-#ifndef SCORE_LCM_TASK_HPP_INCLUDED
-#define SCORE_LCM_TASK_HPP_INCLUDED
+#include "score/mw/launch_manager/process_group_manager/details/safe_process_map.hpp"
+#include <gmock/gmock.h>
 
-#include "score/mw/launch_manager/process_group_manager/details/icomponent.hpp"
-#include <score/stop_token.hpp>
-#include <cstdint>
-#include <functional>
-
-
-namespace score::lcm::internal
+namespace score::mw::lifecycle::internal
 {
 
-enum class TaskType : std::uint_least8_t
+class MockComponentController : public IComponentController
 {
-    kActivate = 0U,
-    kDeactivate = 1U,
+  public:
+    MOCK_METHOD(void, doWork, (ComponentTask && task), (override));
+    MOCK_METHOD(void, terminated, (IComponent & component, int32_t status), (override));
 };
 
-struct Task
-{
-    TaskType type;
-    std::reference_wrapper<IComponent> component;
-    score::cpp::stop_token stop_token;
-};
+}  // namespace score::mw::lifecycle::internal
 
-}  // namespace score::lcm::internal
-
-#endif  // SCORE_LCM_TASK_HPP_INCLUDED
+#endif  // MOCK_COMPONENT_CONTROLLER_HPP_INCLUDED

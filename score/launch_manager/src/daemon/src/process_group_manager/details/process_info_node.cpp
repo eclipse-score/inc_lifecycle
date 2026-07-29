@@ -26,12 +26,13 @@ namespace lcm
 namespace internal
 {
 
-ProcessInfoNode::ProcessInfoNode(const OsProcess* config,
-                                 uint32_t index,
-                                 ReadyCondition ready_condition,
-                                 ReportStateFn report_function,
-                                 osal::IProcess* process_interface,
-                                 std::shared_ptr<SafeProcessMap> process_map)
+ProcessInfoNode::ProcessInfoNode(
+    const OsProcess* config,
+    uint32_t index,
+    ReadyCondition ready_condition,
+    ReportStateFn report_function,
+    osal::IProcess* process_interface,
+    std::shared_ptr<SafeProcessMap> process_map)
     : terminator_(),
       has_semaphore_(false),
       process_index_(index),
@@ -106,8 +107,9 @@ bool ProcessInfoNode::setState(score::lcm::ProcessState new_state)
     {
         success = process_state_.compare_exchange_strong(old_state, new_state);
     }
-    else if (new_state == score::lcm::ProcessState::kIdle &&
-             (old_state == score::lcm::ProcessState::kTerminated || old_state == ProcessState::kFailed))
+    else if (
+        new_state == score::lcm::ProcessState::kIdle &&
+        (old_state == score::lcm::ProcessState::kTerminated || old_state == ProcessState::kFailed))
     {
         process_state_.store(new_state);
     }
@@ -425,11 +427,6 @@ IComponent::RequestResult ProcessInfoNode::deactivate(score::cpp::stop_token sto
 bool ProcessInfoNode::active() const
 {
     return reached_ready_.load();
-}
-
-bool ProcessInfoNode::stopped() const
-{
-    return process_state_.load() == ProcessState::kIdle;
 }
 
 osal::ProcessID ProcessInfoNode::getPid() const

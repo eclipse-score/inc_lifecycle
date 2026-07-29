@@ -21,8 +21,8 @@
 #include "score/mw/launch_manager/process_group_manager/details/os_handler.hpp"
 
 #include "score/mw/launch_manager/common/constants.hpp"
+#include "score/mw/launch_manager/process_group_manager/details/mock_component_controller.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/safe_process_map.hpp"
-#include "score/mw/launch_manager/process_group_manager/details/mock_termination_callback.hpp"
 #include "score/os/mocklib/sys_wait_mock.h"
 
 using namespace testing;
@@ -30,13 +30,6 @@ using namespace score::lcm::internal;
 
 namespace
 {
-
-class MockComponentController : public IComponentController
-{
-  public:
-    MOCK_METHOD(void, terminated, (IComponent & component, int32_t process_status), (override));
-    MOCK_METHOD(void, doWork, (Task task), (override));
-};
 
 class MockComponent : public IComponent
 {
@@ -69,9 +62,10 @@ class OsHandlerTest : public ::testing::Test
 
 TEST_F(OsHandlerTest, WaitReturnsProcessId_FindTerminatedIsCalled)
 {
-    RecordProperty("Description",
-                   "When sys_wait returns a valid pid, OsHandler calls findTerminated and the termination callback "
-                   "is invoked.");
+    RecordProperty(
+        "Description",
+        "When sys_wait returns a valid pid, OsHandler calls findTerminated and the termination callback "
+        "is invoked.");
 
     // given — insert a callback for pid 1000
     process_map_.insertIfNotTerminated(1000, &component_);
@@ -131,10 +125,11 @@ TEST_F(OsHandlerTest, WaitReturnsZeroPid_OsHandlerSleepsAndDoesNotCallFindTermin
 
 TEST_F(OsHandlerTest, WaitReturnsProcessIdBeforeRegistration_LaterRegistrationReceivesStoredTermination)
 {
-    RecordProperty("Description",
-                   "Covers the race where a child terminates before the process has been registered in "
-                   "SafeProcessMap. OsHandler sees the pid first, stores the terminated state, and a later "
-                   "insertIfNotTerminated call must immediately deliver the stored exit status to the callback.");
+    RecordProperty(
+        "Description",
+        "Covers the race where a child terminates before the process has been registered in "
+        "SafeProcessMap. OsHandler sees the pid first, stores the terminated state, and a later "
+        "insertIfNotTerminated call must immediately deliver the stored exit status to the callback.");
 
     // given
     // Simulate the OS reporting that pid 4000 has already exited.
@@ -166,24 +161,27 @@ TEST_F(OsHandlerTest, WaitReturnsProcessIdBeforeRegistration_LaterRegistrationRe
     // insertIfNotTerminated must detect the previously stored termination, return 1, and invoke the
     // callback immediately with the saved exit status instead of creating a new live entry.
     EXPECT_CALL(ccontroller_, terminated(_, 99)).Times(1);
-    EXPECT_EQ(process_map_.insertIfNotTerminated(4000, &component_),
-              score::lcm::internal::SafeProcessMap::SafeProcessMapReturnType::kYield);
+    EXPECT_EQ(
+        process_map_.insertIfNotTerminated(4000, &component_),
+        score::lcm::internal::SafeProcessMap::SafeProcessMapReturnType::kYield);
 
     sut_.reset();
 }
 
 TEST_F(OsHandlerTest, WaitReturnsUnknownPidWhenMapIsFull_OutOfResourcesPathDoesNotNotifyCallbacks)
 {
-    RecordProperty("Description",
-                   "When sys_wait reports an unknown pid and the map is full, OsHandler takes the out-of-resources "
-                   "path without notifying tracked callbacks.");
+    RecordProperty(
+        "Description",
+        "When sys_wait reports an unknown pid and the map is full, OsHandler takes the out-of-resources "
+        "path without notifying tracked callbacks.");
 
     // given
     StrictMock<MockComponent> callbacks[kCapacity];
     for (uint32_t i = 0; i < kCapacity; ++i)
     {
-        ASSERT_EQ(process_map_.insertIfNotTerminated(static_cast<int32_t>(i + 1U), &callbacks[i]),
-                  score::lcm::internal::SafeProcessMap::SafeProcessMapReturnType::kOk);
+        ASSERT_EQ(
+            process_map_.insertIfNotTerminated(static_cast<int32_t>(i + 1U), &callbacks[i]),
+            score::lcm::internal::SafeProcessMap::SafeProcessMapReturnType::kOk);
     }
 
     EXPECT_CALL(*sys_wait_mock_, wait(_))
@@ -203,9 +201,10 @@ TEST_F(OsHandlerTest, WaitReturnsUnknownPidWhenMapIsFull_OutOfResourcesPathDoesN
 
 TEST_F(OsHandlerTest, WaitReturnsErrorThenProcessId_HandlerRecoversAndInvokesCallback)
 {
-    RecordProperty("Description",
-                   "When sys_wait first returns an error and then a valid pid, OsHandler resumes processing and "
-                   "invokes the callback.");
+    RecordProperty(
+        "Description",
+        "When sys_wait first returns an error and then a valid pid, OsHandler resumes processing and "
+        "invokes the callback.");
 
     // given
     process_map_.insertIfNotTerminated(5000, &component_);

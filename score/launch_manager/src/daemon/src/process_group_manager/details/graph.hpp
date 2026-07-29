@@ -28,10 +28,10 @@
 #include "score/mw/launch_manager/osal/semaphore.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/component_event.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/component_of.hpp"
+#include "score/mw/launch_manager/process_group_manager/details/component_task.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/dependency_graph.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/process_info_node.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/run_target.hpp"
-#include "score/mw/launch_manager/process_group_manager/details/task.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/transition.hpp"
 #include "score/mw/launch_manager/process_group_manager/iprocess.hpp"
 #include <score/stop_token.hpp>
@@ -43,6 +43,8 @@ namespace lcm
 
 namespace internal
 {
+
+using namespace score::mw::lifecycle;
 
 class ProcessGroupManager;
 
@@ -335,15 +337,16 @@ class Graph final
     /// @brief Pushes the given task onto the worker queue while the graph is in transition.
     /// Retries on timeout.
     /// @param task The task to enqueue.
-    inline void tryQueueNode(Task task);
+    inline void tryQueueNode(ComponentTask task);
 
-    /// @brief Every node that is ready to execute is either executed in place (RunTarget) or queued for execution (ProcessInfoNode).
+    /// @brief Every node that is ready to execute is either executed in place (RunTarget) or queued for execution
+    /// (ProcessInfoNode).
     void queueReadyNodes();
 
     /// @brief Executes a RunTarget's activation/deactivation in place
     /// @details Since a RunTarget is a virtual node with no work to do
     /// and reports its completion to the current transition immediately.
-    void updateRunTargetInPlace(RunTarget& run_target, TaskType task_type);
+    void updateRunTargetInPlace(RunTarget& run_target, ComponentTaskType task_type);
 
     /// @brief Common tail of a transition that finished without error: moves the graph to
     /// kSuccess, posts kSetStateSuccess, and reports initial-state-transition success if this

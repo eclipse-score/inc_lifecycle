@@ -28,7 +28,7 @@
 #include <utility>
 #include <vector>
 
-namespace score::lcm
+namespace score::mw::lifecycle
 {
 
 /// @brief What should happen to a ready node right now.
@@ -58,18 +58,20 @@ template <typename T>
 class TransitionBuilder;
 
 /// @brief The Transition computes the nodes to activate/deactivate when transitioning between states in the graph.
-/// @details When transitioning to a target state, the Transition computes the nodes that need to be 
-/// deactivated (those nodes not reachable from the target state) and those that need to be activated (those reachable from the target that are not yet active).
-/// This list is then used to drive the transition by iterating over the ready nodes (@ref nextReady()) and marking them as finished once activated/deactivated (@ref onNodeFinished()).
-/// The transition is split into two phases: Stopping phase and Starting phase.
-/// Stopping Phase: Every node that is currently running (@ref stopped() is false) and is not part of the target
-/// subgraph is deactivated. The stop set is derived from live component state across the whole graph rather than from
-/// a source subgraph, so it also captures nodes left running by a previously aborted transition. Once all nodes in the
-/// Stopping phase are finished, the transition moves to the Starting phase.
-/// Starting Phase: The nodes that need to be activated are processed next. Once all nodes in the Starting phase are finished, the transition is complete.
+/// @details When transitioning to a target state, the Transition computes the nodes that need to be
+/// deactivated (those nodes not reachable from the target state) and those that need to be activated (those reachable
+/// from the target that are not yet active). This list is then used to drive the transition by iterating over the ready
+/// nodes (@ref nextReady()) and marking them as finished once activated/deactivated (@ref onNodeFinished()). The
+/// transition is split into two phases: Stopping phase and Starting phase. Stopping Phase: Every node that is currently
+/// running (@ref stopped() is false) and is not part of the target subgraph is deactivated. The stop set is derived
+/// from live component state across the whole graph rather than from a source subgraph, so it also captures nodes left
+/// running by a previously aborted transition. Once all nodes in the Stopping phase are finished, the transition moves
+/// to the Starting phase. Starting Phase: The nodes that need to be activated are processed next. Once all nodes in the
+/// Starting phase are finished, the transition is complete.
 ///
-/// The template parameter is expected to be a type that can be used to retrieve the corresponding IComponent instance via the componentOf() function, which is expected to be defined for the type T.
-/// 
+/// The template parameter is expected to be a type that can be used to retrieve the corresponding IComponent instance
+/// via the componentOf() function, which is expected to be defined for the type T.
+///
 /// Example Usage:
 ///
 ///   TransitionBuilder<std::variant<ProcessInfoNode, RunTarget>> builder(graph);
@@ -86,7 +88,8 @@ class TransitionBuilder;
 ///   transition.onNodeFinished(node);
 ///
 /// Note: It is also supported to call @ref onNodeFinished() while iterating the ready nodes.
-///       This may be needed in case of node types that can be activated/deactivated synchronously, so that their successors can be dispatched immediately.
+///       This may be needed in case of node types that can be activated/deactivated synchronously, so that their
+///       successors can be dispatched immediately.
 ///
 namespace detail
 {
@@ -107,9 +110,10 @@ struct is_component_type<U, std::void_t<decltype(componentOf(std::declval<U&>())
 template <typename T>
 class Transition
 {
-    static_assert(detail::is_component_type<T>::value,
-                  "Transition<T> requires an ADL-findable componentOf(T&) that returns a reference "
-                  "to IComponent&.");
+    static_assert(
+        detail::is_component_type<T>::value,
+        "Transition<T> requires an ADL-findable componentOf(T&) that returns a reference "
+        "to IComponent&.");
 
     friend class TransitionBuilder<T>;
 
@@ -128,8 +132,8 @@ class Transition
         return ReadyNode{state_.next_nodes.pop(), currentAction()};
     }
 
-    /// @brief Input iterator that drains the transition via nextReady(). 
-    /// @details Holds only a pointer + a cached ReadyNode — no allocation. 
+    /// @brief Input iterator that drains the transition via nextReady().
+    /// @details Holds only a pointer + a cached ReadyNode — no allocation.
     /// CONSUMING: advancing pops from the shared frontier, so only one traversal (e.g. one range-for)
     /// should be in flight at a time; a second `begin()` continues where the
     /// first left off, it does not restart.
@@ -212,8 +216,7 @@ class Transition
         // Still within the phase: append the finished node's neighbours in the
         // phase's direction, filtered by readiness, behind whatever's already
         // waiting to be dispatched.
-        const auto& successors =
-            state_.phase == Phase::Starting ? graph_.dependents(node) : graph_.dependsOn(node);
+        const auto& successors = state_.phase == Phase::Starting ? graph_.dependents(node) : graph_.dependsOn(node);
         for (const GraphIndex s : successors)
         {
             if (isReady(s))
@@ -238,9 +241,9 @@ class Transition
     }
 
     /// @brief Construct a reusable Transition for the given graph.
-    /// @details All the memory needed for a transition is allocated here, so that no further allocations are 
-    /// needed while the transition is in flight. The same transition object is then reused for multiple transitions by calling @ref setupTransition() 
-    /// with a new target node.
+    /// @details All the memory needed for a transition is allocated here, so that no further allocations are
+    /// needed while the transition is in flight. The same transition object is then reused for multiple transitions by
+    /// calling @ref setupTransition() with a new target node.
     explicit Transition(DependencyGraph<T>& graph) : graph_(graph)
     {
         state_.in_target_subgraph.assign(graph.capacity(), false);
@@ -276,14 +279,15 @@ class Transition
         /// be running). Recomputed at every setup. Serves two purposes:
         ///   stopping:  the nodes excluded from the whole-graph stop scan, and the
         ///              nodes onNodeFinished must never (re)stop.
-        ///   starting:  nodes that are directly or indirectly depended on by 
+        ///   starting:  nodes that are directly or indirectly depended on by
         ///              the target_root.
         std::vector<bool> in_target_subgraph;
 
         /// @brief The destination subgraph's root (the `target` endpoint)
         GraphIndex target_root{};
 
-        /// @brief The nodes that are ready to be activated/deactivated in the current phase, in the order they were discovered.
+        /// @brief The nodes that are ready to be activated/deactivated in the current phase, in the order they were
+        /// discovered.
         /// @details Consumed (FIFO) by nextReady() and appended to by onNodeFinished. A ring buffer
         /// so size does not grow.
         ReservableQueue<GraphIndex> next_nodes;
@@ -300,21 +304,25 @@ class Transition
     /// @brief Check if the node is stopped
     bool stopped(GraphIndex i)
     {
-        return componentOf(graph_[i]).stopped();
+        return !componentOf(graph_[i]).active();
     }
 
     /// @brief Check if all dependencies of the given node are active
     bool allDepsActive(GraphIndex i)
     {
         const auto& d = graph_.dependsOn(i);
-        return std::all_of(d.begin(), d.end(), [this](GraphIndex dep) { return active(dep); });
+        return std::all_of(d.begin(), d.end(), [this](GraphIndex dep) {
+            return active(dep);
+        });
     }
 
     /// @brief Check if all dependents of the given node are stopped
     bool allDependentsStopped(GraphIndex i)
     {
         const auto& d = graph_.dependents(i);
-        return std::all_of(d.begin(), d.end(), [this](GraphIndex dep) { return stopped(dep); });
+        return std::all_of(d.begin(), d.end(), [this](GraphIndex dep) {
+            return stopped(dep);
+        });
     }
 
     State state_;
@@ -381,7 +389,9 @@ class Transition
                 }
                 return graph_.dependsOn(i);
             },
-            [](GraphIndex) { return true; });
+            [](GraphIndex) {
+                return true;
+            });
     }
 
     /// @brief Setup the Stopping phase of the transition
@@ -403,7 +413,9 @@ class Transition
                 state_.in_target_subgraph[i] = true;
                 return graph_.dependsOn(i);
             },
-            [](GraphIndex) { return true; });
+            [](GraphIndex) {
+                return true;
+            });
         for (GraphIndex i = 0; i < graph_.size(); ++i)
         {
             if (!state_.in_target_subgraph[i] && !stopped(i))
@@ -418,7 +430,8 @@ class Transition
     }
 };
 
-/// @brief The TransitionBuilder owns the single Transition object for a given graph, which is reused for each Transition.
+/// @brief The TransitionBuilder owns the single Transition object for a given graph, which is reused for each
+/// Transition.
 /// @details The builder only supports a single transition at a time. It is
 /// expected that whenever a new transition is created, the previous one is no longer in use.
 /// The reason is that Memory is only allocated during initialization and then reused for each transition.
@@ -426,7 +439,9 @@ template <typename T>
 class TransitionBuilder final
 {
   public:
-    explicit TransitionBuilder(DependencyGraph<T>& graph) : transition_(graph) {}
+    explicit TransitionBuilder(DependencyGraph<T>& graph) : transition_(graph)
+    {
+    }
 
     /// @brief A transition to @p target
     /// @details First deactivates every node currently running that is not needed by @p target (keeping anything
@@ -444,6 +459,6 @@ class TransitionBuilder final
     Transition<T> transition_;
 };
 
-}  // namespace score::lcm
+}  // namespace score::mw::lifecycle
 
 #endif  // SCORE_LCM_TRANSITION_HPP

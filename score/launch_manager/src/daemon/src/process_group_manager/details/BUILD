@@ -135,6 +135,93 @@ lm_cc_test(
 )
 
 cc_library(
+    name = "mock_component",
+    testonly = True,
+    hdrs = ["mock_component.hpp"],
+    include_prefix = "score/mw/launch_manager/process_group_manager/details",
+    strip_include_prefix = "/score/launch_manager/src/daemon/src/process_group_manager/details",
+    visibility = ["//score:__subpackages__"],
+    deps = [
+        ":icomponent",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "mock_component_event_queue",
+    testonly = True,
+    hdrs = ["mock_component_event_queue.hpp"],
+    include_prefix = "score/mw/launch_manager/process_group_manager/details",
+    strip_include_prefix = "/score/launch_manager/src/daemon/src/process_group_manager/details",
+    visibility = ["//score:__subpackages__"],
+    deps = [
+        ":icomponent_event_publisher_consumer",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "mock_component_controller",
+    testonly = True,
+    hdrs = ["mock_component_controller.hpp"],
+    include_prefix = "score/mw/launch_manager/process_group_manager/details",
+    strip_include_prefix = "/score/launch_manager/src/daemon/src/process_group_manager/details",
+    visibility = ["//score:__subpackages__"],
+    deps = [
+        ":safe_process_map",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "component_event",
+    hdrs = ["component_event.hpp"],
+    include_prefix = "score/mw/launch_manager/process_group_manager/details",
+    strip_include_prefix = "/score/launch_manager/src/daemon/src/process_group_manager/details",
+    visibility = ["//score/launch_manager/src/daemon/src/process_group_manager:__pkg__"],
+    deps = [
+        ":icomponent",
+        "//score/launch_manager/src/daemon/src/common:identifier_hash",
+    ],
+)
+
+cc_library(
+    name = "component_event_queue",
+    hdrs = ["component_event_queue.hpp"],
+    include_prefix = "score/mw/launch_manager/process_group_manager/details",
+    strip_include_prefix = "/score/launch_manager/src/daemon/src/process_group_manager/details",
+    visibility = ["//score/launch_manager/src/daemon/src/process_group_manager:__pkg__"],
+    deps = [
+        ":icomponent_event_publisher_consumer",
+        "//score/launch_manager/src/daemon/src/common:constants",
+        "//score/launch_manager/src/daemon/src/common:identifier_hash",
+        "//score/launch_manager/src/daemon/src/common/concurrency:mpsc_bounded_queue",
+    ],
+)
+
+cc_library(
+    name = "icomponent_event_publisher_consumer",
+    hdrs = ["icomponent_event_publisher_consumer.hpp"],
+    include_prefix = "score/mw/launch_manager/process_group_manager/details",
+    strip_include_prefix = "/score/launch_manager/src/daemon/src/process_group_manager/details",
+    visibility = ["//score/launch_manager/src/daemon/src/process_group_manager:__pkg__"],
+    deps = [
+        ":component_event",
+        "//score/launch_manager/src/daemon/src/common:constants",
+        "//score/launch_manager/src/daemon/src/common:identifier_hash",
+    ],
+)
+
+cc_test(
+    name = "component_event_queue_UT",
+    srcs = ["component_event_queue_UT.cpp"],
+    deps = [
+        ":component_event_queue",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "process_info_node",
     hdrs = ["process_info_node.hpp"],
     defines = select({
@@ -239,7 +326,7 @@ lm_cc_test(
     timeout = "long",
     srcs = ["safeprocessmap_UT.cpp"],
     deps = [
-        ":mock_termination_callback",
+        ":mock_component_controller",
         ":safe_process_map",
         "@googletest//:gtest_main",
     ],
@@ -293,11 +380,11 @@ lm_cc_test(
     name = "oshandler_UT",
     srcs = ["oshandler_UT.cpp"],
     deps = [
-        ":mock_termination_callback",
+        ":mock_component_controller",
         ":os_handler",
         ":safe_process_map",
         "@googletest//:gtest_main",
-        "@score_baselibs//score/os/mocklib:sys_wait_mock",
+    "@score_baselibs//score/os/mocklib:sys_wait_mock",
     ],
 )
 
@@ -387,7 +474,6 @@ cc_library(
         ":process_monitor",
         ":process_info_node",
         ":process_launcher",
-        ":process_monitor",
         ":safe_process_map",
         "//score/launch_manager/src/daemon/src/common:log",
         "//score/launch_manager/src/daemon/src/common/concurrency:mpmc_concurrent_queue",

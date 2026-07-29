@@ -16,7 +16,7 @@
 #include <cstddef>
 #include <vector>
 
-namespace score::lcm
+namespace score::mw::lifecycle
 {
 
 /// @brief Queue that can be preallocated. Not thread safe.
@@ -66,6 +66,6 @@ class ReservableQueue
     }
 };
 
-}  // namespace score::lcm
+}  // namespace score::mw::lifecycle
 
 #endif  // SCORE_LCM_RESERVABLE_QUEUE_HPP
