@@ -24,22 +24,11 @@ from scripts.config_mapping.lifecycle_config import (
 )
 
 script_dir = Path(__file__).parent
-schema_path = (
-    script_dir.parent.parent
-    / "score"
-    / "launch_manager"
-    / "src"
-    / "daemon"
-    / "src"
-    / "configuration"
-    / "config_schema"
-    / "launch_manager.schema.json"
-)
 tests_dir = script_dir / "tests"
 lifecycle_script = script_dir / "lifecycle_config.py"
 
 
-def run(input_file: Path, test_name: str, compare_files_only=[], exclude_files=[]):
+def run(input_file: Path, test_name: str, schema_file: Path, compare_files_only=[], exclude_files=[]):
     """
     Execute the mapping script with the given input file and compare the generated output with the expected output.
     Input:
@@ -67,7 +56,7 @@ def run(input_file: Path, test_name: str, compare_files_only=[], exclude_files=[
         "-o",
         str(actual_output_dir),
         "--schema",
-        str(schema_path),
+        str(schema_file),
     ]
 
     try:
@@ -128,17 +117,18 @@ def compare_files(dir1: Path, dir2: Path, files: list) -> bool:
     return True
 
 
-def test_basic():
+def test_basic(schema_file):
     """
     Basic Smoketest for generating both launch manager and health monitoring configuration
     """
+
     test_name = "basic_test"
     input_file = tests_dir / test_name / "input" / "lm_config.json"
 
-    run(input_file, test_name)
+    run(input_file, test_name, schema_file)
 
 
-def test_health_config_mapping():
+def test_health_config_mapping(schema_file):
     """
     Test generation of the health monitoring configuration with
     * Different application types
@@ -148,20 +138,20 @@ def test_health_config_mapping():
     test_name = "health_config_test"
     input_file = tests_dir / test_name / "input" / "lm_config.json"
 
-    run(input_file, test_name, exclude_files=["lm_demo.json"])
+    run(input_file, test_name, schema_file, exclude_files=["lm_demo.json"])
 
 
-def test_empty_health_config_mapping():
+def test_empty_health_config_mapping(schema_file):
     """
     Test generation of the health monitoring configuration with no supervised processes
     """
     test_name = "empty_health_config_test"
     input_file = tests_dir / test_name / "input" / "lm_config.json"
 
-    run(input_file, test_name, exclude_files=["lm_demo.json"])
+    run(input_file, test_name, schema_file, exclude_files=["lm_demo.json"])
 
 
-def test_launch_config_mapping():
+def test_launch_config_mapping(schema_file):
     """
     Test generation of the launch manager configuration with
     * Different application types
@@ -171,20 +161,20 @@ def test_launch_config_mapping():
     test_name = "lm_config_test"
     input_file = tests_dir / test_name / "input" / "lm_config.json"
 
-    run(input_file, test_name, compare_files_only=["lm_demo.json"])
+    run(input_file, test_name, schema_file, compare_files_only=["lm_demo.json"])
 
 
-def test_empty_launch_config_mapping():
+def test_empty_launch_config_mapping(schema_file):
     """
     Test generation of the launch manager configuration with no processes defined
     """
     test_name = "empty_lm_config_test"
     input_file = tests_dir / test_name / "input" / "lm_config.json"
 
-    run(input_file, test_name, compare_files_only=["lm_demo.json"])
+    run(input_file, test_name, schema_file, compare_files_only=["lm_demo.json"])
 
 
-def test_custom_validation_failures():
+def test_custom_validation_failures(schema_file):
     """
     Test that custom validation checks implemented in lifecycle_config.py are correctly identifying invalid configurations.
     The input configuration contains the following issues:
@@ -198,7 +188,7 @@ def test_custom_validation_failures():
     input_file = tests_dir / test_name / "input" / "lm_config.json"
 
     try:
-        run(input_file, test_name)
+        run(input_file, test_name, schema_file)
         raise AssertionError(
             "Expected an error due to custom validation failures, but the mapping script executed successfully."
         )
@@ -224,7 +214,7 @@ def test_custom_validation_failures():
                 )
 
 
-def test_schema_validation_failures():
+def test_schema_validation_failures(schema_file):
     """
     Test that schema validation errors are correctly raised when the input configuration does not conform to the defined JSON schema.
     The input configuration contains the following issues:
@@ -234,7 +224,7 @@ def test_schema_validation_failures():
     input_file = tests_dir / test_name / "input" / "lm_config.json"
 
     try:
-        run(input_file, test_name)
+        run(input_file, test_name, schema_file)
         raise AssertionError(
             "Expected an error due to schema validation failures, but the mapping script executed successfully."
         )

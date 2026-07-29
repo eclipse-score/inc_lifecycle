@@ -22,10 +22,12 @@ filegroup(
 score_py_pytest(
     name = "lifecycle_config_tests",
     srcs = [
+        "conftest.py",
         "//scripts/config_mapping:integration_tests.py",
         "//scripts/config_mapping:unit_tests.py",
     ],
     args = [
+        "--schema-file=$(location //score/launch_manager/src/daemon/src/configuration/config_schema:launch_manager.schema.json)"
     ],
     data = [
         ":integration_test_files",
