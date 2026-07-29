@@ -183,6 +183,8 @@ PgManagerConfig ConfigurationAdapter::buildPgManagerConfig(const ComponentConfig
     const auto& props = comp.component_properties;
 
     pgm.is_self_terminating_ = props.application_profile.is_self_terminating;
+    pgm.ready_on_termination_ =
+        props.ready_condition.has_value() && (props.ready_condition->process_state == ProcessState::Terminated);
     pgm.startup_timeout_ms_ = std::chrono::milliseconds(deploy.ready_timeout_ms);
     pgm.termination_timeout_ms_ = std::chrono::milliseconds(deploy.shutdown_timeout_ms);
     pgm.execution_error_code_ = kDefaultProcessExecutionError;

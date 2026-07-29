@@ -223,6 +223,7 @@ TEST_F(ConfigurationAdapterTest, GetOsProcessConfigurationMapsComponentFields)
     EXPECT_THAT(os_proc->startup_config_.uid_, Eq(1000U));
     EXPECT_THAT(os_proc->startup_config_.gid_, Eq(1000U));
     EXPECT_THAT(os_proc->pgm_config_.is_self_terminating_, Eq(false));
+    EXPECT_THAT(os_proc->pgm_config_.ready_on_termination_, Eq(false));
     EXPECT_THAT(os_proc->pgm_config_.startup_timeout_ms_, Eq(std::chrono::milliseconds{500}));
     EXPECT_THAT(os_proc->pgm_config_.termination_timeout_ms_, Eq(std::chrono::milliseconds{500}));
 }
@@ -489,6 +490,86 @@ TEST(ConfigurationAdapterReadyConditionTest, DependencyDefaultsToRunningWhenTarg
     ASSERT_THAT(deps->size(), Eq(1U));
     EXPECT_THAT((*deps)[0].process_state_, Eq(score::mw::lifecycle::ProcessState::kRunning))
         << "comp_a has no ready_condition, so dependency should default to Running";
+
+    adapter.deinitialize();
+}
+
+TEST(ConfigurationAdapterReadyConditionTest, ReadyOnTerminationUsesOwnReadyConditionNotDependencies)
+{
+    RecordProperty(
+        "Description",
+        "pgm_config_.ready_on_termination_ is derived from the component's own ready_condition, independently of the "
+        "ready conditions reached through its dependencies.");
+    RecordProperty("TestType", "interface-test");
+    RecordProperty("DerivationTechnique", "explorative-testing");
+
+    ComponentConfig comp_a;
+    comp_a.name = "comp_a";
+    comp_a.component_properties.application_profile.application_type = ApplicationType::Native;
+    comp_a.component_properties.application_profile.is_self_terminating = true;
+    comp_a.component_properties.ready_condition = ReadyCondition{ProcessState::Terminated};
+    comp_a.deployment_config.bin_dir = "/opt";
+    comp_a.component_properties.binary_name = "comp_a";
+    comp_a.deployment_config.working_dir = "/tmp";
+    comp_a.deployment_config.sandbox.uid = 0;
+    comp_a.deployment_config.sandbox.gid = 0;
+    comp_a.deployment_config.sandbox.scheduling_policy = SCHED_OTHER;
+    comp_a.deployment_config.sandbox.scheduling_priority = 0;
+
+    ComponentConfig comp_b;
+    comp_b.name = "comp_b";
+    comp_b.component_properties.application_profile.application_type = ApplicationType::Native;
+    comp_b.component_properties.application_profile.is_self_terminating = false;
+    comp_b.component_properties.ready_condition = ReadyCondition{ProcessState::Running};
+    comp_b.component_properties.depends_on = {"comp_a"};
+    comp_b.deployment_config.bin_dir = "/opt";
+    comp_b.component_properties.binary_name = "comp_b";
+    comp_b.deployment_config.working_dir = "/tmp";
+    comp_b.deployment_config.sandbox.uid = 0;
+    comp_b.deployment_config.sandbox.gid = 0;
+    comp_b.deployment_config.sandbox.scheduling_policy = SCHED_OTHER;
+    comp_b.deployment_config.sandbox.scheduling_priority = 0;
+
+    std::vector<ComponentConfig> components;
+    components.push_back(std::move(comp_a));
+    components.push_back(std::move(comp_b));
+
+    RunTargetConfig startup;
+    startup.name = "Startup";
+    startup.depends_on = {"comp_b"};
+    startup.transition_timeout_ms = 5000;
+    startup.recovery_action.run_target = "fallback_run_target";
+
+    std::vector<RunTargetConfig> run_targets;
+    run_targets.push_back(std::move(startup));
+
+    FallbackRunTargetConfig fallback;
+    fallback.transition_timeout_ms = 1500;
+    AliveSupervisionConfig alive;
+    alive.evaluation_cycle_ms = 500;
+
+    auto config = ConfigBuilder{}
+                      .setComponents(std::move(components))
+                      .setRunTargets(std::move(run_targets))
+                      .setInitialRunTarget("Startup")
+                      .setFallbackRunTarget(std::move(fallback))
+                      .setAliveSupervision(alive)
+                      .build();
+
+    ConfigurationAdapter adapter;
+    adapter.initialize(config);
+
+    IdentifierHash pg_name{"MainPG"};
+
+    auto comp_a_result = adapter.getOsProcessConfiguration(pg_name, 0U);
+    ASSERT_TRUE(comp_a_result.has_value());
+    EXPECT_THAT((*comp_a_result)->pgm_config_.ready_on_termination_, Eq(true))
+        << "comp_a declares ready_condition Terminated, even though it has no dependencies";
+
+    auto comp_b_result = adapter.getOsProcessConfiguration(pg_name, 1U);
+    ASSERT_TRUE(comp_b_result.has_value());
+    EXPECT_THAT((*comp_b_result)->pgm_config_.ready_on_termination_, Eq(false))
+        << "comp_b declares ready_condition Running, even though it depends on a Terminated component";
 
     adapter.deinitialize();
 }

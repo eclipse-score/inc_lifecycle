@@ -44,6 +44,12 @@ ProcessInfoNode::ProcessInfoNode(
 
 IComponent::RequestResult ProcessInfoNode::tryReportCompletion(score::mw::lifecycle::ProcessState new_state)
 {
+    if (new_state == ProcessState::kFailed)
+    {
+        // Didn't reach running or startup
+        return tryReportError(ComponentError::kErrorBeforeReady);
+    }
+
     ProcessState desired_state{};
     switch (ready_condition_)
     {
@@ -54,12 +60,8 @@ IComponent::RequestResult ProcessInfoNode::tryReportCompletion(score::mw::lifecy
             desired_state = ProcessState::kTerminated;
             break;
     }
-    if (new_state == ProcessState::kFailed)
-    {
-        // Didn't reach running or startup
-        return tryReportError(ComponentError::kErrorBeforeReady);
-    }
-    if (new_state == desired_state)
+    // NOTE: Make assumptions over the enumeration values of ProcessState
+    if (new_state >= desired_state)
     {
         return tryReportSuccess();
     }
@@ -256,7 +258,12 @@ IComponent::RequestResult ProcessInfoNode::startProcess(score::cpp::stop_token s
     }
 
     setState(ProcessState::kRunning);  // Can fail if we've terminated already
-    return tryReportCompletion(ProcessState::kRunning);
+
+    // A self-terminating process may already have exited before startup completed. tryHandleTermination()
+    // leaves such a node waiting for the startup thread, so report against the state actually reached.
+    const ProcessState reached_state =
+        (getState() == ProcessState::kTerminated) ? ProcessState::kTerminated : ProcessState::kRunning;
+    return tryReportCompletion(reached_state);
 }
 
 void ProcessInfoNode::setupControlClientChannel()

@@ -289,9 +289,6 @@ class Graph final
     void forceKillProcesses();
 
   private:
-    /// @brief Helper function to identify a node with ready state "Terminated" from the legacy configuration
-    bool nodeHasTerminatedDeps(IdentifierHash pg_name, uint32_t node_index);
-
     /// @brief Reports that a node has finished executing, enqueuing successors or updating the graph state if a
     /// transition has finished.
     void nodeExecuted(uint32_t node, score::cpp::expected_blank<IComponent::ComponentError> error);

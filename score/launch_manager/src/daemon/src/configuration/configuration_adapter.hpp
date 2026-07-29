@@ -33,6 +33,7 @@ namespace score::mw::lifecycle::internal::configuration
 struct PgManagerConfig final
 {
     bool is_self_terminating_{};
+    bool ready_on_termination_{};
     std::chrono::milliseconds startup_timeout_ms_{};
     std::chrono::milliseconds termination_timeout_ms_{};
     uint32_t number_of_restart_attempts{};

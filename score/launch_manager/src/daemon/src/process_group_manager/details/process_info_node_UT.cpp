@@ -234,6 +234,31 @@ TEST_F(ProcessInfoNodeStartupTest, SelfTerminating_ExitsBeforeMapInsert_ReturnsS
     ASSERT_THAT(node->getState(), Eq(score::mw::lifecycle::ProcessState::kTerminated));
 }
 
+TEST_F(ProcessInfoNodeStartupTest, SelfTerminating_TerminatedReadyCondition_ExitsBeforeMapInsert_ReturnsSuccess)
+{
+    RecordProperty(
+        "Description",
+        "A self-terminating process whose ready condition is kTerminated and that exits with status 0 before the map "
+        "insertion completes reports success from activate() instead of waiting forever.");
+
+    auto node = createProcessInfoNode(osal::CommsType::kNoComms, 0, true, ProcessInfoNode::ReadyCondition::kTerminated);
+    // Simulate the process exiting before the map insertion happens.
+    EXPECT_CALL(mock_processIf_, startProcess(_, _, _))
+        .WillOnce(DoAll(
+            InvokeWithoutArgs([node = node.get()] {
+                node->tryHandleTermination(0);
+            }),
+            Return(osal::OsalReturnType::kSuccess)));
+    EXPECT_CALL(*process_map_, insertIfNotTerminated(_, _))
+        .WillOnce(Return(score::mw::lifecycle::internal::SafeProcessMapReturnType::kYield));
+
+    auto result = node->activate(score::cpp::stop_token{});
+
+    ASSERT_THAT(result.has_value(), IsTrue());
+    ASSERT_THAT(result.value(), Eq(IComponent::RequestState::kSuccess));
+    ASSERT_THAT(node->getState(), Eq(score::mw::lifecycle::ProcessState::kTerminated));
+}
+
 TEST_F(ProcessInfoNodeStartupTest, ActivateAlreadyActiveNode_ReturnsSuccess)
 {
     RecordProperty(

@@ -89,9 +89,6 @@ void Graph::createProcessInfoNodes(uint32_t num_processes)
     for (uint32_t process_id = 0U; process_id < num_processes; ++process_id)
     {
         LM_LOG_DEBUG() << "Creating process node with id:" << process_id;
-        auto ready_condition = nodeHasTerminatedDeps(getProcessGroupName(), process_id)
-                                   ? ProcessInfoNode::ReadyCondition::kTerminated
-                                   : ProcessInfoNode::ReadyCondition::kRunning;
 
         const auto* config =
             configuration_->getOsProcessConfiguration(getProcessGroupName(), process_id).value_or(nullptr);
@@ -100,6 +97,10 @@ void Graph::createProcessInfoNodes(uint32_t num_processes)
             LM_LOG_ERROR() << "No configuration for process" << process_id << "of process group"
                            << getProcessGroupName();
         }
+
+        const auto ready_condition = (config && config->pgm_config_.ready_on_termination_)
+                                         ? ProcessInfoNode::ReadyCondition::kTerminated
+                                         : ProcessInfoNode::ReadyCondition::kRunning;
 
         const auto index = nodes_.emplace(
             std::in_place_type<ProcessInfoNode>,
@@ -153,18 +154,6 @@ int32_t Graph::getRunTargetIndex(IdentifierHash pg_state) const
         }
     }
     return -1;
-}
-
-bool Graph::nodeHasTerminatedDeps(IdentifierHash pg_name, uint32_t node_index)
-{
-    const DependencyList* dep_list = configuration_->getOsProcessDependencies(pg_name, node_index).value_or(nullptr);
-
-    if (dep_list && dep_list->size() > 0)
-    {
-        return (*dep_list)[0].process_state_ == ProcessState::kTerminated;
-    }
-
-    return false;
 }
 
 void Graph::createSuccessorLists(IdentifierHash pg_name)
@@ -398,7 +387,7 @@ void Graph::handleComponentEvent(const ComponentEvent& event)
             using T = std::decay_t<decltype(data)>;
             if constexpr (std::is_same_v<T, ActivationSuccessful> || std::is_same_v<T, DeactivationComplete>)
             {
-                LM_LOG_DEBUG() << "Component " << data.node_index << " finished "
+                LM_LOG_DEBUG() << "Component" << data.node_index << "finished"
                                << (std::is_same_v<T, ActivationSuccessful> ? std::string_view("activation")
                                                                            : std::string_view("deactivation"))
                                << " successfully";
