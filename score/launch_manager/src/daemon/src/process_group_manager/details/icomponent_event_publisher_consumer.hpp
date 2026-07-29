@@ -23,8 +23,13 @@ namespace score::mw::lifecycle::internal
 class IComponentEventPublisher
 {
   public:
+    /// @brief Push an event into the queue
+    /// @returns False if the event was dropped
     [[nodiscard]] virtual bool push(ComponentEvent&& event) = 0;
+    /// @brief Check if the queue has overflowed (event dropped)
+    /// @returns True if it has overflowed
     [[nodiscard]] virtual bool getOverflow() const = 0;
+    /// @brief Get the queue capacity
     [[nodiscard]] virtual std::size_t capacity() = 0;
 
     virtual ~IComponentEventPublisher() = default;
@@ -34,8 +39,12 @@ class IComponentEventPublisher
 class IComponentEventConsumer
 {
   public:
+    /// @brief Wait for events to be available with the given timeout
+    /// @returns False if the wait finished without an event being recieved
     [[nodiscard]] virtual bool waitForEvents(std::chrono::milliseconds timeout) = 0;
+    /// @brief Retrieve the next event from the queue
     [[nodiscard]] virtual std::optional<ComponentEvent> getNextEvent() = 0;
+    /// @brief Stop waiting for events
     virtual void stop() = 0;
 
     virtual ~IComponentEventConsumer() = default;
