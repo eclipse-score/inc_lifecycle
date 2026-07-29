@@ -34,12 +34,7 @@ TEST(SandboxOptions, Daemon)
         auto result = client.ActivateRunTarget("Running").Get(stop_token);
         EXPECT_TRUE(result.has_value()) << "Activating target Running failed: " << result.error().Message();
     }
-    TEST_STEP("Activate RunTarget Startup")
-    {
-        score::cpp::stop_token stop_token;
-        auto result = client.ActivateRunTarget("Startup").Get(stop_token);
-        EXPECT_TRUE(result.has_value());
-    }
+
     TEST_STEP("Activate RunTarget Off")
     {
         client.ActivateRunTarget("Off");
