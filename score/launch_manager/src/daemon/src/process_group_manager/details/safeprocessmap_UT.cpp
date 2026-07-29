@@ -21,6 +21,7 @@
 
 #include "score/mw/launch_manager/common/constants.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/safe_process_map.hpp"
+#include "score/mw/launch_manager/process_group_manager/details/mock_termination_callback.hpp"
 
 using namespace testing;
 using namespace score::lcm::internal;
@@ -40,12 +41,6 @@ constexpr int kPidsPerThread = 256;
 #endif
 
 constexpr uint32_t kCapacity = static_cast<uint32_t>(ProcessLimits::kMaxProcesses);
-
-class MockTerminationCallback : public ITerminationCallback
-{
-  public:
-    MOCK_METHOD(void, terminated, (int32_t process_status), (override));
-};
 
 class SafeProcessMapTest : public ::testing::Test
 {
