@@ -32,7 +32,7 @@ class MpscBoundedQueueTest_Basic : public ::testing::Test
         queue_.stop();
     }
 
-    MpscBoundedQueue<int, 8> queue_;
+    MpscBoundedQueue<int> queue_{8U};
 };
 
 TEST_F(MpscBoundedQueueTest_Basic, PushAndPopSingleItem)
@@ -88,7 +88,7 @@ TEST_F(MpscBoundedQueueTest_Basic, RvaluePushWorksWithMoveOnlyType)
     };
     static_assert(!std::is_default_constructible_v<MoveOnly>);
 
-    MpscBoundedQueue<MoveOnly, 4> queue;
+    MpscBoundedQueue<MoveOnly> queue{4U};
     ASSERT_TRUE(queue.push(MoveOnly{std::make_unique<int>(99)}).has_value());
 
     auto result = queue.tryPop();
@@ -120,7 +120,7 @@ class MpscBoundedQueueTest_Capacity : public ::testing::Test
     }
 
     static constexpr std::size_t kCapacity = 4U;
-    MpscBoundedQueue<int, kCapacity> queue_;
+    MpscBoundedQueue<int> queue_{kCapacity};
 };
 
 TEST_F(MpscBoundedQueueTest_Capacity, FillsExactlyToCapacity)
@@ -194,12 +194,22 @@ TEST_F(MpscBoundedQueueTest_Capacity, RepeatedFillDrainCyclesWrapRingBufferCorre
     EXPECT_FALSE(queue_.tryPop().has_value());
 }
 
+TEST(MpscBoundedQueueTest_MinimalCapacity, CapacityOfZeroIsOne)
+{
+    RecordProperty("Description",
+                   "Verify the smallest legal capacity of one is guaranteed.");
+    MpscBoundedQueue<int> queue0{0U};
+    EXPECT_TRUE(queue0.push(1).has_value()) << "the smallest legal capacity of one shall be guaranteed"; 
+    EXPECT_FALSE(queue0.push(2).has_value()) << "only one element is allowed";
+    queue0.stop();
+}
+
 TEST(MpscBoundedQueueTest_MinimalCapacity, CapacityOfOneAllowsSingleItemAtATime)
 {
     RecordProperty("Description",
                    "Verify the smallest legal capacity (1) behaves correctly: a single push succeeds, a second "
                    "push overflows until the first item is drained, matching general boundary behavior.");
-    MpscBoundedQueue<int, 1> queue;
+    MpscBoundedQueue<int> queue{1U};
 
     EXPECT_TRUE(queue.push(1).has_value());
     auto blocked = queue.push(2);
@@ -226,8 +236,8 @@ class MpscBoundedQueueTest_Blocking : public ::testing::Test
         queue8_.stop();
     }
 
-    MpscBoundedQueue<int, 4> queue4_;
-    MpscBoundedQueue<int, 8> queue8_;
+    MpscBoundedQueue<int> queue4_{4U};
+    MpscBoundedQueue<int> queue8_{8U};
 };
 
 TEST_F(MpscBoundedQueueTest_Blocking, WaitReturnsTimeoutWhenEmpty)
@@ -272,8 +282,8 @@ class MpscBoundedQueueTest_Stop : public ::testing::Test
         queue8_.stop();
     }
 
-    MpscBoundedQueue<int, 4> queue4_;
-    MpscBoundedQueue<int, 8> queue8_;
+    MpscBoundedQueue<int> queue4_{4U};
+    MpscBoundedQueue<int> queue8_{8U};
 };
 
 TEST_F(MpscBoundedQueueTest_Stop, PushReturnsStoppedAfterStop)
@@ -349,7 +359,7 @@ class MpscBoundedQueueTest_MultiProducer : public ::testing::Test
     static constexpr std::size_t kNumProducers = 6U;
     static constexpr int kTotalItems = static_cast<int>(kItemsPerProducer * kNumProducers);
 
-    MpscBoundedQueue<int, kCapacity> queue_;
+    MpscBoundedQueue<int> queue_{kCapacity};
 };
 
 TEST_F(MpscBoundedQueueTest_MultiProducer, AllItemsFromConcurrentProducersDeliveredExactlyOnce)
@@ -436,16 +446,16 @@ TEST_F(MpscBoundedQueueTest_MultiProducer, AllItemsFromConcurrentProducersDelive
 TEST(MpscBoundedQueueTest, ToCallStopBeforeDestructionIsMandatory) 
 {
     RecordProperty("Description", "Verfiy that calling stop before destruction is mandatory.");
-    using IntQueue = MpscBoundedQueue<int, 4>;
-    EXPECT_DEATH({IntQueue{};}, "");
+    using IntQueue = MpscBoundedQueue<int>;
+    EXPECT_DEATH({IntQueue{4};}, "");
 }
 
 TEST(MpscBoundedQueueTest, OnlyOneConsumerThreadIsAllowed) 
 {
     RecordProperty("Description", "Verfiy that only one consumer thread is allowed.");
-    using IntQueue = MpscBoundedQueue<int, 4>;
+    using IntQueue = MpscBoundedQueue<int>;
     EXPECT_DEATH({
-            IntQueue queue;
+            IntQueue queue{4};
             std::thread consumer([&] {
                 static_cast<void>(queue.wait(std::chrono::milliseconds{5000}));
             });

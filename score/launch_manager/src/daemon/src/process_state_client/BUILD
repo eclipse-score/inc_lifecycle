@@ -75,6 +75,7 @@ cc_library(
 cc_test(
     name = "process_state_client_ut",
     srcs = ["process_state_client_ut.cpp"],
+    tags = ["no-tsan"],
     deps = [
         ":process_state_client",
         "//score/launch_manager/src/daemon/src/process_state_client/details:process_state_receiver",

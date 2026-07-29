@@ -95,6 +95,7 @@ cc_gtest_unit_test(
         "@platforms//os:qnx": ["-lsocket"],
         "@platforms//os:linux": [],
     }),
+    tags = ["no-tsan"],
     deps = [
         "//score/health_monitor/src/cpp:health_monitoring_cc_stub_supervisor",
         "//score/health_monitor/src/cpp/details:log_init",

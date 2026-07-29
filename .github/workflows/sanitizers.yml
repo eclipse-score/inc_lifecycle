@@ -30,7 +30,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        config: [asan_ubsan_lsan]
+        config: [asan_ubsan_lsan, tsan]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.2.2

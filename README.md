@@ -129,7 +129,21 @@ bazel build --config=x86_64-linux //...
 bazel build --config=arm64-linux //...
 ```
 
-### Testing
+To test launch_manager and health_monitor with the sanitizers enabled use one of the following
+
+ASan + UBSan + LSan (recommended):
+
+```sh
+bazel test --config=asan_ubsan_lsan --config=x86_64-linux //score/... //tests/...
+```
+
+TSan:
+
+```sh
+bazel test --config=tsan --config=x86_64-linux //score/... //tests/...
+```
+
+To build all components with ``score::mw::log`` enabled, use this command:
 
 ```sh
 bazel test --config=x86_64-linux //score/... //tests/...

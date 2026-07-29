@@ -11,7 +11,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 load("@rules_cc//cc:defs.bzl", "cc_test")
-load("//config:common_cc.bzl", "cc_binary_with_common_opts", "cc_library_with_common_opts")
 
 cc_library(
     name = "identifier_hash",
