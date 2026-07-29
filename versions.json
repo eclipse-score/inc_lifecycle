@@ -4,10 +4,6 @@
     "url": "https://eclipse-score.github.io/lifecycle/main/"
   },
   {
-    "version": "pr-195",
-    "url": "https://eclipse-score.github.io/lifecycle/pr-195/"
-  },
-  {
     "version": "pr-303",
     "url": "https://eclipse-score.github.io/lifecycle/pr-303/"
   },
@@ -52,10 +48,6 @@
     "url": "https://eclipse-score.github.io/lifecycle/pr-362/"
   },
   {
-    "version": "pr-367",
-    "url": "https://eclipse-score.github.io/lifecycle/pr-367/"
-  },
-  {
     "version": "pr-369",
     "url": "https://eclipse-score.github.io/lifecycle/pr-369/"
   },
@@ -72,18 +64,6 @@
     "url": "https://eclipse-score.github.io/lifecycle/pr-374/"
   },
   {
-    "version": "v0.1.0",
-    "url": "https://eclipse-score.github.io/lifecycle/v0.1.0/"
-  },
-  {
-    "version": "v0.2.0",
-    "url": "https://eclipse-score.github.io/lifecycle/v0.2.0/"
-  },
-  {
-    "version": "v0.3.0",
-    "url": "https://eclipse-score.github.io/lifecycle/v0.3.0/"
-  },
-  {
     "version": "pr-377",
     "url": "https://eclipse-score.github.io/lifecycle/pr-377/"
   },
@@ -98,5 +78,17 @@
   {
     "version": "pr-381",
     "url": "https://eclipse-score.github.io/lifecycle/pr-381/"
+  },
+  {
+    "version": "v0.1.0",
+    "url": "https://eclipse-score.github.io/lifecycle/v0.1.0/"
+  },
+  {
+    "version": "v0.2.0",
+    "url": "https://eclipse-score.github.io/lifecycle/v0.2.0/"
+  },
+  {
+    "version": "v0.3.0",
+    "url": "https://eclipse-score.github.io/lifecycle/v0.3.0/"
   }
 ]
