@@ -14,8 +14,6 @@
 #ifndef SCORE_MW_LIFECYCLE_MOCKS_APPLICATIONCONTEXTMOCK_H_
 #define SCORE_MW_LIFECYCLE_MOCKS_APPLICATIONCONTEXTMOCK_H_
 
-#include "score/memory/string_literal.h"
-
 #include <gmock/gmock.h>
 
 #include <string>

@@ -32,6 +32,7 @@ build --credential_helper=*.qnx.com=%workspace%/scripts/internal/qnx_creds.py
 build --copt=-Wall
 build --copt=-Wextra
 build --copt=-Werror
+build --copt=-Wno-error=deprecated-declarations
 build --per_file_copt=external/.*@-Wno-error
 
 # Common test flags for all platforms

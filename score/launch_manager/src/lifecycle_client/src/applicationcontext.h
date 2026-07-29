@@ -14,7 +14,6 @@
 #ifndef SCORE_MW_LIFECYCLE_APPLICATIONCONTEXT_H
 #define SCORE_MW_LIFECYCLE_APPLICATIONCONTEXT_H
 
-#include "score/memory/string_literal.h"
 #include <cstdint>
 #include <string>
 #include <string_view>
