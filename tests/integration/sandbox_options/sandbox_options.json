@@ -64,7 +64,8 @@
             "component_properties": {
                 "binary_name": "sandbox_options_process_a",
                 "application_profile": {
-                    "application_type": "Reporting"
+                    "application_type": "Reporting",
+                    "is_self_terminating": true
                 },
                 "process_arguments": [
                     "--uid=666",
@@ -93,7 +94,8 @@
             "component_properties": {
                 "binary_name": "sandbox_options_process_b",
                 "application_profile": {
-                    "application_type": "Reporting"
+                    "application_type": "Reporting",
+                    "is_self_terminating": true
                 },
                 "process_arguments": [
                     "--uid=0",
