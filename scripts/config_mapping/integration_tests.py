@@ -28,7 +28,13 @@ tests_dir = script_dir / "tests"
 lifecycle_script = script_dir / "lifecycle_config.py"
 
 
-def run(input_file: Path, test_name: str, schema_file: Path, compare_files_only=[], exclude_files=[]):
+def run(
+    input_file: Path,
+    test_name: str,
+    schema_file: Path,
+    compare_files_only=[],
+    exclude_files=[],
+):
     """
     Execute the mapping script with the given input file and compare the generated output with the expected output.
     Input:

@@ -107,13 +107,12 @@ def get_recovery_process_group_state(config):
 def sec_to_ms(sec: float) -> int:
     return int(sec * 1000)
 
+
 def get_working_dir(deployment_config):
     """
     Get the working directory for a component. If not specified, default to the bin_dir.
     """
-    return deployment_config.get(
-        "working_dir", deployment_config["bin_dir"]
-    )
+    return deployment_config.get("working_dir", deployment_config["bin_dir"])
 
 
 def preprocess_defaults(global_defaults, config):

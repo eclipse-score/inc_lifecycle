@@ -1,12 +1,12 @@
 import pytest
 
+
 def pytest_addoption(parser):
     parser.addoption(
         "--schema-file",
         action="store",
         required=True,
         help="path to the schema file",
-
     )
 
 
