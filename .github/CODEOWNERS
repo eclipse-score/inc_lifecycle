@@ -3,6 +3,9 @@
 # .*                                 @eclipse-score/infrastructure-tooling-community
 # .github/CODEOWNERS                 @eclipse-score/technical-lead
 
+* @NicolasFussberger @pawelrutkaq @ramceb @MaciejKaszynski @FScholPer @antonkri @anmittag
+
+
 # in separate <module_name> repositories:
 #
 # /docs                     @eclipse-score/process-community
