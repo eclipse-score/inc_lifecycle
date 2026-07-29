@@ -28,7 +28,7 @@ jobs:
     with:
       bazel-target: "//score/..."
       bazel-config: "x86_64-linux"
-      extra-bazel-flags: "--test_output=errors --nocache_test_results --lockfile_mode=error --test_lang_filters=-rust,-miri --instrumentation_filter=-mock_*"
+      extra-bazel-flags: "--test_output=errors --nocache_test_results --lockfile_mode=error --test_lang_filters=-rust,-miri"
       artifact-name-suffix: "_cpp"
       retention-days: 10
       min-coverage: 76
