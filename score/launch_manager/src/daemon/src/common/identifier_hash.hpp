@@ -154,6 +154,7 @@ class IdentifierHash final
 /// @return A reference to the output stream.
 inline std::ostream& operator<<(std::ostream& stream, const IdentifierHash& id_hash) noexcept(false)
 {
+    const std::lock_guard<std::mutex> lock(IdentifierHash::get_registry_mutex());
     const auto& reg = IdentifierHash::get_registry();
     const auto it = reg.find(id_hash.data());
     if (it != reg.end())
@@ -178,6 +179,7 @@ namespace score::lcm
 inline score::mw::log::LogStream& operator<<(score::mw::log::LogStream& stream,
                                              const IdentifierHash& id_hash) noexcept(false)
 {
+    const std::lock_guard<std::mutex> lock(IdentifierHash::get_registry_mutex());
     const auto& reg = IdentifierHash::get_registry();
     const auto it = reg.find(id_hash.data());
     if (it != reg.end())
