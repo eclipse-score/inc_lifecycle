@@ -64,13 +64,13 @@ class INotifyWatcher
     [[nodiscard]] iterator end();
 
   private:
-    /// @brief The event queue fd taken from `inotify_init`
+    /// @brief The event queue taken from `inotify_init`
     int event_queue_fd_;
 
     /// @brief Event used to interrupt the wait.
     int event_fd_;
 
-    /// @brief
+    /// @brief 
     int epoll_fd_;
 
     /// @brief An iterator that reads the event queue, and 
@@ -122,12 +122,6 @@ class INotifyWatcher
 
         /// @brief Backing data for the event.
         std::array<char, kEventSize> buf_{};
-
-        /// @brief valid bytes in `buf_`.
-        std::size_t buf_len_ = 0; 
-
-        /// @brief Read cursor.
-        std::ptrdiff_t buf_pos_ = 0;
 
         /// @brief Returns false if interrupted or error.
         [[nodiscard]] bool advance();

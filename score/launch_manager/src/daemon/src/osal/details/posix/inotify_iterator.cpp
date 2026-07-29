@@ -137,13 +137,6 @@ bool INotifyWatcher::iterator::operator!=(const iterator& other) const
 
 bool INotifyWatcher::iterator::advance()
 {
-    const bool events_in_buffer = buf_pos_ < buf_len_;
-    if (events_in_buffer)
-    {
-        consume_next();
-        return true;
-    }
-
     // need 2 fields, one for the inotify fd and one for the event fd
     std::array<epoll_event, 2> events{};
     int events_seen = ::epoll_wait(watcher_->epoll_fd_, events.data(), events.size(), -1);
@@ -172,16 +165,13 @@ bool INotifyWatcher::iterator::advance()
         return false;
     }
 
-    buf_len_ = static_cast<std::size_t>(bytes_read);
-    buf_pos_ = 0;
-
     consume_next();
     return true;
 };
 
 void INotifyWatcher::iterator::consume_next()
 {
-    const char* raw = std::next(buf_.data(), static_cast<std::ptrdiff_t>(buf_pos_));
+    const char* raw = buf_.data();
 
     // using memcpy so that we don't reintepret_cast
     std::memcpy(&current_.wd, raw, sizeof(inotify_event::wd));
@@ -193,10 +183,9 @@ void INotifyWatcher::iterator::consume_next()
     std::memcpy(&current_.cookie, raw, sizeof(inotify_event::cookie));
     raw = std::next(raw, sizeof(inotify_event::cookie));
 
-    decltype(inotify_event::len) len {0};
+    decltype(inotify_event::len) len{0};
     std::memcpy(&len, raw, sizeof(inotify_event::len));
     raw = std::next(raw, sizeof(inotify_event::len));
 
     current_.name = std::string_view(raw, len);
-    buf_pos_ += static_cast<std::ptrdiff_t>(sizeof(inotify_event)) + len;
 };
