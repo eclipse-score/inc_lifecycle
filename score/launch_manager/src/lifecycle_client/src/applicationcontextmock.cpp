@@ -60,19 +60,38 @@ score::mw::lifecycle::ApplicationContextMock::~ApplicationContextMock()
 }
 
 score::mw::lifecycle::ApplicationContext::ApplicationContext(const std::int32_t argc, const char* const argv[])
+    : m_args(argv, argv + argc), m_app_path(argc > 0 ? std::string{argv[0]} : std::string{})
 {
     auto& constructor_callback = GetConstructorCallback();
-    constructor_callback(argc, argv);
+    if (constructor_callback)
+    {
+        constructor_callback(argc, argv);
+    }
 }
 
 const std::vector<std::string>& score::mw::lifecycle::ApplicationContext::get_arguments() const noexcept
 {
     auto& get_arguments_callback = GetGetArgumentsCallback();
-    return get_arguments_callback();
+    if (get_arguments_callback)
+    {
+        return get_arguments_callback();
+    }
+    return m_args;
 }
 
 std::string score::mw::lifecycle::ApplicationContext::get_argument(const std::string_view flag) const noexcept
 {
     auto& get_argument_callback = GetGetArgumentCallback();
-    return get_argument_callback(flag);
+    if (get_argument_callback)
+    {
+        return get_argument_callback(flag);
+    }
+    for (auto it = m_args.cbegin(); it != m_args.cend(); ++it)
+    {
+        if (it->rfind(flag, 0) == 0)
+        {
+            return *it;
+        }
+    }
+    return {};
 }
