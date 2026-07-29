@@ -98,7 +98,6 @@
                 "process_arguments": [
                     "--uid=0",
                     "--gid=0",
-                    "--supplementary-groups=",
                     "--scheduling-policy=SCHED_RR"
                 ]
             },
