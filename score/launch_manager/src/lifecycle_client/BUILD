@@ -41,7 +41,6 @@ cc_library(
     tags = ["FUSA"],
     visibility = ["//score/launch_manager:__subpackages__"],
     deps = [
-        "@score_baselibs//score/memory:string_literal",
         "@score_baselibs//score/mw/log",
         "@score_baselibs//score/os:stdlib",
         "@score_baselibs//score/os/utils:signal",
@@ -164,7 +163,6 @@ cc_library(
     visibility = ["//score/launch_manager:__subpackages__"],
     deps = [
         "@googletest//:gtest",
-        "@score_baselibs//score/memory:string_literal",
         "@score_baselibs//score/os/utils:signal",
     ],
 )
