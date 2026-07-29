@@ -1,0 +1,129 @@
+{
+    "schema_version": 1,
+    "defaults": {
+        "deployment_config": {
+            "bin_dir": "/tmp/tests/rt_running_when_process_exits",
+            "ready_timeout": 2.0,
+            "shutdown_timeout": 1.0,
+            "ready_recovery_action": {
+                "restart": {
+                    "number_of_attempts": 0
+                }
+            },
+            "environmental_variables": {
+                "LD_LIBRARY_PATH": "/opt/lib"
+            },
+            "sandbox": {
+                "uid": 0,
+                "gid": 0,
+                "scheduling_policy": "SCHED_OTHER",
+                "scheduling_priority": 0
+            }
+        },
+        "component_properties": {
+            "application_profile": {
+                "application_type": "Reporting",
+                "is_self_terminating": true
+            },
+            "ready_condition": {
+                "process_state": "Running"
+            }
+        }
+    },
+    "components": {
+        "control_client_test_driver": {
+            "description": "Drives the test: activates the run targets in sequence and checks that a terminated-ready component with no dependents has actually terminated before its run target reports success.",
+            "component_properties": {
+                "binary_name": "control_client_test_driver",
+                "application_profile": {
+                    "application_type": "State_Manager",
+                    "alive_supervision": {
+                        "min_indications": 0
+                    }
+                }
+            },
+            "deployment_config": {
+                "ready_timeout": 1.0,
+                "shutdown_timeout": 1.0,
+                "environmental_variables": {
+                    "PROCESSIDENTIFIER": "control_client_test_driver"
+                }
+            }
+        },
+        "setup_filesystem_sh": {
+            "description": "Wraps setup_filesystem.sh which prepares the filesystem (here: writes a file) and then terminates. The component becomes ready only once the script process has terminated successfully. It HAS a dependent (filesystem_reader), so its Terminated ready condition is carried on the dependency edge.",
+            "component_properties": {
+                "binary_name": "setup_filesystem.sh",
+                "application_profile": {
+                    "application_type": "Native",
+                    "is_self_terminating": true
+                },
+                "depends_on": [],
+                "ready_condition": {
+                    "process_state": "Terminated"
+                }
+            }
+        },
+        "filesystem_reader": {
+            "description": "C++ executable that reads the file prepared by setup_filesystem.sh and verifies that the script process has already terminated.",
+            "component_properties": {
+                "binary_name": "filesystem_reader",
+                "application_profile": {
+                    "application_type": "Reporting",
+                    "is_self_terminating": true
+                },
+                "depends_on": [
+                    "setup_filesystem_sh"
+                ],
+                "ready_condition": {
+                    "process_state": "Running"
+                }
+            },
+            "deployment_config": {
+                "environmental_variables": {
+                    "PROCESSIDENTIFIER": "filesystem_reader"
+                }
+            }
+        },
+        "slow_setup_sh": {
+            "description": "Wraps slow_setup.sh: a self-terminating component whose ready condition is Terminated but which has NO dependent component. It waits briefly before writing its marker file. This reproduces the bug where a run target depending directly on such a component reports success as soon as the process is started, instead of once it has terminated.",
+            "component_properties": {
+                "binary_name": "slow_setup.sh",
+                "application_profile": {
+                    "application_type": "Native",
+                    "is_self_terminating": true
+                },
+                "depends_on": [],
+                "ready_condition": {
+                    "process_state": "Terminated"
+                }
+            }
+        }
+    },
+    "run_targets": {
+        "Startup": {
+            "depends_on": [
+                "control_client_test_driver"
+            ]
+        },
+        "run_target_reader": {
+            "depends_on": [
+                "control_client_test_driver",
+                "filesystem_reader"
+            ]
+        },
+        "run_target_slow_setup": {
+            "depends_on": [
+                "control_client_test_driver",
+                "slow_setup_sh"
+            ]
+        },
+        "Off": {
+            "depends_on": []
+        }
+    },
+    "initial_run_target": "Startup",
+    "fallback_run_target": {
+        "depends_on": []
+    }
+}
