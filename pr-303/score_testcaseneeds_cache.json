@@ -408,7 +408,7 @@
   {
     "name": "signal_safe_log_test__signal_safe_log_test_maximum_length",
     "file": "score/launch_manager/src/daemon/src/common/signal_safe_log_UT.cpp",
-    "line": "89",
+    "line": "95",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
