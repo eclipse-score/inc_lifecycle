@@ -231,7 +231,7 @@ deployment_config (object)
 * **bin_dir** (string, optional)
     * **Description:** Specifies the absolute filesystem path to the directory where the component's executable is installed.
 * **working_dir** (string, optional)
-    * **Description:** Specifies the directory to be used as the working directory for the component during execution.
+    * **Description:** Specifies the directory to be used as the working directory for the component during execution. If not defined, the binary's directory (``bin_dir``) is used as the working directory by default.
 * **ready_recovery_action** (object, optional)
     * **Description:** Specifies the recovery action to execute when the component fails to reach its **Ready State** within the configured ``ready_timeout``. This action is limited to ``restart`` operations.
     * **Reference:** This property refers to the ``recovery_action`` reusable type defined in this schema, specifically enforcing the ``restart`` option.
