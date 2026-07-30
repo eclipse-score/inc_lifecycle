@@ -16,20 +16,12 @@
     "url": "https://eclipse-score.github.io/lifecycle/pr-328/"
   },
   {
-    "version": "pr-337",
-    "url": "https://eclipse-score.github.io/lifecycle/pr-337/"
-  },
-  {
     "version": "pr-340",
     "url": "https://eclipse-score.github.io/lifecycle/pr-340/"
   },
   {
     "version": "pr-341",
     "url": "https://eclipse-score.github.io/lifecycle/pr-341/"
-  },
-  {
-    "version": "pr-350",
-    "url": "https://eclipse-score.github.io/lifecycle/pr-350/"
   },
   {
     "version": "pr-352",
@@ -44,20 +36,8 @@
     "url": "https://eclipse-score.github.io/lifecycle/pr-356/"
   },
   {
-    "version": "pr-362",
-    "url": "https://eclipse-score.github.io/lifecycle/pr-362/"
-  },
-  {
     "version": "pr-369",
     "url": "https://eclipse-score.github.io/lifecycle/pr-369/"
-  },
-  {
-    "version": "pr-370",
-    "url": "https://eclipse-score.github.io/lifecycle/pr-370/"
-  },
-  {
-    "version": "pr-373",
-    "url": "https://eclipse-score.github.io/lifecycle/pr-373/"
   },
   {
     "version": "pr-374",
@@ -80,28 +60,8 @@
     "url": "https://eclipse-score.github.io/lifecycle/pr-381/"
   },
   {
-    "version": "v0.1.0",
-    "url": "https://eclipse-score.github.io/lifecycle/v0.1.0/"
-  },
-  {
-    "version": "v0.2.0",
-    "url": "https://eclipse-score.github.io/lifecycle/v0.2.0/"
-  },
-  {
-    "version": "v0.3.0",
-    "url": "https://eclipse-score.github.io/lifecycle/v0.3.0/"
-  },
-  {
-    "version": "pr-380",
-    "url": "https://eclipse-score.github.io/lifecycle/pr-380/"
-  },
-  {
     "version": "pr-383",
     "url": "https://eclipse-score.github.io/lifecycle/pr-383/"
-  },
-  {
-    "version": "pr-384",
-    "url": "https://eclipse-score.github.io/lifecycle/pr-384/"
   },
   {
     "version": "pr-386",
@@ -112,7 +72,15 @@
     "url": "https://eclipse-score.github.io/lifecycle/pr-388/"
   },
   {
-    "version": "pr-389",
-    "url": "https://eclipse-score.github.io/lifecycle/pr-389/"
+    "version": "v0.1.0",
+    "url": "https://eclipse-score.github.io/lifecycle/v0.1.0/"
+  },
+  {
+    "version": "v0.2.0",
+    "url": "https://eclipse-score.github.io/lifecycle/v0.2.0/"
+  },
+  {
+    "version": "v0.3.0",
+    "url": "https://eclipse-score.github.io/lifecycle/v0.3.0/"
   }
 ]
