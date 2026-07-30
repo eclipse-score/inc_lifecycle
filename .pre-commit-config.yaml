@@ -30,9 +30,20 @@ repos:
     hooks:
       - id: clang-format
         name: clang-format
+        # See https://github.com/eclipse-score/lifecycle/issues/390
+        # Remove exclude and run
+        # pre-commit run clang-format --all-files
         entry: bazel run //:format.fix_C++_with_clang-format
         language: system
         files: '\.(c|cc|cpp|h|hpp)$'
+        exclude: |
+          (?x)^(
+            externals/|
+            examples/|
+            tests/|
+            score/
+          )
+
       - id: clang-tidy
         name: clang-tidy
         # Run through a wrapper that sanitizes unsupported linker flags in
