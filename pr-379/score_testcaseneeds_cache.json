@@ -1080,7 +1080,7 @@
   {
     "name": "INotifyTest__IncrementEndIterator",
     "file": "score/launch_manager/src/daemon/src/osal/details/posix/inotify_iterator_UT.cpp",
-    "line": "200",
+    "line": "201",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1094,7 +1094,7 @@
   {
     "name": "INotifyTest__CreateWithoutParameters",
     "file": "score/launch_manager/src/daemon/src/osal/details/posix/inotify_iterator_UT.cpp",
-    "line": "213",
+    "line": "214",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1108,7 +1108,7 @@
   {
     "name": "INotifyTest__AddWatchFailure",
     "file": "score/launch_manager/src/daemon/src/osal/details/posix/inotify_iterator_UT.cpp",
-    "line": "219",
+    "line": "220",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1122,7 +1122,7 @@
   {
     "name": "INotifyTest__ReadFailure",
     "file": "score/launch_manager/src/daemon/src/osal/details/posix/inotify_iterator_UT.cpp",
-    "line": "233",
+    "line": "234",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1136,7 +1136,7 @@
   {
     "name": "INotifyTest__AddWatchAfterMove",
     "file": "score/launch_manager/src/daemon/src/osal/details/posix/inotify_iterator_UT.cpp",
-    "line": "250",
+    "line": "251",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
