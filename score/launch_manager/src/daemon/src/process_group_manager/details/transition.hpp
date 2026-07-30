@@ -13,9 +13,9 @@
 #ifndef SCORE_LCM_TRANSITION_HPP
 #define SCORE_LCM_TRANSITION_HPP
 
+#include "score/mw/launch_manager/common/concurrency/fixed_size_queue.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/dependency_graph.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/icomponent.hpp"
-#include "score/mw/launch_manager/process_group_manager/details/reservable_queue.hpp"
 
 #include <score/assert.hpp>
 
@@ -26,10 +26,12 @@
 #include <optional>
 #include <type_traits>
 #include <utility>
+#include <variant>
 #include <vector>
 
 namespace score::mw::lifecycle
 {
+using namespace score::lcm::internal;
 
 /// @brief What should happen to a ready node right now.
 enum class Action : std::uint8_t
@@ -129,7 +131,7 @@ class Transition
         {
             return std::nullopt;
         }
-        return ReadyNode{state_.next_nodes.pop(), currentAction()};
+        return ReadyNode{state_.next_nodes.tryPop().value(), currentAction()};
     }
 
     /// @brief Input iterator that drains the transition via nextReady().
@@ -221,7 +223,8 @@ class Transition
         {
             if (isReady(s))
             {
-                state_.next_nodes.push(s);
+                SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(
+                    state_.next_nodes.push(s), "Transition queue should never exceed capacity");
             }
         }
     }
@@ -244,10 +247,9 @@ class Transition
     /// @details All the memory needed for a transition is allocated here, so that no further allocations are
     /// needed while the transition is in flight. The same transition object is then reused for multiple transitions by
     /// calling @ref setupTransition() with a new target node.
-    explicit Transition(DependencyGraph<T>& graph) : graph_(graph)
+    explicit Transition(DependencyGraph<T>& graph) : state_(graph.capacity()), graph_(graph)
     {
         state_.in_target_subgraph.assign(graph.capacity(), false);
-        state_.next_nodes.reserve(graph.capacity());
     }
 
     /// @brief Set up a fresh transition to @p target.
@@ -288,11 +290,13 @@ class Transition
 
         /// @brief The nodes that are ready to be activated/deactivated in the current phase, in the order they were
         /// discovered.
-        /// @details Consumed (FIFO) by nextReady() and appended to by onNodeFinished. A ring buffer
-        /// so size does not grow.
-        ReservableQueue<GraphIndex> next_nodes;
+        FixedSizeQueue<GraphIndex> next_nodes;
         std::size_t pending = 0;    // nodes still to reach terminal state in this phase
         Phase phase = Phase::Done;  // active vs deactivation vs finished
+
+        State(std::size_t nodes) : next_nodes(nodes)
+        {
+        }
     };
 
     /// @brief Check if the node is active
@@ -342,11 +346,19 @@ class Transition
                    : (!state_.in_target_subgraph[s] && !stopped(s) && allDependentsStopped(s));
     }
 
+    void clearNextNodes()
+    {
+        while (!state_.next_nodes.empty())
+        {
+            static_cast<void>(state_.next_nodes.tryPop());
+        }
+    }
+
     /// @brief Reset the internal state before setting up the next phase
     void beginSetup(GraphIndex target)
     {
         state_.target_root = target;
-        state_.next_nodes.clear();
+        clearNextNodes();
         state_.pending = 0;
         state_.phase = Phase::Stopping;
     }
@@ -358,7 +370,7 @@ class Transition
     {
         state_.phase = Phase::Starting;
         state_.pending = 0;
-        state_.next_nodes.clear();
+        clearNextNodes();
 
         setupActivation(state_.target_root);
         if (state_.pending == 0)

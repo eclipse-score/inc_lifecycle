@@ -22,6 +22,7 @@
 
 #include "score/mw/launch_manager/common/constants.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/mock_component_controller.hpp"
+#include "score/mw/launch_manager/process_group_manager/details/mock_component.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/safe_process_map.hpp"
 #include "score/os/mocklib/sys_wait_mock.h"
 
@@ -30,17 +31,6 @@ using namespace score::lcm::internal;
 
 namespace
 {
-
-class MockComponent : public IComponent
-{
-  public:
-    MOCK_METHOD(RequestResult, activate, (score::cpp::stop_token stop_token), (override));
-    MOCK_METHOD(RequestResult, deactivate, (score::cpp::stop_token stop_token), (override));
-    MOCK_METHOD(RequestResult, tryHandleTermination, (int32_t status), (override));
-    MOCK_METHOD(bool, active, (), (const override));
-    MOCK_METHOD(bool, stopped, (), (const override));
-    MOCK_METHOD(uint32_t, getIndex, (), (const override));
-};
 
 class OsHandlerTest : public ::testing::Test
 {

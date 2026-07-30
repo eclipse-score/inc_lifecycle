@@ -80,7 +80,7 @@ IComponent::RequestResult ProcessInfoNode::tryReportCompletion(score::lcm::Proce
 
 IComponent::RequestResult ProcessInfoNode::tryReportSuccess()
 {
-    if (!callback_used_.test_and_set())
+    if (!success_returned_.test_and_set())
     {
         reached_ready_.store(true);
         return {RequestState::kSuccess};
@@ -90,7 +90,7 @@ IComponent::RequestResult ProcessInfoNode::tryReportSuccess()
 
 IComponent::RequestResult ProcessInfoNode::tryReportError(ComponentError error)
 {
-    if (!callback_used_.test_and_set())
+    if (!success_returned_.test_and_set())
     {
         // Activation failed to reach its ready condition.
         return score::cpp::make_unexpected(error);
@@ -405,7 +405,7 @@ inline void ProcessInfoNode::handleForcedTermination(const score::cpp::stop_toke
 
 IComponent::RequestResult ProcessInfoNode::activate(score::cpp::stop_token stop_token)
 {
-    callback_used_.clear();
+    success_returned_.clear();
     if (reached_ready_.load())
     {  // Already activated (still active — even if the process has since self-terminated),
        // nothing to do. A component is only restarted after it has been deactivated.
@@ -417,7 +417,7 @@ IComponent::RequestResult ProcessInfoNode::activate(score::cpp::stop_token stop_
 
 IComponent::RequestResult ProcessInfoNode::deactivate(score::cpp::stop_token stop_token)
 {
-    callback_used_.clear();
+    success_returned_.clear();
     reached_ready_.store(false);
     terminateProcess(stop_token);
     setState(ProcessState::kIdle);

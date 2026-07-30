@@ -36,14 +36,16 @@ namespace
 class MockRecoveryClient : public score::lcm::IRecoveryClient
 {
   public:
-    MOCK_METHOD(void,
-                setRecoveryRequestCallback,
-                (score::lcm::IRecoveryClient::RecoveryRequestCallback callback),
-                (noexcept, override));
-    MOCK_METHOD(bool,
-                sendRecoveryRequest,
-                (const score::lcm::IdentifierHash& process_group_identifier),
-                (noexcept, override));
+    MOCK_METHOD(
+        void,
+        setRecoveryRequestCallback,
+        (score::lcm::IRecoveryClient::RecoveryRequestCallback callback),
+        (noexcept, override));
+    MOCK_METHOD(
+        bool,
+        sendRecoveryRequest,
+        (const score::lcm::IdentifierHash& process_group_identifier),
+        (noexcept, override));
 };
 
 /// Helper: build a minimal Alive under test.
@@ -170,10 +172,11 @@ class AliveSupervisionTest : public ::testing::Test
 
 TEST_F(AliveSupervisionTest, AliveTransitionsOkToExpiredOnMissingHeartbeat)
 {
-    RecordProperty("Description",
-                   "Verify that Alive transitions from deactivated -> ok -> expired when no heartbeats are reported "
-                   "and failedCyclesTolerance == 0. sendRecoveryRequest must be called exactly once with the "
-                   "configured recovery target hash.");
+    RecordProperty(
+        "Description",
+        "Verify that Alive transitions from deactivated -> ok -> expired when no heartbeats are reported "
+        "and failedCyclesTolerance == 0. sendRecoveryRequest must be called exactly once with the "
+        "configured recovery target hash.");
     AliveFixture fix = AliveFixture::Builder{}.build();
 
     EXPECT_CALL(*fix.mockClient, sendRecoveryRequest(fix.kProcessIdentifier)).Times(1).WillOnce(Return(true));
@@ -191,8 +194,8 @@ TEST_F(AliveSupervisionTest, AliveTransitionsOkToExpiredOnMissingHeartbeat)
 
 TEST_F(AliveSupervisionTest, AliveStaysOkWithCorrectHeartbeats)
 {
-    RecordProperty("Description",
-                   "Verify that sending at least minIndications heartbeats per cycle keeps Alive in ok.");
+    RecordProperty(
+        "Description", "Verify that sending at least minIndications heartbeats per cycle keeps Alive in ok.");
     AliveFixture fix = AliveFixture::Builder{}.build();
 
     EXPECT_CALL(*fix.mockClient, sendRecoveryRequest(_)).Times(0);
@@ -234,9 +237,10 @@ TEST_F(AliveSupervisionTest, AliveReportsEnqueueFailureWhenRingBufferFull)
 
 TEST_F(AliveSupervisionTest, AliveDebouncesThroughFailedBeforeExpired)
 {
-    RecordProperty("Description",
-                   "Verify that failedCyclesTolerance debouncing works: with tolerance=1 the supervision passes "
-                   "through failed before reaching expired.");
+    RecordProperty(
+        "Description",
+        "Verify that failedCyclesTolerance debouncing works: with tolerance=1 the supervision passes "
+        "through failed before reaching expired.");
     AliveFixture fix = AliveFixture::Builder{}.withFailedCyclesTolerance(1U).build();
 
     EXPECT_CALL(*fix.mockClient, sendRecoveryRequest(fix.kProcessIdentifier))
@@ -274,8 +278,8 @@ TEST_F(AliveSupervisionTest, DeactivatesOnProcessSigterm)
 
 TEST_F(AliveSupervisionTest, DeactivatesOnProcessCrash)
 {
-    RecordProperty("Description",
-                   "Verify that a process crash (off without sigterm) also deactivates the supervision.");
+    RecordProperty(
+        "Description", "Verify that a process crash (off without sigterm) also deactivates the supervision.");
     AliveFixture fix = AliveFixture::Builder{}.build();
 
     EXPECT_CALL(*fix.mockClient, sendRecoveryRequest(_)).Times(0);
@@ -291,9 +295,10 @@ TEST_F(AliveSupervisionTest, DeactivatesOnProcessCrash)
 
 TEST_F(AliveSupervisionTest, ReactivatesAfterCrash)
 {
-    RecordProperty("Description",
-                   "Verify that after a crash (off) the supervision can be reactivated when the process"
-                   " reports running again, without any special recovery path.");
+    RecordProperty(
+        "Description",
+        "Verify that after a crash (off) the supervision can be reactivated when the process"
+        " reports running again, without any special recovery path.");
     AliveFixture fix = AliveFixture::Builder{}.build();
 
     EXPECT_CALL(*fix.mockClient, sendRecoveryRequest(_)).Times(0);
@@ -315,9 +320,10 @@ TEST_F(AliveSupervisionTest, ReactivatesAfterCrash)
 
 TEST_F(AliveSupervisionTest, IgnoresIrrelevantProcessStates)
 {
-    RecordProperty("Description",
-                   "Verify that process states other than running/sigterm/off are ignored and do not"
-                   " affect the supervision state.");
+    RecordProperty(
+        "Description",
+        "Verify that process states other than running/sigterm/off are ignored and do not"
+        " affect the supervision state.");
     AliveFixture fix = AliveFixture::Builder{}.build();
 
     EXPECT_CALL(*fix.mockClient, sendRecoveryRequest(_)).Times(0);

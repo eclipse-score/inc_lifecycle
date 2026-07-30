@@ -36,11 +36,13 @@ namespace internal
 using ReportStateFn = std::function<bool(IdentifierHash, ProcessState, timespec)>;
 
 /// @brief Represents both a process and a component in the graph.
-/// @details A ProcessInfoNode is a node in the dependency graph that represents an OS process and its associated component.
-/// It manages the lifecycle of the process, including activation, deactivation, and state reporting. 
-/// The node tracks the process's PID, status, and state, and provides methods to activate or deactivate the process, as well as to report its completion or error state.
-/// At the same time it implements the IComponent interface, allowing it to be treated as a component in the graph's transition engine.
-/// @note A Component and a Process have distinct state machines. The component may be in kActive state while the process is in kTerminated state, for example, if the process self-terminates after reaching its ready condition.
+/// @details A ProcessInfoNode is a node in the dependency graph that represents an OS process and its associated
+/// component. It manages the lifecycle of the process, including activation, deactivation, and state reporting. The
+/// node tracks the process's PID, status, and state, and provides methods to activate or deactivate the process, as
+/// well as to report its completion or error state. At the same time it implements the IComponent interface, allowing
+/// it to be treated as a component in the graph's transition engine.
+/// @note A Component and a Process have distinct state machines. The component may be in kActive state while the
+/// process is in kTerminated state, for example, if the process self-terminates after reaching its ready condition.
 ///       In the future, this class shall be split up to properly separate Component and Process lifecycle.
 class ProcessInfoNode final : public IComponent
 {
@@ -59,12 +61,13 @@ class ProcessInfoNode final : public IComponent
     /// @param report_function Callback used to report state changes to the platform health manager.
     /// @param process_interface The OS process interface used to start and stop the process.
     /// @param process_map The shared process map used to track process pids.
-    ProcessInfoNode(const OsProcess* config,
-                    uint32_t index,
-                    ReadyCondition ready_condition,
-                    ReportStateFn report_function,
-                    osal::IProcess* process_interface,
-                    std::shared_ptr<SafeProcessMap> process_map);
+    ProcessInfoNode(
+        const OsProcess* config,
+        uint32_t index,
+        ReadyCondition ready_condition,
+        ReportStateFn report_function,
+        osal::IProcess* process_interface,
+        std::shared_ptr<SafeProcessMap> process_map);
 
     /// @brief Explicit move constructor required due to atomics. PIN must be moveable to exist in the graph
     ProcessInfoNode(ProcessInfoNode&& other) noexcept
@@ -127,7 +130,7 @@ class ProcessInfoNode final : public IComponent
     /// @return The provided error if the result has not been reported yet. A waiting result otherwise.
     RequestResult tryReportError(ComponentError error);
 
-    /// @return Success state if the callback has not been used yet, waiting otherwise.
+    /// @return Success state if success has not been returned yet, waiting result otherwise.
     RequestResult tryReportSuccess();
 
     /// @brief Requests the OS to terminate this process and waits for it to exit.
@@ -206,7 +209,7 @@ class ProcessInfoNode final : public IComponent
     ReportStateFn report_state_;
 
     /// @brief True if we have returned a success or failure for the current activation/deactivation
-    std::atomic_flag callback_used_{false};
+    std::atomic_flag success_returned_{false};
 
     /// @brief Handle to manage the underlying posix process
     osal::IProcess* process_interface_{nullptr};

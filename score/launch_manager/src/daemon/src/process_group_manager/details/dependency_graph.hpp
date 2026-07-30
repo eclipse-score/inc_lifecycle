@@ -13,7 +13,8 @@
 #ifndef SCORE_LCM_DEPENDENCY_GRAPH_HPP
 #define SCORE_LCM_DEPENDENCY_GRAPH_HPP
 
-#include "score/mw/launch_manager/process_group_manager/details/reservable_queue.hpp"
+#include "score/assert.hpp"
+#include "score/mw/launch_manager/common/concurrency/fixed_size_queue.hpp"
 
 #include <algorithm>
 #include <cstddef>
@@ -21,6 +22,8 @@
 
 namespace score::mw::lifecycle
 {
+
+using namespace score::lcm::internal;
 
 /// @brief Index type used to identify nodes in the graph.
 using GraphIndex = std::size_t;
@@ -47,10 +50,9 @@ class DependencyGraph
 
   public:
     /// @param count The exact number of nodes that will be added.
-    DependencyGraph(std::size_t count)
+    DependencyGraph(std::size_t count) : traversal_queue(std::max(count, std::size_t(2)) - 1)
     {
         nodes.reserve(count);
-        traversal_queue.reserve(std::max(count, std::size_t(2)) - 1);
         visited.resize(count);
     }
 
@@ -109,11 +111,15 @@ class DependencyGraph
     void traverse(const GraphIndex start, PerNodeFn per_node, FilterFn filter)
     {
         visited.assign(visited.size(), false);
-        traversal_queue.push(start);
+        auto push_res = traversal_queue.push(start);
+        SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(push_res, "Traversal queue was already full");
         visited[start] = true;
         while (!traversal_queue.empty())
         {
-            auto current = traversal_queue.pop();
+            const auto pop_res = traversal_queue.tryPop();
+            SCORE_LANGUAGE_FUTURECPP_ASSERT_PRD_MESSAGE(
+                pop_res.has_value(), "Pop failed even though queue was not empty");
+            const auto current = pop_res.value();
 
             const auto& neighbors = per_node(current);
 
@@ -123,7 +129,8 @@ class DependencyGraph
                 {
                     continue;
                 }
-                traversal_queue.push(neighbor);
+                push_res = traversal_queue.push(neighbor);
+                SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(push_res, "Failed to push to traversal queue");
                 visited[neighbor] = true;
             }
         }
@@ -133,7 +140,7 @@ class DependencyGraph
     std::vector<GraphNode> nodes;
 
     /// @brief Presized queue reused by single-threaded traversals.
-    ReservableQueue<GraphIndex> traversal_queue;
+    FixedSizeQueue<GraphIndex> traversal_queue;
     /// @brief Presized visited set reused by single-threaded traversals.
     std::vector<bool> visited;
 };
