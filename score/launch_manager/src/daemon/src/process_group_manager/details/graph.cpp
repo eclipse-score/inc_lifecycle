@@ -571,6 +571,22 @@ void Graph::cancel()
     setState(GraphState::kUndefinedState);
 }
 
+void Graph::forceKillProcesses()
+{
+    for (const auto& component : nodes_)
+    {
+        if (const ProcessInfoNode* process = std::get_if<ProcessInfoNode>(&component))
+        {
+            osal::ProcessID pid = process->getPid();
+            if (pid > 0)
+            {
+                // forceTermination already handles errors appropriately, so we can ignore its result.
+                static_cast<void>(pgm_->getProcessInterface()->forceTermination(pid));
+            }
+        }
+    }
+}
+
 void Graph::updateCancelMessage()
 {
     ControlClientCode code = getPendingEvent();

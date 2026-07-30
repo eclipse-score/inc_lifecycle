@@ -136,6 +136,39 @@ class DependencyGraph
         }
     }
 
+    /// @brief Iterator over node values.
+    struct ValueIterator
+    {
+        typename std::vector<GraphNode>::iterator it;
+        T& operator*()
+        {
+            return it->value;
+        }
+
+        ValueIterator& operator++()
+        {
+            ++it;
+            return *this;
+        }
+
+        bool operator!=(const ValueIterator& other) const
+        {
+            return it != other.it;
+        }
+    };
+
+    /// @returns Iterator at the beginning of the nodes store.
+    ValueIterator begin()
+    {
+        return ValueIterator{nodes.begin()};
+    }
+
+    /// @returns Iterator at the end of the nodes store.
+    ValueIterator end()
+    {
+        return ValueIterator{nodes.end()};
+    }
+
   private:
     std::vector<GraphNode> nodes;
 

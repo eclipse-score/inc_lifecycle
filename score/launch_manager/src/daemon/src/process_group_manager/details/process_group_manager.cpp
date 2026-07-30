@@ -478,8 +478,10 @@ inline void ProcessGroupManager::allProcessGroupsOff()
         LM_LOG_ERROR() << "NOTE: Transition to Off state timed out";
         worker_threads_->stop();
 
-        // TODO: Revisit force-kill safeguard after RunTarget refactoring.
-        // Previously iterated all ProcessInfoNodes to force-terminate remaining processes.
+        for (auto& pg : process_groups_)
+        {
+            pg->forceKillProcesses();
+        }
     }
 }
 

@@ -303,6 +303,9 @@ class Graph final
     /// @return The timestamp recorded at the start of the current state transition request.
     std::chrono::time_point<std::chrono::steady_clock> getRequestStartTime();
 
+    /// @brief For forced shutdown, kill all leftover processes
+    void forceKillProcesses();
+
   private:
     /// @brief Reports that a node has finished executing, enqueuing successors or updating the graph state if a
     /// transition has finished.
