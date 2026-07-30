@@ -22,7 +22,6 @@
 #include "score/mw/launch_manager/common/log.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/graph.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/process_info_node.hpp"
-
 #include "score/mw/launch_manager/process_group_manager/process_group_manager.hpp"
 
 #include "score/assert.hpp"
@@ -36,14 +35,25 @@ namespace lcm
 namespace internal
 {
 
-Graph::Graph(uint32_t max_num_nodes, ProcessGroupManager* pgm)
+Graph::Graph(
+    uint32_t max_num_nodes,
+    ConfigurationType* configuration,
+    std::shared_ptr<WorkerQueue> job_queue,
+    osal::IProcess* process_interface,
+    std::shared_ptr<SafeProcessMapInserter> process_map,
+    IProcessStateNotifier* process_state_notifier,
+    ITransitionResultPublisher* transition_result_receiver)
     : pg_index_(0U),
       nodes_(max_num_nodes),
       transition_builder_(nodes_),
       state_(GraphState::kSuccess),
-      semaphore_(),
       requested_state_(),
-      pgm_(pgm),
+      configuration_(configuration),
+      job_queue_(job_queue),
+      process_interface_(process_interface),
+      process_map_(process_map),
+      process_state_notifier_(process_state_notifier),
+      transition_result_receiver_(transition_result_receiver),
       last_state_manager_(),
       last_execution_error_(0U),
       is_initial_state_transition_(false),
@@ -66,7 +76,7 @@ Graph::~Graph()
 void Graph::initProcessGroupNodes(IdentifierHash pg_name, uint32_t num_processes, uint32_t index)
 {
     pg_index_ = index;
-    off_state_ = pgm_->getConfiguration()->getNameOfOffState(pg_name);
+    off_state_ = configuration_->getNameOfOffState(pg_name);
     requested_state_.pg_state_name_ = off_state_;
     requested_state_.pg_name_ = pg_name;
 
@@ -97,11 +107,11 @@ inline void Graph::createProcessInfoNodes(uint32_t num_processes)
             process_info.processStateId = state;
             process_info.processGroupStateId = getProcessGroupState();
             process_info.systemClockTimestamp = timestamp;
-            return getProcessGroupManager()->queuePosixProcess(process_info);
+            return process_state_notifier_->queuePosixProcess(process_info);
         };
 
         const auto* config =
-            pgm_->getConfiguration()->getOsProcessConfiguration(getProcessGroupName(), process_id).value_or(nullptr);
+            configuration_->getOsProcessConfiguration(getProcessGroupName(), process_id).value_or(nullptr);
         if (!config)
         {
             LM_LOG_ERROR() << "No configuration for process" << process_id << "of process group"
@@ -114,8 +124,8 @@ inline void Graph::createProcessInfoNodes(uint32_t num_processes)
             process_id,
             ready_condition,
             report_state_lambda,
-            pgm_->getProcessInterface(),
-            pgm_->getProcessMap());
+            process_interface_,
+            process_map_);
         assert(index == process_id && "Graph indicies must line up with os process indices");
     }
     LM_LOG_DEBUG() << "Created" << nodes_.size() << "process nodes";
@@ -124,7 +134,7 @@ inline void Graph::createProcessInfoNodes(uint32_t num_processes)
 inline void Graph::createRunTargetNodes(IdentifierHash pg_name)
 {
     const auto num_processes = nodes_.size();
-    const auto* states = pgm_->getConfiguration()->getListOfProcessGroupStates(pg_name).value_or(nullptr);
+    const auto* states = configuration_->getListOfProcessGroupStates(pg_name).value_or(nullptr);
 
     SCORE_LANGUAGE_FUTURECPP_ASSERT_PRD_MESSAGE(states != nullptr, "Process group states not found for process group");
 
@@ -161,8 +171,7 @@ int32_t Graph::getRunTargetIndex(IdentifierHash pg_state) const
 
 bool Graph::nodeHasTerminatedDeps(IdentifierHash pg_name, uint32_t node_index)
 {
-    const DependencyList* dep_list =
-        pgm_->getConfiguration()->getOsProcessDependencies(pg_name, node_index).value_or(nullptr);
+    const DependencyList* dep_list = configuration_->getOsProcessDependencies(pg_name, node_index).value_or(nullptr);
 
     if (dep_list && dep_list->size() > 0)
     {
@@ -179,8 +188,7 @@ inline void Graph::createSuccessorLists(IdentifierHash pg_name)
     // Now create the successor lists for each process in this process group
     for (std::size_t i = 0; i < nodes_.size(); i++)
     {
-        const DependencyList* dep_list =
-            pgm_->getConfiguration()->getOsProcessDependencies(pg_name, i).value_or(nullptr);
+        const DependencyList* dep_list = configuration_->getOsProcessDependencies(pg_name, i).value_or(nullptr);
 
         if (dep_list)
         {
@@ -297,7 +305,7 @@ void Graph::finalizeTransitionSuccess()
     if (is_initial_state_transition_)
     {
         is_initial_state_transition_ = false;
-        pgm_->setInitialStateTransitionResult(ControlClientCode::kInitialMachineStateSuccess);
+        transition_result_receiver_->setInitialStateTransitionResult(ControlClientCode::kInitialMachineStateSuccess);
 
         // RULECHECKER_comment(1, 3, check_c_style_cast, "This is the definition provided by the OS and does
         // a C-style cast.", true)
@@ -314,7 +322,7 @@ inline void Graph::tryQueueNode(ComponentTask task)
 {
     while (GraphState::kInTransition == getState())
     {
-        auto push_res = pgm_->getWorkerJobs()->push(task, kMaxQueueDelay);
+        auto push_res = job_queue_->push(task, kMaxQueueDelay);
         if (push_res)
         {
             jobs_in_progress_++;
@@ -350,29 +358,23 @@ bool Graph::startTransition(ProcessGroupStateID pg_state)
         old_state_name = requested_state_.pg_state_name_;
         requested_state_.pg_state_name_ = pg_state.pg_state_name_;
     }
-    const std::vector<uint32_t>* process_index_list =
-        pgm_->getConfiguration()->getProcessIndexesList(requested_state_).value_or(nullptr);
+    const int32_t target_node = getRunTargetIndex(requested_state_.pg_state_name_);
 
-    if (nullptr != process_index_list)
+    SCORE_LANGUAGE_FUTURECPP_ASSERT_PRD_MESSAGE(
+        target_node >= 0, "RunTarget node not found for requested process group state");
+
+    setState(GraphState::kInTransition);
+
+    if (GraphState::kInTransition == getState())
     {
-        const int32_t target_node = getRunTargetIndex(requested_state_.pg_state_name_);
-
-        SCORE_LANGUAGE_FUTURECPP_ASSERT_PRD_MESSAGE(
-            target_node >= 0, "RunTarget node not found for requested process group state");
-
-        setState(GraphState::kInTransition);
-
-        if (GraphState::kInTransition == getState())
+        const auto target = static_cast<GraphIndex>(target_node);
+        current_transition_ = &transition_builder_.createTransition(target);
+        queueReadyNodes();
+        if (current_transition_->isFinished())
         {
-            const auto target = static_cast<GraphIndex>(target_node);
-            current_transition_ = &transition_builder_.createTransition(target);
-            queueReadyNodes();
-            if (current_transition_->isFinished())
-            {
-                finalizeTransitionSuccess();
-            }
-            return true;
+            finalizeTransitionSuccess();
         }
+        return true;
     }
     {
         std::lock_guard<std::mutex> lock(requested_state_mutex_);
@@ -390,7 +392,7 @@ bool Graph::startInitialTransition(ProcessGroupStateID pg_state)
     if (!result)
     {
         is_initial_state_transition_ = false;
-        pgm_->setInitialStateTransitionResult(ControlClientCode::kInitialMachineStateFailed);
+        transition_result_receiver_->setInitialStateTransitionResult(ControlClientCode::kInitialMachineStateFailed);
     }
 
     return result;
@@ -496,7 +498,7 @@ inline void Graph::handleNonTransitionExecution(GraphState current_state)
     if (is_initial_state_transition_)
     {
         is_initial_state_transition_ = false;
-        pgm_->setInitialStateTransitionResult(ControlClientCode::kInitialMachineStateFailed);
+        transition_result_receiver_->setInitialStateTransitionResult(ControlClientCode::kInitialMachineStateFailed);
 
         // RULECHECKER_comment(1, 3, check_c_style_cast, "This is the definition provided by the OS and does a
         // C-style cast.", true)
@@ -558,7 +560,7 @@ void Graph::cancel()
     if (is_initial_state_transition_)
     {
         is_initial_state_transition_ = false;
-        pgm_->setInitialStateTransitionResult(ControlClientCode::kInitialMachineStateFailed);
+        transition_result_receiver_->setInitialStateTransitionResult(ControlClientCode::kInitialMachineStateFailed);
         // Some may argue that not finishing MachineGF.Startup state transition, is a critical problem.
         // Essentially, controller SM is requesting MachineGF.Startup transition, on an action list assigned to its
         // initial state. RULECHECKER_comment(1, 3, check_c_style_cast, "This is the definition provided by the OS
@@ -581,7 +583,7 @@ void Graph::forceKillProcesses()
             if (pid > 0)
             {
                 // forceTermination already handles errors appropriately, so we can ignore its result.
-                static_cast<void>(pgm_->getProcessInterface()->forceTermination(pid));
+                static_cast<void>(process_interface_->forceTermination(pid));
             }
         }
     }
@@ -613,11 +615,6 @@ ProcessInfoNode* Graph::getProcessInfoNode(uint32_t process_index)
     }
 
     return std::get_if<ProcessInfoNode>(&nodes_[process_index]);
-}
-
-ProcessGroupManager* Graph::getProcessGroupManager()
-{
-    return pgm_;
 }
 
 IdentifierHash Graph::getProcessGroupName()

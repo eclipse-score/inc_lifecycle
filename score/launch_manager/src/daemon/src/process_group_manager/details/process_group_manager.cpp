@@ -47,7 +47,6 @@ ProcessGroupManager::ProcessGroupManager(std::unique_ptr<IAliveMonitorThread> al
       process_map_(nullptr),
       worker_threads_(nullptr),
       worker_jobs_(nullptr),
-      total_processes_(0U),
       num_process_groups_(0U),
       process_groups_(),
       process_state_notifier_(std::move(process_state_notifier)),
@@ -81,17 +80,53 @@ bool ProcessGroupManager::initialize()
     sigaction(SIGUSR2, &action, NULL);
     sigaction(SIGVTALRM, &action, NULL);
 
-#ifdef USE_NEW_CONFIGURATION
-    if (!initializeControlClientHandler() || !initializeProcessGroups(config))
-#else
-    if (!initializeControlClientHandler() || !initializeProcessGroups())
-#endif
+    if (!initializeControlClientHandler())
     {
         return false;
     }
 
+#ifdef USE_NEW_CONFIGURATION
+    if (!configuration_.initialize(config))
+#else
+    if (!configuration_.initialize())
+#endif
+    {
+        LM_LOG_ERROR() << "Failed to initialize config";
+        return false;
+    }
+
+    const auto* pg_list = configuration_.getListOfProcessGroups().value_or(nullptr);
+    if (!pg_list || pg_list->empty())
+    {
+        LM_LOG_ERROR() << "Failed to get pg list";
+        return false;
+    }
+
+    std::uint32_t total_processes = 0;
+    for (const auto pg_name : *pg_list)
+    {
+        total_processes += configuration_.getNumberOfOsProcesses(pg_name).value_or(0);
+    }
+
+    if (total_processes > static_cast<uint32_t>(ProcessLimits::kMaxProcesses))
+    {
+        LM_LOG_ERROR() << "Too many processes";
+        return false;
+    }
+
+    createProcessComponentsObjects(total_processes);
+
+#ifdef USE_NEW_CONFIGURATION
+    if (!initializeProcessGroups(config))
+    {
+#else
+    if (!initializeProcessGroups())
+    {
+#endif
+        return false;
+    }
+
     LM_LOG_DEBUG() << "Process Group initialization done";
-    createProcessComponentsObjects();
     initializeGraphNodes();
     if (!alive_monitor_thread_->start())
     {
@@ -207,57 +242,38 @@ inline bool ProcessGroupManager::initializeControlClientHandler()
     return result;
 }
 
-#ifdef USE_NEW_CONFIGURATION
-inline bool ProcessGroupManager::initializeProcessGroups(const Config& config)
-{
-    bool success = false;
-
-    if (configuration_.initialize(config))
-#else
 inline bool ProcessGroupManager::initializeProcessGroups()
 {
     bool success = false;
 
-    if (configuration_.initialize())
-#endif
+    auto pg_list = configuration_.getListOfProcessGroups().value_or(nullptr);
+
+    if (pg_list && !pg_list->empty())
     {
-        auto pg_list = configuration_.getListOfProcessGroups().value_or(nullptr);
+        num_process_groups_ = static_cast<uint32_t>(pg_list->size() & 0xFFFFFFFFUL);
+        LM_LOG_DEBUG() << num_process_groups_ << "process group(s)";
 
-        if (pg_list && !pg_list->empty())
+        success = true;
+
+        for (const auto& pg_name : *pg_list)
         {
-            num_process_groups_ = static_cast<uint32_t>(pg_list->size() & 0xFFFFFFFFUL);
-            LM_LOG_DEBUG() << num_process_groups_ << "process group(s)";
+            uint32_t num_processes = configuration_.getNumberOfOsProcesses(pg_name).value_or(0);
+            const auto* states = configuration_.getListOfProcessGroupStates(pg_name).value_or(nullptr);
+            const uint32_t num_run_targets = states ? static_cast<uint32_t>(states->size()) : 0U;
 
-            success = true;
-
-            for (const auto& pg_name : *pg_list)
-            {
-                uint32_t num_processes = configuration_.getNumberOfOsProcesses(pg_name).value_or(0);
-                const auto* states = configuration_.getListOfProcessGroupStates(pg_name).value_or(nullptr);
-                const uint32_t num_run_targets = states ? static_cast<uint32_t>(states->size()) : 0U;
-
-                if (static_cast<uint64_t>(total_processes_) + num_processes <=
-                    static_cast<uint64_t>(score::lcm::internal::ProcessLimits::kMaxProcesses))
-                {
-                    process_groups_.push_back(std::make_shared<Graph>(num_processes + num_run_targets, this));
-                    total_processes_ += num_processes;
-                }
-                else
-                {
-                    LM_LOG_ERROR() << "Too many processes";
-                    success = false;
-                    break;
-                }
-            }
-        }
-        else
-        {
-            LM_LOG_ERROR() << "No process groups";
+            process_groups_.push_back(std::make_shared<Graph>(
+                num_processes + num_run_targets,
+                &configuration_,
+                worker_jobs_,
+                &process_interface_,
+                process_map_,
+                process_state_notifier_.get(),
+                this));
         }
     }
     else
     {
-        LM_LOG_ERROR() << "Failed to initialize configuration manager";
+        LM_LOG_ERROR() << "No process groups";
     }
 
     if (success)
@@ -272,10 +288,10 @@ inline bool ProcessGroupManager::initializeProcessGroups()
     return success;
 }
 
-inline void ProcessGroupManager::createProcessComponentsObjects()
+inline void ProcessGroupManager::createProcessComponentsObjects(std::size_t total_processes)
 {
     LM_LOG_DEBUG() << "Creating component event queue...";
-    event_queue_ = std::make_unique<ComponentEventQueue>(total_processes_);
+    event_queue_ = std::make_unique<ComponentEventQueue>(total_processes);
 
     if (recovery_client_)
     {
@@ -287,8 +303,8 @@ inline void ProcessGroupManager::createProcessComponentsObjects()
     LM_LOG_DEBUG() << "Creating process monitor...";
     process_monitor_ = std::make_unique<ProcessMonitor>(*event_queue_);
 
-    LM_LOG_DEBUG() << "Creating Safe Process Map with" << total_processes_ << "entries";
-    process_map_ = std::make_shared<SafeProcessMap>(total_processes_, *process_monitor_);
+    LM_LOG_DEBUG() << "Creating Safe Process Map with" << total_processes << "entries";
+    process_map_ = std::make_shared<SafeProcessMap>(total_processes, *process_monitor_);
 
     LM_LOG_DEBUG() << "Creating OS handler...";
     os_handler_ = std::make_unique<OsHandler>(*process_map_);

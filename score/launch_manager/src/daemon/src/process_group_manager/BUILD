@@ -73,6 +73,7 @@ cc_library(
     deps = [
         ":ialive_monitor_thread",
         ":iprocess",
+        "//score/launch_manager/src/daemon/src/process_group_manager/details:itransition_result_publisher",
         "//score/launch_manager/src/daemon/src/common:identifier_hash",
         "//score/launch_manager/src/daemon/src/common/concurrency:mpmc_concurrent_queue",
         "//score/launch_manager/src/daemon/src/common/concurrency:workerthread",

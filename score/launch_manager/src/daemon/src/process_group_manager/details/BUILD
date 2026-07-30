@@ -196,6 +196,7 @@ cc_library(
         ":component_of",
         ":component_task",
         ":dependency_graph",
+        ":itransition_result_publisher",
         ":process_info_node",
         ":run_target",
         ":safe_process_map",
@@ -408,4 +409,15 @@ cc_library(
             "//score/launch_manager/src/daemon/src/configuration:configuration_manager",
         ],
     }),
+)
+
+cc_library(
+    name = "itransition_result_publisher",
+    hdrs = ["itransition_result_publisher.hpp"],
+    include_prefix = "score/mw/launch_manager/process_group_manager/details",
+    strip_include_prefix = "/score/launch_manager/src/daemon/src/process_group_manager/details",
+    visibility = ["//score/launch_manager/src/daemon/src/process_group_manager:__pkg__"],
+    deps = [
+        "//score/launch_manager/src/daemon/src/control:control_client_channel",
+    ],
 )

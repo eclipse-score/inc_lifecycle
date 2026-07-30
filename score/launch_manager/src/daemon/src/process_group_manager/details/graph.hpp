@@ -23,6 +23,7 @@
 #include <variant>
 #include <vector>
 
+#include "score/mw/launch_manager/common/concurrency/mpmc_concurrent_queue.hpp"
 #include "score/mw/launch_manager/common/identifier_hash.hpp"
 #include "score/mw/launch_manager/control/control_client_channel.hpp"
 #include "score/mw/launch_manager/osal/semaphore.hpp"
@@ -30,11 +31,14 @@
 #include "score/mw/launch_manager/process_group_manager/details/component_of.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/component_task.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/dependency_graph.hpp"
+#include "score/mw/launch_manager/process_group_manager/details/itransition_result_publisher.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/process_info_node.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/run_target.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/transition.hpp"
 #include "score/mw/launch_manager/process_group_manager/iprocess.hpp"
+#include "score/mw/launch_manager/process_state_client/iprocess_state_notifier.hpp"
 #include <score/stop_token.hpp>
+
 namespace score
 {
 
@@ -46,7 +50,15 @@ namespace internal
 
 using namespace score::mw::lifecycle;
 
-class ProcessGroupManager;
+#ifdef USE_NEW_CONFIGURATION
+using ConfigurationType = ConfigurationAdapter;
+using Config = score::mw::launch_manager::configuration::Config;
+#else
+using ConfigurationType = ConfigurationManager;
+#endif
+
+using WorkerQueue =
+    MPMCConcurrentQueue<std::optional<ComponentTask>, static_cast<std::size_t>(ProcessLimits::kMaxProcesses)>;
 
 /// @brief GraphState - the graph/process group state.
 /// @details Enumeration representing the state of the graph.
@@ -164,8 +176,14 @@ class Graph final
   public:
     /// @brief Constructor to initialize a Graph object.
     /// @param max_num_nodes Maximum number of nodes this graph can hold.
-    /// @param pgm Pointer to the ProcessGroupManager managing this graph.
-    Graph(uint32_t max_num_nodes, ProcessGroupManager* pgm);
+    Graph(
+        uint32_t max_num_nodes,
+        ConfigurationType* configuration,
+        std::shared_ptr<WorkerQueue> job_queue,
+        osal::IProcess* process_interface,
+        std::shared_ptr<SafeProcessMapInserter> process_map,
+        IProcessStateNotifier* process_state_notifier,
+        ITransitionResultPublisher* transition_result_receiver);
 
     /// @brief Destructor to clean up resources used by the Graph object.
     ~Graph();
@@ -236,9 +254,6 @@ class Graph final
 
     /// @brief Helper function to identify a node with ready state "Terminated" from the legacy configuration
     bool nodeHasTerminatedDeps(IdentifierHash pg_name, uint32_t node_index);
-
-    /// @return The ProcessGroupManager that owns this graph.
-    ProcessGroupManager* getProcessGroupManager();
 
     /// @return The identifier of the process group managed by this graph.
     IdentifierHash getProcessGroupName();
@@ -383,17 +398,29 @@ class Graph final
     /// @brief Current state of the graph.
     GraphState state_{GraphState::kSuccess};
 
-    /// @brief Graph semaphore for synchronization.
-    /// @deprecated Not required when Control Client handler is implemented, to be removed
-    osal::Semaphore semaphore_;
-
     /// @brief the requested (target) Process Group State
     ProcessGroupStateID requested_state_{};
+
     /// @brief Mutex protecting concurrent access to requested_state_.pg_state_name_.
     mutable std::mutex requested_state_mutex_{};
 
-    /// @brief Pointer to the ProcessGroupManager.
-    ProcessGroupManager* pgm_;
+    /// @brief Config pointer to set up graph nodes
+    ConfigurationType* configuration_;
+
+    /// @brief Queue to push component tasks to
+    std::shared_ptr<WorkerQueue> job_queue_;
+
+    /// @brief Interface to pass process nodes for OS interaction
+    osal::IProcess* process_interface_;
+
+    /// @brief Interface to pass process nodes for pid association
+    std::shared_ptr<SafeProcessMapInserter> process_map_;
+
+    /// @brief Interface to pass process nodes for alive monitor notifications
+    IProcessStateNotifier* process_state_notifier_;
+
+    /// @brief Class to receive information about the initial state transition result
+    ITransitionResultPublisher* transition_result_receiver_;
 
     /// @brief The state manager node for this process group
     ControlClientID last_state_manager_;
@@ -422,6 +449,7 @@ class Graph final
     /// @brief Stores the timestamp based on the system clock when starting a request
     std::chrono::time_point<std::chrono::steady_clock> request_start_time_;
 
+    /// @brief Stop token generator for transitions.
     score::cpp::stop_source stop_source_;
 };
 

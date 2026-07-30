@@ -33,6 +33,7 @@
 #include "score/mw/launch_manager/control/control_client_channel.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/component_event_queue.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/graph.hpp"
+#include "score/mw/launch_manager/process_group_manager/details/itransition_result_publisher.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/os_handler.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/process_info_node.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/process_launcher.hpp"
@@ -67,7 +68,7 @@ using ConfigurationType = ConfigurationManager;
 ///     configured by integrator. Interaction with OSAL to start and stop processes. Interaction with OSAL to discover
 ///     when processes terminated in an unexpected way. Fulfilling PG State transitions requests from SM, as well as
 ///     informing SM about unexpected problems (for example process crashes).
-class ProcessGroupManager final
+class ProcessGroupManager final : public ITransitionResultPublisher
 {
     using WorkerQueue =
         MPMCConcurrentQueue<std::optional<ComponentTask>, static_cast<std::size_t>(ProcessLimits::kMaxProcesses)>;
@@ -134,7 +135,7 @@ class ProcessGroupManager final
 
     /// @brief set the initial machine group state change result, called by graph when the transition completes
     /// @param result the result to save; it can only be saved once
-    void setInitialStateTransitionResult(ControlClientCode result);
+    void setInitialStateTransitionResult(ControlClientCode result) override;
 
     /// @brief Send a response message to a Control Client
     /// @param msg the message to send, containing the Control Client id as the address to send it
@@ -297,7 +298,7 @@ class ProcessGroupManager final
 #endif
 
     /// @brief Creates process component objects, including the job queue and worker threads.
-    inline void createProcessComponentsObjects();
+    inline void createProcessComponentsObjects(std::size_t total_processes);
 
     /// @brief Initializes the graph nodes.
     inline void initializeGraphNodes();
@@ -319,12 +320,6 @@ class ProcessGroupManager final
 
     /// @brief Shared pointer to the job queue for ProcessInfoNode jobs.
     std::shared_ptr<WorkerQueue> worker_jobs_;
-
-    /// @brief Total number of processes.
-    /// @deprecated there is no reason to store the total number of processes in the class
-    /// @todo Remove this data member, use a local variable and pass it as a parameter to
-    /// the functions that require it
-    uint32_t total_processes_ = 0U;
 
     /// @brief Number of process groups.
     /// @deprecated there is no reason to store the number of process groups in the class
