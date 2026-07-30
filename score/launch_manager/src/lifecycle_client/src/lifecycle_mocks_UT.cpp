@@ -21,6 +21,7 @@
 
 #include "score/mw/lifecycle/applicationcontextmock.h"
 #include "score/mw/lifecycle/lifecyclemanagermock.h"
+#include "score/mw/lifecycle/mwlifecyclemanagermock.h"
 #include "score/mw/lifecycle/runapplication.h"
 
 #include <gmock/gmock.h>
@@ -176,6 +177,68 @@ TEST_F(LifecycleMockUsageTest, ExactlyOneLifecycleManagerLifetimePerRun)
     EXPECT_CALL(lifecycle_mock_, ctor()).Times(1);
     EXPECT_CALL(lifecycle_mock_, dtor()).Times(1);
     EXPECT_CALL(lifecycle_mock_, run(_, _)).WillOnce(Return(EXIT_SUCCESS));
+
+    score::mw::lifecycle::Run<AlwaysOkApp> runner(kArgc, kArgv);
+    runner.AsPosixProcess();
+}
+
+// ---------------------------------------------------------------------------
+// MwLifeCycleManagerMock tests
+// ---------------------------------------------------------------------------
+
+namespace
+{
+
+/// @brief Fixture that installs MwLifeCycleManagerMock *before* LifeCycleManagerMock
+/// so that the report_running/report_shutdown callbacks are in place when the
+/// mocked LifeCycleManager::run() dispatches to them.
+class MwLifecycleMockTest : public ::testing::Test
+{
+  protected:
+    // Order matters: mw_mock_ must be constructed first so its callbacks are
+    // registered before lifecycle_mock_ intercepts LifeCycleManager::run().
+    score::mw::lifecycle::MwLifeCycleManagerMock mw_mock_;
+    score::mw::lifecycle::ApplicationContextMock context_mock_;
+    score::mw::lifecycle::LifeCycleManagerMock   lifecycle_mock_;
+
+    static constexpr int kArgc    = 1;
+    const char*          kArgv[1] = {"test_app"};
+
+    void SetUp() override
+    {
+        EXPECT_CALL(context_mock_, ctor(_, _)).Times(AnyNumber());
+        EXPECT_CALL(lifecycle_mock_, ctor()).Times(AnyNumber());
+        EXPECT_CALL(lifecycle_mock_, dtor()).Times(AnyNumber());
+    }
+};
+
+}  // namespace
+
+/// Verify that report_running() is invoked exactly once when the default
+/// run callback is used (i.e. the mock run() is not overridden).
+TEST_F(MwLifecycleMockTest, ReportRunningIsCalledOncePerRun)
+{
+    RecordProperty("Description",
+                   "MwLifeCycleManagerMock::report_running() is invoked once per LifeCycleManager::run().");
+
+    EXPECT_CALL(mw_mock_, report_running()).Times(1);
+    EXPECT_CALL(mw_mock_, report_shutdown()).Times(1);
+    EXPECT_CALL(lifecycle_mock_, run(_, _)).WillOnce(Return(EXIT_SUCCESS));
+
+    score::mw::lifecycle::Run<AlwaysOkApp> runner(kArgc, kArgv);
+    runner.AsPosixProcess();
+}
+
+/// Verify that report_shutdown() is invoked exactly once per run, regardless
+/// of the application exit code.
+TEST_F(MwLifecycleMockTest, ReportShutdownIsCalledOncePerRun)
+{
+    RecordProperty("Description",
+                   "MwLifeCycleManagerMock::report_shutdown() is invoked once per LifeCycleManager::run().");
+
+    EXPECT_CALL(mw_mock_, report_running()).Times(1);
+    EXPECT_CALL(mw_mock_, report_shutdown()).Times(1);
+    EXPECT_CALL(lifecycle_mock_, run(_, _)).WillOnce(Return(EXIT_FAILURE));
 
     score::mw::lifecycle::Run<AlwaysOkApp> runner(kArgc, kArgv);
     runner.AsPosixProcess();

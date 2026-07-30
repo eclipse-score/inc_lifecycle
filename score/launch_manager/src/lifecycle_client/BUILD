@@ -168,6 +168,26 @@ cc_library(
 )
 
 cc_library(
+    name = "mw_lifecycle_manager_mock",
+    testonly = True,
+    srcs = [
+        "src/mwlifecyclemanagermock.cpp",
+    ],
+    hdrs = [
+        "src/lifecyclemanager.h",
+        "src/mwlifecyclemanagermock.h",
+    ],
+    features = COMPILER_WARNING_FEATURES,
+    include_prefix = "score/mw/lifecycle",
+    strip_include_prefix = "/score/launch_manager/src/lifecycle_client/src",
+    visibility = ["//score/launch_manager:__subpackages__"],
+    deps = [
+        ":lifecyclemanager",
+        "@googletest//:gtest",
+    ],
+)
+
+cc_library(
     name = "lifecycle_mock",
     testonly = True,
     srcs = [
@@ -185,6 +205,7 @@ cc_library(
     deps = [
         ":applicationcontext_mock",
         ":lifecyclemanager",
+        ":mw_lifecycle_manager_mock",
         "@googletest//:gtest",
         "@score_baselibs//score/os/utils:signal",
         "@score_baselibs//score/os/utils/mocklib:signal_mock",

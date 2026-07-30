@@ -88,7 +88,7 @@ class LifeCycleManager
     /**
      * \brief Hook function for reporting shutdown state.
      */
-    virtual void report_shutdown() noexcept {};
+    virtual void report_shutdown() noexcept;
 
   public:
     explicit LifeCycleManager(

@@ -172,3 +172,5 @@ void score::mw::lifecycle::LifeCycleManager::report_running() noexcept
     mw::log::LogInfo() << "Reporting kRunning to Launch Manager";
     score::mw::lifecycle::report_running();
 }
+
+void score::mw::lifecycle::LifeCycleManager::report_shutdown() noexcept {}
