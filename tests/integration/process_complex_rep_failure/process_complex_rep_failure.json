@@ -47,7 +47,6 @@
                 "binary_name": "control_client_mock",
                 "application_profile": {
                     "application_type": "State_Manager",
-                    "is_self_terminating": false,
                     "alive_supervision": {
                         "min_indications": 0
                     }

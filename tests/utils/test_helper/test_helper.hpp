@@ -133,11 +133,8 @@ class TestRunner
           m_termination_behavior(termination_behavior),
           m_test_path(test_path)
     {
-        if (TerminationBehavior::kWait == m_termination_behavior)
-        {
-            signal(SIGINT, signalHandler);
-            signal(SIGTERM, signalHandler);
-        }
+        signal(SIGINT, signalHandler);
+        signal(SIGTERM, signalHandler);
     }
 
     TestRunner(const TestRunner&) = delete;
