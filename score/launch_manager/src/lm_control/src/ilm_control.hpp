@@ -17,6 +17,7 @@
 #include <memory>
 #include <string_view>
 
+#include "score/mw/lifecycle/execution_error.h"
 #include "score/mw/lifecycle/fixed_string.hpp"
 #include "score/mw/lifecycle/run_target_activation_source.hpp"
 #include "score/result/result.h"
@@ -81,7 +82,7 @@ class ILmControl
     /// @returns A unique_ptr to the ILmControl instance on success.
     ///
     /// @error kInvalidArguments instance_specifier is empty or malformed.
-    /// @error kNoConnection     The Launch Manager service could not be reached.
+    /// @error kCommunicationError     The Launch Manager service could not be reached.
     static score::Result<std::unique_ptr<ILmControl>> Create(std::string_view instance_specifier);
 
     /// @brief Virtual destructor for safe deletion through this interface.
@@ -116,7 +117,8 @@ class ILmControl
     /// @error kRequestQueueIsFull   Activation was rejected because Launch Manager cannot accept another activation
     /// request.
     /// @error kRunTargetDoesntExist Name of the requested Run Target does not exist in current configuration.
-    /// @error kNoConnection         Connection with Launch Manager cannot be established and request cannot be sent.
+    /// @error kCommunicationError         Connection with Launch Manager cannot be established and request cannot be
+    /// sent.
     virtual score::Result<void> activate_run_target(std::string_view runTargetName, bool force = false) = 0;
 
     /// @brief Register a callback invoked whenever Launch Manager finishes a Run Target activation.
@@ -150,7 +152,7 @@ class ILmControl
     ///
     /// @error kActivationInProgress Launch Manager is currently executing a Run Target
     ///                              activation and thus there is no single Run Target active.
-    /// @error kNoConnection         Connection with Launch Manager cannot be established
+    /// @error kCommunicationError         Connection with Launch Manager cannot be established
     ///                              and information about active Run Target cannot be retrieved.
     virtual score::Result<RunTargetName> get_active_run_target() = 0;
 
