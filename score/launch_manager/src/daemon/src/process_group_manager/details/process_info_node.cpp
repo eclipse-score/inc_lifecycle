@@ -326,10 +326,10 @@ ProcessInfoNode::handleProcessStarted(const score::cpp::stop_token& stop_token)
 {
     switch (process_map_->insertIfNotTerminated(pid_, this))
     {
-        case score::lcm::internal::SafeProcessMap::SafeProcessMapReturnType::kOk:  // Normal case, entry was put in
+        case score::lcm::internal::SafeProcessMapReturnType::kOk:  // Normal case, entry was put in
                                                                                    // the map, process still running
             return handleProcessStillStarting(stop_token);
-        case score::lcm::internal::SafeProcessMap::SafeProcessMapReturnType::kYield:  // Process has already exited
+        case score::lcm::internal::SafeProcessMapReturnType::kYield:  // Process has already exited
             return handleProcessAlreadyTerminated();
         default:  // Error case when pn == -1
             // really bad fatal error, should not happen, treat as a failure to set the state & kill the process
