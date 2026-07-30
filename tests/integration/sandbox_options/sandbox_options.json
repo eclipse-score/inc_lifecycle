@@ -100,7 +100,8 @@
                 "process_arguments": [
                     "--uid=0",
                     "--gid=0",
-                    "--scheduling-policy=SCHED_RR"
+                    "--scheduling-policy=SCHED_RR",
+                    "--scheduling-priority=10"
                 ]
             },
             "deployment_config": {
@@ -111,7 +112,26 @@
                     "uid": 0,
                     "gid": 0,
                     "supplementary_group_ids": [],
-                    "scheduling_policy": "SCHED_RR"
+                    "scheduling_policy": "SCHED_RR",
+                    "scheduling_priority": 10
+                }
+            }
+        },
+        "sandbox_options_process_c": {
+            "component_properties": {
+                "binary_name": "sandbox_options_process_c",
+                "application_profile": {
+                    "application_type": "Reporting",
+                    "is_self_terminating": true
+                },
+                "process_arguments": [
+                    "--uid=0",
+                    "--gid=0"
+                ]
+            },
+            "deployment_config": {
+                "environmental_variables": {
+                    "PROCESSIDENTIFIER": "DefaultPG_app2"
                 }
             }
         }
@@ -131,7 +151,8 @@
             "depends_on": [
                 "control_daemon",
                 "sandbox_options_process_a",
-                "sandbox_options_process_b"
+                "sandbox_options_process_b",
+                "sandbox_options_process_c"
             ],
             "recovery_action": {
                 "switch_run_target": {

@@ -36,8 +36,8 @@ def docker_configuration():
         "feat_req__lifecycle__supplementary_groups",
     ],
     partially_verifies=[],
-    test_type="interface-test",
-    derivation_technique="explorative-testing",
+    test_type="requirements-based",
+    derivation_technique="requirements-analysis",
 )
 def test_sandbox_options(target, setup_test, assert_test_results, remote_test_dir):
     """
@@ -70,6 +70,7 @@ def test_sandbox_options(target, setup_test, assert_test_results, remote_test_di
             "control_daemon_mock.xml",
             "sandbox_options_process_a.xml",
             "sandbox_options_process_b.xml",
+            "sandbox_options_process_c.xml",
         },
         additional_search_dirs=["/tmp/tests/sandbox_options", "/tmp"],
     )

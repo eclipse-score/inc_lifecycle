@@ -56,6 +56,20 @@ cc_binary(
     ],
 )
 
+cc_binary(
+    name = "sandbox_options_process_c",
+    srcs = [
+        "sandbox_options_process.cpp",
+        "verify_sandbox.hpp",
+    ],
+    deps = [
+        "//score/launch_manager:control_cc",
+        "//score/launch_manager:lifecycle_cc",
+        "//tests/utils/test_helper",
+        "@googletest//:gtest_main",
+    ],
+)
+
 integration_test(
     name = "sandbox_options",
     srcs = ["sandbox_options.py"],
@@ -63,6 +77,7 @@ integration_test(
         ":control_daemon_mock",
         ":sandbox_options_process_a",
         ":sandbox_options_process_b",
+        ":sandbox_options_process_c",
         "//score/launch_manager",
     ],
     config = ":sandbox_options.json",
