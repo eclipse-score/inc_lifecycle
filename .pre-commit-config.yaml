@@ -43,7 +43,6 @@ repos:
             tests/|
             score/
           )
-
       - id: clang-tidy
         name: clang-tidy
         # Run through a wrapper that sanitizes unsupported linker flags in
