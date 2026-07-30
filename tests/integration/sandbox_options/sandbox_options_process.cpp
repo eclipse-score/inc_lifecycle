@@ -12,63 +12,31 @@
  ********************************************************************************/
 
 #include <gtest/gtest.h>
-#include <pthread.h>
 #include <sched.h>
 #include <unistd.h>
-#include <algorithm>
-#include <array>
-#include <atomic>
-#include <climits>
-#include <csignal>
 #include <iostream>
-#include <optional>
 #include <sstream>
 #include <string>
 #include <string_view>
-#include <thread>
 #include <vector>
 
+#include "tests/integration/sandbox_options/verify_sandbox.hpp"
 #include "tests/utils/test_helper/test_helper.hpp"
 #include <score/mw/lifecycle/report_running.h>
 
 namespace
 {
 
-/// @brief Expected sandbox option values, supplied to this process on the command line.
-///
-/// The launch manager applies the sandbox options from sandbox_options.json and passes the same
-/// values to the managed process via 'process_arguments', so the test verifies the applied state
-/// against the configured expectation without duplicating any literals here.
-///
-/// Every value is optional: a value that is not passed on the command line is not verified. This
-/// lets a component leave an option unset (e.g. no working directory) without the test flagging it.
-struct ExpectedValues
-{
-    std::optional<int> policy;
-    std::optional<int> priority;
-    std::optional<uid_t> uid;
-    std::optional<gid_t> gid;
-    std::optional<std::vector<gid_t>> supplementary_groups;
-    std::optional<std::string> working_dir;
-};
+using sandbox_options::ExpectedValues;
 
+// Expected sandbox option values, supplied to this process on the command line.
+//
+// The launch manager applies the sandbox options from sandbox_options.json and passes the same
+// values to the managed process via 'process_arguments', so the test verifies the applied state
+// against the configured expectation without duplicating any literals here.
+//
 // Populated from argv in main() before the tests run.
 ExpectedValues expected;
-
-const char* policy_name(const int policy)
-{
-    switch (policy)
-    {
-        case SCHED_FIFO:
-            return "SCHED_FIFO";
-        case SCHED_RR:
-            return "SCHED_RR";
-        case SCHED_OTHER:
-            return "SCHED_OTHER";
-        default:
-            return "UNKNOWN";
-    }
-}
 
 int parse_policy(const std::string& name)
 {
@@ -160,167 +128,11 @@ bool parse_arguments(int argc, char** argv, ExpectedValues& out)
     return all_recognized;
 }
 
-/// @brief Verify that the calling thread runs with the expected scheduling policy and priority.
-/// @param[in] context Human readable name of the thread, used in failure messages.
-/// @return true if the policy (when provided) and the priority match.
-bool verify_scheduling(const std::string& context)
-{
-    int policy = -1;
-    sched_param param{};
-    const int result = pthread_getschedparam(pthread_self(), &policy, &param);
-    EXPECT_EQ(result, 0) << context << ": pthread_getschedparam failed rc=" << result;
-    if (result != 0)
-    {
-        // 'policy' was not written, so it is still the sentinel -1. Bail out before it can reach
-        // sched_get_priority_min() below (which would return -1 and set errno=EINVAL).
-        return false;
-    }
-
-    bool pass = true;
-
-    if (expected.policy.has_value())
-    {
-        EXPECT_EQ(policy, *expected.policy)
-            << context << ": Expected scheduling policy=" << policy_name(*expected.policy) << " but got "
-            << policy_name(policy);
-        if (policy != *expected.policy)
-        {
-            pass = false;
-        }
-    }
-
-    // The priority is always verified. When no explicit priority is provided on the command line,
-    // verify against the default the launch manager ends up applying: its configured default (0)
-    // clamped up to the policy minimum, i.e. sched_get_priority_min() for the effective policy
-    // (1 for SCHED_FIFO/SCHED_RR, 0 for SCHED_OTHER). 'policy' is the value retrieved above and is
-    // guaranteed valid here (the rc != 0 case returned early).
-    const int effective_policy = expected.policy.value_or(policy);
-    const int expected_priority = expected.priority.value_or(sched_get_priority_min(effective_policy));
-    EXPECT_EQ(param.sched_priority, expected_priority)
-        << context << ": Expected scheduling priority=" << expected_priority
-        << (expected.priority.has_value() ? "" : " (default)") << " but got " << param.sched_priority;
-    if (param.sched_priority != expected_priority)
-    {
-        pass = false;
-    }
-
-    return pass;
-}
-
-bool verify_sandbox_options()
-{
-    bool all_pass = true;
-
-    if (expected.uid.has_value() || expected.gid.has_value())
-    {
-        TEST_STEP("Verify uid and gid")
-        {
-            if (expected.uid.has_value())
-            {
-                const uid_t current_uid = getuid();
-                EXPECT_EQ(current_uid, *expected.uid)
-                    << "Expected uid=" << *expected.uid << " but got uid=" << current_uid;
-                if (current_uid != *expected.uid)
-                {
-                    all_pass = false;
-                }
-            }
-
-            if (expected.gid.has_value())
-            {
-                const gid_t current_gid = getgid();
-                EXPECT_EQ(current_gid, *expected.gid)
-                    << "Expected gid=" << *expected.gid << " but got gid=" << current_gid;
-                if (current_gid != *expected.gid)
-                {
-                    all_pass = false;
-                }
-            }
-        }
-    }
-
-    if (expected.supplementary_groups.has_value())
-    {
-        TEST_STEP("Verify supplementary groups")
-        {
-            std::vector<gid_t> groups(256);
-            const int count = getgroups(static_cast<int>(groups.size()), groups.data());
-            EXPECT_GE(count, 0) << "Failed to get supplementary groups";
-            if (count >= 0)
-            {
-                groups.resize(static_cast<size_t>(count));
-            }
-
-            for (const gid_t expected_group : *expected.supplementary_groups)
-            {
-                const bool found = std::find(groups.begin(), groups.end(), expected_group) != groups.end();
-                EXPECT_TRUE(found) << "Expected supplementary group " << expected_group << " not found (groups: ["
-                                   << count << " total)]";
-                if (!found)
-                {
-                    all_pass = false;
-                }
-            }
-        }
-    }
-
-    if (expected.working_dir.has_value())
-    {
-        TEST_STEP("Verify working directory")
-        {
-            std::array<char, PATH_MAX> buf{};
-            char* result = getcwd(buf.data(), buf.size());
-            EXPECT_NE(result, nullptr) << "Failed to get current working directory";
-
-            if (result)
-            {
-                EXPECT_EQ(std::string(result), *expected.working_dir)
-                    << "Expected working_dir=" << *expected.working_dir << " but got cwd=" << result;
-
-                if (std::string(result) != *expected.working_dir)
-                {
-                    all_pass = false;
-                }
-            }
-        }
-    }
-
-    if (expected.policy.has_value() || expected.priority.has_value())
-    {
-        TEST_STEP("Verify scheduling policy and priority in the main thread")
-        {
-            if (!verify_scheduling("main thread"))
-            {
-                all_pass = false;
-            }
-        }
-
-        TEST_STEP("Verify scheduling policy and priority in a spawned thread")
-        {
-            // A thread created with default attributes inherits the schedulng policy and
-            // priority of its creating thread, so the configured real-time settings must
-            // apply here as well.
-            std::atomic<bool> thread_pass{false};
-            std::thread worker([&thread_pass]() {
-                thread_pass = verify_scheduling("spawned thread");
-            });
-            worker.join();
-
-            if (!thread_pass)
-            {
-                all_pass = false;
-            }
-        }
-    }
-
-    return all_pass;
-}
-
 }  // namespace
 
 TEST(SandboxOptions, RunAndVerify)
 {
-    ASSERT_TRUE(verify_sandbox_options()) << "Sandbox options verification failed";
+    EXPECT_TRUE(sandbox_options::verifySandbox(expected)) << "Sandbox options verification failed";
     score::mw::lifecycle::report_running();
 }
 

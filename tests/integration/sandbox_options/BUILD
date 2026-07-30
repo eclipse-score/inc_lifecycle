@@ -30,7 +30,10 @@ cc_binary(
 # own executable name so the results do not collide.
 cc_binary(
     name = "sandbox_options_process_a",
-    srcs = ["sandbox_options_process.cpp"],
+    srcs = [
+        "sandbox_options_process.cpp",
+        "verify_sandbox.hpp",
+    ],
     deps = [
         "//score/launch_manager:control_cc",
         "//score/launch_manager:lifecycle_cc",
@@ -41,7 +44,10 @@ cc_binary(
 
 cc_binary(
     name = "sandbox_options_process_b",
-    srcs = ["sandbox_options_process.cpp"],
+    srcs = [
+        "sandbox_options_process.cpp",
+        "verify_sandbox.hpp",
+    ],
     deps = [
         "//score/launch_manager:control_cc",
         "//score/launch_manager:lifecycle_cc",
