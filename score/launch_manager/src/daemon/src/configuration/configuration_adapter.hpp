@@ -34,45 +34,45 @@ using IdentifierHash = score::lcm::IdentifierHash;
 
 struct PgManagerConfig final
 {
-    bool is_self_terminating_;
-    std::chrono::milliseconds startup_timeout_ms_;
-    std::chrono::milliseconds termination_timeout_ms_;
-    uint32_t number_of_restart_attempts;
-    uint32_t execution_error_code_;
+    bool is_self_terminating_{};
+    std::chrono::milliseconds startup_timeout_ms_{};
+    std::chrono::milliseconds termination_timeout_ms_{};
+    uint32_t number_of_restart_attempts{};
+    uint32_t execution_error_code_{};
 };
 
 struct Dependency final
 {
-    score::lcm::ProcessState process_state_;
-    IdentifierHash target_process_id_;
-    uint32_t os_process_index_;
+    score::lcm::ProcessState process_state_{};
+    IdentifierHash target_process_id_{};
+    uint32_t os_process_index_{};
 };
 
 using DependencyList = std::vector<Dependency>;
 
 struct OsProcess final
 {
-    IdentifierHash process_id_;
-    uint32_t process_number_;
+    IdentifierHash process_id_{};
+    uint32_t process_number_{};
     score::lcm::internal::osal::OsalConfig startup_config_{};
-    PgManagerConfig pgm_config_;
-    DependencyList dependencies_;
+    PgManagerConfig pgm_config_{};
+    DependencyList dependencies_{};
 };
 
 struct ProcessGroupState final
 {
-    IdentifierHash name_;
-    std::vector<uint32_t> process_indexes_;
+    IdentifierHash name_{};
+    std::vector<uint32_t> process_indexes_{};
 };
 
 struct ProcessGroup final
 {
-    IdentifierHash name_;
-    IdentifierHash sw_cluster_;
-    IdentifierHash off_state_;
-    IdentifierHash recovery_state_;
-    std::vector<ProcessGroupState> states_;
-    std::vector<OsProcess> processes_;
+    IdentifierHash name_{};
+    IdentifierHash sw_cluster_{};
+    IdentifierHash off_state_{};
+    IdentifierHash recovery_state_{};
+    std::vector<ProcessGroupState> states_{};
+    std::vector<OsProcess> processes_{};
 };
 
 /// @brief Temporary bridge that translates the new Config model (RunTargets, Components) into the

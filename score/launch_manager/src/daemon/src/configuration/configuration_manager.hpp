@@ -46,13 +46,13 @@ using IdentifierHash = score::lcm::IdentifierHash;  ///< Defines a type alias 'I
 // have user-declared constructor. The rule doesn’t apply.", false)
 struct PgManagerConfig final
 {
-    bool is_self_terminating_;  ///< true if the adaptive application may terminate without being first asked
+    bool is_self_terminating_{};  ///< true if the adaptive application may terminate without being first asked
     std::chrono::milliseconds
-        startup_timeout_ms_;  ///< Number of milliseconds to wait for kRunning before flagging an error
-    std::chrono::milliseconds termination_timeout_ms_;  ///< Number of milliseconds to wait for process to terminate
-                                                        ///< after requesting termination
-    uint32_t number_of_restart_attempts;  ///< Number of times to attempt restart if the initial attempt fails
-    uint32_t execution_error_code_;       ///< Code to report if this process fails
+        startup_timeout_ms_{};  ///< Number of milliseconds to wait for kRunning before flagging an error
+    std::chrono::milliseconds termination_timeout_ms_{};  ///< Number of milliseconds to wait for process to terminate
+                                                          ///< after requesting termination
+    uint32_t number_of_restart_attempts{};  ///< Number of times to attempt restart if the initial attempt fails
+    uint32_t execution_error_code_{};       ///< Code to report if this process fails
 };
 
 /// @brief Represents process dependency in a particular process group associated process.
@@ -61,9 +61,9 @@ struct PgManagerConfig final
 struct Dependency final
 {
     score::lcm::ProcessState
-        process_state_;                 ///< The state of the other process upon which starting of this process depends.
-    IdentifierHash target_process_id_;  ///< The ID of the target process this dependency is associated with.
-    uint32_t os_process_index_;         ///< The index of the OS process in the target process list.
+        process_state_{};               ///< The state of the other process upon which starting of this process depends.
+    IdentifierHash target_process_id_{};  ///< The ID of the target process this dependency is associated with.
+    uint32_t os_process_index_{};         ///< The index of the OS process in the target process list.
 };
 
 using DependencyList = std::vector<Dependency>;
@@ -74,11 +74,11 @@ using DependencyList = std::vector<Dependency>;
 // have user-declared constructor. The rule doesn’t apply.", false)
 struct OsProcess final
 {
-    IdentifierHash process_id_;          ///< id of a Process.
-    uint32_t process_number_;            ///< unique number for this process & startup configuration combination
+    IdentifierHash process_id_{};         ///< id of a Process.
+    uint32_t process_number_{};           ///< unique number for this process & startup configuration combination
     osal::OsalConfig startup_config_{};  ///< Startup configuration.
-    PgManagerConfig pgm_config_;         ///< Process group manager operations configuration.
-    DependencyList dependencies_;        ///< List of dependencies for each OS process in a specific process group.
+    PgManagerConfig pgm_config_{};        ///< Process group manager operations configuration.
+    DependencyList dependencies_{};       ///< List of dependencies for each OS process in a specific process group.
 };
 
 /// @brief Represents configuration of a process group state.
@@ -86,9 +86,9 @@ struct OsProcess final
 // have user-declared constructor. The rule doesn’t apply.", false)
 struct ProcessGroupState final
 {
-    IdentifierHash name_;  ///< Name of a process group state.
+    IdentifierHash name_{};  ///< Name of a process group state.
     std::vector<uint32_t>
-        process_indexes_;  ///< Processes that should be started / run in this process group state. It is an array of
+        process_indexes_{};  ///< Processes that should be started / run in this process group state. It is an array of
                            ///< indexes (aka pointers) to the processes managed by a process group.
 };
 
@@ -97,12 +97,12 @@ struct ProcessGroupState final
 // have user-declared constructor. The rule doesn’t apply.", false)
 struct ProcessGroup final
 {
-    IdentifierHash name_;                    ///< Name of a process group.
-    IdentifierHash sw_cluster_;              ///< Software cluster to which this process group belongs
-    IdentifierHash off_state_;               ///< ID of the "Off" state for this process group
-    IdentifierHash recovery_state_;          ///< ID of the recovery state for this process group
-    std::vector<ProcessGroupState> states_;  ///< States configured for this process group.
-    std::vector<OsProcess> processes_;       ///< Processes that are managed (started / stopped) by this process group.
+    IdentifierHash name_{};                    ///< Name of a process group.
+    IdentifierHash sw_cluster_{};              ///< Software cluster to which this process group belongs
+    IdentifierHash off_state_{};               ///< ID of the "Off" state for this process group
+    IdentifierHash recovery_state_{};          ///< ID of the recovery state for this process group
+    std::vector<ProcessGroupState> states_{};  ///< States configured for this process group.
+    std::vector<OsProcess> processes_{};       ///< Processes that are managed (started / stopped) by this process group.
 };
 
 ///
