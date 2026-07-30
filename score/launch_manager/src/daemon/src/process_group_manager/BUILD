@@ -25,6 +25,19 @@ cc_library(
 )
 
 cc_library(
+    name = "mock_iprocess",
+    testonly = True,
+    hdrs = ["mock_iprocess.hpp"],
+    include_prefix = "score/mw/launch_manager/process_group_manager",
+    strip_include_prefix = "/score/launch_manager/src/daemon/src/process_group_manager",
+    visibility = ["//score:__subpackages__"],
+    deps = [
+        ":iprocess",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "ialive_monitor_thread",
     hdrs = ["ialive_monitor_thread.hpp"],
     include_prefix = "score/mw/launch_manager/process_group_manager",
@@ -68,6 +81,7 @@ cc_library(
         "//score/launch_manager/src/daemon/src/process_group_manager/details:graph",
         "//score/launch_manager/src/daemon/src/process_group_manager/details:os_handler",
         "//score/launch_manager/src/daemon/src/process_group_manager/details:process_info_node",
+        "//score/launch_manager/src/daemon/src/process_group_manager/details:process_launcher",
         "//score/launch_manager/src/daemon/src/process_group_manager/details:safe_process_map",
         "//score/launch_manager/src/daemon/src/process_state_client:iprocess_state_notifier",
         "//score/launch_manager/src/daemon/src/recovery_client",

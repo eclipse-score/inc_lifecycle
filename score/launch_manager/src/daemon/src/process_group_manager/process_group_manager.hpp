@@ -35,6 +35,7 @@
 #include "score/mw/launch_manager/process_group_manager/details/graph.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/os_handler.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/process_info_node.hpp"
+#include "score/mw/launch_manager/process_group_manager/details/process_launcher.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/process_monitor.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/safe_process_map.hpp"
 #include "score/mw/launch_manager/process_group_manager/ialive_monitor_thread.hpp"
@@ -308,7 +309,7 @@ class ProcessGroupManager final
     ConfigurationType configuration_;
 
     /// @brief The process interface object associated with the ProcessGroupManager.
-    osal::IProcess process_interface_;
+    osal::ProcessLauncher process_interface_;
 
     /// @brief Shared pointer to the SafeProcessMap object.
     std::shared_ptr<SafeProcessMap> process_map_;

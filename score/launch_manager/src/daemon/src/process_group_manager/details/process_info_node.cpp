@@ -14,6 +14,7 @@
 #include "process_info_node.hpp"
 #include "score/mw/launch_manager/common/log.hpp"
 #include "score/mw/launch_manager/osal/ipc_comms.hpp"
+#include "score/mw/launch_manager/process_group_manager/details/safe_process_map.hpp"
 #include <unistd.h>
 #include <cassert>
 
@@ -32,7 +33,7 @@ ProcessInfoNode::ProcessInfoNode(
     ReadyCondition ready_condition,
     ReportStateFn report_function,
     osal::IProcess* process_interface,
-    std::shared_ptr<SafeProcessMap> process_map)
+    std::shared_ptr<SafeProcessMapInserter> process_map)
     : terminator_(),
       has_semaphore_(false),
       process_index_(index),

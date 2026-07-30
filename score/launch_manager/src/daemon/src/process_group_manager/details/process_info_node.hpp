@@ -20,7 +20,7 @@
 #include "score/mw/launch_manager/configuration/configuration_manager.hpp"
 #endif
 #include "score/mw/launch_manager/control/control_client_channel.hpp"
-#include "score/mw/launch_manager/process_group_manager/details/safe_process_map.hpp"
+#include "score/mw/launch_manager/process_group_manager/details/icomponent.hpp"
 #include <score/stop_token.hpp>
 #include <atomic>
 
@@ -32,6 +32,10 @@ namespace lcm
 
 namespace internal
 {
+
+using namespace score::mw::lifecycle::internal;
+
+class SafeProcessMapInserter;
 
 using ReportStateFn = std::function<bool(IdentifierHash, ProcessState, timespec)>;
 
@@ -67,7 +71,7 @@ class ProcessInfoNode final : public IComponent
         ReadyCondition ready_condition,
         ReportStateFn report_function,
         osal::IProcess* process_interface,
-        std::shared_ptr<SafeProcessMap> process_map);
+        std::shared_ptr<SafeProcessMapInserter> process_map);
 
     /// @brief Explicit move constructor required due to atomics. PIN must be moveable to exist in the graph
     ProcessInfoNode(ProcessInfoNode&& other) noexcept
@@ -215,7 +219,7 @@ class ProcessInfoNode final : public IComponent
     osal::IProcess* process_interface_{nullptr};
 
     /// @brief Map this node will be stored in
-    std::shared_ptr<SafeProcessMap> process_map_;
+    std::shared_ptr<SafeProcessMapInserter> process_map_;
 };
 
 }  // namespace internal
