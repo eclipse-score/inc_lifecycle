@@ -191,6 +191,7 @@ TEST_F(INotifyTest, MultipleEventsInBuffer)
     std::uint8_t event_count = 0;
     for (const auto& event : watcher)
     {
+        static_cast<void>(event);
         event_count++;
     }
 

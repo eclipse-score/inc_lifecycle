@@ -47,7 +47,7 @@ int INotifyWatcher::add_watch(std::string_view path, uint32_t mask) const noexce
     auto result = instance_->AddWatch(zpath, event_mask);
     if (!result.has_value())
     {
-        LM_LOG_ERROR() << "Couldn't add watch" << std::strerror(errno);
+        LM_LOG_ERROR() << "Couldn't add watch";
         return -1;
     }
 
