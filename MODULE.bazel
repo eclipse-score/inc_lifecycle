@@ -123,6 +123,11 @@ bazel_dep(name = "score_toolchains_rust", version = "0.9.1", dev_dependency = Tr
 
 # S-CORE crates
 bazel_dep(name = "score_crates", version = "0.0.10")
+git_override(
+    module_name = "score_crates",
+    commit = "4656dda8f04a3d88c8089f63111195840cfbd9e3",
+    remote = "https://github.com/eclipse-score/score-crates.git",
+)
 
 deb = use_repo_rule("@download_utils//download/deb:defs.bzl", "download_deb")
 
