@@ -1,85 +1,71 @@
 #include "score/mw/launch_manager/osal/inotify_iterator.hpp"
 #include "score/launch_manager/src/daemon/src/common/log.hpp"
 #include "score/launch_manager/src/execution_error.h"
+#include "score/os/utils/inotify/inotify_instance_impl.h"
 #include <score/assert.hpp>
 #include <sys/inotify.h>
 
 #include <score/mw/lifecycle/execution_error.h>
 #include <cstddef>
+#include <memory>
 
-INotifyWatcher::INotifyWatcher(int event_queue_fd, int event_fd, int epoll_fd)
-    : event_queue_fd_(event_queue_fd), event_fd_(event_fd), epoll_fd_(epoll_fd)
+INotifyWatcher::INotifyWatcher(std::unique_ptr<score::os::InotifyInstance> instance) noexcept
+    : instance_(std::move(instance))
 {
+}
 
-    auto add = [&](int fd) {
-        epoll_event ev{};
-        ev.events = EPOLLIN;
-        ev.data.fd = fd;
-        ::epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, fd, &ev);
-    };
-    add(event_queue_fd_);
-    add(event_fd_);
+score::Result<INotifyWatcher> INotifyWatcher::Create(std::unique_ptr<score::os::InotifyInstance> inotify_instance) noexcept
+{
+    return INotifyWatcher{std::move(inotify_instance)};
 }
 
 score::Result<INotifyWatcher> INotifyWatcher::Create() noexcept
 {
-    int event_queue_fd = ::inotify_init1(IN_CLOEXEC);
-    int event_fd = ::eventfd(0, EFD_CLOEXEC | EFD_NONBLOCK);
-    int epoll_fd = ::epoll_create1(EPOLL_CLOEXEC);
-
-    if (event_queue_fd < 0 || event_fd < 0 || epoll_fd < 0)
+    auto instance = std::make_unique<score::os::InotifyInstanceImpl>();
+    auto is_valid = instance->IsValid();
+    if (!is_valid.has_value())
     {
-        score::Result<INotifyWatcher>{score::MakeUnexpected(score::mw::lifecycle::ExecErrc::kCommunicationError)};
+        return score::MakeUnexpected(score::mw::lifecycle::ExecErrc::kCommunicationError);
+    }
+    return INotifyWatcher{std::move(instance)};
+}
+
+
+int INotifyWatcher::add_watch(std::string_view path, uint32_t mask) const noexcept
+{
+    if (!instance_)
+    {
+        return -1;
     }
 
-    return INotifyWatcher{event_queue_fd, event_fd, epoll_fd};
+    // Convert path to zstring_view (assuming path is null-terminated)
+    score::safecpp::zstring_view zpath(path.data(), path.size());
+
+    // Convert mask to EventMask
+    auto event_mask = static_cast<score::os::Inotify::EventMask>(mask);
+
+    auto result = instance_->AddWatch(zpath, event_mask);
+    if (!result.has_value())
+    {
+        LM_LOG_ERROR() << "Couldn't add watch" << std::strerror(errno);
+        return -1;
+    }
+
+    last_watch_descriptor_ = result.value();
+    return last_watch_descriptor_.GetUnderlying();
 }
 
-INotifyWatcher::INotifyWatcher(INotifyWatcher&& other) noexcept
-    : event_queue_fd_(other.event_queue_fd_), event_fd_(other.event_fd_), epoll_fd_(other.epoll_fd_)
+void INotifyWatcher::interrupt() const noexcept
 {
-    // invalidate others file descriptors
-    other.event_queue_fd_ = -1;
-    other.event_fd_ = -1;
-    other.epoll_fd_ = -1;
-}
-
-INotifyWatcher& INotifyWatcher::operator=(INotifyWatcher&& other) noexcept
-{
-    event_queue_fd_ = other.event_queue_fd_;
-    event_fd_ = other.event_fd_;
-    epoll_fd_ = other.epoll_fd_;
-
-    // invalidate others file descriptors
-    other.event_queue_fd_ = -1;
-    other.event_fd_ = -1;
-    other.epoll_fd_ = -1;
-    return *this;
-}
-
-INotifyWatcher::~INotifyWatcher()
-{
-    static_cast<void>(::close(epoll_fd_));
-    static_cast<void>(::close(event_fd_));
-    static_cast<void>(::close(event_queue_fd_));
-}
-
-int INotifyWatcher::add_watch(const std::string_view path, uint32_t mask) const noexcept
-{
-    return ::inotify_add_watch(event_queue_fd_, path.begin(), mask);
-}
-
-void INotifyWatcher::interrupt() const
-{
-    std::uint64_t val = 1;
-    ::write(event_fd_, &val, sizeof(val));
+    if (instance_)
+    {
+        instance_->Close();
+    }
 }
 
 INotifyWatcher::iterator INotifyWatcher::begin()
 {
-    SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(event_fd_ > 0, "Event FD not initlized!");
-    SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(epoll_fd_ > 0, "Event FD not initlized!");
-    SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(event_queue_fd_ > 0, "Event FD not initlized!");
+    SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(instance_ != nullptr, "INotify instance not initialized!");
 
     iterator out{this};
     ++out;
@@ -91,16 +77,16 @@ INotifyWatcher::iterator INotifyWatcher::end()
     return iterator{nullptr};
 }
 
-INotifyWatcher::iterator::iterator(INotifyWatcher* watch_ptr) : watcher_(watch_ptr) {};
+INotifyWatcher::iterator::iterator(INotifyWatcher* watch_ptr) : watcher_(watch_ptr) {}
 
 INotifyWatcher::iterator::reference INotifyWatcher::iterator::operator*() const
 {
-    return current_;
+    return events_[event_index_];
 }
 
 INotifyWatcher::iterator::pointer INotifyWatcher::iterator::operator->() const
 {
-    return &current_;
+    return &events_[event_index_];
 }
 
 INotifyWatcher::iterator& INotifyWatcher::iterator::operator++()
@@ -137,55 +123,33 @@ bool INotifyWatcher::iterator::operator!=(const iterator& other) const
 
 bool INotifyWatcher::iterator::advance()
 {
-    // need 2 fields, one for the inotify fd and one for the event fd
-    std::array<epoll_event, 2> events{};
-    int events_seen = ::epoll_wait(watcher_->epoll_fd_, events.data(), events.size(), -1);
-
-    if (events_seen < 0)
+    if (!watcher_ || !watcher_->instance_)
     {
-        LM_LOG_ERROR() << "Failed to epoll_wait" << std::strerror(errno);
         return false;
     }
 
-    for (const auto& event : events)
+    // Check if we have more events in the current buffer
+    if (event_index_ + 1 < events_.size())
     {
-        if (event.data.fd == watcher_->event_fd_)
-        {
-            // recived event from event_fd_ so we got interrupted
-            std::uint64_t val = 0;
-            ::read(watcher_->event_fd_, &val, sizeof(val));
-            return false;
-        }
+        ++event_index_;
+        return true;
     }
 
-    ssize_t bytes_read = ::read(watcher_->event_queue_fd_, buf_.data(), buf_.size());
-    if (bytes_read <= 0)
+    // Need to read new events from the instance
+    auto result = watcher_->instance_->Read();
+    if (!result.has_value())
     {
-        // this shouldn't happen but we should still continue...
+        LM_LOG_ERROR() << "Failed to read inotify events";
         return false;
     }
 
-    consume_next();
+    events_ = std::move(result.value());
+    if (events_.empty())
+    {
+        // No events or interrupted
+        return false;
+    }
+
+    event_index_ = 0;
     return true;
-};
-
-void INotifyWatcher::iterator::consume_next()
-{
-    const char* raw = buf_.data();
-
-    // using memcpy so that we don't reintepret_cast
-    std::memcpy(&current_.wd, raw, sizeof(inotify_event::wd));
-    raw = std::next(raw, sizeof(inotify_event::wd));
-
-    std::memcpy(&current_.mask, raw, sizeof(inotify_event::mask));
-    raw = std::next(raw, sizeof(inotify_event::mask));
-
-    std::memcpy(&current_.cookie, raw, sizeof(inotify_event::cookie));
-    raw = std::next(raw, sizeof(inotify_event::cookie));
-
-    decltype(inotify_event::len) len{0};
-    std::memcpy(&len, raw, sizeof(inotify_event::len));
-    raw = std::next(raw, sizeof(inotify_event::len));
-
-    current_.name = std::string_view(raw, len);
-};
+}

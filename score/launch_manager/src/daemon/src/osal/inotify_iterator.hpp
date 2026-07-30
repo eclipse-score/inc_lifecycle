@@ -1,58 +1,50 @@
-#include <sys/epoll.h>
-#include <sys/eventfd.h>
-#include <sys/inotify.h>
-#include <unistd.h>
 #include <climits>
 #include <cstddef>
 #include <cstdint>
-#include <cstring>
+#include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "score/result/result.h"
+#include "score/os/utils/inotify/inotify_instance.h"
+#include "score/os/utils/inotify/inotify_instance_impl.h"
+#include "score/os/utils/inotify/inotify_event.h"
+#include "score/os/utils/inotify/inotify_watch_descriptor.h"
+#include "score/mw/launch_manager/osal/inotify_watcher_interface.hpp"
 
-/// @brief Redefinition of inotify_event
-struct INotifyEvent
-{
-    /// @brief The watch descriptor.
-    int wd;
+// Use the baselibs inotify event type
+using INotifyEvent = score::os::InotifyEvent;
 
-    /// @brief Mask describing event.
-    uint32_t mask;
-
-    ///@brief Unique cookie associating related events.
-    uint32_t cookie;
-
-    ///@brief Optional name if watching for new files.
-    std::string_view name;
-};
-
-class INotifyWatcher
+class INotifyWatcher : public INotifyWatcherInterface
 {
   private:
     /// @brief Use the `Create()` method to create the `INotifyWatcher`.
-    INotifyWatcher(int event_queue_fd, int event_fd, int epoll_fd);
+    explicit INotifyWatcher(std::unique_ptr<score::os::InotifyInstance> instance) noexcept;
 
     // forward declaration for iterator class
     class iterator;
 
   public:
+    /// @brief Creates a INotifyWatcher or returns an error. If nullptr is given this will create the Impl.
+    [[nodiscard]] static score::Result<INotifyWatcher> Create(std::unique_ptr<score::os::InotifyInstance> inotify_instance) noexcept;
+
     /// @brief Creates a INotifyWatcher or returns an error.
     [[nodiscard]] static score::Result<INotifyWatcher> Create() noexcept;
 
-    ~INotifyWatcher();
+    ~INotifyWatcher() = default;
 
-    INotifyWatcher(INotifyWatcher&& other) noexcept;
-    INotifyWatcher& operator=(INotifyWatcher&& other) noexcept;
+    INotifyWatcher(INotifyWatcher&& other) noexcept = default;
+    INotifyWatcher& operator=(INotifyWatcher&& other) noexcept = default;
 
     INotifyWatcher(const INotifyWatcher& other) = delete;
     INotifyWatcher& operator=(const INotifyWatcher& other) = delete;
 
     /// @brief Adds the given file to that watch with the given event mask.
-    [[nodiscard]] int add_watch(const std::string_view path, uint32_t mask) const noexcept;
+    [[nodiscard]] int add_watch(std::string_view path, uint32_t mask) const noexcept override;
 
     /// @brief Interupt the reading of the events.
-    void interrupt() const;
+    void interrupt() const noexcept override;
 
     /// @brief Gives an iterator to read new events from the registered
     ///        watches.
@@ -64,27 +56,24 @@ class INotifyWatcher
     [[nodiscard]] iterator end();
 
   private:
-    /// @brief The event queue taken from `inotify_init`
-    int event_queue_fd_;
+    /// @brief The underlying inotify instance from baselibs
+    std::unique_ptr<score::os::InotifyInstance> instance_;
 
-    /// @brief Event used to interrupt the wait.
-    int event_fd_;
+    /// @brief Watch descriptor stored for the last add_watch call
+    mutable score::os::InotifyWatchDescriptor last_watch_descriptor_{-1};
 
-    /// @brief 
-    int epoll_fd_;
-
-    /// @brief An iterator that reads the event queue, and 
+    /// @brief An iterator that reads the event queue
     ///
-    /// @details 
+    /// @details
     /// ```
     /// auto res = INotifyWatcher::Create();
     /// auto watcher = std::move(res).value();
     /// auto watch = watcher.add_watch("/tmp", IN_CREATE);
-    /// 
-    /// for (const INotifyEvent& event : watcher)
+    ///
+    /// for (const auto& event : watcher)
     /// {
-    ///     std::cout << event.wd << std::endl;
-    ///     std::cout << event.name << std::endl;
+    ///     std::cout << event.GetWatchDescriptor().GetUnderlying() << std::endl;
+    ///     std::cout << event.GetName() << std::endl;
     /// }
     /// ```
     class iterator
@@ -114,20 +103,13 @@ class INotifyWatcher
         /// @brief Pointer to the parent watcher.
         INotifyWatcher* watcher_ = nullptr;
 
-        /// @brief The current event.
-        INotifyEvent current_{};
+        /// @brief Buffer of events read from the instance.
+        score::cpp::static_vector<INotifyEvent, score::os::InotifyInstance::max_events> events_{};
 
-        /// @brief The size of the buffer for a single event entry.
-        static constexpr size_t kEventSize = (sizeof(inotify_event) + NAME_MAX + 1);
-
-        /// @brief Backing data for the event.
-        std::array<char, kEventSize> buf_{};
+        /// @brief Current position in the events buffer.
+        size_t event_index_{0};
 
         /// @brief Returns false if interrupted or error.
         [[nodiscard]] bool advance();
-
-        /// @brief Parse the `inotify_event` at the current cursor into internal
-        ///        data structure and advance cursor.
-        void consume_next();
     };
 };
