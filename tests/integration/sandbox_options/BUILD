@@ -72,6 +72,7 @@ cc_binary(
 
 integration_test(
     name = "sandbox_options",
+    timeout = "short",
     srcs = ["sandbox_options.py"],
     binaries = [
         ":control_daemon_mock",
