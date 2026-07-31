@@ -20,15 +20,11 @@
 #include <unistd.h>
 #include <algorithm>
 #include <array>
-#include <atomic>
 #include <climits>
 #include <optional>
 #include <sstream>
 #include <string>
-#include <thread>
 #include <vector>
-
-#include "tests/utils/test_helper/test_helper.hpp"
 
 namespace sandbox_options
 {
@@ -62,14 +58,114 @@ inline const char* policy_name(const int policy)
     }
 }
 
-/// @brief Verify that the calling thread runs with the expected scheduling policy and priority.
-/// @param[in] expected The expected sandbox option values.
-/// @param[in] context Human readable name of the thread, used in failure messages.
-/// @param[out] failures Stream that receives a description of every mismatch.
-inline void verify_scheduling(const ExpectedValues& expected,
-                              const std::string& context,
-                              std::ostringstream& failures)
+/// @brief Turn an accumulated failure description into a gtest result.
+/// @return AssertionSuccess if 'failures' is empty, otherwise AssertionFailure carrying its text.
+inline ::testing::AssertionResult to_result(std::ostringstream& failures)
 {
+    if (failures.tellp() != std::ostringstream::pos_type(0))
+    {
+        return ::testing::AssertionFailure() << failures.str();
+    }
+    return ::testing::AssertionSuccess();
+}
+
+/// @brief Verify that this process runs with the expected user and group id.
+/// @param[in] expected_uid Expected user id; not verified when unset.
+/// @param[in] expected_gid Expected group id; not verified when unset.
+/// @return AssertionSuccess if every set expectation matches, otherwise AssertionFailure.
+inline ::testing::AssertionResult verifyUidGid(const std::optional<uid_t> expected_uid,
+                                               const std::optional<gid_t> expected_gid)
+{
+    std::ostringstream failures;
+
+    if (expected_uid.has_value())
+    {
+        const uid_t current_uid = getuid();
+        if (current_uid != *expected_uid)
+        {
+            failures << "Expected uid=" << *expected_uid << " but got uid=" << current_uid << "\n";
+        }
+    }
+
+    if (expected_gid.has_value())
+    {
+        const gid_t current_gid = getgid();
+        if (current_gid != *expected_gid)
+        {
+            failures << "Expected gid=" << *expected_gid << " but got gid=" << current_gid << "\n";
+        }
+    }
+
+    return to_result(failures);
+}
+
+/// @brief Verify that every expected supplementary group is present in the process' group set.
+/// @param[in] expected_groups Group ids that must all be present.
+/// @return AssertionSuccess if every expected group is found, otherwise AssertionFailure.
+inline ::testing::AssertionResult verifySupplementaryGroups(const std::vector<gid_t>& expected_groups)
+{
+    std::ostringstream failures;
+
+    std::vector<gid_t> groups(256);
+    const int count = getgroups(static_cast<int>(groups.size()), groups.data());
+    if (count < 0)
+    {
+        failures << "Failed to get supplementary groups\n";
+    }
+    else
+    {
+        groups.resize(static_cast<size_t>(count));
+        for (const gid_t expected_group : expected_groups)
+        {
+            const bool found = std::find(groups.begin(), groups.end(), expected_group) != groups.end();
+            if (!found)
+            {
+                failures << "Expected supplementary group " << expected_group << " not found (groups: [" << count
+                         << " total)]\n";
+            }
+        }
+    }
+
+    return to_result(failures);
+}
+
+/// @brief Verify that the process' current working directory matches the expectation.
+/// @param[in] expected_working_dir Expected absolute working directory.
+/// @return AssertionSuccess if the working directory matches, otherwise AssertionFailure.
+inline ::testing::AssertionResult verifyWorkingDir(const std::string& expected_working_dir)
+{
+    std::ostringstream failures;
+
+    std::array<char, PATH_MAX> buf{};
+    char* result = getcwd(buf.data(), buf.size());
+    if (result == nullptr)
+    {
+        failures << "Failed to get current working directory\n";
+    }
+    else if (std::string(result) != expected_working_dir)
+    {
+        failures << "Expected working_dir=" << expected_working_dir << " but got cwd=" << result << "\n";
+    }
+
+    return to_result(failures);
+}
+
+/// @brief Verify that the calling thread runs with the expected scheduling policy and priority.
+///
+/// Scheduling is always verified. When no explicit policy/priority is configured the check runs
+/// against the launch manager's defaults: SCHED_OTHER, at the minimum priority for the effective
+/// policy (sched_get_priority_min(): 1 for SCHED_FIFO/SCHED_RR, 0 for SCHED_OTHER).
+///
+/// @param[in] expected_policy Expected scheduling policy; defaults to SCHED_OTHER when unset.
+/// @param[in] expected_priority Expected scheduling priority; defaults to the policy minimum when unset.
+/// @param[in] context Human readable name of the thread, used in failure messages.
+/// @return AssertionSuccess if policy and priority match, otherwise AssertionFailure.
+inline ::testing::AssertionResult verifyScheduling(const std::optional<int> expected_policy,
+                                                   const std::optional<int> expected_priority,
+                                                   const std::string& context)
+{
+    std::ostringstream failures;
+
     int policy = -1;
     sched_param param{};
     const int result = pthread_getschedparam(pthread_self(), &policy, &param);
@@ -78,134 +174,24 @@ inline void verify_scheduling(const ExpectedValues& expected,
         // 'policy' was not written, so it is still the sentinel -1. Bail out before it can reach
         // sched_get_priority_min() below (which would return -1 and set errno=EINVAL).
         failures << context << ": pthread_getschedparam failed rc=" << result << "\n";
-        return;
+        return to_result(failures);
     }
 
-    // When no explicit policy is configured, the launch manager applies the default scheduling
-    // policy (SCHED_OTHER). Verify against that default instead of accepting whatever the thread
-    // happens to run with, so a process launched with default options is still checked.
-    const int expected_policy = expected.policy.value_or(SCHED_OTHER);
-    if (policy != expected_policy)
+    const int effective_policy = expected_policy.value_or(SCHED_OTHER);
+    if (policy != effective_policy)
     {
-        failures << context << ": Expected scheduling policy=" << policy_name(expected_policy)
-                 << (expected.policy.has_value() ? "" : " (default)") << " but got " << policy_name(policy) << "\n";
+        failures << context << ": Expected scheduling policy=" << policy_name(effective_policy)
+                 << (expected_policy.has_value() ? "" : " (default)") << " but got " << policy_name(policy) << "\n";
     }
 
-    // The priority is always verified. When no explicit priority is provided, verify against the
-    // default the launch manager ends up applying: its configured default (0) clamped up to the
-    // policy minimum, i.e. sched_get_priority_min() for the effective policy (1 for
-    // SCHED_FIFO/SCHED_RR, 0 for SCHED_OTHER). 'policy'/'expected_policy' are valid here (the
-    // rc != 0 case returned early).
-    const int expected_priority = expected.priority.value_or(sched_get_priority_min(expected_policy));
-    if (param.sched_priority != expected_priority)
+    const int effective_priority = expected_priority.value_or(sched_get_priority_min(effective_policy));
+    if (param.sched_priority != effective_priority)
     {
-        failures << context << ": Expected scheduling priority=" << expected_priority
-                 << (expected.priority.has_value() ? "" : " (default)") << " but got " << param.sched_priority
-                 << "\n";
-    }
-}
-
-/// @brief Verify that this process runs with the given sandbox options applied.
-/// @param[in] expected The expected sandbox option values; unset options are not verified.
-/// @return AssertionSuccess if every set expectation matches, otherwise AssertionFailure carrying
-///         a description of all mismatches.
-inline ::testing::AssertionResult verifySandbox(const ExpectedValues& expected)
-{
-    std::ostringstream failures;
-
-    if (expected.uid.has_value() || expected.gid.has_value())
-    {
-        TEST_STEP("Verify uid and gid")
-        {
-            if (expected.uid.has_value())
-            {
-                const uid_t current_uid = getuid();
-                if (current_uid != *expected.uid)
-                {
-                    failures << "Expected uid=" << *expected.uid << " but got uid=" << current_uid << "\n";
-                }
-            }
-
-            if (expected.gid.has_value())
-            {
-                const gid_t current_gid = getgid();
-                if (current_gid != *expected.gid)
-                {
-                    failures << "Expected gid=" << *expected.gid << " but got gid=" << current_gid << "\n";
-                }
-            }
-        }
+        failures << context << ": Expected scheduling priority=" << effective_priority
+                 << (expected_priority.has_value() ? "" : " (default)") << " but got " << param.sched_priority << "\n";
     }
 
-    if (expected.supplementary_groups.has_value())
-    {
-        TEST_STEP("Verify supplementary groups")
-        {
-            std::vector<gid_t> groups(256);
-            const int count = getgroups(static_cast<int>(groups.size()), groups.data());
-            if (count < 0)
-            {
-                failures << "Failed to get supplementary groups\n";
-            }
-            else
-            {
-                groups.resize(static_cast<size_t>(count));
-                for (const gid_t expected_group : *expected.supplementary_groups)
-                {
-                    const bool found = std::find(groups.begin(), groups.end(), expected_group) != groups.end();
-                    if (!found)
-                    {
-                        failures << "Expected supplementary group " << expected_group << " not found (groups: ["
-                                 << count << " total)]\n";
-                    }
-                }
-            }
-        }
-    }
-
-    if (expected.working_dir.has_value())
-    {
-        TEST_STEP("Verify working directory")
-        {
-            std::array<char, PATH_MAX> buf{};
-            char* result = getcwd(buf.data(), buf.size());
-            if (result == nullptr)
-            {
-                failures << "Failed to get current working directory\n";
-            }
-            else if (std::string(result) != *expected.working_dir)
-            {
-                failures << "Expected working_dir=" << *expected.working_dir << " but got cwd=" << result << "\n";
-            }
-        }
-    }
-
-    // Scheduling is always verified. When no explicit policy/priority is configured the check runs
-    // against the launch manager's defaults (SCHED_OTHER at its minimum priority).
-    TEST_STEP("Verify scheduling policy and priority in the main thread")
-    {
-        verify_scheduling(expected, "main thread", failures);
-    }
-
-    TEST_STEP("Verify scheduling policy and priority in a spawned thread")
-    {
-        // A thread created with default attributes inherits the scheduling policy and priority of
-        // its creating thread, so the configured settings must apply here as well. The thread
-        // accumulates into its own stream to avoid a data race on 'failures', which is merged in
-        // after the join.
-        std::ostringstream thread_failures;
-        std::thread worker([&expected, &thread_failures]() {
-            verify_scheduling(expected, "spawned thread", thread_failures);
-        });
-        worker.join();
-        failures << thread_failures.str();
-    }
-
-    if (failures.tellp() != std::ostringstream::pos_type(0))
-    {
-        return ::testing::AssertionFailure() << failures.str();
-    }
-    return ::testing::AssertionSuccess();
+    return to_result(failures);
 }
 
 }  // namespace sandbox_options

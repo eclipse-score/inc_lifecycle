@@ -18,6 +18,7 @@
 #include <sstream>
 #include <string>
 #include <string_view>
+#include <thread>
 #include <vector>
 
 #include "tests/integration/sandbox_options/verify_sandbox.hpp"
@@ -132,7 +133,51 @@ bool parse_arguments(int argc, char** argv, ExpectedValues& out)
 
 TEST(SandboxOptions, RunAndVerify)
 {
-    EXPECT_TRUE(sandbox_options::verifySandbox(expected)) << "Sandbox options verification failed";
+    // Each sandbox option is verified in its own step so the test log shows exactly what is checked.
+    // An option that is left unset (see ExpectedValues) is not configured for this process and is
+    // therefore skipped; scheduling is always verified against the launch manager's defaults.
+    if (expected.uid.has_value() || expected.gid.has_value())
+    {
+        TEST_STEP("Verify uid and gid")
+        {
+            EXPECT_TRUE(sandbox_options::verifyUidGid(expected.uid, expected.gid));
+        }
+    }
+
+    if (expected.supplementary_groups.has_value())
+    {
+        TEST_STEP("Verify supplementary groups")
+        {
+            EXPECT_TRUE(sandbox_options::verifySupplementaryGroups(*expected.supplementary_groups));
+        }
+    }
+
+    if (expected.working_dir.has_value())
+    {
+        TEST_STEP("Verify working directory")
+        {
+            EXPECT_TRUE(sandbox_options::verifyWorkingDir(*expected.working_dir));
+        }
+    }
+
+    TEST_STEP("Verify scheduling policy and priority in the main thread")
+    {
+        EXPECT_TRUE(sandbox_options::verifyScheduling(expected.policy, expected.priority, "main thread"));
+    }
+
+    TEST_STEP("Verify scheduling policy and priority in a spawned thread")
+    {
+        // A thread created with default attributes inherits the scheduling policy and priority of
+        // its creating thread, so the configured settings must apply here as well. The result is
+        // written in the worker and read after the join, which synchronizes the access.
+        ::testing::AssertionResult thread_result = ::testing::AssertionSuccess();
+        std::thread worker([&thread_result]() {
+            thread_result = sandbox_options::verifyScheduling(expected.policy, expected.priority, "spawned thread");
+        });
+        worker.join();
+        EXPECT_TRUE(thread_result);
+    }
+
     score::mw::lifecycle::report_running();
 }
 
