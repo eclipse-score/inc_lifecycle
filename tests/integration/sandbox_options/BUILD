@@ -28,47 +28,22 @@ cc_binary(
 # Three binaries are built from the same source. Each verifies the sandbox options passed to it on
 # the command line (see sandbox_options.json), and derives its GTest XML result file name from its
 # own executable name so the results do not collide.
-cc_binary(
-    name = "sandbox_options_process_a",
-    srcs = [
-        "sandbox_options_process.cpp",
-        "verify_sandbox.hpp",
-    ],
-    deps = [
-        "//score/launch_manager:control_cc",
-        "//score/launch_manager:lifecycle_cc",
-        "//tests/utils/test_helper",
-        "@googletest//:gtest_main",
-    ],
-)
-
-cc_binary(
-    name = "sandbox_options_process_b",
-    srcs = [
-        "sandbox_options_process.cpp",
-        "verify_sandbox.hpp",
-    ],
-    deps = [
-        "//score/launch_manager:control_cc",
-        "//score/launch_manager:lifecycle_cc",
-        "//tests/utils/test_helper",
-        "@googletest//:gtest_main",
-    ],
-)
-
-cc_binary(
-    name = "sandbox_options_process_c",
-    srcs = [
-        "sandbox_options_process.cpp",
-        "verify_sandbox.hpp",
-    ],
-    deps = [
-        "//score/launch_manager:control_cc",
-        "//score/launch_manager:lifecycle_cc",
-        "//tests/utils/test_helper",
-        "@googletest//:gtest_main",
-    ],
-)
+[
+    cc_binary(
+        name = "sandbox_options_process_{}".format(suffix),
+        srcs = [
+            "sandbox_options_process.cpp",
+            "verify_sandbox.hpp",
+        ],
+        deps = [
+            "//score/launch_manager:control_cc",
+            "//score/launch_manager:lifecycle_cc",
+            "//tests/utils/test_helper",
+            "@googletest//:gtest_main",
+        ],
+    )
+    for suffix in ("a", "b", "c")
+]
 
 integration_test(
     name = "sandbox_options",
