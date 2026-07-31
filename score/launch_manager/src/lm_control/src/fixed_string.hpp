@@ -55,7 +55,7 @@ struct FixedString
     /// Only `storage_[0]` is set to `'\0'`; the rest of the array is indeterminate.
     /// This is intentional — zeroing `MaxLength + 1` bytes on every default
     /// construction would be wasteful when the value is immediately overwritten.
-    FixedString() noexcept
+    constexpr FixedString() noexcept
     {
         storage_[0] = '\0';
     }
@@ -68,10 +68,12 @@ struct FixedString
     /// available.
     ///
     /// @param s Source string. Does not require to be null-terminated.
-    explicit FixedString(std::string_view s) noexcept
+    constexpr explicit FixedString(std::string_view s) noexcept
     {
         const auto len = std::min(s.size(), MaxLength);
-        std::memcpy(storage_.data(), s.data(), len);
+        for (std::size_t i = 0; i < len; ++i) {
+            storage_[i] = s[i];
+        }
         storage_[len] = '\0';
     }
 
@@ -92,10 +94,12 @@ struct FixedString
     /// @param s Source string. Does not require to be null-terminated.
     ///
     /// @returns Reference to this instance.
-    FixedString& operator=(std::string_view s) noexcept
+    constexpr FixedString& operator=(std::string_view s) noexcept
     {
         const auto len = std::min(s.size(), MaxLength);
-        std::memcpy(storage_.data(), s.data(), len);
+        for (std::size_t i = 0; i < len; ++i) {
+            storage_[i] = s[i];
+        }
         storage_[len] = '\0';
         return *this;
     }
@@ -190,7 +194,9 @@ struct FixedString
     ///         otherwise, false.
     bool operator==(const FixedString& other) const noexcept
     {
-        return as_string_view() == other.as_string_view();
+        // strcmp does a single optimised pass — avoids the two strlen calls
+        // that constructing string_views would require.
+        return std::strcmp(storage_.data(), other.storage_.data()) == 0;
     }
 
     /// @brief Equality comparison with a string_view.
@@ -204,7 +210,13 @@ struct FixedString
     ///         @p other; otherwise, false.
     bool operator==(std::string_view other) const noexcept
     {
-        return as_string_view() == other;
+        // other.size() is already known — use it as a length guard and for
+        // memcmp, avoiding strlen on our storage.
+        if (other.size() > MaxLength) {
+            return false;
+        }
+        return std::strncmp(storage_.data(), other.data(), other.size()) == 0
+               && storage_[other.size()] == '\0';
     }
 
     /// @brief Inequality comparison with another FixedString of the same capacity.
@@ -256,7 +268,7 @@ struct FixedString
 template <std::size_t N, std::size_t M>
 bool operator==(const FixedString<N>& lhs, const FixedString<M>& rhs) noexcept
 {
-    return lhs.as_string_view() == rhs.as_string_view();
+    return std::strcmp(lhs.data(), rhs.data()) == 0;
 }
 
 /// @brief Inequality comparison between FixedString instances of different capacities.
