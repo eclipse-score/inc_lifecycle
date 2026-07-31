@@ -278,10 +278,7 @@ inline void ProcessInfoNode::setupControlClientChannel()
 score::cpp::expected_blank<IComponent::ComponentError> ProcessInfoNode::handleProcessStillStarting(
     const score::cpp::stop_token& stop_token)
 {
-    if (stop_token.stop_requested())
-    {
-        return {};
-    }
+    static_cast<void>(stop_token);  // Not yet supported
 
     if (((osal::CommsType::kNoComms == config_->startup_config_.comms_type_) ||
          (process_interface_->waitForkRunning(sync_, config_->pgm_config_.startup_timeout_ms_) ==
@@ -392,11 +389,12 @@ inline void ProcessInfoNode::handleTerminationProcess(const score::cpp::stop_tok
 
 inline void ProcessInfoNode::handleForcedTermination(const score::cpp::stop_token& stop_token)
 {
+    static_cast<void>(stop_token); // Not yet supported
+
     LM_LOG_WARN() << "Process" << process_index_ << "(" << config_->startup_config_.short_name_
                   << ") did not respond to SIGTERM, sending SIGKILL";
 
     while ((osal::OsalReturnType::kSuccess == process_interface_->forceTermination(pid_)) &&
-           (!stop_token.stop_requested()) &&
            (terminator_.timedWait(score::lcm::internal::kMaxSigKillDelay) != osal::OsalReturnType::kSuccess))
     {
         LM_LOG_FATAL() << "Process" << process_index_ << "(" << config_->startup_config_.short_name_

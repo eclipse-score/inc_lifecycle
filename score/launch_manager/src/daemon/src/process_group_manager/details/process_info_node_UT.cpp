@@ -253,26 +253,6 @@ TEST_F(ProcessInfoNodeStartupTest, ActivateAlreadyActiveNode_ReturnsSuccess)
     ASSERT_THAT(node->getState(), Eq(score::lcm::ProcessState::kRunning));
 }
 
-TEST_F(ProcessInfoNodeStartupTest, ActivateAbortedByStopToken_SkipsRunningWaitAndReturnsSuccess)
-{
-    RecordProperty(
-        "Description",
-        "If the stop_token passed to activate() is already stop-requested by the time the process is waiting to "
-        "report kRunning, activate() does not wait for the report and immediately returns kSuccess.");
-
-    auto node = createProcessInfoNode(osal::CommsType::kReporting);
-    expectSuccessfulProcessLaunch();
-    expectStateTransitions({score::lcm::ProcessState::kStarting, score::lcm::ProcessState::kRunning});
-    stop_source_.request_stop();
-    // waitForkRunning() must not be called: no expectation is set, so the StrictMock will fail the test if it is.
-
-    auto result = node->activate(stop_source_.get_token());
-
-    ASSERT_THAT(result.has_value(), IsTrue());
-    ASSERT_THAT(result.value(), Eq(IComponent::RequestState::kSuccess));
-    ASSERT_THAT(node->getState(), Eq(score::lcm::ProcessState::kRunning));
-}
-
 // Bundles process crashes and timeouts that occur during activate(), before the ready condition is reached.
 class ProcessInfoNodeStartupCrashTest : public ProcessInfoNodeFixture
 {
@@ -577,29 +557,3 @@ TEST_F(ProcessInfoNodeDeactivationTest, ProcessIgnoresSigterm_ForcedWithSigkill)
     ASSERT_THAT(node->getState(), Eq(score::lcm::ProcessState::kIdle));
 }
 
-TEST_F(ProcessInfoNodeDeactivationTest, DeactivateAbortedByStopToken_StopsSigkillRetries)
-{
-    RecordProperty(
-        "Description",
-        "If the process never responds to SIGKILL, the forced-termination retry loop stops once the stop_token "
-        "passed to deactivate() is triggered, and deactivate() still returns kSuccess even though the process never "
-        "confirmed its termination.");
-
-    auto node = createRunningProcessInfoNode_TermTimeout(std::chrono::milliseconds{0});
-    EXPECT_CALL(mock_processIf_, requestTermination(_)).WillOnce(Return(osal::OsalReturnType::kSuccess));
-    // Simulate an unresponsive process: forceTermination() "succeeds" (SIGKILL sent) but the process never exits;
-    // triggering the stop_token is the only way to break out of the retry loop.
-    EXPECT_CALL(mock_processIf_, forceTermination(_))
-        .WillOnce(DoAll(
-            InvokeWithoutArgs([this] {
-                stop_source_.request_stop();
-            }),
-            Return(osal::OsalReturnType::kSuccess)));
-
-    auto result = node->deactivate(stop_source_.get_token());
-
-    ASSERT_THAT(result.has_value(), IsTrue());
-    ASSERT_THAT(result.value(), Eq(IComponent::RequestState::kSuccess));
-    ASSERT_THAT(node->active(), IsFalse());
-    ASSERT_THAT(node->getState(), Eq(score::lcm::ProcessState::kTerminating));
-}
