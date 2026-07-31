@@ -142,7 +142,7 @@ cc_library(
     }),
     include_prefix = "score/mw/launch_manager/process_group_manager/details",
     strip_include_prefix = "/score/launch_manager/src/daemon/src/process_group_manager/details",
-    visibility = ["//score/launch_manager/src/daemon/src/process_group_manager:__subpackages__"],
+    visibility = ["//score/launch_manager/src/daemon/src/process_group_manager:__pkg__"],
     deps = [
         ":icomponent",
         ":safe_process_map",
@@ -177,7 +177,7 @@ cc_library(
     hdrs = ["graph.hpp"],
     include_prefix = "score/mw/launch_manager/process_group_manager/details",
     strip_include_prefix = "/score/launch_manager/src/daemon/src/process_group_manager/details",
-    visibility = ["//score/launch_manager/src/daemon/src/process_group_manager:__subpackages__"],
+    visibility = ["//score/launch_manager/src/daemon/src/process_group_manager:__pkg__"],
     deps = [
         ":component_event_queue",
         ":component_task",
@@ -197,7 +197,7 @@ cc_library(
     hdrs = ["safe_process_map.hpp"],
     include_prefix = "score/mw/launch_manager/process_group_manager/details",
     strip_include_prefix = "/score/launch_manager/src/daemon/src/process_group_manager/details",
-    visibility = ["//score/launch_manager/src/daemon/src/process_group_manager:__subpackages__"],
+    visibility = ["//score/launch_manager/src/daemon/src/process_group_manager:__pkg__"],
     deps = [
         ":icomponent_controller",
         "//score/launch_manager/src/daemon/src/process_group_manager:iprocess",
@@ -221,7 +221,7 @@ cc_library(
     hdrs = ["os_handler.hpp"],
     include_prefix = "score/mw/launch_manager/process_group_manager/details",
     strip_include_prefix = "/score/launch_manager/src/daemon/src/process_group_manager/details",
-    visibility = ["//score/launch_manager/src/daemon/src/process_group_manager:__subpackages__"],
+    visibility = ["//score/launch_manager/src/daemon/src/process_group_manager:__pkg__"],
     deps = [
         ":safe_process_map",
         "//score/launch_manager/src/daemon/src/common:log",
@@ -274,7 +274,7 @@ cc_test(
 cc_library(
     name = "process_launcher",
     srcs = ["process_launcher.cpp"],
-    visibility = ["//score/launch_manager/src/daemon/src/process_group_manager:__subpackages__"],
+    visibility = ["//score/launch_manager/src/daemon/src/process_group_manager:__pkg__"],
     deps = [
         "//score/launch_manager/src/daemon/src/common:log",
         "//score/launch_manager/src/daemon/src/common:signal_safe_log",
@@ -302,7 +302,7 @@ cc_library(
         "//config:lm_use_new_configuration": ["USE_NEW_CONFIGURATION"],
         "//conditions:default": [],
     }),
-    visibility = ["//score/launch_manager/src/daemon/src/process_group_manager:__subpackages__"],
+    visibility = ["//score/launch_manager/src/daemon/src/process_group_manager:__pkg__"],
     deps = [
         ":component_event_queue",
         ":graph",

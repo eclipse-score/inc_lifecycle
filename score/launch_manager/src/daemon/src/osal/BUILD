@@ -111,22 +111,9 @@ cc_library(
 
 
 cc_library(
-    name = "inotify_watcher_interface",
+    name = "inotify_range",
     hdrs = [
-        "inotify_watcher_interface.hpp",
-    ],
-    include_prefix = "score/mw/launch_manager/osal",
-    strip_include_prefix = "/score/launch_manager/src/daemon/src/osal",
-    visibility = [
-        "//score:__subpackages__",
-        "//tests:__subpackages__",
-    ],
-)
-
-cc_library(
-    name = "inotify_watcher_mock",
-    hdrs = [
-        "inotify_watcher_mock.hpp",
+        "inotify_range.hpp",
     ],
     include_prefix = "score/mw/launch_manager/osal",
     strip_include_prefix = "/score/launch_manager/src/daemon/src/osal",
@@ -135,47 +122,27 @@ cc_library(
         "//tests:__subpackages__",
     ],
     deps = [
-        ":inotify_watcher_interface",
-        "@googletest//:gtest",
-    ],
-)
-
-cc_library(
-    name = "inotify_iterator",
-    hdrs = [
-        "inotify_iterator.hpp",
-    ],
-    srcs = [
-        "details/posix/inotify_iterator.cpp"
-    ],
-    include_prefix = "score/mw/launch_manager/osal",
-    strip_include_prefix = "/score/launch_manager/src/daemon/src/osal",
-    visibility = [
-        "//score:__subpackages__",
-        "//tests:__subpackages__",
-    ],
-    deps = [
-        ":inotify_watcher_interface",
         "//score/launch_manager/src/daemon/src/common:log",
         "@score_baselibs//score/result",
-        "//score/launch_manager:error",
+        "@score_baselibs//score/language/futurecpp",
         "@score_baselibs//score/os/utils/inotify:inotify_instance",
-        "@score_baselibs//score/os/utils/inotify:inotify_instance_impl",
         "@score_baselibs//score/os/utils/inotify:inotify_event",
+        "@score_baselibs//score/os/utils/inotify:inotify_instance_impl",
         "@score_baselibs//score/os/utils/inotify:inotify_watch_descriptor",
         "@score_baselibs//score/language/safecpp/string_view:zstring_view",
     ],
 )
 
 cc_test(
-    name = "inotify_iterator_UT",
-    srcs = ["details/posix/inotify_iterator_UT.cpp"],
-    visibility = ["//tests:__subpackages__"],
-    deps = [
-        "@score_baselibs//score/os/utils/inotify:inotify_instance_mock",
-        ":inotify_iterator",
-        "@googletest//:gtest_main",
+    name = "inotify_range_UT",
+    srcs = [
+        "inotify_range_UT.cpp"
     ],
+    deps = [
+        ":inotify_range",
+        "@googletest//:gtest_main",
+        "@score_baselibs//score/os/utils/inotify:inotify_instance_mock",
+    ]
 )
 
 cc_library(

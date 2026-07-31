@@ -107,17 +107,17 @@ rust_test(
     ],
 )
 
-# miri_test(
-#     name = "miri_tests",
-#     crate = ":tests",
-#     miri_flags = [
-#         "-Zmiri-ignore-leaks",
-#         "-Zmiri-disable-isolation",
-#         '--cfg=feature="stub_supervisor_api_client"',
-#     ],
-#     tags = [
-#         "miri",
-#         "no-asan",
-#     ],
-#     target_compatible_with = ["@platforms//os:linux"],
-# )
+miri_test(
+    name = "miri_tests",
+    crate = ":tests",
+    miri_flags = [
+        "-Zmiri-ignore-leaks",
+        "-Zmiri-disable-isolation",
+        '--cfg=feature="stub_supervisor_api_client"',
+    ],
+    tags = [
+        "miri",
+        "no-asan",
+    ],
+    target_compatible_with = ["@platforms//os:linux"],
+)
