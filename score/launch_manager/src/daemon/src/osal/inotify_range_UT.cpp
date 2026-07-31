@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2025 Contributors to the Eclipse Foundation
+ * Copyright (c) 2026 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -20,7 +20,6 @@ namespace score::mw::lifecycle::testing
 
 using score::os::Error;
 using score::os::MakeFakeEvent;
-using ::testing::_;
 using ::testing::Return;
 
 using ReadRetT =
@@ -29,22 +28,18 @@ using ReadRetT =
 
 using namespace std::string_view_literals;
 
-class INotifyTest : public ::testing::Test
+class INotifyRangeUT : public ::testing::Test
 {
   protected:
-    constexpr static auto TEST_FILE = "/tmp/test"sv;
-    constexpr static auto TEST_DIR = "/tmp"sv;
-
     void SetUp() override
     {
         RecordProperty("TestType", "interface-test");
-        RecordProperty("DerivationTechnique", "explorative-testing ");
+        RecordProperty("DerivationTechnique", "equivalence-classes");
     }
 };
 
-TEST(INotifyRange, NormalUsage)
+TEST_F(INotifyRangeUT, NormalUsage)
 {
-
     /// Given we Read() one event
     ReadRetT out{};
     out->push_back(MakeFakeEvent(1,1,1, "hello"));
@@ -64,7 +59,7 @@ TEST(INotifyRange, NormalUsage)
     EXPECT_EQ(iterator, range.end());
 }
 
-TEST(INotifyRange, AdvanceWithinBufferedEvents)
+TEST_F(INotifyRangeUT, AdvanceWithinBufferedEvents)
 {
     /// Given we Read() 2 events, then 0 events
     ReadRetT out{};
@@ -89,7 +84,7 @@ TEST(INotifyRange, AdvanceWithinBufferedEvents)
     EXPECT_EQ(iterator, range.end());
 }
 
-TEST(INotifyRange, AdvanceEndIterator)
+TEST_F(INotifyRangeUT, AdvanceEndIterator)
 {
     auto mock_ptr = std::make_unique<score::os::InotifyInstanceMock>();
     INotifyRange range{std::move(mock_ptr)};
@@ -100,9 +95,8 @@ TEST(INotifyRange, AdvanceEndIterator)
     EXPECT_EQ(iterator, range.end());
 }
 
-TEST(INotifyRange, AdvanceError)
+TEST_F(INotifyRangeUT, AdvanceError)
 {
-
     /// Given we get an Error from the Read().
     auto mock_ptr = std::make_unique<score::os::InotifyInstanceMock>();
     EXPECT_CALL(*mock_ptr, Read()).WillOnce(Return(score::cpp::unexpected(score::os::Error::createFromErrno(EINVAL))));

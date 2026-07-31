@@ -1,3 +1,16 @@
+/********************************************************************************
+ * Copyright (c) 2026 Contributors to the Eclipse Foundation
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Apache License Version 2.0 which is available at
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ ********************************************************************************/
+
 #ifndef INOTIFY_RANGE_HPP_
 #define INOTIFY_RANGE_HPP_
 
@@ -62,11 +75,13 @@ class INotifyRange
 
         iterator& operator++()
         {
+            // we are end iterator
             if (instance_ == nullptr)
             {
                 return *this;
             }
 
+            // become end iterator
             if (!advance())
             {
                 instance_ = nullptr;
@@ -124,10 +139,13 @@ class INotifyRange
         }
 
       public:
+        /// @brief The underlying `InotifyInstance` instance.
         score::os::InotifyInstance* instance_{nullptr};
 
+        /// @brief Internal buffer of events.
         score::cpp::static_vector<score::os::InotifyEvent, score::os::InotifyInstance::max_events> events_{};
 
+        /// @brief Index to the next event to give from the internal buffer.
         std::size_t event_index_{0U};
     };
 

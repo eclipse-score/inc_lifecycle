@@ -109,7 +109,6 @@ cc_library(
     ],
 )
 
-
 cc_library(
     name = "inotify_range",
     hdrs = [
@@ -123,26 +122,26 @@ cc_library(
     ],
     deps = [
         "//score/launch_manager/src/daemon/src/common:log",
-        "@score_baselibs//score/result",
         "@score_baselibs//score/language/futurecpp",
-        "@score_baselibs//score/os/utils/inotify:inotify_instance",
+        "@score_baselibs//score/language/safecpp/string_view:zstring_view",
         "@score_baselibs//score/os/utils/inotify:inotify_event",
+        "@score_baselibs//score/os/utils/inotify:inotify_instance",
         "@score_baselibs//score/os/utils/inotify:inotify_instance_impl",
         "@score_baselibs//score/os/utils/inotify:inotify_watch_descriptor",
-        "@score_baselibs//score/language/safecpp/string_view:zstring_view",
+        "@score_baselibs//score/result",
     ],
 )
 
 cc_test(
     name = "inotify_range_UT",
     srcs = [
-        "inotify_range_UT.cpp"
+        "inotify_range_UT.cpp",
     ],
     deps = [
         ":inotify_range",
         "@googletest//:gtest_main",
         "@score_baselibs//score/os/utils/inotify:inotify_instance_mock",
-    ]
+    ],
 )
 
 cc_library(
