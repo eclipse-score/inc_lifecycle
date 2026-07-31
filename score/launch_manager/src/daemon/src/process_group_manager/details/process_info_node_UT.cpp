@@ -37,12 +37,12 @@ class ProcessInfoNodeFixture : public ::testing::Test
     void SetUp() override
     {
         RecordProperty("TestType", "interface-test");
-        RecordProperty("DerivationTechnique", "explorative-testing");
+        RecordProperty("DerivationTechnique", "equivalence-classes");
     }
 
     /// @brief Helper method to create a ProcessInfoNode with the given parameters.
     std::unique_ptr<ProcessInfoNode> createProcessInfoNode(
-        osal::CommsType comms_type = osal::CommsType::kNoComms,
+        osal::CommsType comms_type = osal::CommsType::kReporting,
         int restart_attempts = 0,
         bool self_terminating = false,
         ProcessInfoNode::ReadyCondition ready_condition = ProcessInfoNode::ReadyCondition::kRunning)
@@ -60,7 +60,7 @@ class ProcessInfoNodeFixture : public ::testing::Test
 
     /// @brief Helper method to create a ProcessInfoNode that is self-terminating.
     std::unique_ptr<ProcessInfoNode> createSelfTerminatingProcessInfoNode(
-        osal::CommsType comms_type = osal::CommsType::kNoComms,
+        osal::CommsType comms_type = osal::CommsType::kReporting,
         int restart_attempts = 0)
     {
         return createProcessInfoNode(comms_type, restart_attempts, true);
@@ -68,9 +68,10 @@ class ProcessInfoNodeFixture : public ::testing::Test
 
     /// @brief Helper method to create a ProcessInfoNode that is already in Running state
     std::unique_ptr<ProcessInfoNode> createRunningProcessInfoNode(
+        osal::CommsType comms_type = osal::CommsType::kReporting,
         std::chrono::milliseconds termination_timeout = std::chrono::milliseconds{1000})
     {
-        auto node = createProcessInfoNode(osal::CommsType::kNoComms);
+        auto node = createProcessInfoNode(comms_type);
         config_.pgm_config_.termination_timeout_ms_ = termination_timeout;
 
         expectSuccessfulProcessLaunch();
@@ -83,7 +84,7 @@ class ProcessInfoNodeFixture : public ::testing::Test
     std::unique_ptr<ProcessInfoNode> createRunningProcessInfoNode_TermTimeout(
         std::chrono::milliseconds termination_timeout)
     {
-        return createRunningProcessInfoNode(termination_timeout);
+        return createRunningProcessInfoNode(osal::CommsType::kReporting, termination_timeout);
     }
 
     /// @brief Asserts that mock_report_fn_ is called with each of the given states, in the given order.
@@ -243,7 +244,7 @@ TEST_F(ProcessInfoNodeStartupTest, ActivateAlreadyActiveNode_ReturnsSuccess)
         "Description",
         "Calling activate() on a node that is already active returns kSuccess without re-launching the process.");
 
-    auto node = createRunningProcessInfoNode();
+    auto node = createRunningProcessInfoNode(osal::CommsType::kNoComms);
 
     auto result = node->activate(score::cpp::stop_token{});
 
@@ -443,7 +444,7 @@ TEST_F(ProcessInfoNodeUnexpectedTerminationTest, ProcesssCrashed_AfterReadyCondi
     RecordProperty(
         "Description", "Process returns kErrorAfterReady when crashing after reaching its ready condition (kRunning).");
 
-    auto node = createRunningProcessInfoNode();
+    auto node = createRunningProcessInfoNode(osal::CommsType::kNoComms);
 
     auto result = node->tryHandleTermination(-1);
 
@@ -476,7 +477,8 @@ TEST_F(ProcessInfoNodeUnexpectedTerminationTest, SelfTerminating_TerminatedReady
         "A self-terminating process with ReadyCondition::kTerminated returns kSuccess from tryHandleTermination() when "
         "it exits cleanly, since its exit is the event that satisfies the ready condition.");
 
-    auto node = createProcessInfoNode(osal::CommsType::kNoComms, 0, true, ProcessInfoNode::ReadyCondition::kTerminated);
+    auto node = createProcessInfoNode(osal::CommsType::kNoComms, 0 /*restart_attempts*/, true /*self terminating*/, 
+        ProcessInfoNode::ReadyCondition::kTerminated /*ready condition*/);
     expectSuccessfulProcessLaunch();
     // activate() returns kWaiting because kRunning != kTerminated (the ready condition).
     auto activate_result = node->activate(score::cpp::stop_token{});
@@ -520,7 +522,14 @@ TEST_F(ProcessInfoNodeDeactivationTest, CanTerminateNonSelfTerminatingProcess)
         "Can terminate a non-self-terminating process by calling `deactivate()` and check that the state transitions "
         "to kTerminated.");
 
-    auto node = createRunningProcessInfoNode();
+    EXPECT_CALL(mock_processIf_, waitForkRunning(_, _)).WillOnce(Return(osal::OsalReturnType::kSuccess));
+    expectStateTransitions(
+        {score::lcm::ProcessState::kStarting,
+         score::lcm::ProcessState::kRunning,
+         score::lcm::ProcessState::kTerminating,
+         score::lcm::ProcessState::kTerminated});
+
+    auto node = createRunningProcessInfoNode(osal::CommsType::kReporting);
     // Simulate the OS handler reporting the process's exit once termination is requested.
     expectOsAcknowledgesTermination(node.get());
 
@@ -538,6 +547,13 @@ TEST_F(ProcessInfoNodeDeactivationTest, ProcessIgnoresSigterm_ForcedWithSigkill)
         "Description",
         "If a process does not exit within the termination timeout after receiving SIGTERM, it is forcibly killed with "
         "SIGKILL.");
+
+    EXPECT_CALL(mock_processIf_, waitForkRunning(_, _)).WillOnce(Return(osal::OsalReturnType::kSuccess));
+    expectStateTransitions(
+        {score::lcm::ProcessState::kStarting,
+         score::lcm::ProcessState::kRunning,
+         score::lcm::ProcessState::kTerminating,
+         score::lcm::ProcessState::kTerminated});
 
     auto node = createRunningProcessInfoNode_TermTimeout(std::chrono::milliseconds{0});
     EXPECT_CALL(mock_processIf_, requestTermination(_)).WillOnce(Return(osal::OsalReturnType::kSuccess));
