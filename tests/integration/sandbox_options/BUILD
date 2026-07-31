@@ -25,7 +25,7 @@ cc_binary(
     ],
 )
 
-# Two binaries are built from the same source. Each verifies the sandbox options passed to it on
+# Three binaries are built from the same source. Each verifies the sandbox options passed to it on
 # the command line (see sandbox_options.json), and derives its GTest XML result file name from its
 # own executable name so the results do not collide.
 cc_binary(

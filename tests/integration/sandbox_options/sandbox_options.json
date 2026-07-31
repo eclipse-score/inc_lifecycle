@@ -126,7 +126,8 @@
                 },
                 "process_arguments": [
                     "--uid=0",
-                    "--gid=0"
+                    "--gid=0",
+                    "--working-dir=/tmp/tests/sandbox_options"
                 ]
             },
             "deployment_config": {
