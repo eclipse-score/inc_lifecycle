@@ -62,6 +62,6 @@
     },
 
 
-    "runArgs": ["--device=/dev/kvm", "--network", "host"],
+    "runArgs": ["--device=/dev/kvm", "--network", "host", "--cap-add=SYS_NICE"],
     "postCreateCommand": "sudo chmod 666 /dev/kvm && sudo usermod -aG kvm $USER"
 }
