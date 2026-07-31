@@ -22,7 +22,6 @@
 #include "score/mw/launch_manager/common/log.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/graph.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/process_info_node.hpp"
-#include "score/mw/launch_manager/process_group_manager/process_group_manager.hpp"
 
 #include "score/assert.hpp"
 
@@ -37,7 +36,7 @@ namespace internal
 
 Graph::Graph(
     uint32_t max_num_nodes,
-    ConfigurationType* configuration,
+    IConfigurationManager* configuration,
     std::shared_ptr<WorkerQueue> job_queue,
     osal::IProcess* process_interface,
     std::shared_ptr<SafeProcessMapInserter> process_map,

@@ -201,11 +201,24 @@ cc_library(
         ":run_target",
         ":safe_process_map",
         ":transition",
+        "//score/launch_manager/src/daemon/src/common/concurrency:mpmc_concurrent_queue",
         "//score/launch_manager/src/daemon/src/common:identifier_hash",
+        "//score/launch_manager/src/daemon/src/configuration:configuration_manager",
         "//score/launch_manager/src/daemon/src/control:control_client_channel",
         "//score/launch_manager/src/daemon/src/osal:semaphore",
         "//score/launch_manager/src/daemon/src/process_group_manager:iprocess",
     ],
+)
+
+cc_test(
+    name = "graph_UT",
+    srcs = ["graph_UT.cpp"],
+    deps = [
+        ":graph",
+        ":process_group_manager_impl",
+        "//score/launch_manager/src/daemon/src/process_group_manager:mock_iprocess",
+        "@googletest//:gtest_main",
+    ]
 )
 
 cc_library(

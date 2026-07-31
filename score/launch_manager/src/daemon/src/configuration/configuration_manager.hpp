@@ -105,6 +105,43 @@ struct ProcessGroup final
     std::vector<OsProcess> processes_{};       ///< Processes that are managed (started / stopped) by this process group.
 };
 
+/// @brief Interface for accessing configuration data.
+class IConfigurationManager
+{
+  public:
+    /// @brief Virtual destructor for proper polymorphism.
+    virtual ~IConfigurationManager() = default;
+
+    /// @brief Get the ID of the "Off" state for a particular process group.
+    /// @param[in] pg_name The name of the process group.
+    /// @return Returns the ID of the "Off" state.
+    virtual IdentifierHash getNameOfOffState(const IdentifierHash& pg_name) const = 0;
+
+    /// @brief Get startup configuration for a given process.
+    /// @param[in] pg_name The name of the process group.
+    /// @param[in] index The index of the OS process.
+    /// @return Returns a pointer to an OsProcess or no value if not found.
+    virtual std::optional<const OsProcess*> getOsProcessConfiguration(
+        const IdentifierHash& pg_name,
+        const uint32_t index) const = 0;
+
+    /// @brief Get the names of all states configured for a particular process group.
+    /// @param[in] pg_name The name of the process group.
+    /// @return Returns a pointer to a vector of the process group’s configured state names,
+    ///         or no value if the process group does not exist.
+    virtual std::optional<const std::vector<ProcessGroupState>*> getListOfProcessGroupStates(
+        const IdentifierHash& pg_name) const = 0;
+
+    /// @brief Get dependencies of an OS process within a specific process group.
+    /// @param[in] process_group_name The name of the process group containing the OS process.
+    /// @param[in] index The index of the OS process within the process group.
+    /// @return An optional vector of Dependency objects representing process dependencies,
+    ///         or an empty optional if the process group or process index does not exist.
+    virtual std::optional<const DependencyList*> getOsProcessDependencies(
+        const IdentifierHash& process_group_name,
+        const uint32_t index) const = 0;
+};
+
 ///
 /// @brief Manages the configuration of the machine.
 ///
@@ -114,7 +151,7 @@ struct ProcessGroup final
 /// configuration during software update.
 // RULECHECKER_comment(1, 1, check_incomplete_data_member_construction, "wi 45913 - This struct is POD, which doesn't
 // have user-declared constructor. The rule doesn’t apply.", false)
-class ConfigurationManager final
+class ConfigurationManager final : public IConfigurationManager
 {
     //    using namespace ::score::internal::ucm::ipc;
   public:
@@ -165,7 +202,7 @@ class ConfigurationManager final
     /// @param[in] pg_name The name of the process group.
     /// @return Returns the ID of the "Off" state.
     /// If process group does not exist a default value of IdentifierHash("Off") is returned.
-    IdentifierHash getNameOfOffState(const IdentifierHash& pg_name) const;
+    IdentifierHash getNameOfOffState(const IdentifierHash& pg_name) const override;
 
     /// @brief Get the ID of the recovery state for a particular process group.
     /// @param[in] pg_name The name of the process group.
@@ -191,15 +228,15 @@ class ConfigurationManager final
     /// @return Returns a pointer to a vector of the process group's configured state names, or no
     /// value if the process group does not exist.
     std::optional<const std::vector<ProcessGroupState>*> getListOfProcessGroupStates(
-        const IdentifierHash& pg_name) const;
+        const IdentifierHash& pg_name) const override;
 
     /// @brief Get startup configuration for a given process.
     /// @param[in] pg_name_ The name of the process group for which to retrieve the OS Configurations. .
     /// @param[in] index The index of the OS process.
     /// @return Returns a pointer to an OSProcess.
     /// If index/process group does not exist there will be no return value.
-    std::optional<const OsProcess*> getOsProcessConfiguration(const IdentifierHash& pg_name_,
-                                                              const uint32_t index) const;
+    std::optional<const OsProcess*> getOsProcessConfiguration(const IdentifierHash& pg_name_, const uint32_t index)
+        const override;
 
     /// @brief Get dependencies of an OS process within a specific process group.
     ///
@@ -211,8 +248,9 @@ class ConfigurationManager final
     /// @param[in] index The index of the OS process within the process group.
     /// @return An optional vector of Dependency objects representing process dependencies,
     ///         or an empty optional if the process group or process index does not exist.
-    std::optional<const DependencyList*> getOsProcessDependencies(const IdentifierHash& process_group_name,
-                                                                  const uint32_t index) const;
+    std::optional<const DependencyList*> getOsProcessDependencies(
+        const IdentifierHash& process_group_name,
+        const uint32_t index) const override;
 
     /// @brief default value for the process execution error, in case it is not defined in the configuration
     static const uint32_t kDefaultProcessExecutionError;
