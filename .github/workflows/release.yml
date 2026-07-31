@@ -57,7 +57,7 @@ jobs:
       COVERAGE_ARCHIVE: ${{ github.event.repository.name }}-${{ inputs.tag }}-cpp-coverage
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Get Current Date and Previous Release Tag
         env:
           GH_TOKEN: ${{ github.token }}
@@ -88,7 +88,7 @@ jobs:
           printf '\n---\n\n## Changes to the Module\n\n' >> release_body.md
           sed -n '/^Changes to the Module$/,$p' "$LATEST_RELEASE_NOTE" | sed '1,2d' >> release_body.md
       - name: Download Coverage Report Artifact
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: ${{ format('{0}_cpp_coverage{1}', github.event.repository.name, '_cpp') }}
           path: ${{ env.COVERAGE_ARCHIVE }}
@@ -97,7 +97,7 @@ jobs:
           tar --sort=name --owner=0 --group=0 --numeric-owner \
             -cJf "$COVERAGE_ARCHIVE.tar.xz" "$COVERAGE_ARCHIVE"
       - name: Create Draft Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         id: draft_release
         with:
           tag_name: ${{ inputs.tag }}

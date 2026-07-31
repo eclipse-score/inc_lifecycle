@@ -32,14 +32,14 @@ on:
 
 jobs:
   docs-verify:
-    uses: eclipse-score/cicd-workflows/.github/workflows/docs-verify.yml@c1c90b1a82a1fab0fc202979dde6686b2162d5a8 # v0.0.0
+    uses: eclipse-score/cicd-workflows/.github/workflows/docs-verify.yml@93aac16ada7d247bbb6ae926509ddea74cf5213a # v0.0.2
     permissions:
       pull-requests: write
       contents: read
     with:
       bazel-docs-verify-target: "--lockfile_mode=error //:docs_check"
   run-tests:
-    uses: eclipse-score/cicd-workflows/.github/workflows/tests.yml@c1c90b1a82a1fab0fc202979dde6686b2162d5a8 # v0.0.0
+    uses: eclipse-score/cicd-workflows/.github/workflows/tests.yml@93aac16ada7d247bbb6ae926509ddea74cf5213a # v0.0.2
     permissions:
       contents: read
       pull-requests: read
@@ -50,7 +50,7 @@ jobs:
   build-docs:
     needs: run-tests
     if: ${{ needs.run-tests.result == 'success' }}
-    uses: eclipse-score/cicd-workflows/.github/workflows/docs.yml@c1c90b1a82a1fab0fc202979dde6686b2162d5a8 # v0.0.0
+    uses: eclipse-score/cicd-workflows/.github/workflows/docs.yml@93aac16ada7d247bbb6ae926509ddea74cf5213a # v0.0.2
     permissions:
       contents: write
       pages: write

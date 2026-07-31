@@ -25,12 +25,12 @@ jobs:
     timeout-minutes: 6 # 6 minutes is the maximum allowed for a cold run
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Cache Cargo registry, git deps & target
-        uses: actions/cache@v3
+        uses: actions/cache@v6
         with:
           path: |
             ~/.cargo/registry
