@@ -38,7 +38,7 @@ namespace saf
 namespace factory
 {
 
-using BufferConfig = MachineConfigFactory::SupervisionBufferConfig;
+using BufferConfig = SupervisionBufferConfig;
 using RecoveryClient = score::lcm::IRecoveryClient;
 using NanoSecondType = saf::timers::NanoSecondType;
 using IdentifierHash = score::lcm::IdentifierHash;

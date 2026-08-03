@@ -29,6 +29,14 @@ namespace saf
 namespace factory
 {
 
+struct SupervisionBufferConfig
+{
+    /// @brief Configured buffer size for alive supervisions
+    std::uint16_t bufferSizeAliveSupervision{};
+    /// @brief Configured buffer size for Monitor entities
+    std::uint16_t bufferSizeMonitor{};
+};
+
 /// @brief Static configurations
 /// @details Configuration parameters which are currently not extracted from the configuration
 /// and default parameters values for optional configurations.
@@ -47,6 +55,8 @@ public:
     static constexpr bool k_hmDaemonDefaultShutdownEnabled{false};
     /// @brief By default, 10ms cycle time is used
     static constexpr timers::NanoSecondType k_hmDaemonDefaultCycleTime{10000000U};
+
+    static constexpr SupervisionBufferConfig kDefaultSupervisionBufferConfig{StaticConfig::k_DefaultAliveSupCheckpointBufferElements, StaticConfig::k_DefaultMonitorBufferElements};
 };
 
 }  // namespace factory

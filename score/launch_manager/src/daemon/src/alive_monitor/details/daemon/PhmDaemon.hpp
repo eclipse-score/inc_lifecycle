@@ -25,6 +25,7 @@
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ProcessStateReader.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/CycleTimeValidator.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/CycleTimer.hpp"
+#include "score/mw/launch_manager/alive_monitor/details/factory/StaticConfig.hpp"
 #ifdef USE_NEW_CONFIGURATION
 #include "score/mw/launch_manager/configuration/config.hpp"
 #endif
@@ -60,7 +61,7 @@ public:
     using ProcessStateReceiver = score::lcm::IProcessStateReceiver;
     using RecoveryClient = score::lcm::IRecoveryClient;
     using MachineConfigFactory = factory::MachineConfigFactory;
-    using SupervisionBufferConfig = MachineConfigFactory::SupervisionBufferConfig;
+    using SupervisionBufferConfig = factory::SupervisionBufferConfig;
     using CycleTimer = score::lcm::saf::timers::CycleTimer;
     using CycleTimeValidator = score::lcm::saf::timers::CycleTimeValidator;
     using NanoSecondType = score::lcm::saf::timers::NanoSecondType;
@@ -108,7 +109,12 @@ public:
             return EInitCode::kMachineConfigInitFailed;
         }
 
-        if (!construct(config, machineConfig.getSupervisionBufferConfig()))
+        if (!construct(config, factory::StaticConfig::kDefaultSupervisionBufferConfig))
+        {
+            return EInitCode::kConstructFlatCfgFactoryFailed;
+        }
+
+        int64_t cycleTimeModified{static_cast<std::int64_t>(config.aliveSupervision().evaluation_cycle_ms)};
 #else
     EInitCode init(std::shared_ptr<RecoveryClient> recovery_client) noexcept(false)
     {
@@ -120,13 +126,13 @@ public:
             return EInitCode::kMachineConfigInitFailed;
         }
 
-        if (!construct(machineConfig.getSupervisionBufferConfig()))
-#endif
+        if (!construct(factory::StaticConfig::kDefaultSupervisionBufferConfig))
         {
             return EInitCode::kConstructFlatCfgFactoryFailed;
         }
 
         int64_t cycleTimeModified{static_cast<std::int64_t>(machineConfig.getCycleTimeInNs())};
+#endif
         cycleTimeModified =
             CycleTimeValidator::adjustCycleTimeOnClockAccuracy(cycleTimeModified, osClock);
 

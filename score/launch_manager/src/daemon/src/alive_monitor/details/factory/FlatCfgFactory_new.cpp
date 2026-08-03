@@ -35,7 +35,7 @@ namespace lcm {
 namespace saf {
 namespace factory {
 
-using BufferConfig = MachineConfigFactory::SupervisionBufferConfig;
+using BufferConfig = SupervisionBufferConfig;
 using Config = score::mw::launch_manager::configuration::Config;
 using ComponentConfig = score::mw::launch_manager::configuration::ComponentConfig;
 using ApplicationType = score::mw::launch_manager::configuration::ApplicationType;

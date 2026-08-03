@@ -99,7 +99,7 @@ class SwClusterHandler
 #endif
         std::shared_ptr<score::lcm::IRecoveryClient> f_recoveryClient_r,
         ifexm::ProcessStateReader& f_processStateReader_r,
-        const factory::MachineConfigFactory::SupervisionBufferConfig& f_bufferConfig_r) noexcept(false);
+        const factory::SupervisionBufferConfig& f_bufferConfig_r) noexcept(false);
 
     /// @brief Perform cyclic execution
     /// @details Perform cyclic execution required for supervision of the Software Cluster

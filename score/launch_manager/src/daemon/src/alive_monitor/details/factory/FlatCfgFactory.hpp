@@ -54,7 +54,7 @@ class FlatCfgFactory : public IPhmFactory
 public:
     /// @brief Constructor
     /// @param [in] f_bufferConfig_r Buffer configuration used for constructing supervisions
-    explicit FlatCfgFactory(const factory::MachineConfigFactory::SupervisionBufferConfig& f_bufferConfig_r);
+    explicit FlatCfgFactory(const factory::SupervisionBufferConfig& f_bufferConfig_r);
 
     /// @brief Destructor
     /* RULECHECKER_comment(0, 5, check_min_instructions, "Default destructor is not provided\
@@ -128,7 +128,7 @@ private:
                                          const std::int32_t f_uid) noexcept(false);
 
     /// @brief The buffer configuration for constructing supervision objects
-    const factory::MachineConfigFactory::SupervisionBufferConfig& bufferConfig_r;
+    const factory::SupervisionBufferConfig& bufferConfig_r;
 
 #ifdef USE_NEW_CONFIGURATION
     const score::mw::launch_manager::configuration::Config* config_;

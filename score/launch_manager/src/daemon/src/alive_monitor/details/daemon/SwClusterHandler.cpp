@@ -51,7 +51,7 @@ bool SwClusterHandler::constructWorkers(
 #endif
     std::shared_ptr<score::lcm::IRecoveryClient> f_recoveryClient_r,
     ifexm::ProcessStateReader& f_processStateReader_r,
-    const factory::MachineConfigFactory::SupervisionBufferConfig& f_bufferConfig_r) noexcept(false)
+    const factory::SupervisionBufferConfig& f_bufferConfig_r) noexcept(false)
 {
     bool isSuccess{false};
     factory::FlatCfgFactory flatCfgFactory{f_bufferConfig_r};

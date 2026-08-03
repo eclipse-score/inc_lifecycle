@@ -32,7 +32,6 @@ namespace factory
 {
 
 using HMCoreEcuCfg = HMCOREFlatBuffer::HMCOREEcuCfg;
-using DeviceConfigurations = watchdog::IDeviceConfigFactory::DeviceConfigurations;
 using NanoSecondType = timers::NanoSecondType;
 
 namespace
@@ -76,7 +75,7 @@ std::unique_ptr<char[]> read_flatbuffer_file(const std::string& f_filename_r)
 }
 }  // namespace
 
-MachineConfigFactory::MachineConfigFactory() noexcept(true) : watchdog::IDeviceConfigFactory() {}
+MachineConfigFactory::MachineConfigFactory() noexcept(true) {}
 
 bool MachineConfigFactory::init() noexcept(false)
 {
@@ -103,43 +102,9 @@ bool MachineConfigFactory::init() noexcept(false)
 bool MachineConfigFactory::loadHmCoreConfig(const HMCoreEcuCfg* f_cfg_r) noexcept(false)
 {
     loadHmSettings(*f_cfg_r);
-    loadWatchdogDevices(*f_cfg_r);
     LM_LOG_INFO() << kLogPrefix << "Loading of HM Machine Configuration succeeded.";
     logConfiguration();
     return true;
-}
-
-void MachineConfigFactory::loadWatchdogDevices(const HMCoreEcuCfg& f_flatBuffer_r) noexcept(false)
-{
-    const auto* watchdogs{f_flatBuffer_r.watchdogs()};
-    if ((watchdogs == nullptr) || (watchdogs->size() == 0U))
-    {
-        // no watchdog devices configured
-        return;
-    }
-
-    watchdogConfigs.reserve(static_cast<std::size_t>(watchdogs->size()));
-    for (const auto& wdg : *watchdogs)
-    {
-        watchdog::DeviceConfig config{};
-
-        SCORE_LANGUAGE_FUTURECPP_ASSERT_PRD(wdg->maxTimeout() <= std::numeric_limits<std::uint16_t>::max());
-        // coverity[autosar_cpp14_a4_7_1_violation] SDG definitions guarantee uint16 boundaries
-        config.timeoutMax = static_cast<std::uint16_t>(wdg->maxTimeout());
-
-        // coverity[cert_exp34_c_violation] HMCORE.ecucfgdsl Watchdog.deviceFilePath MANDATORY
-        // coverity[dereference] HMCORE.ecucfgdsl Watchdog.deviceFilePath MANDATORY
-        config.fileName = wdg->deviceFilePath()->str();
-        if (wdg->hasValueDeactivateOnShutdown())
-        {
-            config.canBeDeactivated = wdg->deactivateOnShutdown();
-        }
-        if (wdg->hasValueRequireMagicClose())
-        {
-            config.needsMagicClose = wdg->requireMagicClose();
-        }
-        watchdogConfigs.push_back(std::move(config));
-    }
 }
 
 void MachineConfigFactory::loadHmSettings(const HMCoreEcuCfg& f_flatBuffer_r) noexcept(true)
@@ -168,17 +133,12 @@ void MachineConfigFactory::loadHmSettings(const HMCoreEcuCfg& f_flatBuffer_r) no
     }
 }
 
-std::optional<DeviceConfigurations> MachineConfigFactory::getDeviceConfigurations() const
-{
-    return watchdogConfigs;
-}
-
 NanoSecondType MachineConfigFactory::getCycleTimeInNs() const noexcept(true)
 {
     return cycleTimeNs;
 }
 
-const MachineConfigFactory::SupervisionBufferConfig& MachineConfigFactory::getSupervisionBufferConfig() const
+const SupervisionBufferConfig& MachineConfigFactory::getSupervisionBufferConfig() const
     noexcept(true)
 {
     return supBufferCfg;
@@ -191,25 +151,6 @@ void MachineConfigFactory::logConfiguration() noexcept(true)
     LM_LOG_DEBUG() << kLogPrefix << "Alive Supervision buffer size:" << supBufferCfg.bufferSizeAliveSupervision;
     LM_LOG_DEBUG() << kLogPrefix << "Monitor buffer size:" << supBufferCfg.bufferSizeMonitor;
     LM_LOG_DEBUG() << kLogPrefix << "Periodicity:" << getCycleTimeInNs() << "ns";
-    LM_LOG_DEBUG() << kLogPrefix << "Configured watchdogs:" << watchdogConfigs.size();
-    std::uint32_t wdgCount{1U};
-    for (const auto& wdgConfig : watchdogConfigs)
-    {
-        const std::string_view wdgMagicCloseBool{wdgConfig.needsMagicClose ? "true" : "false"};
-        const std::string_view wdgDeactivatedBool{wdgConfig.canBeDeactivated ? "true" : "false"};
-        LM_LOG_DEBUG() << kLogPrefix << "Watchdog" << wdgCount << "- device file:" << wdgConfig.fileName;
-        LM_LOG_DEBUG() << kLogPrefix << "Watchdog" << wdgCount << "- max timeout:" << wdgConfig.timeoutMax << "ms";
-        LM_LOG_DEBUG() << kLogPrefix << "Watchdog" << wdgCount << "- needs magic close:" << wdgMagicCloseBool;
-        LM_LOG_DEBUG() << kLogPrefix << "Watchdog" << wdgCount << "- deactivate on hm shutdown:" << wdgDeactivatedBool;
-        // coverity[autosar_cpp14_a4_7_1_violation] Value limited by amount of watchdog configurations, which is
-        // smaller.
-        ++wdgCount;
-    }
-
-    if (watchdogConfigs.empty())
-    {
-        LM_LOG_WARN() << kLogPrefix << "No watchdog configured";
-    }
 }
 
 }  // namespace factory
