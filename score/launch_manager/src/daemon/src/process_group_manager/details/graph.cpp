@@ -204,7 +204,7 @@ inline void Graph::createSuccessorLists(IdentifierHash pg_name)
     }
 }
 
-void Graph::setState(GraphState new_state)
+bool Graph::setState(GraphState new_state)
 {
     GraphState old_state = getState();
     // Notice that this is a private method and by design the states can't be out of range
@@ -254,6 +254,7 @@ void Graph::setState(GraphState new_state)
             }
         }
     }
+    return state_ == new_state;
 }
 
 void Graph::updateRunTargetInPlace(RunTarget& run_target, ComponentTaskType task_type)
@@ -349,7 +350,7 @@ inline void Graph::tryQueueNode(ComponentTask task)
     }
 }
 
-bool Graph::startTransition(ProcessGroupStateID pg_state)
+void Graph::startTransition(ProcessGroupStateID pg_state)
 {
     IdentifierHash old_state_name;
     {
@@ -362,39 +363,25 @@ bool Graph::startTransition(ProcessGroupStateID pg_state)
     SCORE_LANGUAGE_FUTURECPP_ASSERT_PRD_MESSAGE(
         target_node >= 0, "RunTarget node not found for requested process group state");
 
-    setState(GraphState::kInTransition);
+    bool reached_transition = setState(GraphState::kInTransition);
+    static_cast<void>(reached_transition);
+    // startTransition() should not be called while the graph is not in a final state
+    SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(reached_transition, "Setting state to kInTransition failed");
 
-    if (GraphState::kInTransition == getState())
+    const auto target = static_cast<GraphIndex>(target_node);
+    current_transition_ = &transition_builder_.createTransition(target);
+    queueReadyNodes();
+    if (current_transition_->isFinished())
     {
-        const auto target = static_cast<GraphIndex>(target_node);
-        current_transition_ = &transition_builder_.createTransition(target);
-        queueReadyNodes();
-        if (current_transition_->isFinished())
-        {
-            finalizeTransitionSuccess();
-        }
-        return true;
+        finalizeTransitionSuccess();
     }
-    {
-        std::lock_guard<std::mutex> lock(requested_state_mutex_);
-        requested_state_.pg_state_name_ = old_state_name;
-    }
-    return false;
 }
 
-bool Graph::startInitialTransition(ProcessGroupStateID pg_state)
+void Graph::startInitialTransition(ProcessGroupStateID pg_state)
 {
     is_initial_state_transition_ = true;
     setRequestStartTime();
-    bool result = startTransition(pg_state);
-
-    if (!result)
-    {
-        is_initial_state_transition_ = false;
-        transition_result_receiver_->setInitialStateTransitionResult(ControlClientCode::kInitialMachineStateFailed);
-    }
-
-    return result;
+    startTransition(pg_state);
 }
 
 bool Graph::startTransitionToOffState()
@@ -498,14 +485,21 @@ inline void Graph::handleNonTransitionExecution(GraphState current_state)
     {
         is_initial_state_transition_ = false;
         transition_result_receiver_->setInitialStateTransitionResult(ControlClientCode::kInitialMachineStateFailed);
+        // RULECHECKER_comment(1, 3, check_c_style_cast, "This is the definition provided by the OS and does a C-style
+        // cast.", true) coverity[cert_err33_c_violation:INTENTIONAL] Does not matter if clock() gives a weird value in
+        // debug messages.
+        const auto clock_ms = (static_cast<double>(clock()) / (static_cast<double>(CLOCKS_PER_SEC) / 1000.0));
 
-        // RULECHECKER_comment(1, 3, check_c_style_cast, "This is the definition provided by the OS and does a
-        // C-style cast.", true)
-        LM_LOG_FATAL() << "clock() at failed initial state transition:"
-                       // coverity[cert_err33_c_violation:INTENTIONAL] Does not matter if clock() gives a weird
-                       // value in debug messages.
-                       << (static_cast<double>(clock()) / (static_cast<double>(CLOCKS_PER_SEC) / 1000.0)) << "ms";
+        if (current_state == GraphState::kCancelled)
+        {
+            LM_LOG_DEBUG() << "clock() at canceled initial state transition:" << clock_ms << "ms";
+        }
+        else
+        {
+            LM_LOG_DEBUG() << "clock() at failed initial state transition:" << clock_ms << "ms";
+        }
     }
+
     setState(GraphState::kUndefinedState);
     if (current_state == GraphState::kAborting)
     {
@@ -556,19 +550,6 @@ void Graph::cancel()
         return;
     }
 
-    if (is_initial_state_transition_)
-    {
-        is_initial_state_transition_ = false;
-        transition_result_receiver_->setInitialStateTransitionResult(ControlClientCode::kInitialMachineStateFailed);
-        // Some may argue that not finishing MachineGF.Startup state transition, is a critical problem.
-        // Essentially, controller SM is requesting MachineGF.Startup transition, on an action list assigned to its
-        // initial state. RULECHECKER_comment(1, 3, check_c_style_cast, "This is the definition provided by the OS
-        // and does a C-style cast.", true)
-        LM_LOG_DEBUG() << "clock() at canceled initial state transition:"
-                       // coverity[cert_err33_c_violation:INTENTIONAL] Does not matter if clock() gives a weird
-                       // value in debug messages.
-                       << (static_cast<double>(clock()) / (static_cast<double>(CLOCKS_PER_SEC) / 1000.0)) << "ms";
-    }
     setState(GraphState::kUndefinedState);
 }
 

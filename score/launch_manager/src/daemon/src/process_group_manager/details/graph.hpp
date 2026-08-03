@@ -226,15 +226,13 @@ class Graph final
     /// Returns false if the state name was not found in the configuration or if the graph
     /// could not enter kInTransition (for example, because a cancellation is in progress).
     /// @param pg_state The target process group state.
-    /// @return True if the transition was started.
-    bool startTransition(ProcessGroupStateID pg_state);
+    void startTransition(ProcessGroupStateID pg_state);
 
     /// @brief Begin the initial machine group startup transition.
     /// Behaves like startTransition but also reports the initial state transition result
     /// to the ProcessGroupManager on failure.
     /// @param pg_state The initial machine group startup state.
-    /// @return True if the transition was started.
-    bool startInitialTransition(ProcessGroupStateID pg_state);
+    void startInitialTransition(ProcessGroupStateID pg_state);
 
     /// @brief Begin transitioning this process group to the "Off" state.
     /// Stops all processes in the group even if no explicit "Off" state is configured.
@@ -333,7 +331,8 @@ class Graph final
 
     /// @brief Sets the current state of the graph.
     /// @param new_state The new state to set for the graph.
-    void setState(GraphState new_state);
+    /// @returns False if the requested state was not set
+    bool setState(GraphState new_state);
 
     /// @brief Creates one ProcessInfoNode per process and adds it to the dependency graph.
     /// @param num_processes The number of processes in this process group.

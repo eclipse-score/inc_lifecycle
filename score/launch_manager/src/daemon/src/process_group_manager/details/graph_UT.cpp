@@ -140,6 +140,14 @@ class GraphTest : public ::testing::Test
         ASSERT_EQ(res.value(), IComponent::RequestState::kSuccess);
     }
 
+    void failActivationJob(const ComponentTask& job)
+    {
+        EXPECT_CALL(process_interface_, startProcess).WillOnce(Return(osal::OsalReturnType::kFail));
+        const auto res = job.component.get().activate(job.stop_token);
+
+        ASSERT_FALSE(res.has_value());
+    }
+
     ConfigurationAdapter config_{};
     std::shared_ptr<WorkerQueue> job_queue_ = std::make_shared<WorkerQueue>();
     StrictMock<osal::MockIProcess> process_interface_{};
@@ -192,7 +200,8 @@ class GraphOrdinaryTransitionTest : public GraphTest
     /// @brief Execute a run target activation that activates or deactivates a single node
     void oneProcessTransition(IdentifierHash target, std::uint32_t node_index)
     {
-        graph_.startTransition({pg_name, target});
+        const ProcessGroupStateID state = {pg_name, target};
+        graph_.startTransition(state);
 
         auto job = job_queue_->pop();
         ASSERT_TRUE(job->has_value());
@@ -231,14 +240,14 @@ TEST_F(GraphOrdinaryTransitionTest, simpleActivationTransition)
         "Description", "Test that a simple transition activates the expected run target and process successfully");
 
     const auto target = state_name(run_target_name(0));
+    const ProcessGroupStateID state = {pg_name, target};
 
-    const auto start_res = graph_.startTransition({pg_name, target});
+    graph_.startTransition(state);
 
     const auto job = job_queue_->pop();
     executeJobSuccessfully(job->value());
     graph_.handleComponentEvent(ActivationSuccessful{0});
 
-    EXPECT_TRUE(start_res);
     ASSERT_EQ(graph_.getState(), GraphState::kSuccess);
     EXPECT_EQ(graph_.getProcessGroupState(), target);
 }
@@ -251,13 +260,12 @@ TEST_F(GraphOrdinaryTransitionTest, simpleDeactivationTransition)
     oneProcessTransition(state_name(run_target_name(0)), 0);
 
     const auto target = state_name(off.name);
-    const auto start_res = graph_.startTransition({pg_name, target});
+    graph_.startTransition({pg_name, target});
 
     const auto job = job_queue_->pop();
     executeJobSuccessfully(job->value());
     graph_.handleComponentEvent(DeactivationComplete{0});
 
-    EXPECT_TRUE(start_res);
     ASSERT_EQ(graph_.getState(), GraphState::kSuccess);
     EXPECT_EQ(graph_.getProcessGroupState(), target);
 }
@@ -274,23 +282,45 @@ TEST_F(GraphInitialTransitionTest, nothingToDo)
         mock_transition_result_publisher_,
         setInitialStateTransitionResult(ControlClientCode::kInitialMachineStateSuccess));
 
-    const auto res = graph_.startInitialTransition({pg_name, state_name(startup.name)});
+    graph_.startInitialTransition({pg_name, state_name(startup.name)});
 
-    EXPECT_TRUE(res);
     EXPECT_EQ(graph_.getState(), GraphState::kSuccess);
 }
 
-TEST_F(GraphInitialTransitionTest, startTransitionFailure)
+TEST_F(GraphInitialTransitionTest, jobFailure)
 {
-    RecordProperty("Description", "Test that startTransition() reacts correctly to an invalid machine state");
+    RecordProperty("Description", "Test that startInitialTransition() sends the correct result due to a failing job");
 
     EXPECT_CALL(
         mock_transition_result_publisher_,
         setInitialStateTransitionResult(ControlClientCode::kInitialMachineStateFailed));
-    // Hmm... can't inject a failure here yet.
-    const auto res = graph_.startInitialTransition({pg_name, state_name(startup.name)});
 
-    EXPECT_FALSE(res);
+    graph_.startInitialTransition({pg_name, state_name(run_target_name(0))});
+
+    const auto job = job_queue_->pop()->value();
+    failActivationJob(job);
+    graph_.handleComponentEvent(ActivationFailed{0, IComponent::ComponentError::kErrorBeforeReady});
+
+    EXPECT_EQ(graph_.getState(), GraphState::kUndefinedState);
+}
+
+TEST_F(GraphInitialTransitionTest, cancel)
+{
+    RecordProperty(
+        "Description", "Test that startInitialTransition() sends the correct result when the transition is cancelled");
+
+    EXPECT_CALL(
+        mock_transition_result_publisher_,
+        setInitialStateTransitionResult(ControlClientCode::kInitialMachineStateFailed));
+
+    graph_.startInitialTransition({pg_name, state_name(run_target_name(0))});
+
+    graph_.cancel();
+
+    const auto job = job_queue_->pop()->value();
+    executeJobSuccessfully(job);
+    graph_.handleComponentEvent(ActivationSuccessful{0});
+
     EXPECT_EQ(graph_.getState(), GraphState::kUndefinedState);
 }
 

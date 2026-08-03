@@ -417,7 +417,8 @@ inline bool ProcessGroupManager::startInitialTransition()
 
         if (machine_process_group_)
         {
-            result = machine_process_group_->startInitialTransition(*pg_startup_id);
+            machine_process_group_->startInitialTransition(*pg_startup_id);
+            result = true;
         }
     }
     else
@@ -803,10 +804,7 @@ inline void ProcessGroupManager::processGroupHandler(Graph& pg)
             pgs.pg_name_ = pg.getProcessGroupName();
             LM_LOG_DEBUG() << "Start transition to" << pgs.pg_state_name_ << "for PG" << pgs.pg_name_;
 
-            if (!pg.startTransition(pgs))
-            {
-                pg.setPendingEvent(ControlClientCode::kSetStateInvalidArguments);
-            }
+            pg.startTransition(pgs);
         }
 
         if (GraphState::kUndefinedState == pg.getState())
