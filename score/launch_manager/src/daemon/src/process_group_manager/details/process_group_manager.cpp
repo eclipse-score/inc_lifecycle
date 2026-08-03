@@ -417,7 +417,7 @@ inline bool ProcessGroupManager::startInitialTransition()
 
         if (machine_process_group_)
         {
-            machine_process_group_->startInitialTransition(*pg_startup_id);
+            machine_process_group_->startInitialTransition(pg_startup_id->pg_state_name_);
             result = true;
         }
     }
@@ -804,7 +804,7 @@ inline void ProcessGroupManager::processGroupHandler(Graph& pg)
             pgs.pg_name_ = pg.getProcessGroupName();
             LM_LOG_DEBUG() << "Start transition to" << pgs.pg_state_name_ << "for PG" << pgs.pg_name_;
 
-            pg.startTransition(pgs);
+            pg.startTransition(pgs.pg_state_name_);
         }
 
         if (GraphState::kUndefinedState == pg.getState())
@@ -830,7 +830,7 @@ inline void ProcessGroupManager::processGroupHandler(Graph& pg)
             // nobody requested this transition, so there is nowhere to communicate an error
             // if we failed and there is no external request, we will try again next time
             pg.setRequestStartTime();
-            pg.startTransition(recovery_state);
+            pg.startTransition(recovery_state.pg_state_name_);
         }
     }
 }

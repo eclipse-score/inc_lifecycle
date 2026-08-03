@@ -350,13 +350,13 @@ inline void Graph::tryQueueNode(ComponentTask task)
     }
 }
 
-void Graph::startTransition(ProcessGroupStateID pg_state)
+void Graph::startTransition(IdentifierHash pg_state)
 {
     IdentifierHash old_state_name;
     {
         std::lock_guard<std::mutex> lock(requested_state_mutex_);
         old_state_name = requested_state_.pg_state_name_;
-        requested_state_.pg_state_name_ = pg_state.pg_state_name_;
+        requested_state_.pg_state_name_ = pg_state;
     }
     const int32_t target_node = getRunTargetIndex(requested_state_.pg_state_name_);
 
@@ -377,7 +377,7 @@ void Graph::startTransition(ProcessGroupStateID pg_state)
     }
 }
 
-void Graph::startInitialTransition(ProcessGroupStateID pg_state)
+void Graph::startInitialTransition(IdentifierHash pg_state)
 {
     is_initial_state_transition_ = true;
     setRequestStartTime();
@@ -390,21 +390,9 @@ bool Graph::startTransitionToOffState()
     // is an ordinary transition to that node: everything the Off target doesn't need is stopped,
     // and the (dependency-less) Off node is activated.
     setRequestStartTime();
+    if (setState(GraphState::kInTransition))
     {
-        std::lock_guard<std::mutex> lock(requested_state_mutex_);
-        requested_state_.pg_state_name_ = off_state_;
-    }
-    setState(GraphState::kInTransition);
-    if (GraphState::kInTransition == getState())
-    {
-        const int32_t off_index = getRunTargetIndex(off_state_);
-        SCORE_LANGUAGE_FUTURECPP_ASSERT_PRD_MESSAGE(off_index >= 0, "Off RunTarget node not found");
-        current_transition_ = &transition_builder_.createTransition(static_cast<GraphIndex>(off_index));
-        queueReadyNodes();
-        if (current_transition_->isFinished())
-        {
-            finalizeTransitionSuccess();
-        }
+        startTransition(off_state_);
         return true;
     }
     return false;
@@ -435,19 +423,13 @@ void Graph::handleComponentEvent(const ComponentEvent& event)
             }
             else if constexpr (std::is_same_v<T, UnexpectedTermination>)
             {
-                // ProcessMonitor::terminated() only pushes UnexpectedTermination from the final
-                // (already-ready) branch of ProcessInfoNode::tryHandleTermination; the "still
-                // starting" and "termination was requested" branches both resolve with kWaiting and
-                // never reach here. So this is always a post-ready crash.
-                abort(1U, IComponent::ComponentError::kErrorAfterReady);
-
-                // If there are no jobs in progress, we need to trigger cleanup immediately
-                // Otherwise the graph will stay stuck in kAborting state forever
-                // ???
-                // if (jobs_in_progress_ == 0)
-                // {
-                //     handleNonTransitionExecution(GraphState::kAborting);
-                // }
+                // This is always an error after ready - an unexpected termination before ready is an activation failure
+                const auto error = IComponent::ComponentError::kErrorAfterReady;
+                abort(1, error);
+                if (jobs_in_progress_ == 0)
+                {
+                    handleNonTransitionExecution(getState());
+                }
             }
         },
         event);
@@ -513,26 +495,23 @@ inline void Graph::handleNonTransitionExecution(GraphState current_state)
 
 void Graph::abort(uint32_t code, IComponent::ComponentError reason)
 {
-    auto from_state = getState();
-    if (from_state < GraphState::kAborting)
+    if (!setState(GraphState::kAborting))
     {
-        setState(GraphState::kAborting);
-        last_execution_error_ = code;
-        if (from_state != GraphState::kInTransition || reason == IComponent::ComponentError::kErrorAfterReady)
-        {
+        // Abort code will never be read in this case because there is no associated transition
+        return;
+    }
+    last_execution_error_ = code;
+    switch (reason)
+    {
+        case IComponent::ComponentError::kErrorAfterReady:
             abort_code_ = ControlClientCode::kFailedUnexpectedTermination;
-        }
-        else
-        {
-            if (reason == IComponent::ComponentError::kErrorBeforeReady)
-            {
-                abort_code_ = ControlClientCode::kFailedUnexpectedTerminationOnEnter;
-            }
-            else
-            {
-                abort_code_ = ControlClientCode::kSetStateFailed;
-            }
-        }
+            break;
+        case IComponent::ComponentError::kErrorBeforeReady:
+            abort_code_ = ControlClientCode::kFailedUnexpectedTerminationOnEnter;
+            break;
+        default:
+            abort_code_ = ControlClientCode::kSetStateFailed;
+            break;
     }
 }
 

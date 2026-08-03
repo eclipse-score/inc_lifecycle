@@ -134,33 +134,12 @@ enum class GraphState : std::uint_least8_t
 // coverity[autosar_cpp14_m3_4_1_violation:INTENTIONAL] The value is used in a global context.
 // clang-format off
 static constexpr GraphState state_results[][static_cast<uint>(GraphState::kUndefinedState) + 1U] = {
-    // from kSuccess                     kInTransition               kAborting                 kCancelled
-    // kUndefinedState              to new_state
-    {GraphState::kSuccess,
-     GraphState::kSuccess,
-     GraphState::kUndefinedState,
-     GraphState::kUndefinedState,
-     GraphState::kUndefinedState},  // kSuccess
-    {GraphState::kInTransition,
-     GraphState::kInTransition,
-     GraphState::kAborting,
-     GraphState::kCancelled,
-     GraphState::kInTransition},  // kInTransition
-    {GraphState::kUndefinedState,
-     GraphState::kAborting,
-     GraphState::kAborting,
-     GraphState::kCancelled,
-     GraphState::kUndefinedState},  // kAborting
-    {GraphState::kUndefinedState,
-     GraphState::kCancelled,
-     GraphState::kCancelled,
-     GraphState::kCancelled,
-     GraphState::kUndefinedState},  // kCancelled
-    {GraphState::kUndefinedState,
-     GraphState::kAborting,
-     GraphState::kUndefinedState,
-     GraphState::kUndefinedState,
-     GraphState::kUndefinedState}  // kUndefinedState
+    //from kSuccess                     kInTransition               kAborting                 kCancelled                      kUndefinedState              to new_state
+    {GraphState::kSuccess, GraphState::kSuccess, GraphState::kUndefinedState, GraphState::kUndefinedState,GraphState::kUndefinedState},  // kSuccess
+    {GraphState::kInTransition, GraphState::kInTransition, GraphState::kAborting, GraphState::kCancelled, GraphState::kInTransition},  // kInTransition
+    {GraphState::kUndefinedState, GraphState::kAborting, GraphState::kAborting, GraphState::kCancelled, GraphState::kUndefinedState},  // kAborting
+    {GraphState::kUndefinedState, GraphState::kCancelled, GraphState::kCancelled, GraphState::kCancelled, GraphState::kUndefinedState},  // kCancelled
+    {GraphState::kUndefinedState, GraphState::kAborting, GraphState::kUndefinedState, GraphState::kUndefinedState, GraphState::kUndefinedState}  // kUndefinedState
 };
 // clang-format on
 
@@ -226,13 +205,13 @@ class Graph final
     /// Returns false if the state name was not found in the configuration or if the graph
     /// could not enter kInTransition (for example, because a cancellation is in progress).
     /// @param pg_state The target process group state.
-    void startTransition(ProcessGroupStateID pg_state);
+    void startTransition(IdentifierHash pg_state);
 
     /// @brief Begin the initial machine group startup transition.
     /// Behaves like startTransition but also reports the initial state transition result
     /// to the ProcessGroupManager on failure.
     /// @param pg_state The initial machine group startup state.
-    void startInitialTransition(ProcessGroupStateID pg_state);
+    void startInitialTransition(IdentifierHash pg_state);
 
     /// @brief Begin transitioning this process group to the "Off" state.
     /// Stops all processes in the group even if no explicit "Off" state is configured.
