@@ -195,5 +195,5 @@ int main(int argc, char** argv)
     // and sandbox_options_process_b) write distinct result files. Dereference rather than index to
     // avoid the no-pointer-arithmetic lint rule.
     const char* const executable_path = (argc > 0) ? *argv : __FILE__;
-    return TestRunner(executable_path).RunTests();
+    return TestRunner(executable_path, TerminationBehavior::kContinue).RunTests();
 }

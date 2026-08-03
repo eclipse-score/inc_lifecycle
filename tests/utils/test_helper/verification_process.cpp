@@ -12,7 +12,6 @@
  ********************************************************************************/
 
 #include "tests/utils/test_helper/test_helper.hpp"
-#include <filesystem>
 #include <iostream>
 #include <string_view>
 
@@ -23,8 +22,6 @@
 
 int main(int argc, char** argv)
 {
-    std::cout << "verification_process: Working directory: " << std::filesystem::current_path() << std::endl;
-
     bool touch_fallback = false;
     bool touch_test_end = false;
 

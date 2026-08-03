@@ -141,13 +141,6 @@
                 "ready_condition": {
                     "process_state": "Terminated"
                 }
-            },
-            "deployment_config": {
-                "ready_timeout": 1.0,
-                "shutdown_timeout": 1.0,
-                "environmental_variables": {
-                    "PROCESSIDENTIFIER": "verification_component"
-                }
             }
         }
     },
