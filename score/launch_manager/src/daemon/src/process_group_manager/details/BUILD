@@ -201,8 +201,8 @@ cc_library(
         ":run_target",
         ":safe_process_map",
         ":transition",
-        "//score/launch_manager/src/daemon/src/common/concurrency:mpmc_concurrent_queue",
         "//score/launch_manager/src/daemon/src/common:identifier_hash",
+        "//score/launch_manager/src/daemon/src/common/concurrency:mpmc_concurrent_queue",
         "//score/launch_manager/src/daemon/src/configuration:configuration_manager",
         "//score/launch_manager/src/daemon/src/control:control_client_channel",
         "//score/launch_manager/src/daemon/src/osal:semaphore",
@@ -213,13 +213,17 @@ cc_library(
 cc_test(
     name = "graph_UT",
     srcs = ["graph_UT.cpp"],
+    target_compatible_with = select({
+        "//config:lm_use_new_configuration": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
     deps = [
         ":graph",
         ":process_group_manager_impl",
-        "//score/launch_manager/src/daemon/src/process_group_manager:mock_iprocess",
         "//score/launch_manager/src/daemon/src/configuration:configuration_adapter",
+        "//score/launch_manager/src/daemon/src/process_group_manager:mock_iprocess",
         "@googletest//:gtest_main",
-    ]
+    ],
 )
 
 cc_library(

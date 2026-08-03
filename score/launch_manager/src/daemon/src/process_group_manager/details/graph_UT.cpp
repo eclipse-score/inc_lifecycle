@@ -1,3 +1,15 @@
+/********************************************************************************
+ * Copyright (c) 2026 Contributors to the Eclipse Foundation
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Apache License Version 2.0 which is available at
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ ********************************************************************************/
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
@@ -9,13 +21,6 @@
 
 namespace score::lcm::internal
 {
-
-#ifdef USE_NEW_CONFIGURATION
-using ConfigurationType = ConfigurationAdapter;
-using Config = score::mw::launch_manager::configuration::Config;
-#else
-using ConfigurationType = IConfigurationManager;
-#endif
 
 using namespace testing;
 using namespace score::mw::lifecycle;
@@ -121,7 +126,9 @@ class GraphTest : public ::testing::Test
         IComponent::RequestResult res;
         if (job.type == ComponentTaskType::kActivate)
         {
-            EXPECT_CALL(process_interface_, startProcess).WillOnce(Return(osal::OsalReturnType::kSuccess));
+            const osal::ProcessID pid = 100;
+            EXPECT_CALL(process_interface_, startProcess)
+                .WillOnce(DoAll(SetArgPointee<0>(pid), Return(osal::OsalReturnType::kSuccess)));
             EXPECT_CALL(*mock_process_map, insertIfNotTerminated).WillOnce(Return(SafeProcessMapReturnType::kOk));
             res = job.component.get().activate(job.stop_token);
         }
@@ -346,6 +353,7 @@ TEST_F(GraphOffTransitionTest, normalShutdown)
     const auto job = job_queue_->pop();
 
     EXPECT_TRUE(start_res);
+    EXPECT_TRUE(graph_.isTransitioningToOff());
     ASSERT_TRUE(job->has_value());
     EXPECT_EQ(job.value()->type, ComponentTaskType::kDeactivate);
     EXPECT_EQ(job->value().component.get().getIndex(), 0);
@@ -464,6 +472,133 @@ TEST_F(GraphHandleComponentEventTest, unexpectedTerminationDuringTransition)
     graph_.handleComponentEvent(ActivationSuccessful{second_job->value().component.get().getIndex()});
 
     EXPECT_EQ(graph_.getPendingEvent(), ControlClientCode::kFailedUnexpectedTermination);
+}
+
+class GraphCancelTest : public GraphTest
+{
+};
+
+TEST_F(GraphCancelTest, notInTransition)
+{
+    RecordProperty(
+        "Description", "Test that calling cancel() while the graph isn't in transition activates the undefined state");
+
+    graph_.cancel();
+
+    EXPECT_EQ(graph_.getState(), GraphState::kUndefinedState);
+}
+
+TEST_F(GraphCancelTest, cancelsOngoingTransition)
+{
+    RecordProperty("Description", "Test that cancel() stops and fails an ongoing transition");
+
+    graph_.startInitialTransition(state_name(run_target_name(0)));
+
+    graph_.cancel();
+
+    const auto job = job_queue_->pop();
+
+    // The process monitor will actually not place an event on the queue if it reads the requested stop before starting
+    // the job, stalling the graph in kCancelled.
+
+    // graph_.handleComponentEvent(ActivationSuccessful{0});
+
+    EXPECT_TRUE(job->value().stop_token.stop_requested());
+    EXPECT_EQ(graph_.getPendingEvent(), ControlClientCode::kSetStateCancelled);
+    EXPECT_EQ(graph_.getState(), GraphState::kUndefinedState);  // This will fail
+}
+
+class GraphUtilitiesTest : public GraphTest
+{
+};
+
+TEST_F(GraphUtilitiesTest, getProcessInfoNode)
+{
+    RecordProperty(
+        "Description", "Test that getProcessInfoNode returns process info node pointer or null pointer when expected");
+
+    const auto* pin = graph_.getProcessInfoNode(0);
+    const auto* oob = graph_.getProcessInfoNode(100);
+    const auto* rt = graph_.getProcessInfoNode(1);
+
+    EXPECT_NE(pin, nullptr);
+    EXPECT_EQ(oob, nullptr);
+    EXPECT_EQ(rt, nullptr);
+    // Check *pin is actually valid
+    EXPECT_NO_FATAL_FAILURE(pin->getState());
+}
+
+TEST_F(GraphUtilitiesTest, getConfigMethods)
+{
+    RecordProperty("Description", "Test that various getters related to the config return the correct values");
+
+    EXPECT_EQ(graph_.getProcessGroupName(), pg_name);
+    EXPECT_EQ(graph_.getProcessGroupIndex(), pg_index_);
+}
+
+TEST_F(GraphUtilitiesTest, forceKillProcesses)
+{
+    RecordProperty(
+        "Description",
+        "Verify that forceKillProcesses invokes the correct OSAL call on all ProcessInfoNode components");
+
+    EXPECT_CALL(process_interface_, forceTermination).Times(1);
+
+    // Start up the processes
+    completeTransition(state_name(run_target_name(0)));
+
+    graph_.forceKillProcesses();
+}
+
+TEST_F(GraphUtilitiesTest, toString)
+{
+    RecordProperty("Description", "Test that toString() returns a reasonable value for all enum values");
+
+    for (auto i = 0; i < static_cast<uint_least8_t>(GraphState::kUndefinedState); i++)
+    {
+        const auto name = graph_.toString(static_cast<GraphState>(i));
+        EXPECT_GT(name.length(), 2);
+    }
+
+    const auto undefined_name = graph_.toString(static_cast<GraphState>(100));
+    EXPECT_GT(undefined_name.length(), 2);
+}
+
+TEST_F(GraphUtilitiesTest, gettersSetters)
+{
+    RecordProperty("Description", "Test that basic getters return the value the setter sets");
+
+    ControlClientID state_manager = {};
+    state_manager.process_index_ = 123;
+    graph_.setStateManager(state_manager);
+    EXPECT_EQ(graph_.getStateManager().process_index_, state_manager.process_index_);
+
+    const IdentifierHash pending_state{"Pending"};
+    const auto previous_pending_state = graph_.getPendingState();
+    EXPECT_EQ(graph_.setPendingState(pending_state), previous_pending_state);
+    EXPECT_EQ(graph_.getPendingState(), pending_state);
+
+    const ControlClientCode pending_event = ControlClientCode::kSetStateAlreadyInState;
+    graph_.setPendingEvent(pending_event);
+    EXPECT_EQ(graph_.getPendingEvent(), pending_event);
+    graph_.clearPendingEvent(ControlClientCode::kFailedUnexpectedTermination);
+    // Does not clear because expected doesn't match
+    EXPECT_EQ(graph_.getPendingEvent(), pending_event);
+    graph_.clearPendingEvent(pending_event);
+    // Now cleared
+    EXPECT_EQ(graph_.getPendingEvent(), ControlClientCode::kNotSet);
+
+    const ControlClientCode cancel_event = ControlClientCode::kSetStateCancelled;
+    graph_.setPendingEvent(cancel_event);
+    graph_.updateCancelMessage();
+    EXPECT_EQ(graph_.getCancelMessage().request_or_response_, cancel_event);
+
+    const auto before_time = std::chrono::steady_clock::now();
+    graph_.setRequestStartTime();
+    const auto after_time = std::chrono::steady_clock::now();
+    const auto graph_time = graph_.getRequestStartTime();
+    EXPECT_GE(graph_time, before_time);
+    EXPECT_LE(graph_time, after_time);
 }
 
 }  // namespace score::lcm::internal

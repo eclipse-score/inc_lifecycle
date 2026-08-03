@@ -36,7 +36,7 @@ namespace internal
 
 Graph::Graph(
     uint32_t max_num_nodes,
-    ConfigurationType* configuration,
+    ConfigurationInterface* configuration,
     std::shared_ptr<WorkerQueue> job_queue,
     osal::IProcess* process_interface,
     std::shared_ptr<SafeProcessMapInserter> process_map,
@@ -517,9 +517,7 @@ void Graph::abort(uint32_t code, IComponent::ComponentError reason)
 
 void Graph::cancel()
 {
-    setState(GraphState::kCancelled);
-
-    if (getState() == GraphState::kCancelled)
+    if (setState(GraphState::kCancelled))
     {
         setPendingEvent(ControlClientCode::kSetStateCancelled);
     }

@@ -21,6 +21,7 @@
 
 using namespace testing;
 using namespace score::lcm::internal;
+using namespace score::lcm;
 
 // Default ProcessIndex for testing
 constexpr uint32_t kProcessIndex = 111;
@@ -146,7 +147,9 @@ TEST_F(ProcessInfoNodeStartupTest, CanConstructIdleProcessInfoNode)
 TEST_F(ProcessInfoNodeStartupTest, CanStartNonReportingProcess)
 {
     RecordProperty(
-        "Description", "Can start a non-reporting process and check that the state transitions to kRunning without waiting for kRunning report.");
+        "Description",
+        "Can start a non-reporting process and check that the state transitions to kRunning without waiting for "
+        "kRunning report.");
 
     auto node = createProcessInfoNode(osal::CommsType::kNoComms);
     expectSuccessfulProcessLaunch();
@@ -477,7 +480,10 @@ TEST_F(ProcessInfoNodeUnexpectedTerminationTest, SelfTerminating_TerminatedReady
         "A self-terminating process with ReadyCondition::kTerminated returns kSuccess from tryHandleTermination() when "
         "it exits cleanly, since its exit is the event that satisfies the ready condition.");
 
-    auto node = createProcessInfoNode(osal::CommsType::kNoComms, 0 /*restart_attempts*/, true /*self terminating*/, 
+    auto node = createProcessInfoNode(
+        osal::CommsType::kNoComms,
+        0 /*restart_attempts*/,
+        true /*self terminating*/,
         ProcessInfoNode::ReadyCondition::kTerminated /*ready condition*/);
     expectSuccessfulProcessLaunch();
     // activate() returns kWaiting because kRunning != kTerminated (the ready condition).
@@ -572,4 +578,3 @@ TEST_F(ProcessInfoNodeDeactivationTest, ProcessIgnoresSigterm_ForcedWithSigkill)
     ASSERT_THAT(node->active(), IsFalse());
     ASSERT_THAT(node->getState(), Eq(score::lcm::ProcessState::kIdle));
 }
-

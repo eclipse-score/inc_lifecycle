@@ -51,10 +51,10 @@ namespace internal
 using namespace score::mw::lifecycle;
 
 #ifdef USE_NEW_CONFIGURATION
-using ConfigurationType = ConfigurationAdapter;
+using ConfigurationInterface = ConfigurationAdapter;
 using Config = score::mw::launch_manager::configuration::Config;
 #else
-using ConfigurationType = IConfigurationManager;
+using ConfigurationInterface = IConfigurationManager;
 #endif
 
 using WorkerQueue =
@@ -157,7 +157,7 @@ class Graph final
     /// @param max_num_nodes Maximum number of nodes this graph can hold.
     Graph(
         uint32_t max_num_nodes,
-        ConfigurationType* configuration,
+        ConfigurationInterface* configuration,
         std::shared_ptr<WorkerQueue> job_queue,
         osal::IProcess* process_interface,
         std::shared_ptr<SafeProcessMapInserter> process_map,
@@ -229,9 +229,6 @@ class Graph final
     /// at that index is a RunTarget rather than a ProcessInfoNode.
     ProcessInfoNode* getProcessInfoNode(uint32_t process_index);
 
-    /// @brief Helper function to identify a node with ready state "Terminated" from the legacy configuration
-    bool nodeHasTerminatedDeps(IdentifierHash pg_name, uint32_t node_index);
-
     /// @return The identifier of the process group managed by this graph.
     IdentifierHash getProcessGroupName();
 
@@ -299,6 +296,9 @@ class Graph final
     void forceKillProcesses();
 
   private:
+    /// @brief Helper function to identify a node with ready state "Terminated" from the legacy configuration
+    bool nodeHasTerminatedDeps(IdentifierHash pg_name, uint32_t node_index);
+
     /// @brief Reports that a node has finished executing, enqueuing successors or updating the graph state if a
     /// transition has finished.
     void nodeExecuted(uint32_t node, score::cpp::expected_blank<IComponent::ComponentError> error);
@@ -383,7 +383,7 @@ class Graph final
     mutable std::mutex requested_state_mutex_{};
 
     /// @brief Config pointer to set up graph nodes
-    ConfigurationType* configuration_;
+    ConfigurationInterface* configuration_;
 
     /// @brief Queue to push component tasks to
     std::shared_ptr<WorkerQueue> job_queue_;
