@@ -20,6 +20,18 @@ cc_library(
     visibility = ["//score:__subpackages__"],
     deps = [
         "//score/launch_manager/src/daemon/src/common:constants",
+    ],
+)
+
+cc_library(
+    name = "watchdog_factory",
+    srcs = ["WatchdogFactory.cpp"],
+    hdrs = ["WatchdogFactory.hpp"],
+    include_prefix = "score/mw/launch_manager/watchdog",
+    strip_include_prefix = "/score/launch_manager/src/daemon/src/watchdog",
+    visibility = ["//score:__subpackages__"],
+    deps = [
+        ":i_watchdog_if",
         "//score/launch_manager/src/daemon/src/watchdog/details:watchdog_impl",
     ],
 )

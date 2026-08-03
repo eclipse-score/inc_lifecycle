@@ -18,7 +18,6 @@
 #include "score/mw/launch_manager/common/constants.hpp"
 
 #include <cstdint>
-#include <memory>
 
 namespace score::mw::launch_manager::configuration
 {
@@ -135,10 +134,6 @@ protected:
         react = 2U       ///< Watchdog triggered, this state cannot be left
     };
 };
-
-/// @brief Creates a concrete WatchdogImpl instance behind the IWatchdogIf interface.
-/// @return An owning pointer to a new watchdog implementation.
-std::unique_ptr<IWatchdogIf> createWatchdog();
 
 }  // namespace watchdog
 }  // namespace lcm

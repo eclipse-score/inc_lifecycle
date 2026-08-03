@@ -484,11 +484,6 @@ void WatchdogImpl::waitForever() const noexcept
 #pragma CTC ENDSKIP
 #endif
 
-std::unique_ptr<IWatchdogIf> createWatchdog()
-{
-    return std::make_unique<WatchdogImpl>();
-}
-
 }  // namespace watchdog
 }  // namespace lcm
 }  // namespace score
