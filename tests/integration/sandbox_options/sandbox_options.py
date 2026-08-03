@@ -67,7 +67,6 @@ def test_sandbox_options(target, setup_test, assert_test_results, remote_test_di
     # writes into remote_test_dir. Search all relevant directories.
     assert_test_results(
         {
-            "control_daemon_mock.xml",
             "sandbox_options_process_a.xml",
             "sandbox_options_process_b.xml",
             "sandbox_options_process_c.xml",

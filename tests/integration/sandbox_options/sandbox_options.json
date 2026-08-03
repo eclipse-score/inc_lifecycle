@@ -42,24 +42,6 @@
         }
     },
     "components": {
-        "control_daemon": {
-            "component_properties": {
-                "binary_name": "control_daemon_mock",
-                "application_profile": {
-                    "application_type": "State_Manager",
-                    "alive_supervision": {
-                        "min_indications": 0
-                    }
-                }
-            },
-            "deployment_config": {
-                "ready_timeout": 1.0,
-                "shutdown_timeout": 1.0,
-                "environmental_variables": {
-                    "PROCESSIDENTIFIER": "control_daemon"
-                }
-            }
-        },
         "sandbox_options_process_a": {
             "component_properties": {
                 "binary_name": "sandbox_options_process_a",
@@ -74,7 +56,10 @@
                     "--scheduling-policy=SCHED_FIFO",
                     "--scheduling-priority=10",
                     "--working-dir=/tmp"
-                ]
+                ],
+                "ready_condition": {
+                    "process_state": "Terminated"
+                }
             },
             "deployment_config": {
                 "environmental_variables": {
@@ -102,7 +87,10 @@
                     "--gid=0",
                     "--scheduling-policy=SCHED_RR",
                     "--scheduling-priority=10"
-                ]
+                ],
+                "ready_condition": {
+                    "process_state": "Terminated"
+                }
             },
             "deployment_config": {
                 "environmental_variables": {
@@ -128,11 +116,37 @@
                     "--uid=0",
                     "--gid=0",
                     "--working-dir=/tmp/tests/sandbox_options"
-                ]
+                ],
+                "ready_condition": {
+                    "process_state": "Terminated"
+                }
             },
             "deployment_config": {
                 "environmental_variables": {
                     "PROCESSIDENTIFIER": "DefaultPG_app2"
+                }
+            }
+        },
+        "verification_component": {
+            "component_properties": {
+                "binary_name": "verification_process",
+                "depends_on": ["sandbox_options_process_a", "sandbox_options_process_b", "sandbox_options_process_c"],
+                "process_arguments": [
+                    "test_end"
+                ],
+                "application_profile": {
+                    "application_type": "Native",
+                    "is_self_terminating": true
+                },
+                "ready_condition": {
+                    "process_state": "Terminated"
+                }
+            },
+            "deployment_config": {
+                "ready_timeout": 1.0,
+                "shutdown_timeout": 1.0,
+                "environmental_variables": {
+                    "PROCESSIDENTIFIER": "verification_component"
                 }
             }
         }
@@ -140,20 +154,7 @@
     "run_targets": {
         "Startup": {
             "depends_on": [
-                "control_daemon"
-            ],
-            "recovery_action": {
-                "switch_run_target": {
-                    "run_target": "fallback_run_target"
-                }
-            }
-        },
-        "Running": {
-            "depends_on": [
-                "control_daemon",
-                "sandbox_options_process_a",
-                "sandbox_options_process_b",
-                "sandbox_options_process_c"
+                "verification_component"
             ],
             "recovery_action": {
                 "switch_run_target": {

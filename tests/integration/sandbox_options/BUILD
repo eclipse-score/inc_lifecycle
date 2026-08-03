@@ -13,18 +13,6 @@
 load("@rules_cc//cc:defs.bzl", "cc_binary")
 load("//tests/utils/bazel:integration.bzl", "integration_test")
 
-cc_binary(
-    name = "control_daemon_mock",
-    srcs = ["control_daemon_mock.cpp"],
-    data = [],
-    deps = [
-        "//score/launch_manager:control_cc",
-        "//score/launch_manager:lifecycle_cc",
-        "//tests/utils/test_helper",
-        "@googletest//:gtest_main",
-    ],
-)
-
 # Three binaries are built from the same source. Each verifies the sandbox options passed to it on
 # the command line (see sandbox_options.json), and derives its GTest XML result file name from its
 # own executable name so the results do not collide.
@@ -50,11 +38,11 @@ integration_test(
     timeout = "short",
     srcs = ["sandbox_options.py"],
     binaries = [
-        ":control_daemon_mock",
         ":sandbox_options_process_a",
         ":sandbox_options_process_b",
         ":sandbox_options_process_c",
         "//score/launch_manager",
+        "//tests/utils/test_helper:verification_process"
     ],
     config = ":sandbox_options.json",
 )
