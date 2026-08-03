@@ -154,15 +154,6 @@
                     "run_target": "fallback_run_target"
                 }
             }
-        },
-        "Off": {
-            "depends_on": [],
-            "recovery_action": {
-                "switch_run_target": {
-                    "run_target": "fallback_run_target"
-                
-                }
-            }
         }
     },
     "initial_run_target": "Startup",
