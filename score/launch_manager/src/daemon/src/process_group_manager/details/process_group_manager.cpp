@@ -116,13 +116,8 @@ bool ProcessGroupManager::initialize()
 
     createProcessComponentsObjects(total_processes);
 
-#ifdef USE_NEW_CONFIGURATION
-    if (!initializeProcessGroups(config))
-    {
-#else
     if (!initializeProcessGroups())
     {
-#endif
         return false;
     }
 

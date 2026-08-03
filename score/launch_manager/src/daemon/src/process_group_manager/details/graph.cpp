@@ -36,7 +36,7 @@ namespace internal
 
 Graph::Graph(
     uint32_t max_num_nodes,
-    IConfigurationManager* configuration,
+    ConfigurationType* configuration,
     std::shared_ptr<WorkerQueue> job_queue,
     osal::IProcess* process_interface,
     std::shared_ptr<SafeProcessMapInserter> process_map,

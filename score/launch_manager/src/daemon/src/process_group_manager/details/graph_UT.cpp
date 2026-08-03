@@ -1,6 +1,8 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include "score/mw/launch_manager/configuration/config.hpp"
+#include "score/mw/launch_manager/configuration/configuration_adapter.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/graph.hpp"
 #include "score/mw/launch_manager/process_group_manager/mock_iprocess.hpp"
 #include "score/mw/launch_manager/process_group_manager/process_group_manager.hpp"
@@ -8,8 +10,16 @@
 namespace score::lcm::internal
 {
 
+#ifdef USE_NEW_CONFIGURATION
+using ConfigurationType = ConfigurationAdapter;
+using Config = score::mw::launch_manager::configuration::Config;
+#else
+using ConfigurationType = IConfigurationManager;
+#endif
+
 using namespace testing;
 using namespace score::mw::lifecycle;
+using namespace score::mw::launch_manager::configuration;
 using namespace std::chrono_literals;
 
 class MockProcessMap : public SafeProcessMapInserter
@@ -31,27 +41,6 @@ class MockTransitionResultPublisher : public ITransitionResultPublisher
     MOCK_METHOD(void, setInitialStateTransitionResult, (ControlClientCode result), (override));
 };
 
-class MockConfigurationManager : public IConfigurationManager
-{
-  public:
-    MOCK_METHOD(IdentifierHash, getNameOfOffState, (const IdentifierHash& pg_name), (const, override));
-    MOCK_METHOD(
-        std::optional<const OsProcess*>,
-        getOsProcessConfiguration,
-        (const IdentifierHash& pg_name, const uint32_t index),
-        (const, override));
-    MOCK_METHOD(
-        std::optional<const std::vector<ProcessGroupState>*>,
-        getListOfProcessGroupStates,
-        (const IdentifierHash& pg_name),
-        (const, override));
-    MOCK_METHOD(
-        std::optional<const DependencyList*>,
-        getOsProcessDependencies,
-        (const IdentifierHash& process_group_name, const uint32_t index),
-        (const, override));
-};
-
 class GraphTest : public ::testing::Test
 {
   protected:
@@ -60,22 +49,71 @@ class GraphTest : public ::testing::Test
         RecordProperty("TestType", "interface-test");
         RecordProperty("DerivationTechnique", "equivalence-classes");
 
-        ON_CALL(config_, getNameOfOffState).WillByDefault(Return(off_state));
-        ON_CALL(config_, getOsProcessConfiguration).WillByDefault(Return(&default_process_));
-        ON_CALL(config_, getListOfProcessGroupStates).WillByDefault(Return(&simple_states));
-        ON_CALL(config_, getOsProcessDependencies).WillByDefault(Return(&empty));
-
         ON_CALL(mock_process_state_notifier_, queuePosixProcess).WillByDefault(Return(true));
 
-        setProcessDefaultConfig();
+        auto procs = SetConfig();
+
+        graph_.initProcessGroupNodes(pg_name, procs, pg_index_);
     }
 
-    void setProcessDefaultConfig(osal::CommsType comms_type = osal::CommsType::kNoComms, bool self_terminating = false)
+    virtual uint32_t SetConfig()
     {
-        default_process_.startup_config_.executable_path_ = "/dev/null";
-        default_process_.startup_config_.short_name_ = "test_process";
-        default_process_.startup_config_.comms_type_ = comms_type;
-        default_process_.pgm_config_.is_self_terminating_ = self_terminating;
+        auto procs = generateProcessComponents(1);
+        auto count = procs.size();
+        auto rts = generateRunTargets(1);
+        rts[1].depends_on = {procs[0].name};
+        const auto config = ConfigBuilder{}
+                                .setComponents(std::move(procs))
+                                .setRunTargets(std::move(rts))
+                                .setInitialRunTarget("Startup")
+                                .setFallbackRunTarget(std::move(fallback))
+                                .build();
+        config_.initialize(config);
+
+        return count;
+    }
+
+    std::vector<ComponentConfig> generateProcessComponents(int count)
+    {
+        std::vector<ComponentConfig> components{};
+        for (int i = 0; i < count; i++)
+        {
+            ComponentConfig config{};
+            config.name = process_name(i);
+            components.push_back(std::move(config));
+        }
+        return components;
+    }
+
+    std::vector<RunTargetConfig> generateRunTargets(int count)
+    {
+        std::vector<RunTargetConfig> rts{};
+        rts.push_back(startup);
+        for (int i = 0; i < count; i++)
+        {
+            RunTargetConfig config{};
+            config.name = run_target_name(i);
+            rts.push_back(std::move(config));
+        }
+        rts.push_back(off);
+        return rts;
+    }
+
+    std::string process_name(int index)
+    {
+        return "test_process_" + std::to_string(index);
+    }
+
+    std::string run_target_name(int index)
+    {
+        return "RunTarget" + std::to_string(index);
+    }
+
+    IdentifierHash state_name(std::string_view run_target)
+    {
+        const auto left = std::string{pg_string};
+        const auto right = std::string{run_target};
+        return IdentifierHash{left + "/" + right};
     }
 
     void executeJobSuccessfully(const ComponentTask& job)
@@ -102,7 +140,7 @@ class GraphTest : public ::testing::Test
         ASSERT_EQ(res.value(), IComponent::RequestState::kSuccess);
     }
 
-    NiceMock<MockConfigurationManager> config_{};
+    ConfigurationAdapter config_{};
     std::shared_ptr<WorkerQueue> job_queue_ = std::make_shared<WorkerQueue>();
     StrictMock<osal::MockIProcess> process_interface_{};
     std::shared_ptr<MockProcessMap> mock_process_map = std::make_shared<MockProcessMap>();
@@ -117,48 +155,143 @@ class GraphTest : public ::testing::Test
         &mock_process_state_notifier_,
         &mock_transition_result_publisher_};
 
-    IdentifierHash pg_name{"TestPG"};
-    IdentifierHash off_state{"Off"};
-    const DependencyList empty = {};
-    const std::vector<ProcessGroupState> simple_states = {
-        ProcessGroupState{IdentifierHash{"Startup"}, {}},
-        ProcessGroupState{IdentifierHash{"Running"}, {first_process_index_}},
-        ProcessGroupState{off_state, {}},
+    static constexpr std::string_view pg_string{"MainPG"};
+    const IdentifierHash pg_name{pg_string};
+    const int pg_index_ = 0;
+
+    RunTargetConfig startup = {"Startup", "", {}, 10, {}};
+    RunTargetConfig off = {"Off", "", {}, 10, {}};
+    FallbackRunTargetConfig fallback = {
+        "",
+        {},
+        10,
     };
-    OsProcess default_process_ = {};
-    const std::uint32_t pg_index_ = 0;
-    const std::uint32_t first_process_index_ = 0;
 };
 
-class GraphStartTransitionTest : public GraphTest
+class GraphOrdinaryTransitionTest : public GraphTest
 {
+  protected:
+    uint32_t SetConfig() override
+    {
+        auto procs = generateProcessComponents(2);
+        auto count = procs.size();
+        auto rts = generateRunTargets(2);
+        rts[1].depends_on = {procs[0].name};
+        rts[2].depends_on = {procs[1].name};
+        const auto config = ConfigBuilder{}
+                                .setComponents(std::move(procs))
+                                .setRunTargets(std::move(rts))
+                                .setInitialRunTarget("Startup")
+                                .setFallbackRunTarget(std::move(fallback))
+                                .build();
+        config_.initialize(config);
+
+        return count;
+    }
+
+    /// @brief Execute a run target activation that activates or deactivates a single node
+    void oneProcessTransition(IdentifierHash target, std::uint32_t node_index)
+    {
+        graph_.startTransition({pg_name, target});
+
+        auto job = job_queue_->pop();
+        ASSERT_TRUE(job->has_value());
+        executeJobSuccessfully(job->value());
+        if (job->value().type == ComponentTaskType::kActivate)
+        {
+            graph_.handleComponentEvent(ActivationSuccessful{node_index});
+        }
+        else
+        {
+            graph_.handleComponentEvent(DeactivationComplete{node_index});
+        }
+
+        ASSERT_EQ(graph_.getState(), GraphState::kSuccess);
+        ASSERT_EQ(graph_.getProcessGroupState(), target);
+    }
 };
 
-TEST_F(GraphStartTransitionTest, simpleTransition)
+TEST_F(GraphOrdinaryTransitionTest, correctJobDetails)
 {
-    RecordProperty(
-        "Description", "Test that a simple transition activates the expected run target and process successfully");
+    RecordProperty("Description", "Test that, in a simple transition, the correct job information is passed");
 
-    graph_.initProcessGroupNodes(pg_name, 1, pg_index_);
+    const auto target = state_name(run_target_name(1));
 
-    const auto target = IdentifierHash{"Running"};
-    // Sanity check to make sure we actually change the state
-    EXPECT_NE(graph_.getProcessGroupState(), target);
-
-    EXPECT_TRUE(graph_.startTransition({pg_name, target}));
-    EXPECT_EQ(graph_.getState(), GraphState::kInTransition);
+    graph_.startTransition({pg_name, target});
 
     const auto job = job_queue_->pop();
     ASSERT_TRUE(job->has_value()) << "startTransition didn't push anything to the queue";
     EXPECT_EQ(job->value().type, ComponentTaskType::kActivate);
-    EXPECT_EQ(job->value().component.get().getIndex(), first_process_index_);
+    EXPECT_EQ(job->value().component.get().getIndex(), 1);
+}
 
+TEST_F(GraphOrdinaryTransitionTest, simpleActivationTransition)
+{
+    RecordProperty(
+        "Description", "Test that a simple transition activates the expected run target and process successfully");
+
+    const auto target = state_name(run_target_name(0));
+
+    const auto start_res = graph_.startTransition({pg_name, target});
+
+    const auto job = job_queue_->pop();
     executeJobSuccessfully(job->value());
-
     graph_.handleComponentEvent(ActivationSuccessful{0});
 
+    EXPECT_TRUE(start_res);
     ASSERT_EQ(graph_.getState(), GraphState::kSuccess);
     EXPECT_EQ(graph_.getProcessGroupState(), target);
+}
+
+TEST_F(GraphOrdinaryTransitionTest, simpleDeactivationTransition)
+{
+    RecordProperty(
+        "Description", "Test that a simple transition deactivates the expected run target and process successfully");
+
+    oneProcessTransition(state_name(run_target_name(0)), 0);
+
+    const auto target = state_name(off.name);
+    const auto start_res = graph_.startTransition({pg_name, target});
+
+    const auto job = job_queue_->pop();
+    executeJobSuccessfully(job->value());
+    graph_.handleComponentEvent(DeactivationComplete{0});
+
+    EXPECT_TRUE(start_res);
+    ASSERT_EQ(graph_.getState(), GraphState::kSuccess);
+    EXPECT_EQ(graph_.getProcessGroupState(), target);
+}
+
+class GraphInitialTransitionTest : public GraphTest
+{
+};
+
+TEST_F(GraphInitialTransitionTest, nothingToDo)
+{
+    RecordProperty("Description", "Test that the initial transition to an empty run target succeeds immediately");
+
+    EXPECT_CALL(
+        mock_transition_result_publisher_,
+        setInitialStateTransitionResult(ControlClientCode::kInitialMachineStateSuccess));
+
+    const auto res = graph_.startInitialTransition({pg_name, state_name(startup.name)});
+
+    EXPECT_TRUE(res);
+    EXPECT_EQ(graph_.getState(), GraphState::kSuccess);
+}
+
+TEST_F(GraphInitialTransitionTest, startTransitionFailure)
+{
+    RecordProperty("Description", "Test that startTransition() reacts correctly to an invalid machine state");
+
+    EXPECT_CALL(
+        mock_transition_result_publisher_,
+        setInitialStateTransitionResult(ControlClientCode::kInitialMachineStateFailed));
+    // Hmm... can't inject a failure here yet.
+    const auto res = graph_.startInitialTransition({pg_name, state_name(startup.name)});
+
+    EXPECT_FALSE(res);
+    EXPECT_EQ(graph_.getState(), GraphState::kUndefinedState);
 }
 
 }  // namespace score::lcm::internal

@@ -291,11 +291,7 @@ class ProcessGroupManager final : public ITransitionResultPublisher
 
     /// @brief Initializes the process groups.
     /// @return Returns true if initialization was successful, false otherwise.
-#ifdef USE_NEW_CONFIGURATION
-    inline bool initializeProcessGroups(const Config& config);
-#else
     inline bool initializeProcessGroups();
-#endif
 
     /// @brief Creates process component objects, including the job queue and worker threads.
     inline void createProcessComponentsObjects(std::size_t total_processes);

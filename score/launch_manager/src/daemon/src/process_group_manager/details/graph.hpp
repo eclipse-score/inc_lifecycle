@@ -25,7 +25,6 @@
 
 #include "score/mw/launch_manager/common/concurrency/mpmc_concurrent_queue.hpp"
 #include "score/mw/launch_manager/common/identifier_hash.hpp"
-#include "score/mw/launch_manager/configuration/configuration_manager.hpp"
 #include "score/mw/launch_manager/control/control_client_channel.hpp"
 #include "score/mw/launch_manager/osal/semaphore.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/component_event.hpp"
@@ -50,6 +49,13 @@ namespace internal
 {
 
 using namespace score::mw::lifecycle;
+
+#ifdef USE_NEW_CONFIGURATION
+using ConfigurationType = ConfigurationAdapter;
+using Config = score::mw::launch_manager::configuration::Config;
+#else
+using ConfigurationType = IConfigurationManager;
+#endif
 
 using WorkerQueue =
     MPMCConcurrentQueue<std::optional<ComponentTask>, static_cast<std::size_t>(ProcessLimits::kMaxProcesses)>;
@@ -172,7 +178,7 @@ class Graph final
     /// @param max_num_nodes Maximum number of nodes this graph can hold.
     Graph(
         uint32_t max_num_nodes,
-        IConfigurationManager* configuration,
+        ConfigurationType* configuration,
         std::shared_ptr<WorkerQueue> job_queue,
         osal::IProcess* process_interface,
         std::shared_ptr<SafeProcessMapInserter> process_map,
@@ -399,7 +405,7 @@ class Graph final
     mutable std::mutex requested_state_mutex_{};
 
     /// @brief Config pointer to set up graph nodes
-    IConfigurationManager* configuration_;
+    ConfigurationType* configuration_;
 
     /// @brief Queue to push component tasks to
     std::shared_ptr<WorkerQueue> job_queue_;

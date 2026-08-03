@@ -217,6 +217,7 @@ cc_test(
         ":graph",
         ":process_group_manager_impl",
         "//score/launch_manager/src/daemon/src/process_group_manager:mock_iprocess",
+        "//score/launch_manager/src/daemon/src/configuration:configuration_adapter",
         "@googletest//:gtest_main",
     ]
 )
