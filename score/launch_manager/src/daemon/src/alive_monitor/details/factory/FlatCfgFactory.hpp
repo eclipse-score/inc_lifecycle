@@ -21,7 +21,7 @@
 #include <vector>
 #include "score/mw/launch_manager/alive_monitor/details/common/Types.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/factory/IPhmFactory.hpp"
-#include "score/mw/launch_manager/alive_monitor/details/factory/MachineConfigFactory.hpp"
+#include "score/mw/launch_manager/alive_monitor/details/factory/StaticConfig.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ProcessStateReader.hpp"
 #ifdef USE_NEW_CONFIGURATION
 #include "score/mw/launch_manager/configuration/config.hpp"

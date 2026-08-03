@@ -38,7 +38,6 @@ cc_binary(
     ] + select({
         "//config:lm_use_new_configuration": [
             "//score/launch_manager/src/daemon/src/configuration:flatbuffer_config_loader",
-            "//score/launch_manager/src/daemon/src/watchdog/details:watchdog_impl",
         ],
         "//conditions:default": [],
     }),

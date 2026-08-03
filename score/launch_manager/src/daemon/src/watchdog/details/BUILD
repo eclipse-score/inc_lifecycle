@@ -44,7 +44,7 @@ cc_library(
     hdrs = ["WatchdogImpl.hpp"],
     include_prefix = "score/mw/launch_manager/watchdog/details",
     strip_include_prefix = "/score/launch_manager/src/daemon/src/watchdog/details",
-    visibility = ["//score/launch_manager/src/daemon/src/watchdog/details:__subpackages__"],
+    visibility = ["//score/launch_manager/src/daemon/src/watchdog:__subpackages__"],
     deps = [
         ":device_if",
         ":watchdog",

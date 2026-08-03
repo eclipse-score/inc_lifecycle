@@ -32,8 +32,8 @@ cc_library(
     strip_include_prefix = "/score/launch_manager/src/daemon/src/alive_monitor/details/daemon",
     visibility = ["//score/launch_manager/src/daemon/src/alive_monitor:__subpackages__"],
     deps = [
+        "//score/launch_manager/src/daemon/src/alive_monitor/details/factory:static_config",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/factory:flat_cfg_factory",
-        "//score/launch_manager/src/daemon/src/alive_monitor/details/factory:machine_config_factory",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/ifappl:checkpoint",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/ifappl:data_structures",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/ifappl:monitor_if_daemon",

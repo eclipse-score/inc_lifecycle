@@ -75,8 +75,8 @@ cc_library(
     visibility = ["//score/launch_manager/src/daemon/src/alive_monitor:__subpackages__"],
     deps = [
         ":i_phm_factory",
-        ":machine_config_factory",
         "//score/launch_manager/src/daemon/src/alive_monitor/config",
+        "//score/launch_manager/src/daemon/src/alive_monitor/details/factory:static_config",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/common:types",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/ifappl:checkpoint",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/ifappl:monitor_if_daemon",
@@ -94,7 +94,9 @@ cc_library(
             "//score/launch_manager/src/daemon/src/common:alive_interface_path",
             "//score/launch_manager/src/daemon/src/configuration:config",
         ],
-        "//conditions:default": [],
+        "//conditions:default": [
+            ":machine_config_factory",
+        ],
     }) + select({
         "@platforms//os:qnx": [],
         "@platforms//os:linux": ["//externals/acl"],
