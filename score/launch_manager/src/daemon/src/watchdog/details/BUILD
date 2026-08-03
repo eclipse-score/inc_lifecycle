@@ -51,8 +51,8 @@ cc_library(
         "//score/launch_manager/src/daemon/src/alive_monitor/details/timers:os_clock_interface",
         "//score/launch_manager/src/daemon/src/common:log",
         "//score/launch_manager/src/daemon/src/configuration:config",
-        "//score/launch_manager/src/daemon/src/watchdog/details:i_device_config_factory",
         "//score/launch_manager/src/daemon/src/watchdog:i_watchdog_if",
+        "//score/launch_manager/src/daemon/src/watchdog/details:i_device_config_factory",
         "@score_baselibs//score/language/futurecpp",
     ],
 )
