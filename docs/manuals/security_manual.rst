@@ -18,9 +18,10 @@ Security Manual
 .. document:: Lifecycle Security Manual
    :id: doc__lifecycle_security_manual
    :status: draft
+   :version: 1
    :safety: ASIL_B
    :security: YES
-   :realizes: wp__module_security_manual
+   :realizes: wp__module_security_manual[version==1]
 
 
 Introduction/Scope

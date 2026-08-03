@@ -16,9 +16,10 @@
 .. document:: Health Monitor Architecture Inspection Checklist
   :id: doc__health_monitor_arc_inspection
   :status: draft
+  :version: 1
   :safety: ASIL_B
   :security: YES
-  :realizes: wp__sw_arch_verification
+  :realizes: wp__sw_arch_verification[version==1]
 
 
 Architecture Inspection Checklist

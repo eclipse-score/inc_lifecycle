@@ -25,7 +25,6 @@ For the main feature description and requirements, see the belonging `Feature <h
 .. toctree::
    :hidden:
 
-   architecture/index.rst
    architecture/chklst_arc_inspection.rst
    safety_analysis/fmea.rst
    safety_analysis/dfa.rst

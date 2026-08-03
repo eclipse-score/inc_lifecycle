@@ -22,9 +22,10 @@ HealthMonitor
 .. document:: HealthMonitor
    :id: doc__health_monitor
    :status: draft
+   :version: 1
    :safety: ASIL_B
    :security: NO
-   :realizes: wp__cmpt_request
+   :realizes: wp__cmpt_request[version==1]
    :tags: health_monitor
 
 .. attention::

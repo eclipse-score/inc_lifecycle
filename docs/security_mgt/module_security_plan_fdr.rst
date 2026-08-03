@@ -18,9 +18,10 @@ Security Plan Formal Review Report
 .. document:: Lifecycle Security Plan Formal Review
   :id: doc__lifecycle_security_plan_fdr
   :status: draft
+  :version: 1
   :safety: ASIL_B
   :security: YES
-  :realizes: wp__fdr_reports
+  :realizes: wp__fdr_reports[version==1]
 
 
 **1. Purpose**

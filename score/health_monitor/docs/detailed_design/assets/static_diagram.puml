@@ -1,19 +1,22 @@
 @startuml
 
-!include ../../architecture/assets/lm_state.puml
-!include ../../architecture/assets/hm_status.puml
-!include ../../architecture/assets/hm_duration_range.puml
-!include ../../architecture/assets/hm_deadline.puml
+' Paths are relative to detailed_design/ (not this assets/ dir): a score_docs_as_code
+' Sphinx extension bug resolves file-based `.. uml::` includes from the containing
+' .rst file's directory instead of this file's directory.
+!include ../architecture/assets/lm_state.puml
+!include ../architecture/assets/hm_status.puml
+!include ../architecture/assets/hm_duration_range.puml
+!include ../architecture/assets/hm_deadline.puml
 
-!include ../../architecture/assets/hmb_interface.puml
-!includesub ../../architecture/assets/dmb_interface.puml!DeadlineMonitorBuilderClass
-!includesub ../../architecture/assets/dmb_interface.puml!DeadlineMonitorBuilderRel
-!includesub ../../architecture/assets/lmb_interface.puml!LogicMonitorBuilderClass
-!includesub ../../architecture/assets/lmb_interface.puml!LogicMonitorBuilderRel
+!include ../architecture/assets/hmb_interface.puml
+!includesub ../architecture/assets/dmb_interface.puml!DeadlineMonitorBuilderClass
+!includesub ../architecture/assets/dmb_interface.puml!DeadlineMonitorBuilderRel
+!includesub ../architecture/assets/lmb_interface.puml!LogicMonitorBuilderClass
+!includesub ../architecture/assets/lmb_interface.puml!LogicMonitorBuilderRel
 
-!includesub ../../architecture/assets/lm_interface.puml!LogicMonitorRel
-!includesub ../../architecture/assets/dm_interface.puml!DeadlineMonitorRel
-!includesub ../../architecture/assets/hbm_interface.puml!HeartbeatMonitorRel
-!includesub ../../architecture/assets/hm_interface.puml!HealthMonitorRel
+!includesub ../architecture/assets/lm_interface.puml!LogicMonitorRel
+!includesub ../architecture/assets/dm_interface.puml!DeadlineMonitorRel
+!includesub ../architecture/assets/hbm_interface.puml!HeartbeatMonitorRel
+!includesub ../architecture/assets/hm_interface.puml!HealthMonitorRel
 
 @enduml

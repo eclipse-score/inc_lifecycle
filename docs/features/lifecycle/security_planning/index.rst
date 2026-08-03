@@ -18,9 +18,10 @@ Feature Security Work Products List
 .. document:: Lifecycle Security WPs
    :id: doc__lifecycle_security_planning_wp
    :status: draft
+   :version: 1
    :safety: ASIL_B
    :security: YES
-   :realizes: wp__platform_security_plan
+   :realizes: wp__platform_security_plan[version==1]
 
 Tailoring
 =========

@@ -19,9 +19,10 @@ DFA (Dependent Failure Analysis)
 .. document:: Lifecycle DFA
    :id: doc__lifecycle_dfa
    :status: draft
+   :version: 1
    :safety: ASIL_B
    :security: NO
-   :realizes: wp__feature_dfa
+   :realizes: wp__feature_dfa[version==1]
 
 .. note:: Use the content of the document to describe e.g. why a fault model is not applicable for the diagram.
 
@@ -189,6 +190,7 @@ For all identified applicable failure initiators, the DFA is performed in the fo
        :mitigation_issue: <ID from Issue Tracker>
        :sufficient: <yes|no>
        :status: <valid|invalid>
+       :version: 1
 
  .. note::   Argument is inside the 'content'. Therefore content is mandatory.
 

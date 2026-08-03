@@ -23,7 +23,7 @@ User Manual
    :version: 1
    :safety: QM
    :security: NO
-   :realizes: wp__training_path
+   :realizes: wp__training_path[version==1]
 
 
 Overview

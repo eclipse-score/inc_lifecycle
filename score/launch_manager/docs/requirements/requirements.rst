@@ -18,9 +18,10 @@ Component Launch Manager Requirements
 .. document:: Launch Manager Requirements
    :id: doc__launch_manager_requirements
    :status: draft
+   :version: 1
    :safety: ASIL_B
    :security: YES
-   :realizes: wp__requirements_comp
+   :realizes: wp__requirements_comp[version==1]
 
 
 <Headlines (for the list of requirements if structuring is needed)>

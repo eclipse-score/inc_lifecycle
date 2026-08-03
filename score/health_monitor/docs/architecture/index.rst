@@ -20,9 +20,10 @@ Component Architecture
 .. document:: HealthMonitor Architecture
    :id: doc__health_monitor_architecture
    :status: draft
+   :version: 1
    :safety: ASIL_B
    :security: NO
-   :realizes: wp__component_arch
+   :realizes: wp__component_arch[version==1]
    :tags: template
 
 .. attention::
@@ -43,6 +44,7 @@ Document describes HealthMonitor component architecture.
    :security: YES
    :safety: ASIL_B
    :status: valid
+   :version: 1
    :belongs_to: feat__lifecycle
 
    Health Monitor component provides a set of functionalities to verify the health of the system and its components. It includes monitoring deadlines, logic, and heartbeats to ensure proper system functioning.
@@ -72,6 +74,7 @@ Static Architecture
    :security: NO
    :safety: ASIL_B
    :status: valid
+   :version: 1
    :implements:
    :fulfils: comp_req__health_monitor__dummy
    :belongs_to: comp__health_monitor
@@ -84,6 +87,7 @@ Static Architecture
    :security: NO
    :safety: ASIL_B
    :status: valid
+   :version: 1
    :implements:
    :fulfils: comp_req__health_monitor__dummy
    :belongs_to: comp__health_monitor
@@ -96,6 +100,7 @@ Static Architecture
    :security: NO
    :safety: ASIL_B
    :status: valid
+   :version: 1
    :implements:
    :fulfils: comp_req__health_monitor__dummy
    :belongs_to: comp__health_monitor
@@ -111,6 +116,7 @@ Dynamic Architecture
    :security: NO
    :safety: ASIL_B
    :status: valid
+   :version: 1
    :fulfils: comp_req__health_monitor__dummy
    :belongs_to: comp__health_monitor
 
@@ -121,6 +127,7 @@ Dynamic Architecture
    :security: NO
    :safety: ASIL_B
    :status: valid
+   :version: 1
    :fulfils: comp_req__health_monitor__dummy
    :belongs_to: comp__health_monitor
 
@@ -131,6 +138,7 @@ Dynamic Architecture
    :security: NO
    :safety: ASIL_B
    :status: valid
+   :version: 1
    :fulfils: comp_req__health_monitor__dummy
    :belongs_to: comp__health_monitor
 
@@ -141,6 +149,7 @@ Dynamic Architecture
    :security: NO
    :safety: ASIL_B
    :status: valid
+   :version: 1
    :fulfils: comp_req__health_monitor__dummy
    :belongs_to: comp__health_monitor
 
@@ -151,6 +160,7 @@ Dynamic Architecture
    :security: NO
    :safety: ASIL_B
    :status: valid
+   :version: 1
    :fulfils: comp_req__health_monitor__dummy
    :belongs_to: comp__health_monitor
 
@@ -161,6 +171,7 @@ Dynamic Architecture
    :security: NO
    :safety: ASIL_B
    :status: valid
+   :version: 1
    :fulfils: comp_req__health_monitor__dummy
    :belongs_to: comp__health_monitor
 
@@ -171,6 +182,7 @@ Dynamic Architecture
    :security: NO
    :safety: ASIL_B
    :status: valid
+   :version: 1
    :fulfils: comp_req__health_monitor__dummy
    :belongs_to: comp__health_monitor
 
@@ -184,6 +196,7 @@ Interfaces
    :security: NO
    :safety: ASIL_B
    :status: valid
+   :version: 1
    :fulfils: comp_req__health_monitor__dummy
    :language: rust
 
@@ -194,6 +207,7 @@ Interfaces
    :security: NO
    :safety: ASIL_B
    :status: valid
+   :version: 1
    :fulfils: comp_req__health_monitor__dummy
    :language: rust
 
@@ -204,6 +218,7 @@ Interfaces
    :security: NO
    :safety: ASIL_B
    :status: valid
+   :version: 1
    :fulfils: comp_req__health_monitor__dummy
    :language: rust
 
@@ -214,6 +229,7 @@ Interfaces
    :security: NO
    :safety: ASIL_B
    :status: valid
+   :version: 1
    :fulfils: comp_req__health_monitor__dummy
    :language: rust
 

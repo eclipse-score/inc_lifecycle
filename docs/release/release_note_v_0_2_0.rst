@@ -15,9 +15,10 @@
 .. document:: lifecycle Release Note v0.2.0
    :id: doc__lifecycle_release_note_v0_2_0
    :status: valid
+   :version: 1
    :safety: ASIL_B
    :security: NO
-   :realizes: wp__module_sw_release_note
+   :realizes: wp__module_sw_release_note[version==1]
    :tags: 
 
 

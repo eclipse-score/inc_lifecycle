@@ -18,9 +18,10 @@ Example: Detailed Design
 .. document:: Launch Manager Detailed Design
    :id: doc__launch_manager_detailed_design
    :status: draft
+   :version: 1
    :safety: ASIL_B
    :security: NO
-   :realizes: wp__sw_implementation
+   :realizes: wp__sw_implementation[version==1]
 
 
 Detailed Design for Component: Launch Manager

@@ -18,9 +18,10 @@ Security Package Formal Review Report
 .. document:: Lifcycle Security Package Formal Review
   :id: doc__lifecycle_sec_pkg_fdr
   :status: draft
+  :version: 1
   :safety: ASIL_B
   :security: YES
-  :realizes: wp__fdr_reports
+  :realizes: wp__fdr_reports[version==1]
 
 
 **1. Purpose**

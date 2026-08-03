@@ -18,9 +18,10 @@ Safety Plan
 .. document:: Lifecycle Safety Plan
   :id: doc__lifecycle_safety_plan
   :status: draft
+  :version: 1
   :safety: ASIL_B
   :security: NO
-  :realizes: wp__module_safety_plan
+  :realizes: wp__module_safety_plan[version==1]
 
 :note: The module safety plan shall be continuously maintained during the project.
        Deviations to the module safety plan should be documented :ref:`here <lifecycle_safety_package_deviations>`

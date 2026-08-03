@@ -20,9 +20,10 @@ Detailed Design
 .. document:: HealthMonitor Detailed Design
    :id: doc__health_monitor_detailed_design
    :status: draft
+   :version: 1
    :safety: ASIL_B
    :security: NO
-   :realizes: wp__sw_implementation
+   :realizes: wp__sw_implementation[version==1]
    :tags: template
 
 .. attention::
@@ -93,6 +94,7 @@ Dynamic Diagrams for Unit Interactions
       :security: <YES|NO>
       :safety: <QM|ASIL_B>
       :status: <valid|invalid>
+      :version: 1
       :implements: <link to component requirement id>
       :satisfies: <link to component architecture id>
 

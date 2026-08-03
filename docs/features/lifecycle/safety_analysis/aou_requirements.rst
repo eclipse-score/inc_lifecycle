@@ -18,9 +18,10 @@ AoU Feature Requirements
 .. document:: Lifecycle Feature AoU
    :id: doc__lifecycle_feat_aou
    :status: draft
+   :version: 1
    :safety: ASIL_B
    :security: NO
-   :realizes: wp__requirements_feat_aou
+   :realizes: wp__requirements_feat_aou[version==1]
 
 Feature AoU
 -----------
@@ -33,5 +34,6 @@ Feature AoU
       :security: NO
       :safety: ASIL_B
       :status: invalid
+      :version: 1
 
       The Feature User shall do xyz to use the feature safely.

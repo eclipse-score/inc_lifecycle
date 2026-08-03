@@ -18,9 +18,10 @@ Component Architecture Documentation
 .. document:: Launch Manager Architecture
    :id: doc__launch_manager_architecture
    :status: draft
+   :version: 1
    :safety: ASIL_B
    :security: YES
-   :realizes: wp__component_arch
+   :realizes: wp__component_arch[version==1]
    :tags: template
 
 

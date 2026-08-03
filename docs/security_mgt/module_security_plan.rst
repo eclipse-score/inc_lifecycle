@@ -20,9 +20,10 @@ Security Plan
 .. document:: Lifecycle Security Plan
   :id: doc__lifecycle_security_plan
   :status: draft
+  :version: 1
   :safety: ASIL_B
   :security: YES
-  :realizes: wp__module_security_plan
+  :realizes: wp__module_security_plan[version==1]
 
 
   | **1. Security Management Context**

@@ -18,9 +18,10 @@ AoU Component Requirements Template
 .. document:: Launch Manager Component AoU
    :id: doc__launch_manager_comp_aou
    :status: draft
+   :version: 1
    :safety: ASIL_B
    :security: NO
-   :realizes: wp__requirements_comp_aou
+   :realizes: wp__requirements_comp_aou[version==1]
 
 
 This page contains Assumption of Use requirement snippets that belong to the
@@ -37,6 +38,7 @@ Component AoU
       :security: YES
       :safety: ASIL_B
       :status: invalid
+      :version: 1
 
       The Component User shall do xyz to use the component safely/securely
 
@@ -46,6 +48,7 @@ Component AoU
       :security: YES
       :safety: ASIL_B
       :status: invalid
+      :version: 1
       :tags: environment
 
       The Component shall only be used in a xyz environment to ensure its proper functioning.

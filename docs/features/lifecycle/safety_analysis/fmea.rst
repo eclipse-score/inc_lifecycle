@@ -19,9 +19,10 @@ FMEA (Failure Modes and Effects Analysis)
 .. document:: Lifecycle FMEA
    :id: doc__lifecycle_fmea
    :status: draft
+   :version: 1
    :safety: ASIL_B
    :security: NO
-   :realizes: wp__feature_fmea
+   :realizes: wp__feature_fmea[version==1]
 
 .. note:: Use the content of the document to describe e.g. why a fault model is not applicable for the diagram.
 
@@ -117,6 +118,7 @@ For all identified applicable failure initiators, the FMEA is performed in the f
        :mitigation_issue: <ID from Issue Tracker>
        :sufficient: <yes|no>
        :status: <valid|invalid>
+       :version: 1
 
       .. note::   Argument is inside the 'content'. Therefore content is mandatory.
 

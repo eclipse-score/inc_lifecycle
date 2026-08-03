@@ -20,9 +20,10 @@ Requirements
 .. document:: HealthMonitor Requirements
    :id: doc__health_monitor_requirements
    :status: draft
+   :version: 1
    :safety: ASIL_B
    :security: NO
-   :realizes: wp__requirements_feat
+   :realizes: wp__requirements_feat[version==1]
    :tags: template
 
 .. attention::
@@ -43,6 +44,7 @@ Requirements
    :security: YES
    :rationale: Dummy
    :status: valid
+   :version: 1
    :valid_from: v1.1.9999
 
     .. note:: This is a dummy stakeholder requirement. See https://github.com/eclipse-score/lifecycle/issues/366 for more information.
@@ -54,6 +56,7 @@ Requirements
    :security: YES
    :derived_from: stkh_req__requirements__dummy
    :status: valid
+   :version: 1
    :valid_from: v1.1.9999
 
     .. note:: This is a dummy feature requirement. See https://github.com/eclipse-score/lifecycle/issues/366 for more information.
@@ -66,6 +69,7 @@ Requirements
    :derived_from: feat_req__requirements__template
    :belongs_to: comp__health_monitor
    :status: valid
+   :version: 1
 
     .. note:: This is a dummy component requirement. See https://github.com/eclipse-score/lifecycle/issues/366 for more information.
 
@@ -76,6 +80,7 @@ Requirements
    :security: YES
    :safety: ASIL_B
    :status: valid
+   :version: 1
 
     .. note:: This is a dummy AoU requirement. See https://github.com/eclipse-score/lifecycle/issues/366 for more information.
 
