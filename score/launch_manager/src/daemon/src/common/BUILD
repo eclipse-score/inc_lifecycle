@@ -70,7 +70,7 @@ cc_library(
     visibility = ["//score/launch_manager/src/daemon:__subpackages__"],
 )
 
-cc_test(
+lm_cc_test(
     name = "signal_safe_log_UT",
     srcs = ["signal_safe_log_UT.cpp"],
     deps = [

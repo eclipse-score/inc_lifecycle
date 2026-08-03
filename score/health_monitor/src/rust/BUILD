@@ -72,8 +72,12 @@ rust_test(
     tags = [
         "no-asan",
         "no-tsan",
-        "skip_local",  # see https://github.com/eclipse-score/lifecycle/issues/272
     ],
+    target_compatible_with = select({
+        "//config:unit_qemu": ["@platforms//os:linux"],  # see https://github.com/eclipse-score/lifecycle/issues/272
+        "//config:unit_host": ["@platforms//os:linux"],  # see https://github.com/eclipse-score/lifecycle/issues/272
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
     deps = ["@score_baselibs//src/log/stdout_logger"],
 )
 
@@ -100,7 +104,11 @@ rust_test(
         "no-asan",
         "no-tsan",
     ],
-    target_compatible_with = ["@platforms//os:linux"],
+    target_compatible_with = select({
+        "//config:unit_qemu": ["@platforms//os:linux"],
+        "//config:unit_host": ["@platforms//os:linux"],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
     deps = [
         "@score_baselibs//src/log/stdout_logger",
         "@score_crates//:loom",
@@ -119,5 +127,9 @@ miri_test(
         "miri",
         "no-asan",
     ],
-    target_compatible_with = ["@platforms//os:linux"],
+    target_compatible_with = select({
+        "//config:unit_qemu": ["@platforms//os:linux"],
+        "//config:unit_host": ["@platforms//os:linux"],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
 )
