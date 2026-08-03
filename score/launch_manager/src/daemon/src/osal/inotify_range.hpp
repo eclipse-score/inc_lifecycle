@@ -11,8 +11,8 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#ifndef INOTIFY_RANGE_HPP_
-#define INOTIFY_RANGE_HPP_
+#ifndef OSAL_INOTIFY_RANGE_HPP_
+#define OSAL_INOTIFY_RANGE_HPP_
 
 #include <cstddef>
 #include <iterator>
@@ -22,11 +22,12 @@
 #include "score/assert.hpp"
 #include "score/os/utils/inotify/inotify_event.h"
 #include "score/os/utils/inotify/inotify_instance.h"
+#include "score/static_vector.hpp"
 
 namespace score::mw::lifecycle
 {
 
-/// @brief A wrapper around score::os::InotiyInstance to get iterator syntax.
+/// @brief A wrapper around score::os::InotifyInstance  to get iterator syntax.
 class INotifyRange
 {
   public:
@@ -138,7 +139,6 @@ class INotifyRange
             return true;
         }
 
-      public:
         /// @brief The underlying `InotifyInstance` instance.
         score::os::InotifyInstance* instance_{nullptr};
 
@@ -165,4 +165,4 @@ class INotifyRange
 
 }  // namespace score::mw::lifecycle
 
-#endif  // INOTIFY_RANGE_HPP_
+#endif  // OSAL_INOTIFY_RANGE_HPP_
