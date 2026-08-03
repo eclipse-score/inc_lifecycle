@@ -57,6 +57,11 @@ void PhmDaemon::performCyclicTriggers(void)
             phmHandler.performCyclicTriggers(syncTimestamp);
         }
     }
+    else
+    {
+        // distributeChanges may fail due to buffer overflow,
+        // which is checked on the sender side and results in a watchdog timeout.
+    }
 }
 
 #ifdef USE_NEW_CONFIGURATION

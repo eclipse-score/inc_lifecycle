@@ -32,7 +32,6 @@ cc_library(
     deps = [
         "//score/launch_manager/src/daemon/src/alive_monitor/details/ifappl:data_structures",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/timers:timers_os_clock",
-        "//score/launch_manager/src/daemon/src/watchdog/details:i_device_config_factory",
     ],
 )
 
@@ -45,7 +44,7 @@ cc_library(
     hdrs = ["MachineConfigFactory.hpp"],
     include_prefix = "score/mw/launch_manager/alive_monitor/details/factory",
     strip_include_prefix = "/score/launch_manager/src/daemon/src/alive_monitor/details/factory",
-    visibility = ["//score/launch_manager/src/daemon:__subpackages__"],
+    visibility = ["//score/launch_manager/src/daemon/src/alive_monitor:__subpackages__"],
     deps = [
         ":static_config",
         "//score/launch_manager/src/daemon/src/alive_monitor/config",

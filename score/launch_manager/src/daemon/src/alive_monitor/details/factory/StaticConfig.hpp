@@ -18,7 +18,6 @@
 
 #include "score/mw/launch_manager/alive_monitor/details/ifappl/DataStructures.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
-#include "score/mw/launch_manager/watchdog/IDeviceConfigFactory.hpp"
 
 namespace score
 {
@@ -53,9 +52,15 @@ public:
 
     /// @brief By default hm daemon shutdown is disabled
     static constexpr bool k_hmDaemonDefaultShutdownEnabled{false};
+
+#ifndef USE_NEW_CONFIGURATION
     /// @brief By default, 10ms cycle time is used
     static constexpr timers::NanoSecondType k_hmDaemonDefaultCycleTime{10000000U};
+#else
+    // The new configuration will have the defaults already setup when loading the configuration
+#endif
 
+    /// @brief Defaults for supervision buffer sizes
     static constexpr SupervisionBufferConfig kDefaultSupervisionBufferConfig{StaticConfig::k_DefaultAliveSupCheckpointBufferElements, StaticConfig::k_DefaultMonitorBufferElements};
 };
 
