@@ -15,19 +15,15 @@
 #ifndef MACHINE_CONFIG_FACTORY_HPP_INCLUDED
 #define MACHINE_CONFIG_FACTORY_HPP_INCLUDED
 
-#include <optional>
 #include "score/mw/launch_manager/alive_monitor/details/factory/StaticConfig.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/factory/StaticConfig.hpp"
-#ifdef USE_NEW_CONFIGURATION
-#include "score/mw/launch_manager/configuration/config.hpp"
-#else
+
 namespace HMCOREFlatBuffer
 {
 /* RULECHECKER_comment(1:0,1:0, check_non_pod_struct, "External data type form generated flatbuffer code", true_no_defect) */
 struct HMCOREEcuCfg;
 }  // namespace PHMCOREFlatBuffer
-#endif
 
 namespace score
 {
@@ -65,11 +61,7 @@ public:
     ///         False, if an invalid machine configuration was provided.
     /// @note FlatCfg constructor does not define any exception guarantee and may throw a non specified exception
     /// @throws std::bad_alloc in case of insufficient memory
-#ifdef USE_NEW_CONFIGURATION
-    bool init(const score::mw::launch_manager::configuration::Config& config) noexcept(false);
-#else
     bool init() noexcept(false);
-#endif
 
     /// @brief Returns the configured hm daemon cycle time in nanoseconds
     /// @return Configured cycle time or default cycle time if not configured
@@ -80,7 +72,6 @@ public:
     const SupervisionBufferConfig& getSupervisionBufferConfig() const noexcept(true);
 
 private:
-#ifndef USE_NEW_CONFIGURATION
     /// @brief Loads the hm machine config
     /// @param [in] f_cfg_r The flatcfg api
     /// @throws std::bad_alloc for string allocation in case of insufficient memory
@@ -90,7 +81,6 @@ private:
     /// @brief Load HM settings from the machine config. I.e. buffer sizes, periodicity, etc.
     /// @param [in] f_flatBuffer_r The flatcfg buffer
     void loadHmSettings(const HMCOREFlatBuffer::HMCOREEcuCfg& f_flatBuffer_r) noexcept(true);
-#endif
 
     /// @brief Log all configuration settings
     void logConfiguration() noexcept(true);
@@ -101,11 +91,9 @@ private:
     /// @brief Configured supervision buffer sizes
     SupervisionBufferConfig supBufferCfg{};
 
-#ifndef USE_NEW_CONFIGURATION
     /// Pointer to HM Flat Buffer for given Software Cluster
     /// Raw pointer is used here because the memory is deallocated by FlatBuffer.
     const HMCOREFlatBuffer::HMCOREEcuCfg* flatBuffer_p;
-#endif
 };
 
 }  // namespace factory

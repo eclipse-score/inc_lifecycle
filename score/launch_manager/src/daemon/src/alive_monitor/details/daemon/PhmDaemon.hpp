@@ -25,6 +25,7 @@
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ProcessStateReader.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/CycleTimeValidator.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/CycleTimer.hpp"
+#include "score/mw/launch_manager/alive_monitor/details/timers/TimeConversion.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/factory/StaticConfig.hpp"
 #ifdef USE_NEW_CONFIGURATION
 #include "score/mw/launch_manager/configuration/config.hpp"
@@ -60,7 +61,9 @@ public:
     using OsClock = score::lcm::saf::timers::OsClockInterface;
     using ProcessStateReceiver = score::lcm::IProcessStateReceiver;
     using RecoveryClient = score::lcm::IRecoveryClient;
+#ifndef USE_NEW_CONFIGURATION
     using MachineConfigFactory = factory::MachineConfigFactory;
+#endif
     using SupervisionBufferConfig = factory::SupervisionBufferConfig;
     using CycleTimer = score::lcm::saf::timers::CycleTimer;
     using CycleTimeValidator = score::lcm::saf::timers::CycleTimeValidator;
@@ -103,18 +106,13 @@ public:
     {
         recoveryClient = recovery_client;
 
-        MachineConfigFactory machineConfig{};
-        if (!machineConfig.init(config))
-        {
-            return EInitCode::kMachineConfigInitFailed;
-        }
-
         if (!construct(config, factory::StaticConfig::kDefaultSupervisionBufferConfig))
         {
             return EInitCode::kConstructFlatCfgFactoryFailed;
         }
 
-        int64_t cycleTimeModified{static_cast<std::int64_t>(config.aliveSupervision().evaluation_cycle_ms)};
+        int64_t cycleTimeModified{
+            static_cast<std::int64_t>(timers::TimeConversion::convertMilliSecToNanoSec(config.aliveSupervision().evaluation_cycle_ms))};
 #else
     EInitCode init(std::shared_ptr<RecoveryClient> recovery_client) noexcept(false)
     {
