@@ -560,7 +560,14 @@ TEST_F(ConverterTest, ConvertApplicationProfileMissingSelfTerminatingReturnsErro
     EXPECT_THAT(result.error(), Eq(IConfigLoader::Error::InvalidFormat));
 }
 
-TEST_F(ConverterTest, ConvertReadyConditionValid)
+TEST_F(ConverterTest, ConvertReadyConditionNullReturnsNullopt)
+{
+    RecordProperty("Description", "convertReadyCondition with nullptr returns nullopt.");
+    auto result = details::convertReadyCondition(nullptr);
+    EXPECT_THAT(result.has_value(), IsFalse());
+}
+
+TEST_F(ConverterTest, ConvertReadyConditionWithProcessState)
 {
     RecordProperty("Description", "convertReadyCondition maps process_state correctly.");
     ::flatbuffers::FlatBufferBuilder fbb;
@@ -570,12 +577,40 @@ TEST_F(ConverterTest, ConvertReadyConditionValid)
 
     auto result = convertReadyCondition(ptr);
     ASSERT_THAT(result.has_value(), IsTrue());
-    EXPECT_THAT(result->process_state, Eq(ProcessState::Terminated));
+    EXPECT_THAT(*result, ::testing::VariantWith<ProcessState>(ProcessState::Terminated));
 }
 
-TEST_F(ConverterTest, ConvertReadyConditionMissingProcessStateReturnsError)
+TEST_F(ConverterTest, ConvertReadyConditionWithFileState)
 {
-    RecordProperty("Description", "Missing process_state returns InvalidFormat.");
+    RecordProperty("Description", "convertReadyCondition maps file_state correctly.");
+    ::flatbuffers::FlatBufferBuilder fbb;
+    auto fs = fb::CreateFileStateDirect(fbb, "/tmp/ready", fb::FileExistenceState::Exists);
+    auto rc = fb::CreateReadyCondition(fbb, ::flatbuffers::nullopt /*process_state*/, fs);
+    fbb.Finish(rc);
+    const auto* ptr = ::flatbuffers::GetRoot<fb::ReadyCondition>(fbb.GetBufferPointer());
+
+    auto result = details::convertReadyCondition(ptr);
+    ASSERT_THAT(result.has_value(), IsTrue());
+    EXPECT_THAT(*result, ::testing::VariantWith<FileState>(::testing::Field(&FileState::file_path, Eq("/tmp/ready"))));
+}
+
+TEST_F(ConverterTest, ConvertReadyConditionWithBothStatesReturnsNullopt)
+{
+    RecordProperty("Description", "convertReadyCondition with both process_state and file_state returns nullopt.");
+    ::flatbuffers::FlatBufferBuilder fbb;
+    auto fs = fb::CreateFileStateDirect(fbb, "/tmp/ready", fb::FileExistenceState::Exists);
+    auto rc = fb::CreateReadyCondition(fbb, fb::ProcessState::Running, fs);
+    fbb.Finish(rc);
+    const auto* ptr = ::flatbuffers::GetRoot<fb::ReadyCondition>(fbb.GetBufferPointer());
+
+    auto result = details::convertReadyCondition(ptr);
+    ASSERT_THAT(result.has_value(), IsFalse());
+    EXPECT_EQ(result, std::nullopt);
+}
+
+TEST_F(ConverterTest, ConvertReadyConditionWithNeitherStateReturnsNullopt)
+{
+    RecordProperty("Description", "convertReadyCondition with neither process_state nor file_state returns nullopt.");
     ::flatbuffers::FlatBufferBuilder fbb;
     auto rc = fb::CreateReadyCondition(fbb);
     fbb.Finish(rc);
@@ -583,7 +618,57 @@ TEST_F(ConverterTest, ConvertReadyConditionMissingProcessStateReturnsError)
 
     auto result = convertReadyCondition(ptr);
     ASSERT_THAT(result.has_value(), IsFalse());
-    EXPECT_THAT(result.error(), Eq(IConfigLoader::Error::InvalidFormat));
+    EXPECT_EQ(result, std::nullopt);
+}
+
+TEST_F(ConverterTest, ConvertFileExistenceStateMapsDeath)
+{
+    RecordProperty("Description", "convertFileExistenceState Fires an assertion if an undefined enum is given.");
+    EXPECT_DEATH(
+        static_cast<void>(details::convertFileExistenceState(
+            static_cast<fb::FileExistenceState>(static_cast<int>(fb::FileExistenceState::MAX) + 1))),
+        ".*");
+}
+
+TEST_F(ConverterTest, ConvertFileExistenceStateMapsBothValues)
+{
+    RecordProperty("Description", "convertFileExistenceState maps both enum values correctly.");
+    EXPECT_THAT(details::convertFileExistenceState(fb::FileExistenceState::Exists), Eq(FileExistenceState::Exists));
+    EXPECT_THAT(details::convertFileExistenceState(fb::FileExistenceState::Deleted), Eq(FileExistenceState::Deleted));
+}
+
+TEST_F(ConverterTest, ConvertFileStateNullReturnsNullopt)
+{
+    RecordProperty("Description", "convertFileState returns nullopt when passed nullptr.");
+    auto result = details::convertFileState(nullptr);
+    EXPECT_THAT(result.has_value(), IsFalse());
+}
+
+TEST_F(ConverterTest, ConvertFileStateValid)
+{
+    RecordProperty("Description", "convertFileState maps file_path and an explicit state correctly.");
+    ::flatbuffers::FlatBufferBuilder fbb;
+    auto fs = fb::CreateFileStateDirect(fbb, "/tmp/ready", fb::FileExistenceState::Deleted);
+    fbb.Finish(fs);
+    const auto* ptr = ::flatbuffers::GetRoot<fb::FileState>(fbb.GetBufferPointer());
+
+    auto result = details::convertFileState(ptr);
+    ASSERT_THAT(result.has_value(), IsTrue());
+    EXPECT_THAT(result->file_path, Eq("/tmp/ready"));
+    EXPECT_THAT(result->state, Eq(FileExistenceState::Deleted));
+}
+
+TEST_F(ConverterTest, ConvertFileStateDefaultsToExists)
+{
+    RecordProperty("Description", "convertFileState defaults state to Exists when not specified.");
+    ::flatbuffers::FlatBufferBuilder fbb;
+    auto fs = fb::CreateFileStateDirect(fbb, "/tmp/ready");
+    fbb.Finish(fs);
+    const auto* ptr = ::flatbuffers::GetRoot<fb::FileState>(fbb.GetBufferPointer());
+
+    auto result = details::convertFileState(ptr);
+    ASSERT_THAT(result.has_value(), IsTrue());
+    EXPECT_THAT(result->state, Eq(FileExistenceState::Exists));
 }
 
 TEST_F(ConverterTest, ConvertSandboxValid)

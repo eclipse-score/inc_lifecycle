@@ -31,10 +31,12 @@ namespace
 namespace fb = score::mw::lifecycle::internal::configuration::fb;
 
 using ::testing::Eq;
+using ::testing::FieldsAre;
 using ::testing::IsFalse;
 using ::testing::IsNull;
 using ::testing::IsTrue;
 using ::testing::StrEq;
+using ::testing::VariantWith;
 
 const score::filesystem::Path kTestPath{"/tmp/test_config.bin"};
 
@@ -261,11 +263,56 @@ TEST_F(FlatbufferConfigLoaderTest, LoadSingleComponent)
     ASSERT_THAT(comp.component_properties.process_arguments.size(), Eq(1U));
     EXPECT_THAT(comp.component_properties.process_arguments[0], Eq("--verbose"));
     ASSERT_THAT(comp.component_properties.ready_condition.has_value(), IsTrue());
-    EXPECT_THAT(comp.component_properties.ready_condition->process_state, Eq(ProcessState::Running));
+    EXPECT_THAT(*comp.component_properties.ready_condition, VariantWith<ProcessState>(Eq(ProcessState::Running)));
     EXPECT_THAT(comp.deployment_config.ready_timeout_ms, Eq(1500U));
     EXPECT_THAT(comp.deployment_config.shutdown_timeout_ms, Eq(2500U));
     EXPECT_THAT(comp.deployment_config.bin_dir, Eq("/opt/bin"));
     EXPECT_THAT(comp.deployment_config.working_dir, Eq("/tmp"));
+}
+
+TEST_F(FlatbufferConfigLoaderTest, LoadSingleComponentWithFileState)
+{
+    RecordProperty("Description", "Loads a component whose ready_condition includes a file_state.");
+
+    ::flatbuffers::FlatBufferBuilder fbb;
+
+    auto app_profile = fb::CreateApplicationProfile(fbb, fb::ApplicationType::Native, false /*is_self_terminating*/);
+    auto bin_name = fbb.CreateString("my_binary");
+    auto file_state = fb::CreateFileStateDirect(fbb, "/tmp/ready", fb::FileExistenceState::Exists);
+    auto ready_cond = fb::CreateReadyCondition(fbb, std::nullopt, file_state);
+    auto comp_props = fb::CreateComponentProperties(
+        fbb, bin_name, app_profile, 0 /*depends_on*/, 0 /*process_arguments*/, ready_cond);
+
+    auto bin_dir = fbb.CreateString("/opt/bin");
+    auto work_dir = fbb.CreateString("/tmp");
+    auto sandbox = buildDefaultSandbox(fbb);
+    auto deploy = fb::CreateDeploymentConfig(
+        fbb,
+        1.5 /*ready_timeout*/,
+        2.5 /*shutdown_timeout*/,
+        0 /*environmental_variables*/,
+        bin_dir,
+        work_dir,
+        0 /*ready_recovery_action*/,
+        0 /*recovery_action*/,
+        sandbox);
+
+    auto comp_name = fbb.CreateString("TestComponent");
+    auto comp_desc = fbb.CreateString("A test component");
+    auto component = fb::CreateComponent(fbb, comp_name, comp_desc, comp_props, deploy);
+    auto comps = fbb.CreateVector(std::vector<::flatbuffers::Offset<fb::Component>>{component});
+
+    auto result = loadBuffer(buildConfigWithComponents(fbb, comps));
+
+    ASSERT_THAT(result.has_value(), IsTrue());
+    ASSERT_THAT(result->components().size(), Eq(1U));
+
+    const auto& comp = result->components()[0];
+    ASSERT_THAT(comp.component_properties.ready_condition.has_value(), IsTrue());
+    EXPECT_THAT(
+        *comp.component_properties.ready_condition,
+        VariantWith<FileState>(
+            FieldsAre(Eq("/tmp/ready"), Eq(FileExistenceState::Exists), Eq(std::chrono::milliseconds{10}))));
 }
 
 TEST_F(FlatbufferConfigLoaderTest, LoadRunTargets)

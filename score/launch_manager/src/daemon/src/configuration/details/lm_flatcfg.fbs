@@ -26,6 +26,12 @@ enum ProcessState : byte {
   Terminated = 1
 }
 
+// Specifies the required existence state of a watched file.
+enum FileExistenceState : byte {
+  Exists = 0,
+  Deleted = 1
+}
+
 // Scheduling policy for a component's initial thread.
 enum SchedulingPolicy : byte {
   OTHER = 0,
@@ -53,9 +59,23 @@ table ApplicationProfile {
   alive_supervision:ComponentAliveSupervision; // optional
 }
 
+// Defines a ready condition based on the existence state of a file at a given path.
+table FileState {
+  // Absolute path to the file being watched.
+  file_path:string (required); // required
+  // Existence state of the file. Defaults to Exists if not specified.
+  state:FileExistenceState = Exists; // optional, defaults to Exists
+  // Time in ms to wait between each poll if the file is present.
+  polling_interval: uint32 = 10; //optional, defaults to 10ms
+}
+
 // Defines the conditions that determine when the component enters the ready state.
+// Either process_state or file_state should be set, but not both.
 table ReadyCondition {
-  process_state:ProcessState = null; // required
+  // Required state of the component's POSIX process.
+  process_state:ProcessState = null; // optional
+  // File existence state condition.
+  file_state:FileState; // optional
 }
 
 // Defines essential characteristics of a software component.

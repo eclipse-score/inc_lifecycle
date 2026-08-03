@@ -18,6 +18,8 @@
 #include <optional>
 #include <string>
 #include <vector>
+#include <variant>
+#include <chrono>
 
 #include "score/mw/launch_manager/configuration/environment_config.hpp"
 #include "score/mw/launch_manager/configuration/recovery_action_config.hpp"
@@ -48,16 +50,29 @@ struct ApplicationProfile
     std::optional<ComponentAliveSupervision> alive_supervision;
 };
 
-enum class ProcessState : uint8_t
+enum class FileExistenceState : uint8_t
+{
+    Exists = 0,
+    Deleted,
+};
+
+
+
+struct FileState
+{
+    std::string file_path;
+    FileExistenceState state{FileExistenceState::Exists};
+    std::chrono::milliseconds polling_interval{10};
+};
+
+
+enum class ProcessState : std::uint8_t
 {
     Running = 0,
     Terminated = 1
 };
 
-struct ReadyCondition
-{
-    ProcessState process_state{ProcessState::Running};
-};
+using ReadyCondition = std::variant<ProcessState, FileState>;
 
 struct ComponentProperties
 {

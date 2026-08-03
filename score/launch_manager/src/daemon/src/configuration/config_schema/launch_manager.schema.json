@@ -89,6 +89,34 @@
                 "Terminated"
               ],
               "description": "Specifies the required state of the component's POSIX process. 'Running': the process has started and reached its running state. 'Terminated': the process has started, reached its running state, and then terminated successfully."
+            },
+            "file_state": {
+              "type": "object",
+              "description": "Specifies a ready condition based on the existence state of a file at a given path.",
+              "properties": {
+                "file_path": {
+                  "type": "string",
+                  "pattern": "^/.*",
+                  "description": "Specifies the absolute path to the file being watched."
+                },
+                "state": {
+                  "type": "string",
+                  "enum": [
+                    "Exists",
+                    "Deleted"
+                  ],
+                  "description": "Specifies the required existence state of the file. 'Exists': the file must be present at 'file_path'. 'Deleted': the file must be absent from 'file_path'. Defaults to 'Exists' if not specified."
+                },
+                "polling_interval": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "description": "Specifies the time interval, in milliseconds, at which the Launch Manager checks the file existence state."
+                }
+              },
+              "required": [
+                "file_path"
+              ],
+              "additionalProperties": false
             }
           },
           "required": [],
