@@ -64,7 +64,7 @@ bool WatchdogImpl::init(const score::mw::launch_manager::configuration::Watchdog
     {
         if (watchdog_config.max_timeout_ms > std::numeric_limits<std::uint16_t>::max())
         {
-            LM_LOG_ERROR() << "Watchdog: Invalid watchdog timeout value " << watchdog_config.max_timeout_ms
+            LM_LOG_ERROR() << "Watchdog: Invalid watchdog timeout value" << watchdog_config.max_timeout_ms
                            << "ms. Watchdog initialization failed.";
             return false;
         }
@@ -79,7 +79,7 @@ bool WatchdogImpl::init(const score::mw::launch_manager::configuration::Watchdog
 
         if (!configureDevice(config, cycle_time_ns))
         {
-            LM_LOG_ERROR() << "Watchdog: Error when configuring watchdog device " << config.fileName
+            LM_LOG_ERROR() << "Watchdog: Error when configuring watchdog device" << config.fileName
                            << " - Watchdog initialization failed.";
             isSuccess = false;
         }

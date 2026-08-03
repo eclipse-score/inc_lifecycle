@@ -13,6 +13,14 @@
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
 cc_library(
+    name = "i_device_config_factory",
+    hdrs = ["IDeviceConfigFactory.hpp"],
+    include_prefix = "score/mw/launch_manager/watchdog",
+    strip_include_prefix = "/score/launch_manager/src/daemon/src/watchdog/details",
+    visibility = ["//score:__subpackages__"],
+)
+
+cc_library(
     name = "watchdog",
     hdrs = ["Watchdog.hpp"],
     include_prefix = "score/mw/launch_manager/watchdog/details",
@@ -43,7 +51,7 @@ cc_library(
         "//score/launch_manager/src/daemon/src/alive_monitor/details/timers:os_clock_interface",
         "//score/launch_manager/src/daemon/src/common:log",
         "//score/launch_manager/src/daemon/src/configuration:config",
-        "//score/launch_manager/src/daemon/src/watchdog:i_device_config_factory",
+        "//score/launch_manager/src/daemon/src/watchdog/details:i_device_config_factory",
         "//score/launch_manager/src/daemon/src/watchdog:i_watchdog_if",
         "@score_baselibs//score/language/futurecpp",
     ],
