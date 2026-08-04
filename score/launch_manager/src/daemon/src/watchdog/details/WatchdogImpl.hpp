@@ -17,6 +17,9 @@
 #include <cstdint>
 
 #include "score/mw/launch_manager/watchdog/IWatchdogIf.hpp"
+#include "score/os/fcntl.h"
+#include "score/os/ioctl.h"
+#include "score/os/unistd.h"
 #include <vector>
 #include <string>
 
@@ -36,8 +39,16 @@ constexpr const char* kMagicCloseChar{"V"};
 class WatchdogImpl : public IWatchdogIf
 {
   public:
-    /// @brief Default Constructor
-    explicit WatchdogImpl() noexcept;
+    /// @brief Constructor
+    /// @param[in] ioctl The score::os::Ioctl instance used to issue ioctl calls on watchdog device files.
+    ///        Defaults to the production singleton. A mock can be injected for testing.
+    /// @param[in] fcntl The score::os::Fcntl instance used to open watchdog device files.
+    ///        Defaults to the production singleton. A mock can be injected for testing.
+    /// @param[in] unistd The score::os::Unistd instance used to close watchdog device files.
+    ///        Defaults to the production singleton. A mock can be injected for testing.
+    explicit WatchdogImpl(score::os::Ioctl& ioctl = score::os::Ioctl::instance(),
+                          score::os::Fcntl& fcntl = score::os::Fcntl::instance(),
+                          score::os::Unistd& unistd = score::os::Unistd::instance()) noexcept;
 
     /// @brief No copy constructor.
     WatchdogImpl(const WatchdogImpl&) = delete;
@@ -125,20 +136,20 @@ class WatchdogImpl : public IWatchdogIf
 
     /// @brief Write the ENABLECARD option to a device file
     /// @param[in] f_fd The device file descriptor
-    /// @return True if ioctl returned 0, else false
-    static bool setEnableCardOption(std::int32_t f_fd) noexcept;
+    /// @return True if ioctl succeeded, else false
+    bool setEnableCardOption(std::int32_t f_fd) const noexcept;
 
     /// @brief Invokes the WDIOC_GETTIMEOUT operation on a device file
     /// @param[in,out] f_configuredTimeout_r The timeout returned by the device
     /// @param[in] f_fd The device file descriptor
-    /// @return Non-negative value if ioctl returns greater than or equal to 0, or -1 in case of error
-    static std::int32_t getConfiguredTimeout(std::int32_t& f_configuredTimeout_r, std::int32_t f_fd) noexcept;
+    /// @return Non-negative value if ioctl succeeded, or -1 in case of error
+    std::int32_t getConfiguredTimeout(std::int32_t& f_configuredTimeout_r, std::int32_t f_fd) const noexcept;
 
     /// @brief Invokes the WDIOC_GETTIMELEFT operation on a device file
     /// @param[in,out] f_remainingTime_r The remaining time returned by the device
     /// @param[in] f_fd The device file descriptor
-    /// @return Non-negative value if ioctl returns greater than or equal to 0, or -1 in case of error
-    static std::int32_t getRemainingTime(std::int32_t& f_remainingTime_r, std::int32_t f_fd) noexcept;
+    /// @return Non-negative value if ioctl succeeded, or -1 in case of error
+    std::int32_t getRemainingTime(std::int32_t& f_remainingTime_r, std::int32_t f_fd) const noexcept;
 
     /// @brief Invokes the WDIOC_SETTIMEOUT operation on a device file
     /// @param[in] f_fd The device file descriptor
@@ -174,7 +185,7 @@ class WatchdogImpl : public IWatchdogIf
     /// to allow for proper shutdown
     /// @param[in] f_watchdogDevice_r The device to disable
     /// @return True is all operations in the above sequence are successful, else false
-    static bool disableDevice(WatchdogDevice& f_watchdogDevice_r) noexcept;
+    bool disableDevice(WatchdogDevice& f_watchdogDevice_r) const noexcept;
 
     /// @brief Validates the configured timeout of the device config
     /// @todo Enable window watchdog, currently the config.timeoutMin value is ignored
@@ -211,6 +222,12 @@ class WatchdogImpl : public IWatchdogIf
     std::vector<WatchdogDevice> watchdogDevices;
     /// @brief The internal state of this class
     ELibState state;
+    /// @brief Interface used to issue ioctl calls on watchdog device files.
+    score::os::Ioctl& ioctl_;
+    /// @brief Interface used to open watchdog device files.
+    score::os::Fcntl& fcntl_;
+    /// @brief Interface used to close watchdog device files.
+    score::os::Unistd& unistd_;
 };
 
 }  // namespace watchdog

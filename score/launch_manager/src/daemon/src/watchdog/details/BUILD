@@ -21,16 +21,6 @@ cc_library(
 )
 
 cc_library(
-    name = "device_if",
-    srcs = ["DeviceIf.cpp"],
-    hdrs = ["DeviceIf.hpp"],
-    include_prefix = "score/mw/launch_manager/watchdog/details",
-    strip_include_prefix = "/score/launch_manager/src/daemon/src/watchdog/details",
-    visibility = ["//score/launch_manager/src/daemon/src/watchdog/details:__subpackages__"],
-    deps = ["@score_baselibs//score/language/futurecpp"],
-)
-
-cc_library(
     name = "watchdog_impl",
     srcs = ["WatchdogImpl.cpp"],
     hdrs = ["WatchdogImpl.hpp"],
@@ -38,12 +28,14 @@ cc_library(
     strip_include_prefix = "/score/launch_manager/src/daemon/src/watchdog/details",
     visibility = ["//score/launch_manager/src/daemon/src/watchdog:__subpackages__"],
     deps = [
-        ":device_if",
         ":watchdog",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/timers:os_clock_interface",
         "//score/launch_manager/src/daemon/src/common:log",
         "//score/launch_manager/src/daemon/src/configuration:config",
         "//score/launch_manager/src/daemon/src/watchdog:i_watchdog_if",
         "@score_baselibs//score/language/futurecpp",
+        "@score_baselibs//score/os:fcntl",
+        "@score_baselibs//score/os:ioctl",
+        "@score_baselibs//score/os:unistd",
     ],
 )
