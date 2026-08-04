@@ -164,10 +164,14 @@ def preprocess_defaults(global_defaults, config):
             component_config.get("deployment_config", {}),
         )
 
-        # Special case:
-        # If the defaults specify alive_supervision for component, but the component config sets the type to anything other than "SUPERVISED", then we should not apply the
-        # alive_supervision defaults to that component, since it doesn't make sense to have alive_supervision from the defaults.
-        # TODO
+        # If the application_type is not supervised, remove alive_supervision
+        # from component_properties even if it was merged from defaults.
+        app_type = new_config["components"][component_name]["component_properties"][
+            "application_profile"
+        ].get("application_type")
+        if not is_supervised(app_type):
+            cp = new_config["components"][component_name]["component_properties"]
+            cp["application_profile"].pop("alive_supervision", None)
 
     new_config["run_targets"] = {}
     for run_target, run_target_config in config.get("run_targets", {}).items():
@@ -239,8 +243,8 @@ def gen_config(output_dir, config, input_filename, schema_version=None):
     - The launch manager configuration file in output_dir, with the same name as the input 
       configuration + "_gen" suffix to avoid naming collision
     """
-
     out = {}
+    schema_version = config.get("schema_version")
     if schema_version is not None:
         out["schema_version"] = schema_version
 
@@ -628,7 +632,6 @@ def main():
             args.output_dir,
             preprocessed_config,
             args.filename,
-            schema_version=input_config.get("schema_version"),
         )
     except ValueError as e:
         print(f"Error during configuration generation: {e}", file=sys.stderr)

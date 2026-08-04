@@ -287,6 +287,47 @@ def test_preprocessing_fallback_with_custom_defaults():
     assert result["fallback_run_target"]["transition_timeout"] == 99
 
 
+def test_preprocessing_alive_supervision_presence_based_on_app_type():
+    """
+    Supervised application types (Reporting_And_Supervised, State_Manager)
+    must have alive_supervision in component_properties.application_profile.
+    Non-supervised types (Native, Reporting) must not.
+    """
+    config = {
+        "components": {
+            "native_app": {
+                "component_properties": {
+                    "application_profile": {"application_type": "Native"}
+                }
+            },
+            "reporting_app": {
+                "component_properties": {
+                    "application_profile": {"application_type": "Reporting"}
+                }
+            },
+            "supervised_app": {
+                "component_properties": {
+                    "application_profile": {"application_type": "Reporting_And_Supervised"}
+                }
+            },
+            "sm_app": {
+                "component_properties": {
+                    "application_profile": {"application_type": "State_Manager"}
+                }
+            },
+        },
+        "run_targets": {"Startup": {}},
+        "initial_run_target": "Startup",
+        "fallback_run_target": {},
+    }
+    result = preprocess_defaults(score_defaults, config)
+    cp = result["components"]
+    assert "alive_supervision" not in cp["native_app"]["component_properties"]["application_profile"]
+    assert "alive_supervision" not in cp["reporting_app"]["component_properties"]["application_profile"]
+    assert "alive_supervision" in cp["supervised_app"]["component_properties"]["application_profile"]
+    assert "alive_supervision" in cp["sm_app"]["component_properties"]["application_profile"]
+
+
 def test_preprocessing_preserves_component_description():
     """
     Component descriptions from the input should be preserved in the output.
@@ -1019,7 +1060,7 @@ def test_get_working_dir_empty_string_falls_back():
     ("", False),
 ])
 def test_is_supervised(app_type, expected):
-    assert is_supervised(app_type) is True if expected else expected == False
+    assert is_supervised(app_type) is True if expected else not expected
 
 
 # ---------------------------------------------------------------------------
