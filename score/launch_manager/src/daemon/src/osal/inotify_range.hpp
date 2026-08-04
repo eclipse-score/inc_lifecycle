@@ -159,6 +159,15 @@ class INotifyRange
         return iterator{nullptr};
     }
 
+    /// @brief Abort the inotify instance by closing it.
+    void stop() noexcept
+    {
+        if (instance_)
+        {
+            instance_->Close();
+        }
+    }
+
   private:
     std::unique_ptr<score::os::InotifyInstance> instance_;
 };

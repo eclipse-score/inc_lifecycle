@@ -107,4 +107,33 @@ TEST_F(INotifyRangeUT, AdvanceError)
     EXPECT_EQ(range.begin(), range.end());
 }
 
+TEST_F(INotifyRangeUT, AbortCallsClose)
+{
+    /// Given we have a mock InotifyInstance
+    auto mock_ptr = std::make_unique<score::os::InotifyInstanceMock>();
+    auto* mock_raw_ptr = mock_ptr.get();
+
+    /// Expect that Close() will be called on abort
+    EXPECT_CALL(*mock_raw_ptr, Close()).Times(1);
+
+    INotifyRange range{std::move(mock_ptr)};
+
+    /// When we call abort
+    range.stop();
+
+    /// Then Close() should have been called (verified by the expectation)
+}
+
+TEST_F(INotifyRangeUT, AbortWithNullInstance)
+{
+    /// Given we have a range with no instance (moved out)
+    auto mock_ptr = std::make_unique<score::os::InotifyInstanceMock>();
+    INotifyRange range{std::move(mock_ptr)};
+    INotifyRange moved_range{std::move(range)};
+
+    /// When we call abort on the moved-from range
+    /// Then it should not crash (no Close() call expected since instance is null)
+    range.stop();
+}
+
 }  // namespace score::mw::lifecycle::testing
