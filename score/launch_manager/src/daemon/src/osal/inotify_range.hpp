@@ -11,8 +11,8 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#ifndef OSAL_INOTIFY_RANGE_HPP_
-#define OSAL_INOTIFY_RANGE_HPP_
+#ifndef SCORE_MW_LIFECYCLE_OSAL_INOTIFY_RANGE_HPP_
+#define SCORE_MW_LIFECYCLE_OSAL_INOTIFY_RANGE_HPP_
 
 #include <cstddef>
 #include <iterator>
@@ -165,4 +165,4 @@ class INotifyRange
 
 }  // namespace score::mw::lifecycle
 
-#endif  // OSAL_INOTIFY_RANGE_HPP_
+#endif  // SCORE_MW_LIFECYCLE_OSAL_INOTIFY_RANGE_HPP_
