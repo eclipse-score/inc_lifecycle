@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # *******************************************************************************
 # Copyright (c) 2026 Contributors to the Eclipse Foundation
 #
@@ -14,6 +13,8 @@
 
 import subprocess
 import shutil
+import sys
+import os
 from pathlib import Path
 import filecmp
 from scripts.config_mapping.lifecycle_config import (
@@ -56,7 +57,7 @@ def run(
 
     # Execute lifecycle_config.py
     cmd = [
-        "python3",
+        sys.executable,
         str(lifecycle_script),
         str(input_file),
         "-o",
@@ -65,8 +66,13 @@ def run(
         str(schema_file),
     ]
 
+    # Pass the parent process's sys.path so the subprocess can find packages
+    # installed in the bazel virtualenv (e.g. jsonschema).
+    env = os.environ.copy()
+    env["PYTHONPATH"] = os.pathsep.join(sys.path)
+
     try:
-        result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+        result = subprocess.run(cmd, check=True, capture_output=True, text=True, env=env)
         print(f"Command executed successfully: {' '.join(cmd)}")
         print(f"Output: {result.stdout}")
     except subprocess.CalledProcessError as e:
@@ -125,7 +131,7 @@ def compare_files(dir1: Path, dir2: Path, files: list) -> bool:
 
 def test_smoke_test(schema_file):
     """
-    Basic smoketest for generating both launch manager and health monitoring configuration
+    Basic Smoketest for generating both launch manager and health monitoring configuration
     """
 
     test_name = "smoke_test"

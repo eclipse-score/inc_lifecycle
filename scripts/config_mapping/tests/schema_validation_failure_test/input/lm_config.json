@@ -13,9 +13,12 @@
         }
     },
     "run_targets": {
-        "Minimal": {
+        "Startup": {
             "description": "Run Target with missing recovery action",
             "depends_on": []
         }
+    },
+    "fallback_run_target": {
+        "depends_on": []
     }
 }
