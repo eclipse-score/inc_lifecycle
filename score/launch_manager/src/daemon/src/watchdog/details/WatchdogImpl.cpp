@@ -265,24 +265,22 @@ bool WatchdogImpl::setTimeout(std::int32_t f_fd, std::uint16_t f_timeoutInMs) co
      * true_no_defect) */
     /* RULECHECKER_comment(1:0,1:0, check_underlying_signedness_conversion, "Linux-only constant from external
      * interface", true_no_defect) */
-    const auto ioctlResult{ioctl_.ioctl(f_fd, static_cast<std::int32_t>(WDIOC_SETTIMEOUT), &timeout)};
+    const bool ioctlSuccessful{ioctl_.ioctl(f_fd, static_cast<std::int32_t>(WDIOC_SETTIMEOUT), &timeout).has_value()};
     timeout = secToMs(timeout);
     timeoutBefore = secToMs(timeoutBefore);
 #else
     // cast is save since int32 is bigger than uint16
     std::int32_t timeout{static_cast<std::int32_t>(f_timeoutInMs)};
     std::int32_t timeoutBefore{timeout};
-    const auto ioctlResult{ioctl_.ioctl(f_fd, WDIOC_SETTIMEOUT, &timeout)};
-
+    const bool ioctlSuccessful{ioctl_.ioctl(f_fd, WDIOC_SETTIMEOUT, &timeout).has_value()};
 #endif
     // The timeout value may have been altered to the nearest timeout that is supported,
     // if the given timeout is not supported.
-    const bool isSuccessful{ioctlResult.has_value() && (timeoutBefore == timeout)};
-    const auto ioctlResultValue{ioctlResult.has_value() ? ioctlResult.value() : -1};
+    const bool isSuccessful{ioctlSuccessful && (timeoutBefore == timeout)};
     if (!isSuccessful)
     {
         LM_LOG_DEBUG() << "Watchdog: Setting watchdog timeout value failed. Wanted timeout:" << timeoutBefore
-                       << "ms, returned timeout:" << timeout << "ms, ioctl result:" << ioctlResultValue;
+                       << "ms, returned timeout:" << timeout << "ms, ioctl successful:" << ioctlSuccessful;
     }
     return isSuccessful;
 }
