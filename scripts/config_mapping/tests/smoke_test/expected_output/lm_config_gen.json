@@ -1,4 +1,5 @@
 {
+    "schema_version": 1,
     "components": [
         {
             "name": "setup_filesystem_sh",

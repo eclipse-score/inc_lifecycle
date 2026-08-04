@@ -146,6 +146,7 @@ def preprocess_defaults(global_defaults, config):
     merged_defaults = dict_merge(global_defaults, config_defaults)
 
     new_config = {}
+    new_config["schema_version"] = config.get("schema_version")
     new_config["components"] = {}
     components = config.get("components", {})
     for component_name, component_config in components.items():
