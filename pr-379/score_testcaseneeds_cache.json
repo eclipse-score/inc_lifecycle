@@ -2016,6 +2016,34 @@
     "FullyVerifies": null
   },
   {
+    "name": "INotifyRangeUT__AbortCallsClose",
+    "file": "score/launch_manager/src/daemon/src/osal/inotify_range_UT.cpp",
+    "line": "110",
+    "result": "passed",
+    "repo_name": "local_repo",
+    "hash": "",
+    "url": "",
+    "TestType": "interface-test",
+    "DerivationTechnique": "equivalence-classes",
+    "result_text": "",
+    "PartiallyVerifies": null,
+    "FullyVerifies": null
+  },
+  {
+    "name": "INotifyRangeUT__AbortWithNullInstance",
+    "file": "score/launch_manager/src/daemon/src/osal/inotify_range_UT.cpp",
+    "line": "127",
+    "result": "passed",
+    "repo_name": "local_repo",
+    "hash": "",
+    "url": "",
+    "TestType": "interface-test",
+    "DerivationTechnique": "equivalence-classes",
+    "result_text": "",
+    "PartiallyVerifies": null,
+    "FullyVerifies": null
+  },
+  {
     "name": "RecoveryClientTest__SendSingleRequest",
     "file": "score/launch_manager/src/daemon/src/recovery_client/recovery_client_UT.cpp",
     "line": "30",
