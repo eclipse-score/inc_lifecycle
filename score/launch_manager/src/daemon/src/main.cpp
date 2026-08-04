@@ -23,34 +23,10 @@
 #include "score/mw/launch_manager/process_group_manager/process_group_manager.hpp"
 #include "score/mw/launch_manager/process_state_client/process_state_notifier.hpp"
 #include "score/mw/launch_manager/recovery_client/recovery_client.hpp"
-#ifdef USE_NEW_CONFIGURATION
 #include "score/mw/launch_manager/configuration/flatbuffer_config_loader.hpp"
-#endif
 
 using namespace std;
 using namespace score::lcm::internal;
-
-#ifndef USE_NEW_CONFIGURATION
-/// @brief Initializes the LCM daemon.
-/// This function initializes the LCM daemon by calling the initialize() method
-/// of the provided ProcessGroupManager object. It logs an information message
-/// if initialization is successful and a fatal error message if it fails.
-/// @param process_group_manager The ProcessGroupManager object to initialize.
-/// @return True if initialization succeeds, false otherwise.
-bool initializeLCMDaemon(ProcessGroupManager& process_group_manager)
-{
-    if (process_group_manager.initialize())
-    {
-        LM_LOG_INFO() << "LCM started successfully";
-        return true;
-    }
-    else
-    {
-        LM_LOG_FATAL() << "LCM startup failed";
-        return false;
-    }
-}
-#endif
 
 /// @brief Runs the LCM daemon.
 /// This function runs the LCM daemon by calling the run() method of the provided
@@ -131,7 +107,6 @@ void reserveFD(int fd)
 /// @param argv Array of command-line arguments.
 /// @return The exit code. 0 for success, non-zero for failure.
 // coverity[autosar_cpp14_a15_3_3_violation:FALSE] Only logging occurs outside the try-catch enclosing main().
-#ifdef USE_NEW_CONFIGURATION
 int main(int argc, const char* argv[])
 {
     const char* config_path = "etc/launch_manager_config.bin";
@@ -154,10 +129,6 @@ int main(int argc, const char* argv[])
                 return EXIT_FAILURE;
         }
     }
-#else
-int main([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
-{
-#endif
     // reserve files descriptor osal::IpcCommsSync::sync_fd (fd3) and
     // osal::IpcCommsSync::control_client_handler_nudge_fd (fd4) for communication tpyes: kNoComms !fd3 & !fd4
     // kReporting  fd3 & !fd4
@@ -177,42 +148,26 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
         //     return EXIT_FAILURE;
         // }
 
-#ifdef USE_NEW_CONFIGURATION
         score::mw::launch_manager::configuration::FlatbufferConfigLoader config_loader;
         auto config_result = config_loader.load(config_path);
         if (!config_result.has_value()) {
             LM_LOG_FATAL() << "Failed to load config from: " << std::string_view(config_path);
             return EXIT_FAILURE;
         }
-#endif
         LM_LOG_DEBUG() << "Launch Manager Started !!!!";
         std::shared_ptr<score::lcm::IRecoveryClient> recoveryClient{std::make_shared<score::lcm::RecoveryClient>()};
         auto process_state_notifier = std::make_unique<score::lcm::internal::ProcessStateNotifier>();
         std::unique_ptr<score::lcm::saf::daemon::IAliveMonitor> healthMonitor{
-            std::make_unique<score::lcm::saf::daemon::AliveMonitorImpl>(
-                recoveryClient, process_state_notifier->constructReceiver()
-#ifdef USE_NEW_CONFIGURATION
-                , *config_result
-#endif
-                )};
+        std::make_unique<score::lcm::saf::daemon::AliveMonitorImpl>(
+            recoveryClient, process_state_notifier->constructReceiver(), *config_result)};
         std::unique_ptr<score::lcm::internal::IAliveMonitorThread> aliveMonitorThread{
             std::make_unique<score::lcm::internal::AliveMonitorThread>(std::move(healthMonitor))};
 
-#ifdef USE_NEW_CONFIGURATION
         auto watchdog = score::lcm::watchdog::createWatchdog();
         auto process_group_manager = std::make_unique<ProcessGroupManager>(
             std::move(aliveMonitorThread), recoveryClient, std::move(process_state_notifier), std::move(watchdog));
-#else
-        // Legacy configuration wires no watchdog; the watchdog usage in PGM is #ifdef-guarded off.
-        auto process_group_manager = std::make_unique<ProcessGroupManager>(
-            std::move(aliveMonitorThread), recoveryClient, std::move(process_state_notifier), nullptr);
-#endif
 
-#ifdef USE_NEW_CONFIGURATION
         if (process_group_manager->initialize(*config_result))
-#else
-        if (initializeLCMDaemon(*process_group_manager))
-#endif
         {
             if (runLCMDaemon(*process_group_manager))
             {

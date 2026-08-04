@@ -14,11 +14,7 @@
 #ifndef _INCLUDED_PROCESSINFONODE_
 #define _INCLUDED_PROCESSINFONODE_
 
-#ifdef USE_NEW_CONFIGURATION
 #include "score/mw/launch_manager/configuration/configuration_adapter.hpp"
-#else
-#include "score/mw/launch_manager/configuration/configuration_manager.hpp"
-#endif
 #include "score/mw/launch_manager/control/control_client_channel.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/icomponent.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/safe_process_map.hpp"

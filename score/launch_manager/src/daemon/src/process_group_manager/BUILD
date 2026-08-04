@@ -63,10 +63,6 @@ cc_library(
 cc_library(
     name = "process_group_manager_hdrs",
     hdrs = ["process_group_manager.hpp"],
-    defines = select({
-        "//config:lm_use_new_configuration": ["USE_NEW_CONFIGURATION"],
-        "//conditions:default": [],
-    }),
     include_prefix = "score/mw/launch_manager/process_group_manager",
     strip_include_prefix = "/score/launch_manager/src/daemon/src/process_group_manager",
     visibility = ["//score/launch_manager/src/daemon/src/process_group_manager/details:__pkg__"],
@@ -87,16 +83,10 @@ cc_library(
         "//score/launch_manager/src/daemon/src/process_state_client:iprocess_state_notifier",
         "//score/launch_manager/src/daemon/src/recovery_client",
         "//score/launch_manager/src/daemon/src/watchdog:i_watchdog_if",
+        "//score/launch_manager/src/daemon/src/configuration:config",
+        "//score/launch_manager/src/daemon/src/configuration:configuration_adapter",
         "@score_baselibs//score/language/futurecpp",
-    ] + select({
-        "//config:lm_use_new_configuration": [
-            "//score/launch_manager/src/daemon/src/configuration:config",
-            "//score/launch_manager/src/daemon/src/configuration:configuration_adapter",
-        ],
-        "//conditions:default": [
-            "//score/launch_manager/src/daemon/src/configuration:configuration_manager",
-        ],
-    }),
+    ],
 )
 
 cc_library(

@@ -20,9 +20,7 @@
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ProcessStateReader.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
 
-#ifdef USE_NEW_CONFIGURATION
 #include "score/mw/launch_manager/configuration/config.hpp"
-#endif
 #include <string>
 #include <vector>
 
@@ -95,9 +93,7 @@ class SwClusterHandler
     /// @param [in] f_bufferConfig_r           Configuration settings for constructing workers
     /// @return                              Construction is successful (true), otherwise failure (false)
     bool constructWorkers(
-#ifdef USE_NEW_CONFIGURATION
         const score::mw::launch_manager::configuration::Config& config,
-#endif
         std::shared_ptr<score::lcm::IRecoveryClient> f_recoveryClient_r,
         ifexm::ProcessStateReader& f_processStateReader_r,
         const factory::SupervisionBufferConfig& f_bufferConfig_r) noexcept(false);

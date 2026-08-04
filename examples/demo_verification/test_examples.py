@@ -78,9 +78,6 @@ def test_examples(target, setup_test, remote_test_dir):
 
     _step("Starting launch manager (Startup)")
 
-    # launch manger will simply ignore the arguments if run with --//config:use_new_configuration=False.
-    # the old configuration will be used, which is the default behavior.
-    # The new configuration will be used if run with --//config:use_new_configuration=True
     lm_proc = target.execute_async(
         lm_path, cwd=str(remote_test_dir), args=["-c", new_config_path]
     )

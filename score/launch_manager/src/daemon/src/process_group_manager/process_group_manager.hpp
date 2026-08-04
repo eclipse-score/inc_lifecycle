@@ -18,18 +18,12 @@
 #include <ctime>
 #include <memory>
 
-#include "score/mw/launch_manager/common/identifier_hash.hpp"
-#include "score/mw/launch_manager/control/control_client_channel.hpp"
-#ifdef USE_NEW_CONFIGURATION
-#include "score/mw/launch_manager/configuration/config.hpp"
-#include "score/mw/launch_manager/configuration/configuration_adapter.hpp"
-#else
-#include "score/mw/launch_manager/configuration/configuration_manager.hpp"
-#endif
 #include "score/mw/launch_manager/common/concurrency/mpmc_concurrent_queue.hpp"
 #include "score/mw/launch_manager/common/concurrency/workerthread.hpp"
 #include "score/mw/launch_manager/common/constants.hpp"
 #include "score/mw/launch_manager/common/identifier_hash.hpp"
+#include "score/mw/launch_manager/configuration/config.hpp"
+#include "score/mw/launch_manager/configuration/configuration_adapter.hpp"
 #include "score/mw/launch_manager/control/control_client_channel.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/component_event_queue.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/graph.hpp"
@@ -48,12 +42,8 @@
 namespace score::lcm::internal
 {
 
-#ifdef USE_NEW_CONFIGURATION
 using ConfigurationType = ConfigurationAdapter;
 using Config = score::mw::launch_manager::configuration::Config;
-#else
-using ConfigurationType = ConfigurationManager;
-#endif
 
 /// @brief ProcessGroupManager provides the core functionality of LCM.
 /// Software that is deployed to the machine, should be managed through Process Groups.
@@ -85,10 +75,11 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     /// Monitor thread of process state changes.
     /// @param watchdog A unique pointer to an IWatchdogIf instance serviced during the main loop. May be nullptr in
     /// legacy configuration where no watchdog is wired.
-    ProcessGroupManager(std::unique_ptr<IAliveMonitorThread> alive_monitor_thread,
-                        std::shared_ptr<IRecoveryClient> recovery_client,
-                        std::unique_ptr<score::lcm::IProcessStateNotifier> process_state_notifier,
-                        std::unique_ptr<score::lcm::watchdog::IWatchdogIf> watchdog);
+    ProcessGroupManager(
+        std::unique_ptr<IAliveMonitorThread> alive_monitor_thread,
+        std::shared_ptr<IRecoveryClient> recovery_client,
+        std::unique_ptr<score::lcm::IProcessStateNotifier> process_state_notifier,
+        std::unique_ptr<score::lcm::watchdog::IWatchdogIf> watchdog);
 
     /// @brief Initializes the process group manager.
     /// Loads the flat configuration through ConfigurationManager.
@@ -98,11 +89,7 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     /// Creates and initialises the shared memory for the nudge semaphore, always using FD #4,
     /// and stores a pointer to it.
     /// @return Returns true if initialization was successful, false otherwise.
-#ifdef USE_NEW_CONFIGURATION
     bool initialize(const Config& config);
-#else
-    bool initialize();
-#endif
 
     /// @brief De-initialises the process group manager
     /// deletes worker threads, worker jobs and the process map and then de-initialises the configuration manager
