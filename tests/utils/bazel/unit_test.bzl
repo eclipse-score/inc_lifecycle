@@ -30,5 +30,10 @@ def lm_cc_test(name, deps = [], **kwargs):
     cc_test(
         name = name,
         deps = deps + ["//score/launch_manager/src/daemon/src/common:assertion_handler"],
+        target_compatible_with = kwargs.pop("target_compatible_with", []) + select({
+            "//config:unit_qemu": [],
+            "//config:unit_host": [],
+            "//conditions:default": ["@platforms//:incompatible"],
+        }),
         **kwargs
     )

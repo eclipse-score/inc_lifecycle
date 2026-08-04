@@ -10,23 +10,3 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-
-load("@rules_python//python:pip.bzl", "compile_pip_requirements")
-load("@score_lifecycle_pip//:requirements.bzl", "requirement")
-load("@score_tooling//python_basics:defs.bzl", "score_virtualenv")
-
-filegroup(
-    name = "pip_requirements",
-    srcs = ["requirements.txt"],
-    visibility = ["//:__pkg__"],
-)
-
-# Only pass packages that don't overlap with pip_tooling (which already
-# provides: iniconfig, packaging, pluggy, pygments, pytest).
-score_virtualenv(
-    name = "python_tc_venv",
-    reqs = [
-        requirement("junitparser"),
-    ],
-    venv_name = ".python_tc_venv",
-)

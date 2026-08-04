@@ -1,5 +1,2 @@
 # Python dependencies for generating lifecycle configuration files
 -r ./scripts/config_mapping/requirements.txt
-
--r ./tests/integration/requirements.txt
-

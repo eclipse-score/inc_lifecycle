@@ -38,7 +38,6 @@ compile_pip_requirements(
     src = "requirements.in",
     data = [
         "//scripts/config_mapping:pip_requirements",
-        "//tests/integration:pip_requirements",
     ],
     extra_args = [
         "--no-annotate",

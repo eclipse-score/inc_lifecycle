@@ -122,6 +122,22 @@ bazel build --config=x86_64-qnx //...
 bazel build --config=arm64-qnx //...
 ```
 
+Integration tests via [QEMU](https://www.qemu.org/):
+
+```sh
+bazel test --config=x86_64-qnx //tests/integration/...
+```
+
+Unit tests via [QEMU](https://www.qemu.org/):
+
+```sh
+bazel test --config=unit-tests-x86_64-qnx //score/...
+```
+
+A different flag is needed for unit tests because the emulation is configured
+using `--run_under`, which applies to all targets, even those that should run
+natively on the host.
+
 **Linux**
 
 ```sh

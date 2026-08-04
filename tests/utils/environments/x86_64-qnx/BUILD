@@ -1,5 +1,5 @@
 # *******************************************************************************
-# Copyright (c) 2026 Contributors to the Eclipse Foundation
+# Copyright (c) 2025 Contributors to the Eclipse Foundation
 #
 # See the NOTICE file(s) distributed with this work for additional
 # information regarding copyright ownership.
@@ -10,22 +10,31 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-load("@rules_python//python:defs.bzl", "py_library")
 
-py_library(
-    name = "testing_utils",
-    srcs = [
-        "run_until_file_deployed.py",
-        "setup_test.py",
-        "test_results.py",
-    ],
-    target_compatible_with = ["@platforms//os:linux"],
+load("@rules_pkg//pkg:mappings.bzl", "pkg_files")
+load("@score_rules_imagefs//rules/qnx:ifs.bzl", "qnx_ifs")
+
+exports_files(
+    ["qemu_config.json"],
     visibility = [
         "//examples:__subpackages__",
         "//tests:__subpackages__",
     ],
-    deps = [
-        "@score_itf//score/itf/core/process",
-        "@score_itf//score/itf/core/target",
+)
+
+pkg_files(
+    name = "logging_config.json",
+    srcs = ["//tests/utils/environments:ecu_logging_config.json"],
+    prefix = "/etc",
+)
+
+qnx_ifs(
+    name = "qemu_image",
+    srcs = [":logging_config.json"],
+    build_file = ":init.build",
+    target_compatible_with = ["@platforms//os:qnx"],
+    visibility = [
+        "//examples:__subpackages__",
+        "//tests:__subpackages__",
     ],
 )

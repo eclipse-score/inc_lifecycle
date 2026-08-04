@@ -138,7 +138,7 @@ def test_examples(target, setup_test, remote_test_dir):
     _assert_not_running(target, "cpp_supervised_app")
 
     _step("Stopping launch manager (SIGTERM)")
-    res, _ = target.execute(f"kill -15 -{lm_proc.pid()}")
+    res, _ = target.execute(f"kill -TERM {lm_proc.pid()}")
     assert res == 0, "Failed to send SIGTERM to launch manager process group"
     time.sleep(0.5)
     assert not lm_proc.is_running(), "Launch manager did not stop after SIGTERM"

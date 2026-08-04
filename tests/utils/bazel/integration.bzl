@@ -69,39 +69,82 @@ def integration_test(
 
     pkg_tar(name = "environment", srcs = [":binaries", ":files"])
 
+    final_deps = kwargs.pop("deps", []) + all_requirements + [
+        "@score_tooling//python_basics/score_pytest:attribute_plugin",
+        "//tests/utils/testing_utils",
+    ]
+    final_data = kwargs.pop("data", []) + [":environment"] + select({
+        "//config:integration_docker": [
+            "//tests/utils/environments/x86_64-linux",
+        ],
+        "//config:integration_qemu": [
+            "//tests/utils/environments/x86_64-qnx:qemu_config.json",
+            "//tests/utils/environments/x86_64-qnx:qemu_image",
+        ],
+        "//conditions:default": [],
+    })
+    final_args = kwargs.pop("args", []) + [
+        "--score-test-binary-path=$(locations :environment)",
+        "--score-test-remote-directory={}/tests/{}".format(install_prefix, name),
+    ] + select({
+        "//config:integration_docker": [
+            "--docker-image-bootstrap=$(location //tests/utils/environments/x86_64-linux)",
+            "--docker-image=score_itf_examples:latest",
+        ],
+        "//config:integration_qemu": [
+            "--qemu-config=$(location //tests/utils/environments/x86_64-qnx:qemu_config.json)",
+            "--qemu-image=$(location //tests/utils/environments/x86_64-qnx:qemu_image)",
+        ],
+        "//config:integration_host": [
+            "--local-dir=/tmp/score_itf_host/{}".format(name),
+        ],
+    })
+    final_plugins = ["//tests/utils/plugins:integration_plugin"] + select({
+        "//config:integration_docker": ["@score_itf//score/itf/plugins:docker_plugin"],
+        "//config:integration_qemu": ["@score_itf//score/itf/plugins:qemu_plugin"],
+        "//config:integration_host": ["//tests/utils/plugins:localhost_plugin"],
+    })
+
+    # The QEMU plugin uses a hardcoded port so we can only run one test at a time.
+    # See https://github.com/eclipse-score/itf/issues/125.
+    # However we should not unnecessarily slow down Docker tests by adding the
+    # exclusive tag all the time. Bazel does not allow select() to be used in tags.
+    # So we have to create two separate targets and skip whichever is not needed.
+
     py_itf_test(
         name = name,
         srcs = srcs,
-        tags = kwargs.pop("tags", []) + [
+        tags = [
             "integration",
             "no-asan",  # The test container does not ship the sanitizer runtime; daemon fails to start.
         ],
-        deps = kwargs.pop("deps", []) + all_requirements + [
-            "@score_tooling//python_basics/score_pytest:attribute_plugin",
-            "//tests/utils/testing_utils",
+        deps = final_deps,
+        data = final_data,
+        args = final_args,
+        plugins = final_plugins,
+        target_compatible_with = select({
+            "//config:integration_docker": ["@platforms//os:linux"],
+            "//config:integration_host": [],
+            "//conditions:default": ["@platforms//:incompatible"],
+        }),
+        **kwargs
+    )
+
+    py_itf_test(
+        name = "{}_qemu".format(name),
+        srcs = srcs,
+        tags = [
+            "exclusive",  # The QEMU plugin uses a hardcoded port so we can only run one test at a time.
+            "integration",
+            "no-asan",  # The test container does not ship the sanitizer runtime; daemon fails to start.
         ],
-        data = kwargs.pop("data", []) + [":environment"] + select({
-            "//config:host": [],
-            "//conditions:default": ["//tests/utils/environments:test_environment"],
-        }),
-        args = kwargs.pop("args", []) + [
-            "--score-test-binary-path=$(locations :environment)",
-            "--score-test-remote-directory={}/tests/{}".format(install_prefix, name),
-        ] + select({
-            "//config:x86_64-linux": [
-                "--docker-image-bootstrap=$(location //tests/utils/environments:test_environment)",
-                "--docker-image=score_itf_examples:latest",
-            ],
-            "//config:host": [
-                "--local-dir=/tmp/score_itf_host/{}".format(name),
-            ],
-            "//conditions:default": [],
-        }),
-        plugins = ["//tests/utils/plugins:integration_plugin"] + select({
-            "//config:x86_64-linux": ["@score_itf//score/itf/plugins:docker_plugin"],
-            "//config:x86_64-qnx": ["@score_itf//score/itf/plugins/qemu"],
-            "//config:host": ["//tests/utils/plugins:localhost_plugin"],
-            "//conditions:default": [],
+        deps = final_deps,
+        data = final_data,
+        args = final_args,
+        plugins = final_plugins,
+        target_compatible_with = select({
+            "//config:integration_qemu": ["@platforms//os:qnx"],
+            "//conditions:default": ["@platforms//:incompatible"],
         }),
         **kwargs
     )

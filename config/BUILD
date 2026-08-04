@@ -10,19 +10,72 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
+load("@bazel_skylib//rules:common_settings.bzl", "bool_flag", "string_flag")
+
+# How to run integration tests:
+#
+# - docker: in a Docker container
+# - qemu: in a QEMU virtual machine
+# - host: on the current machine
+# - skip: do not run integration tests
+string_flag(
+    name = "integration_mode",
+    build_setting_default = "host",
+    values = [
+        "docker",
+        "qemu",
+        "host",
+        "skip",
+    ],
+)
 
 config_setting(
-    name = "x86_64-linux",
-    define_values = {
-        "config": "x86_64-linux",
+    name = "integration_docker",
+    flag_values = {
+        ":integration_mode": "docker",
     },
 )
 
 config_setting(
-    name = "x86_64-qnx",
-    define_values = {
-        "config": "x86_64-qnx",
+    name = "integration_qemu",
+    flag_values = {
+        ":integration_mode": "qemu",
+    },
+)
+
+config_setting(
+    name = "integration_host",
+    flag_values = {
+        ":integration_mode": "host",
+    },
+)
+
+# How to run unit tests:
+#
+# - qemu: in a QEMU virtual machine
+# - host: on the current machine
+# - skip: do not run unit tests
+string_flag(
+    name = "unit_mode",
+    build_setting_default = "host",
+    values = [
+        "qemu",
+        "host",
+        "skip",
+    ],
+)
+
+config_setting(
+    name = "unit_qemu",
+    flag_values = {
+        ":unit_mode": "qemu",
+    },
+)
+
+config_setting(
+    name = "unit_host",
+    flag_values = {
+        ":unit_mode": "host",
     },
 )
 

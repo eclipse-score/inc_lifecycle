@@ -34,9 +34,7 @@ def setup_test(request, target):
     res, _ = target.execute(f"mkdir -p {extract_dir}")
     assert res != 1, f"Couldn't create directory {extract_dir}"
 
-    target.upload(
-        bin_path.resolve(), remote_tar
-    )  # Need to resolve for https://github.com/eclipse-score/itf/pull/71
+    target.upload(str(bin_path), str(remote_tar))
 
     res, _ = target.execute(f"tar -xf {remote_tar} -C {extract_dir}")
     assert res == 0, f"Couldn't extract tar {remote_tar}"

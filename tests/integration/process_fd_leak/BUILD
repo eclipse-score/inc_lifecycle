@@ -20,6 +20,7 @@ cc_binary(
         "get_fds.hpp",
         "native.cpp",
     ],
+    target_compatible_with = ["@platforms//os:linux"],
     deps = [
         "//tests/utils/test_helper",
         "@googletest//:gtest_main",
@@ -34,6 +35,7 @@ cc_binary(
         "get_fds.hpp",
         "reporting.cpp",
     ],
+    target_compatible_with = ["@platforms//os:linux"],
     deps = [
         "//score/launch_manager:lifecycle_cc",
         "//tests/utils/test_helper",
@@ -48,6 +50,7 @@ cc_binary(
         "control_client.cpp",
         "get_fds.hpp",
     ],
+    target_compatible_with = ["@platforms//os:linux"],
     deps = [
         "//score/launch_manager:control_cc",
         "//score/launch_manager:lifecycle_cc",

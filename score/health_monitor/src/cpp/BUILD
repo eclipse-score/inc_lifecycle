@@ -80,6 +80,11 @@ cc_gtest_unit_test(
         "@platforms//os:qnx": ["-lsocket"],
         "@platforms//os:linux": [],
     }),
+    target_compatible_with = select({
+        "//config:unit_qemu": [],
+        "//config:unit_host": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
     deps = [
         "//score/health_monitor/src/cpp:health_monitoring_cc_stub_supervisor",
         "//score/health_monitor/src/cpp/details:log_init",
@@ -96,6 +101,11 @@ cc_gtest_unit_test(
         "@platforms//os:linux": [],
     }),
     tags = ["no-tsan"],
+    target_compatible_with = select({
+        "//config:unit_qemu": [],
+        "//config:unit_host": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
     deps = [
         "//score/health_monitor/src/cpp:health_monitoring_cc_stub_supervisor",
         "//score/health_monitor/src/cpp/details:log_init",
