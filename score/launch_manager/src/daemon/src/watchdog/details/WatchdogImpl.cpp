@@ -50,7 +50,7 @@ T secToMs(const T f_timeout)
  * ref",true_no_defect) */
 /* RULECHECKER_comment(0:0,9:0, check_min_instructions, "Constructor with empty body is valid", true_no_defect) */
 WatchdogImpl::WatchdogImpl(score::os::Ioctl& ioctl, score::os::Fcntl& fcntl, score::os::Unistd& unistd) noexcept
-    : IWatchdogIf(), watchdogDevices(), state(ELibState::idle), ioctl_(ioctl), fcntl_(fcntl), unistd_(unistd)
+    : IWatchdogIf(), watchdogDevices_(), state_(ELibState::idle), ioctl_(ioctl), fcntl_(fcntl), unistd_(unistd)
 {
 }
 
@@ -85,7 +85,7 @@ bool WatchdogImpl::init(const score::mw::launch_manager::configuration::Watchdog
     catch (const std::exception& e)
     {
         isSuccess = false;
-        watchdogDevices.clear();
+        watchdogDevices_.clear();
         LM_LOG_ERROR() << "Watchdog: Watchdog initialization failed:" << std::string(e.what());
     }
     return isSuccess;
@@ -93,7 +93,7 @@ bool WatchdogImpl::init(const score::mw::launch_manager::configuration::Watchdog
 
 bool WatchdogImpl::configureDevice(const DeviceConfig& f_config_r, std::int64_t f_cycleTimeInNs) noexcept(false)
 {
-    if (state != ELibState::idle)
+    if (state_ != ELibState::idle)
     {
         return false;
     }
@@ -105,24 +105,24 @@ bool WatchdogImpl::configureDevice(const DeviceConfig& f_config_r, std::int64_t 
 
     WatchdogDevice watchdogdevice{f_config_r};
     // Space was reserved during init(), will not throw
-    watchdogDevices.push_back(watchdogdevice);
+    watchdogDevices_.push_back(watchdogdevice);
     return true;
 }
 
 bool WatchdogImpl::enable() noexcept
 {
-    if (state != ELibState::idle)
+    if (state_ != ELibState::idle)
     {
         return false;
     }
 
     bool result{true};
-    for (auto& watchdogDevice : watchdogDevices)
+    for (auto& watchdogDevice : watchdogDevices_)
     {
         const auto wasEnabled{enableDevice(watchdogDevice)};
         if (wasEnabled)
         {
-            state = ELibState::activated;
+            state_ = ELibState::activated;
         }
         result = result && wasEnabled;
     }
@@ -131,30 +131,30 @@ bool WatchdogImpl::enable() noexcept
 
 void WatchdogImpl::disable() noexcept
 {
-    if (state != ELibState::activated)
+    if (state_ != ELibState::activated)
     {
         return;
     }
     bool allDisabled{true};
-    for (auto& watchdogDevice : watchdogDevices)
+    for (auto& watchdogDevice : watchdogDevices_)
     {
         const bool wasDisabled{disableDevice(watchdogDevice)};
         allDisabled = allDisabled && wasDisabled;
     }
     if (allDisabled)
     {
-        state = ELibState::idle;
+        state_ = ELibState::idle;
     }
 }
 
 void WatchdogImpl::serviceWatchdog() noexcept
 {
-    if (state != ELibState::activated)
+    if (state_ != ELibState::activated)
     {
         return;
     }
 
-    for (auto& watchdogDevice : watchdogDevices)
+    for (auto& watchdogDevice : watchdogDevices_)
     {
         if (watchdogDevice.fileDescriptor >= 0)
         {
@@ -167,20 +167,20 @@ void WatchdogImpl::serviceWatchdog() noexcept
              * true_no_defect) */
             /* RULECHECKER_comment(1:0,2:0, check_underlying_signedness_conversion, "Linux-only constant from external
              * interface", true_no_defect) */
-            (void)ioctl_.ioctl(watchdogDevice.fileDescriptor, static_cast<std::int32_t>(WDIOC_KEEPALIVE), nullptr);
+            static_cast<void>(ioctl_.ioctl(watchdogDevice.fileDescriptor, static_cast<std::int32_t>(WDIOC_KEEPALIVE), nullptr));
         }
     }
 }
 
 void WatchdogImpl::fireWatchdogReaction() noexcept
 {
-    if (state != ELibState::activated)
+    if (state_ != ELibState::activated)
     {
         return;
     }
 
-    state = ELibState::react;
-    for (auto& watchdogDevice : watchdogDevices)
+    state_ = ELibState::react;
+    for (auto& watchdogDevice : watchdogDevices_)
     {
         if (watchdogDevice.fileDescriptor >= 0)
         {
@@ -189,7 +189,7 @@ void WatchdogImpl::fireWatchdogReaction() noexcept
 
             std::uint16_t timeout{0U};
             // Save to ignore return value here. If setting timeout does not work, watchdog will eventually fire
-            (void)setTimeout(watchdogDevice.fileDescriptor, timeout);
+            static_cast<void>(setTimeout(watchdogDevice.fileDescriptor, timeout));
         }
     }
 
@@ -385,7 +385,7 @@ bool WatchdogImpl::disableDevice(WatchdogDevice& f_watchdogDevice_r) const noexc
 
     if (f_watchdogDevice_r.config.needsMagicClose)
     {
-        (void)unistd_.write(f_watchdogDevice_r.fileDescriptor, kMagicCloseChar, static_cast<size_t>(2));
+        static_cast<void>(unistd_.write(f_watchdogDevice_r.fileDescriptor, kMagicCloseChar, static_cast<size_t>(2)));
     }
     std::int32_t option{WDIOS_DISABLECARD};
     /* RULECHECKER_comment(1:0,5:0, check_bitop_recast, "Linux-only constant from external interface", true_no_defect)
@@ -395,8 +395,8 @@ bool WatchdogImpl::disableDevice(WatchdogDevice& f_watchdogDevice_r) const noexc
      * true_no_defect) */
     /* RULECHECKER_comment(1:0,2:0, check_underlying_signedness_conversion, "Linux-only constant from external
      * interface", true_no_defect) */
-    (void)ioctl_.ioctl(f_watchdogDevice_r.fileDescriptor, static_cast<std::int32_t>(WDIOC_SETOPTIONS), &option);
-    (void)unistd_.close(f_watchdogDevice_r.fileDescriptor);
+    static_cast<void>(ioctl_.ioctl(f_watchdogDevice_r.fileDescriptor, static_cast<std::int32_t>(WDIOC_SETOPTIONS), &option));
+    static_cast<void>(unistd_.close(f_watchdogDevice_r.fileDescriptor));
     f_watchdogDevice_r.fileDescriptor = -1;
     return true;
 }
@@ -412,7 +412,7 @@ bool WatchdogImpl::hasValidTimeout(const DeviceConfig& f_config_r) noexcept
 
 bool WatchdogImpl::deviceAlreadyConfigured(const DeviceConfig& f_config_r) const noexcept
 {
-    for (const auto& device : watchdogDevices)
+    for (const auto& device : watchdogDevices_)
     {
         if (device.config.fileName == f_config_r.fileName)
         {
@@ -468,7 +468,7 @@ void WatchdogImpl::waitForever() const noexcept
     sleeptime.tv_nsec = 0;
     while (true)
     {
-        (void)clock.clockNanosleep(0, &sleeptime, NULL);
+        static_cast<void>(clock.clockNanosleep(0, &sleeptime, NULL));
     }
 }
 #if defined(__CTC__) && defined(__CODE_COVERAGE_ANNOTATION__)
