@@ -196,7 +196,7 @@ def test_preprocessing_non_merging_dicts():
                 },
                 "recovery_action": {
                     "restart": {"number_of_attempts": 200, "delay_before_restart": 888}
-                }
+                },
             }
         },
         "components": {
@@ -206,19 +206,28 @@ def test_preprocessing_non_merging_dicts():
                     "ready_recovery_action": {
                         "switch_run_target": {"run_target": "Fallback"}
                     },
-                    "recovery_action": {
-                        "restart": {"number_of_attempts": 5}
-                    }
-                }
+                    "recovery_action": {"restart": {"number_of_attempts": 5}},
+                },
             }
         },
     }
     result = preprocess_defaults(score_defaults, config)
     # ready_recovery_action should NOT contain restart keys -- user replaced it entirely
-    assert "restart" not in result["components"]["c1"]["deployment_config"]["ready_recovery_action"]
+    assert (
+        "restart"
+        not in result["components"]["c1"]["deployment_config"]["ready_recovery_action"]
+    )
     # recovery_action should NOT contain switch_run_target -- user replaced with restart
-    assert "switch_run_target" not in result["components"]["c1"]["deployment_config"]["recovery_action"]
-    assert result["components"]["c1"]["deployment_config"]["recovery_action"]["restart"]["number_of_attempts"] == 5
+    assert (
+        "switch_run_target"
+        not in result["components"]["c1"]["deployment_config"]["recovery_action"]
+    )
+    assert (
+        result["components"]["c1"]["deployment_config"]["recovery_action"]["restart"][
+            "number_of_attempts"
+        ]
+        == 5
+    )
 
 
 def test_preprocessing_overrides_lists():
@@ -242,7 +251,9 @@ def test_preprocessing_overrides_lists():
         },
     }
     result = preprocess_defaults(score_defaults, config)
-    assert result["components"]["c1"]["component_properties"]["depends_on"] == ["user_dep"]
+    assert result["components"]["c1"]["component_properties"]["depends_on"] == [
+        "user_dep"
+    ]
 
 
 def test_preprocessing_minimal_config():
@@ -251,13 +262,21 @@ def test_preprocessing_minimal_config():
     """
     config = {
         "schema_version": 1,
-        "components": {"c1": {"component_properties": {"application_profile": {"application_type": "REPORTING"}}}},
+        "components": {
+            "c1": {
+                "component_properties": {
+                    "application_profile": {"application_type": "REPORTING"}
+                }
+            }
+        },
         "run_targets": {"Startup": {"transition_timeout": 1}},
         "initial_run_target": "Startup",
         "fallback_run_target": {"transition_timeout": 2},
     }
     result = preprocess_defaults(score_defaults, config)
-    assert result["components"]["c1"]["deployment_config"]["ready_timeout"] == 0.5  # from global defaults
+    assert (
+        result["components"]["c1"]["deployment_config"]["ready_timeout"] == 0.5
+    )  # from global defaults
     assert result["run_targets"]["Startup"]["transition_timeout"] == 1  # user value
     assert "fallback_run_target" in result
     assert result["fallback_run_target"]["transition_timeout"] == 2
@@ -288,7 +307,7 @@ def test_preprocessing_fallback_with_custom_defaults():
         "run_targets": {"Startup": {}},
         "initial_run_target": "Startup",
         "fallback_run_target": {},
-        "defaults": {"run_target": {"transition_timeout": 99}}
+        "defaults": {"run_target": {"transition_timeout": 99}},
     }
     result = preprocess_defaults(score_defaults, config)
     assert result["fallback_run_target"]["transition_timeout"] == 99
@@ -315,7 +334,9 @@ def test_preprocessing_alive_supervision_presence_based_on_app_type():
             },
             "supervised_app": {
                 "component_properties": {
-                    "application_profile": {"application_type": "Reporting_And_Supervised"}
+                    "application_profile": {
+                        "application_type": "Reporting_And_Supervised"
+                    }
                 }
             },
             "sm_app": {
@@ -330,10 +351,22 @@ def test_preprocessing_alive_supervision_presence_based_on_app_type():
     }
     result = preprocess_defaults(score_defaults, config)
     cp = result["components"]
-    assert "alive_supervision" not in cp["native_app"]["component_properties"]["application_profile"]
-    assert "alive_supervision" not in cp["reporting_app"]["component_properties"]["application_profile"]
-    assert "alive_supervision" in cp["supervised_app"]["component_properties"]["application_profile"]
-    assert "alive_supervision" in cp["sm_app"]["component_properties"]["application_profile"]
+    assert (
+        "alive_supervision"
+        not in cp["native_app"]["component_properties"]["application_profile"]
+    )
+    assert (
+        "alive_supervision"
+        not in cp["reporting_app"]["component_properties"]["application_profile"]
+    )
+    assert (
+        "alive_supervision"
+        in cp["supervised_app"]["component_properties"]["application_profile"]
+    )
+    assert (
+        "alive_supervision"
+        in cp["sm_app"]["component_properties"]["application_profile"]
+    )
 
 
 def test_preprocessing_preserves_component_description():
@@ -343,7 +376,10 @@ def test_preprocessing_preserves_component_description():
     config = {
         "schema_version": 1,
         "components": {
-            "my_app": {"description": "My application desc", "component_properties": {}},
+            "my_app": {
+                "description": "My application desc",
+                "component_properties": {},
+            },
         },
         "run_targets": {"Startup": {}},
         "initial_run_target": "Startup",
@@ -376,7 +412,7 @@ def test_preprocessing_env_vars_deep_merge():
                 "component_properties": {},
                 "deployment_config": {
                     "environmental_variables": {"COMP_VAR": "from_component"}
-                }
+                },
             }
         },
     }
@@ -527,6 +563,7 @@ def test_cyclic_dependencies_self_referencing_component():
     with pytest.raises(ValueError, match="Cyclic dependency"):
         check_cyclic_dependencies(config)
 
+
 def test_cyclic_dependencies_unreachable_components_ignored():
     """Components not reachable from any run target or fallback should not be checked."""
     config = {
@@ -609,7 +646,9 @@ def test_custom_validations_cyclic_deps_fails(full_valid_config):
     full_valid_config["components"]["c1"] = {
         "component_properties": {"depends_on": ["app1"]},
     }
-    full_valid_config["components"]["app1"]["component_properties"]["depends_on"] = ["c1"]
+    full_valid_config["components"]["app1"]["component_properties"]["depends_on"] = [
+        "c1"
+    ]
     full_valid_config["run_targets"]["Startup"]["depends_on"] = ["c1"]
     assert custom_validations(full_valid_config) is False
 
@@ -634,18 +673,13 @@ def test_gen_config_minimal(tmp_path):
         "components": {
             "app1": {
                 "component_properties": {
-                    "application_profile": {
-                        "application_type": "REPORTING"
-                    }
+                    "application_profile": {"application_type": "REPORTING"}
                 },
                 "deployment_config": {
                     "ready_timeout": 1.0,
                     "shutdown_timeout": 2.0,
                     "bin_dir": "/opt/app",
-                    "sandbox": {
-                        "uid": 1000,
-                        "gid": 1000
-                    }
+                    "sandbox": {"uid": 1000, "gid": 1000},
                 },
             }
         },
@@ -689,14 +723,10 @@ def test_gen_config_with_alive_supervision(tmp_path):
                     }
                 },
                 "deployment_config": {
-                    "ready_timeout": 1.0, 
-                    "shutdown_timeout": 2.0, 
-                    "bin_dir": "/opt", 
-                    "sandbox": 
-                    {
-                        "uid": 1000, 
-                        "gid": 1000
-                    }
+                    "ready_timeout": 1.0,
+                    "shutdown_timeout": 2.0,
+                    "bin_dir": "/opt",
+                    "sandbox": {"uid": 1000, "gid": 1000},
                 },
             }
         },
@@ -730,16 +760,14 @@ def test_gen_config_without_alive_supervision(tmp_path):
         "components": {
             "app1": {
                 "component_properties": {
-                    "application_profile": 
-                    {
-                        "application_type": "REPORTING"
-                    }
+                    "application_profile": {"application_type": "REPORTING"}
                 },
                 "deployment_config": {
                     "ready_timeout": 1.0,
                     "shutdown_timeout": 2.0,
                     "bin_dir": "/opt",
-                    "sandbox": {"uid": 1000, "gid": 1000}},
+                    "sandbox": {"uid": 1000, "gid": 1000},
+                },
             }
         },
         "run_targets": {"Startup": {}},
@@ -768,7 +796,12 @@ def test_gen_config_with_watchdog(tmp_path):
         "initial_run_target": "Startup",
         "fallback_run_target": {},
         "alive_supervision": {},
-        "watchdog": {"device_file_path": "/dev/watchdog0", "max_timeout": 5, "deactivate_on_shutdown": True, "require_magic_close": True},
+        "watchdog": {
+            "device_file_path": "/dev/watchdog0",
+            "max_timeout": 5,
+            "deactivate_on_shutdown": True,
+            "require_magic_close": True,
+        },
     }
     gen_config(str(tmp_path), config, "test_input.json")
 
@@ -795,7 +828,9 @@ def test_gen_config_watchdog_partial_fields_omitted(tmp_path):
         "initial_run_target": "Startup",
         "fallback_run_target": {},
         "alive_supervision": {},
-        "watchdog": {"device_file_path": "/dev/watchdog0"},  # missing max_timeout, deactivate_on_shutdown, require_magic_close
+        "watchdog": {
+            "device_file_path": "/dev/watchdog0"
+        },  # missing max_timeout, deactivate_on_shutdown, require_magic_close
     }
     gen_config(str(tmp_path), config, "test_input.json")
 
@@ -813,10 +848,19 @@ def test_gen_config_with_sandbox_limits(tmp_path):
         "schema_version": 1,
         "components": {
             "app1": {
-                "component_properties": {"application_profile": {"application_type": "REPORTING"}},
+                "component_properties": {
+                    "application_profile": {"application_type": "REPORTING"}
+                },
                 "deployment_config": {
-                    "ready_timeout": 1.0, "shutdown_timeout": 2.0, "bin_dir": "/opt",
-                    "sandbox": {"uid": 1000, "gid": 1000, "max_memory_usage": 1024, "max_cpu_usage": 50},
+                    "ready_timeout": 1.0,
+                    "shutdown_timeout": 2.0,
+                    "bin_dir": "/opt",
+                    "sandbox": {
+                        "uid": 1000,
+                        "gid": 1000,
+                        "max_memory_usage": 1024,
+                        "max_cpu_usage": 50,
+                    },
                 },
             }
         },
@@ -862,9 +906,13 @@ def test_gen_config_env_variables_list_format(tmp_path):
         "schema_version": 1,
         "components": {
             "app1": {
-                "component_properties": {"application_profile": {"application_type": "REPORTING"}},
+                "component_properties": {
+                    "application_profile": {"application_type": "REPORTING"}
+                },
                 "deployment_config": {
-                    "ready_timeout": 1.0, "shutdown_timeout": 2.0, "bin_dir": "/opt",
+                    "ready_timeout": 1.0,
+                    "shutdown_timeout": 2.0,
+                    "bin_dir": "/opt",
                     "sandbox": {"uid": 1000, "gid": 1000},
                     "environmental_variables": {"FOO": "bar", "BAZ": "qux"},
                 },
@@ -897,17 +945,31 @@ def test_gen_config_run_target_with_dependencies(tmp_path):
         "schema_version": 1,
         "components": {
             "comp1": {
-                "component_properties": {"application_profile": {"application_type": "REPORTING"}},
-                "deployment_config": {"ready_timeout": 1.0, "shutdown_timeout": 2.0, "bin_dir": "/opt", "sandbox": {"uid": 1000, "gid": 1000}},
+                "component_properties": {
+                    "application_profile": {"application_type": "REPORTING"}
+                },
+                "deployment_config": {
+                    "ready_timeout": 1.0,
+                    "shutdown_timeout": 2.0,
+                    "bin_dir": "/opt",
+                    "sandbox": {"uid": 1000, "gid": 1000},
+                },
             },
             "comp2": {
-                "component_properties": {"application_profile": {"application_type": "NOT_REPORTING"}},
-                "deployment_config": {"ready_timeout": 1.0, "shutdown_timeout": 2.0, "bin_dir": "/opt", "sandbox": {"uid": 1000, "gid": 1000}},
+                "component_properties": {
+                    "application_profile": {"application_type": "NOT_REPORTING"}
+                },
+                "deployment_config": {
+                    "ready_timeout": 1.0,
+                    "shutdown_timeout": 2.0,
+                    "bin_dir": "/opt",
+                    "sandbox": {"uid": 1000, "gid": 1000},
+                },
             },
         },
         "run_targets": {
             "RT1": {"depends_on": ["comp1"]},
-            "RT2": {"depends_on": ["comp2"], "description": "desc"}
+            "RT2": {"depends_on": ["comp2"], "description": "desc"},
         },
         "initial_run_target": "Startup",
         "fallback_run_target": {},
@@ -933,7 +995,11 @@ def test_gen_config_recovery_action_switch_run_target(tmp_path):
     config = {
         "schema_version": 1,
         "components": {},
-        "run_targets": {"Startup": {"recovery_action": {"switch_run_target": {"run_target": "fallback_rt"}}}},
+        "run_targets": {
+            "Startup": {
+                "recovery_action": {"switch_run_target": {"run_target": "fallback_rt"}}
+            }
+        },
         "initial_run_target": "Startup",
         "fallback_run_target": {},
         "alive_supervision": {},
@@ -957,9 +1023,13 @@ def test_gen_config_scheduling_policy_mapping(tmp_path):
             "schema_version": 1,
             "components": {
                 "c1": {
-                    "component_properties": {"application_profile": {"application_type": "REPORTING"}},
+                    "component_properties": {
+                        "application_profile": {"application_type": "REPORTING"}
+                    },
                     "deployment_config": {
-                        "ready_timeout": 1.0, "shutdown_timeout": 2.0, "bin_dir": "/opt",
+                        "ready_timeout": 1.0,
+                        "shutdown_timeout": 2.0,
+                        "bin_dir": "/opt",
                         "sandbox": {"uid": 1000, "gid": 1000, "scheduling_policy": src},
                     },
                 }
@@ -974,7 +1044,10 @@ def test_gen_config_scheduling_policy_mapping(tmp_path):
         with open(tmp_path / "test_gen.json") as f:
             output = json.load(f)
         assert output["schema_version"] == 1
-        assert output["components"][0]["deployment_config"]["sandbox"]["scheduling_policy"] == expected
+        assert (
+            output["components"][0]["deployment_config"]["sandbox"]["scheduling_policy"]
+            == expected
+        )
         tmp_path.joinpath("test_gen.json").unlink()
 
 
@@ -984,13 +1057,17 @@ def test_gen_config_ready_recovery_action(tmp_path):
         "schema_version": 1,
         "components": {
             "c1": {
-                "component_properties": {"application_profile": {"application_type": "REPORTING"}},
+                "component_properties": {
+                    "application_profile": {"application_type": "REPORTING"}
+                },
                 "deployment_config": {
                     "ready_timeout": 1.0,
                     "shutdown_timeout": 2.0,
                     "bin_dir": "/opt",
                     "sandbox": {"uid": 1000, "gid": 1000},
-                    "ready_recovery_action": {"restart": {"number_of_attempts": 3, "delay_before_restart": 5}},
+                    "ready_recovery_action": {
+                        "restart": {"number_of_attempts": 3, "delay_before_restart": 5}
+                    },
                 },
             }
         },
@@ -1019,10 +1096,18 @@ def test_gen_config_unmapped_scheduling_policy(tmp_path):
         "schema_version": 1,
         "components": {
             "c1": {
-                "component_properties": {"application_profile": {"application_type": "REPORTING"}},
+                "component_properties": {
+                    "application_profile": {"application_type": "REPORTING"}
+                },
                 "deployment_config": {
-                    "ready_timeout": 1.0, "shutdown_timeout": 2.0, "bin_dir": "/opt",
-                    "sandbox": {"uid": 1000, "gid": 1000, "scheduling_policy": "SCHED_DEADLINE"},
+                    "ready_timeout": 1.0,
+                    "shutdown_timeout": 2.0,
+                    "bin_dir": "/opt",
+                    "sandbox": {
+                        "uid": 1000,
+                        "gid": 1000,
+                        "scheduling_policy": "SCHED_DEADLINE",
+                    },
                 },
             }
         },
@@ -1040,7 +1125,10 @@ def test_gen_config_unmapped_scheduling_policy(tmp_path):
     assert output["schema_version"] == 1
 
     # SCHED_DEADLINE is NOT in SCHED_POLICY_MAP so it should pass through
-    assert output["components"][0]["deployment_config"]["sandbox"]["scheduling_policy"] == "SCHED_DEADLINE"
+    assert (
+        output["components"][0]["deployment_config"]["sandbox"]["scheduling_policy"]
+        == "SCHED_DEADLINE"
+    )
 
 
 def test_gen_config_with_empty_components_list_generates_empty_array(tmp_path):
@@ -1090,7 +1178,9 @@ def test_output_filename_dot_in_name():
 
 
 def test_get_working_dir_explicit():
-    assert get_working_dir({"working_dir": "/app/work", "bin_dir": "/opt"}) == "/app/work"
+    assert (
+        get_working_dir({"working_dir": "/app/work", "bin_dir": "/opt"}) == "/app/work"
+    )
 
 
 def test_get_working_dir_defaults_to_bin_dir():
@@ -1112,14 +1202,17 @@ def test_get_working_dir_empty_string_falls_back():
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize("app_type, expected", [
-    ("State_Manager", True),
-    ("Reporting_And_Supervised", True),
-    ("REPORTING", False),
-    ("NOT_REPORTING", False),
-    ("Supervised_Only", False),
-    ("", False),
-])
+@pytest.mark.parametrize(
+    "app_type, expected",
+    [
+        ("State_Manager", True),
+        ("Reporting_And_Supervised", True),
+        ("REPORTING", False),
+        ("NOT_REPORTING", False),
+        ("Supervised_Only", False),
+        ("", False),
+    ],
+)
 def test_is_supervised(app_type, expected):
     assert is_supervised(app_type) is True if expected else not expected
 

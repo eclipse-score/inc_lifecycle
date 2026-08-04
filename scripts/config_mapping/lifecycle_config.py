@@ -240,7 +240,7 @@ def gen_config(output_dir, config, input_filename):
         input_filename: The filename of the user provided json configuration
 
     Output:
-        The launch manager configuration file in output_dir, with the same name as the input 
+        The launch manager configuration file in output_dir, with the same name as the input
         configuration + "_gen" suffix to avoid naming collision
     """
     out = {}

@@ -401,12 +401,12 @@ cc_library(
         "//score/launch_manager/src/daemon/src/common:log",
         "//score/launch_manager/src/daemon/src/common/concurrency:mpmc_concurrent_queue",
         "//score/launch_manager/src/daemon/src/common/concurrency:workerthread",
+        "//score/launch_manager/src/daemon/src/configuration:configuration_adapter",
         "//score/launch_manager/src/daemon/src/osal:ipc_comms",
         "//score/launch_manager/src/daemon/src/osal:semaphore",
         "//score/launch_manager/src/daemon/src/process_group_manager:process_group_manager_hdrs",
         "//score/launch_manager/src/daemon/src/process_state_client",
         "//score/launch_manager/src/daemon/src/recovery_client",
-        "//score/launch_manager/src/daemon/src/configuration:configuration_adapter",
         "@score_baselibs//score/language/futurecpp",
     ],
 )

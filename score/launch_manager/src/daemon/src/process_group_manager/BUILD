@@ -72,6 +72,8 @@ cc_library(
         "//score/launch_manager/src/daemon/src/common:identifier_hash",
         "//score/launch_manager/src/daemon/src/common/concurrency:mpmc_concurrent_queue",
         "//score/launch_manager/src/daemon/src/common/concurrency:workerthread",
+        "//score/launch_manager/src/daemon/src/configuration:config",
+        "//score/launch_manager/src/daemon/src/configuration:configuration_adapter",
         "//score/launch_manager/src/daemon/src/control:control_client_channel",
         "//score/launch_manager/src/daemon/src/osal:ipc_comms",
         "//score/launch_manager/src/daemon/src/process_group_manager/details:graph",
@@ -83,8 +85,6 @@ cc_library(
         "//score/launch_manager/src/daemon/src/process_state_client:iprocess_state_notifier",
         "//score/launch_manager/src/daemon/src/recovery_client",
         "//score/launch_manager/src/daemon/src/watchdog:i_watchdog_if",
-        "//score/launch_manager/src/daemon/src/configuration:config",
-        "//score/launch_manager/src/daemon/src/configuration:configuration_adapter",
         "@score_baselibs//score/language/futurecpp",
     ],
 )

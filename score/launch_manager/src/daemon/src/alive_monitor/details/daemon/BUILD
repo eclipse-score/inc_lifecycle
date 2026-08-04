@@ -37,8 +37,8 @@ cc_library(
         "//score/launch_manager/src/daemon/src/alive_monitor/details/ifexm:process_state_reader",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/supervision:alive",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/timers:timers_os_clock",
-        "//score/launch_manager/src/daemon/src/configuration:config",
         "//score/launch_manager/src/daemon/src/common:log",
+        "//score/launch_manager/src/daemon/src/configuration:config",
     ],
 )
 
@@ -61,8 +61,8 @@ cc_library(
         "//score/launch_manager/src/daemon/src/alive_monitor/details/timers:cycle_time_validator",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/timers:cycle_timer",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/timers:timers_os_clock",
-        "//score/launch_manager/src/daemon/src/configuration:config",
         "//score/launch_manager/src/daemon/src/common:log",
+        "//score/launch_manager/src/daemon/src/configuration:config",
         "//score/launch_manager/src/lifecycle_client",
     ],
 )

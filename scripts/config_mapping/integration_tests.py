@@ -72,7 +72,9 @@ def run(
     env["PYTHONPATH"] = os.pathsep.join(sys.path)
 
     try:
-        result = subprocess.run(cmd, check=True, capture_output=True, text=True, env=env)
+        result = subprocess.run(
+            cmd, check=True, capture_output=True, text=True, env=env
+        )
         print(f"Command executed successfully: {' '.join(cmd)}")
         print(f"Output: {result.stdout}")
     except subprocess.CalledProcessError as e:
