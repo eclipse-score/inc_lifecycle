@@ -189,7 +189,7 @@ IComponent::RequestResult ProcessInfoNode::tryHandleTermination(int32_t process_
     if (control_client_channel_)
     {
         control_client_channel_->releaseParentMapping();
-        control_client_channel_.reset();
+        std::atomic_store(&control_client_channel_, ControlClientChannelP{});
     }
 
     return res;
