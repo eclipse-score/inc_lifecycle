@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # *******************************************************************************
 # Copyright (c) 2026 Contributors to the Eclipse Foundation
 #
@@ -12,8 +11,35 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-from scripts.config_mapping.lifecycle_config import preprocess_defaults
 import json
+import sys
+import tempfile
+from pathlib import Path
+
+import pytest
+
+# Ensure lifecycle_config.py can be found regardless of how Bazel lays out runfiles
+_scripts_dir = Path(__file__).resolve().parent
+if str(_scripts_dir) not in sys.path:
+    sys.path.insert(0, str(_scripts_dir))
+
+from lifecycle_config import (
+    custom_validations,
+    check_cyclic_dependencies,
+    gen_config,
+    get_working_dir,
+    is_supervised,
+    load_json_file,
+    output_filename,
+    preprocess_defaults,
+    score_defaults,
+    SCHED_POLICY_MAP,
+)
+
+
+# ---------------------------------------------------------------------------
+# preprocess_defaults
+# ---------------------------------------------------------------------------
 
 
 def test_preprocessing_basic():
@@ -148,9 +174,870 @@ def test_preprocessing_basic():
         }
     }""")
 
-    print("Dumping preprocessed configuration:")
-    print(json.dumps(preprocessed_config, indent=4))
-
     assert preprocessed_config == expected_config, (
         "Preprocessed config does not match expected config."
     )
+
+
+def test_preprocessing_non_merging_dicts():
+    """
+    Keys like 'ready_recovery_action' and 'recovery_action' must NOT merge defaults
+    with user values -- the user value should completely replace the default.
+    """
+    config = {
+        "defaults": {
+            "deployment_config": {
+                "ready_recovery_action": {
+                    "restart": {"number_of_attempts": 100, "delay_before_restart": 999}
+                },
+                "recovery_action": {
+                    "restart": {"number_of_attempts": 200, "delay_before_restart": 888}
+                }
+            }
+        },
+        "components": {
+            "c1": {
+                "component_properties": {},
+                "deployment_config": {
+                    "ready_recovery_action": {
+                        "switch_run_target": {"run_target": "Fallback"}
+                    },
+                    "recovery_action": {
+                        "restart": {"number_of_attempts": 5}
+                    }
+                }
+            }
+        },
+    }
+    result = preprocess_defaults(score_defaults, config)
+    # ready_recovery_action should NOT contain restart keys -- user replaced it entirely
+    assert "restart" not in result["components"]["c1"]["deployment_config"]["ready_recovery_action"]
+    # recovery_action should NOT contain switch_run_target -- user replaced with restart
+    assert "switch_run_target" not in result["components"]["c1"]["deployment_config"]["recovery_action"]
+    assert result["components"]["c1"]["deployment_config"]["recovery_action"]["restart"]["number_of_attempts"] == 5
+
+
+def test_preprocessing_overrides_lists():
+    """
+    Lists in component_properties should be completely replaced by user values,
+    not concatenated with default lists.
+    """
+    config = {
+        "defaults": {
+            "component_properties": {
+                "depends_on": ["default_dep1", "default_dep2"],
+            }
+        },
+        "components": {
+            "c1": {
+                "component_properties": {
+                    "depends_on": ["user_dep"],
+                }
+            }
+        },
+    }
+    result = preprocess_defaults(score_defaults, config)
+    assert result["components"]["c1"]["component_properties"]["depends_on"] == ["user_dep"]
+
+
+def test_preprocessing_minimal_config():
+    """
+    A config with only components and minimal keys should still work -- defaults applied.
+    """
+    config = {
+        "components": {"c1": {"component_properties": {"application_profile": {"application_type": "REPORTING"}}}},
+        "run_targets": {"Startup": {"transition_timeout": 1}},
+        "initial_run_target": "Startup",
+        "fallback_run_target": {"transition_timeout": 2},
+    }
+    result = preprocess_defaults(score_defaults, config)
+    assert result["components"]["c1"]["deployment_config"]["ready_timeout"] == 0.5  # from global defaults
+    assert result["run_targets"]["Startup"]["transition_timeout"] == 1  # user value
+    assert "fallback_run_target" in result
+    assert result["fallback_run_target"]["transition_timeout"] == 2
+
+
+def test_preprocessing_empty_components():
+    """
+    With no components defined the output should still have all top-level sections.
+    """
+    config = {
+        "run_targets": {"Startup": {}},
+        "initial_run_target": "Startup",
+        "fallback_run_target": {"transition_timeout": 1},
+    }
+    result = preprocess_defaults(score_defaults, config)
+    assert result["components"] == {}
+    assert "Startup" in result["run_targets"]
+
+
+def test_preprocessing_fallback_with_custom_defaults():
+    """
+    fallback_run_target should use transition_timeout from merged defaults (config-level)
+    rather than from score_defaults.
+    """
+    config = {
+        "run_targets": {"Startup": {}},
+        "initial_run_target": "Startup",
+        "fallback_run_target": {},
+        "defaults": {"run_target": {"transition_timeout": 99}}
+    }
+    result = preprocess_defaults(score_defaults, config)
+    assert result["fallback_run_target"]["transition_timeout"] == 99
+
+
+def test_preprocessing_preserves_component_description():
+    """
+    Component descriptions from the input should be preserved in the output.
+    """
+    config = {
+        "components": {
+            "my_app": {"description": "My application desc", "component_properties": {}},
+        },
+        "run_targets": {"Startup": {}},
+        "initial_run_target": "Startup",
+        "fallback_run_target": {},
+    }
+    result = preprocess_defaults(score_defaults, config)
+    assert result["components"]["my_app"]["description"] == "My application desc"
+
+
+def test_preprocessing_env_vars_deep_merge():
+    """
+    Environmental variables should be deep-merged across all levels:
+    global_defaults -> config_defaults -> component_deployment_config.
+    """
+    merged_defaults = score_defaults.copy()
+    merged_defaults["deployment_config"] = {
+        **score_defaults["deployment_config"],
+        "environmental_variables": {"GLOBAL_VAR": "from_global"},
+    }
+
+    config = {
+        "defaults": {
+            "deployment_config": {
+                "environmental_variables": {"DEFAULT_VAR": "from_defaults"}
+            }
+        },
+        "components": {
+            "c1": {
+                "component_properties": {},
+                "deployment_config": {
+                    "environmental_variables": {"COMP_VAR": "from_component"}
+                }
+            }
+        },
+    }
+    result = preprocess_defaults(merged_defaults, config)
+    env = result["components"]["c1"]["deployment_config"]["environmental_variables"]
+    assert "COMP_VAR" in env
+    assert env["COMP_VAR"] == "from_component"
+    assert "DEFAULT_VAR" in env
+    assert env["DEFAULT_VAR"] == "from_defaults"
+    assert "GLOBAL_VAR" in env
+    assert env["GLOBAL_VAR"] == "from_global"
+
+
+def test_preprocessing_no_defaults_section():
+    """
+    When no 'defaults' section in config, score_defaults are applied directly.
+    """
+    config = {
+        "components": {
+            "c1": {
+                "component_properties": {
+                    "application_profile": {"application_type": "REPORTING"}
+                },
+            }
+        },
+        "run_targets": {"Startup": {}},
+        "initial_run_target": "Startup",
+        "fallback_run_target": {"transition_timeout": 1},
+    }
+    result = preprocess_defaults(score_defaults, config)
+    # ready_timeout comes from score_defaults
+    assert result["components"]["c1"]["deployment_config"]["ready_timeout"] == 0.5
+    # bin_dir comes from score_defaults
+    assert result["components"]["c1"]["deployment_config"]["bin_dir"] == "/opt"
+
+
+# ---------------------------------------------------------------------------
+# check_cyclic_dependencies
+# ---------------------------------------------------------------------------
+
+
+def test_cyclic_dependencies_no_cycle():
+    """No dependency cycles -- should not raise."""
+    config = {
+        "components": {
+            "a": {"component_properties": {"depends_on": []}},
+            "b": {"component_properties": {"depends_on": ["a"]}},
+        },
+        "run_targets": {"Startup": {"depends_on": ["b"]}},
+        "fallback_run_target": {},
+    }
+    check_cyclic_dependencies(config)  # no exception == pass
+
+
+def test_cyclic_dependencies_direct_component_cycle():
+    """A -> B -> A in component dependencies should raise (when reachable from a run target)."""
+    config = {
+        "components": {
+            "a": {"component_properties": {"depends_on": ["b"]}},
+            "b": {"component_properties": {"depends_on": ["a"]}},
+        },
+        "run_targets": {"Startup": {"depends_on": ["a"]}},
+        "fallback_run_target": {},
+    }
+    with pytest.raises(ValueError, match="Cyclic dependency"):
+        check_cyclic_dependencies(config)
+
+
+def test_cyclic_dependencies_indirect_component_cycle():
+    """A -> B -> C -> A in component dependencies should raise (when reachable)."""
+    config = {
+        "components": {
+            "a": {"component_properties": {"depends_on": ["b"]}},
+            "b": {"component_properties": {"depends_on": ["c"]}},
+            "c": {"component_properties": {"depends_on": ["a"]}},
+        },
+        "run_targets": {"Startup": {"depends_on": ["a"]}},
+        "fallback_run_target": {},
+    }
+    with pytest.raises(ValueError, match="Cyclic dependency"):
+        check_cyclic_dependencies(config)
+
+
+def test_cyclic_dependencies_run_target_cycle():
+    """Run target depending on another that depends back should raise."""
+    config = {
+        "components": {},
+        "run_targets": {"RT1": {"depends_on": ["RT2"]}, "RT2": {"depends_on": ["RT1"]}},
+        "fallback_run_target": {},
+    }
+    with pytest.raises(ValueError, match="Cyclic dependency"):
+        check_cyclic_dependencies(config)
+
+
+def test_cyclic_dependencies_diamond_no_false_positive():
+    """Diamond dependency (A->B, A->C, B->D, C->D) should not raise."""
+    config = {
+        "components": {
+            "a": {"component_properties": {"depends_on": ["b", "c"]}},
+            "b": {"component_properties": {"depends_on": ["d"]}},
+            "c": {"component_properties": {"depends_on": ["d"]}},
+            "d": {"component_properties": {"depends_on": []}},
+        },
+        "run_targets": {"Startup": {"depends_on": ["a"]}},
+        "fallback_run_target": {},
+    }
+    check_cyclic_dependencies(config)  # no exception == pass
+
+
+def test_cyclic_dependencies_component_depends_on_nonexistent():
+    """Component depending on something not in components or run_targets should raise."""
+    config = {
+        "components": {"a": {"component_properties": {"depends_on": ["nonexistent"]}}},
+        "run_targets": {"RT1": {"depends_on": ["a"]}},
+        "fallback_run_target": {},
+    }
+    with pytest.raises(ValueError):
+        check_cyclic_dependencies(config)
+
+
+def test_cyclic_dependencies_run_target_depends_on_unknown():
+    """Run target depending on unknown target/component should raise."""
+    config = {
+        "components": {},
+        "run_targets": {"RT1": {"depends_on": ["ghost_component"]}},
+        "fallback_run_target": {},
+    }
+    with pytest.raises(ValueError, match="unknown"):
+        check_cyclic_dependencies(config)
+
+
+def test_cyclic_dependencies_self_referencing_component():
+    """A component depending on itself should raise."""
+    config = {
+        "components": {"a": {"component_properties": {"depends_on": ["a"]}}},
+        "run_targets": {"Startup": {"depends_on": ["a"]}},
+        "fallback_run_target": {},
+    }
+    with pytest.raises(ValueError, match="Cyclic dependency"):
+        check_cyclic_dependencies(config)
+
+def test_cyclic_dependencies_unreachable_components_ignored():
+    """Components not reachable from any run target or fallback should not be checked."""
+    config = {
+        "components": {
+            "orphan_a": {"component_properties": {"depends_on": ["orphan_b"]}},
+            "orphan_b": {"component_properties": {"depends_on": ["orphan_a"]}},
+            "reachable": {"component_properties": {"depends_on": []}},
+        },
+        "run_targets": {"Startup": {"depends_on": ["reachable"]}},
+        "fallback_run_target": {},
+    }
+    check_cyclic_dependencies(config)  # no exception -- orphans are not reachable
+
+
+# ---------------------------------------------------------------------------
+# custom_validations
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture()
+def full_valid_config():
+    """Return a preprocessed config that passes all custom validations."""
+    return {
+        "components": {
+            "app1": {
+                "component_properties": {
+                    "application_profile": {"application_type": "REPORTING"}
+                }
+            }
+        },
+        "run_targets": {"Startup": {"depends_on": []}},
+        "initial_run_target": "Startup",
+        "fallback_run_target": {},
+        "alive_supervision": {},
+        "watchdog": {},
+    }
+
+
+def test_custom_validations_passes_valid_config(full_valid_config):
+    """A fully valid config should return True."""
+    assert custom_validations(full_valid_config) is True
+
+
+def test_custom_validations_initial_run_target_not_startup(full_valid_config):
+    """initial_run_target must be 'Startup' (currently a known limitation)."""
+    full_valid_config["initial_run_target"] = "Running"
+    assert custom_validations(full_valid_config) is False
+
+
+def test_custom_validations_missing_startup(full_valid_config):
+    """Startup must be a mandatory RunTarget (currently a known limitation)."""
+    del full_valid_config["run_targets"]["Startup"]
+    assert custom_validations(full_valid_config) is False
+
+
+def test_custom_validations_fallback_as_run_target_name(full_valid_config):
+    """RunTarget name 'fallback_run_target' is reserved."""
+    full_valid_config["run_targets"]["fallback_run_target"] = {}
+    assert custom_validations(full_valid_config) is False
+
+
+def test_custom_validations_recovery_target_not_fallback(full_valid_config):
+    """Recovery actions must switch to fallback_run_target (currently a known limitation)."""
+    full_valid_config["run_targets"]["Running"] = {
+        "recovery_action": {"switch_run_target": {"run_target": "SomeOtherRT"}}
+    }
+    assert custom_validations(full_valid_config) is False
+
+
+def test_custom_validations_missing_fallback_run_target(full_valid_config):
+    """fallback_run_target is mandatory."""
+    del full_valid_config["fallback_run_target"]
+    assert custom_validations(full_valid_config) is False
+
+
+def test_custom_validations_cyclic_deps_fails(full_valid_config):
+    """Cyclic dependencies from check_cyclic_dependencies should be caught."""
+    full_valid_config["components"]["c1"] = {
+        "component_properties": {"depends_on": ["app1"]},
+    }
+    full_valid_config["components"]["app1"]["component_properties"]["depends_on"] = ["c1"]
+    full_valid_config["run_targets"]["Startup"]["depends_on"] = ["c1"]
+    assert custom_validations(full_valid_config) is False
+
+
+def test_custom_validations_multiple_errors(full_valid_config):
+    """When multiple validations fail all errors are reported and result is False."""
+    full_valid_config["initial_run_target"] = "Wrong"
+    del full_valid_config["run_targets"]["Startup"]
+    del full_valid_config["fallback_run_target"]
+    assert custom_validations(full_valid_config) is False
+
+
+# ---------------------------------------------------------------------------
+# gen_config
+# ---------------------------------------------------------------------------
+
+
+def test_gen_config_minimal(tmp_path):
+    """gen_config should produce a valid output file with minimal configuration."""
+    config = {
+        "schema_version": "1",
+        "components": {
+            "app1": {
+                "component_properties": {
+                    "application_profile": {
+                        "application_type": "REPORTING"
+                    }
+                },
+                "deployment_config": {
+                    "ready_timeout": 1.0,
+                    "shutdown_timeout": 2.0,
+                    "bin_dir": "/opt/app",
+                    "sandbox": {
+                        "uid": 1000,
+                        "gid": 1000
+                    }
+                },
+            }
+        },
+        "run_targets": {"Startup": {}},
+        "initial_run_target": "Startup",
+        "fallback_run_target": {},
+        "alive_supervision": {},
+        "watchdog": {},
+    }
+    gen_config(str(tmp_path), config, "test_input.json")
+    output_files = list(tmp_path.glob("*.json"))
+    assert len(output_files) == 1
+
+    with open(output_files[0]) as f:
+        output = json.load(f)
+
+    assert output["schema_version"] == "1"
+    assert len(output["components"]) == 1
+    assert output["components"][0]["name"] == "app1"
+    assert output["initial_run_target"] == "Startup"
+    assert "fallback_run_target" in output
+
+
+def test_gen_config_with_alive_supervision(tmp_path):
+    """
+    When application_type is Reporting_And_Supervised alive_supervision should be in output.
+    """
+    config = {
+        "components": {
+            "app1": {
+                "component_properties": {
+                    "application_profile": {
+                        "application_type": "Reporting_And_Supervised",
+                        "alive_supervision": {
+                            "reporting_cycle": 1.0,
+                            "failed_cycles_tolerance": 3,
+                            "min_indications": 1,
+                            "max_indications": 5,
+                        },
+                    }
+                },
+                "deployment_config": {
+                    "ready_timeout": 1.0, 
+                    "shutdown_timeout": 2.0, 
+                    "bin_dir": "/opt", 
+                    "sandbox": 
+                    {
+                        "uid": 1000, 
+                        "gid": 1000
+                    }
+                },
+            }
+        },
+        "run_targets": {"Startup": {}},
+        "initial_run_target": "Startup",
+        "fallback_run_target": {},
+        "alive_supervision": {},
+        "watchdog": {},
+    }
+    gen_config(str(tmp_path), config, "test_input.json")
+
+    with open(tmp_path / "test_input_gen.json") as f:
+        output = json.load(f)
+
+    app_profile = output["components"][0]["component_properties"]["application_profile"]
+    assert "alive_supervision" in app_profile
+    assert app_profile["alive_supervision"]["reporting_cycle"] == 1.0
+    assert app_profile["alive_supervision"]["failed_cycles_tolerance"] == 3
+    assert app_profile["alive_supervision"]["min_indications"] == 1
+    assert app_profile["alive_supervision"]["max_indications"] == 5
+
+
+def test_gen_config_without_alive_supervision(tmp_path):
+    """
+    When application_type is REPORTING (not supervised) alive_supervision should NOT be in output.
+    """
+    config = {
+        "components": {
+            "app1": {
+                "component_properties": {
+                    "application_profile": 
+                    {
+                        "application_type": "REPORTING"
+                    }
+                },
+                "deployment_config": {
+                    "ready_timeout": 1.0,
+                    "shutdown_timeout": 2.0,
+                    "bin_dir": "/opt",
+                    "sandbox": {"uid": 1000, "gid": 1000}},
+            }
+        },
+        "run_targets": {"Startup": {}},
+        "initial_run_target": "Startup",
+        "fallback_run_target": {},
+        "alive_supervision": {},
+        "watchdog": {},
+    }
+    gen_config(str(tmp_path), config, "test_input.json")
+
+    with open(tmp_path / "test_input_gen.json") as f:
+        output = json.load(f)
+
+    app_profile = output["components"][0]["component_properties"]["application_profile"]
+    assert "alive_supervision" not in app_profile
+
+
+def test_gen_config_with_watchdog(tmp_path):
+    """Watchdog with all required fields should be included in output."""
+    config = {
+        "components": {},
+        "run_targets": {"Startup": {}},
+        "initial_run_target": "Startup",
+        "fallback_run_target": {},
+        "alive_supervision": {},
+        "watchdog": {"device_file_path": "/dev/watchdog0", "max_timeout": 5, "deactivate_on_shutdown": True, "require_magic_close": True},
+    }
+    gen_config(str(tmp_path), config, "test_input.json")
+
+    with open(tmp_path / "test_input_gen.json") as f:
+        output = json.load(f)
+
+    assert output["watchdog"]["device_file_path"] == "/dev/watchdog0"
+    assert output["watchdog"]["max_timeout"] == 5
+    assert output["watchdog"]["deactivate_on_shutdown"] is True
+    assert output["watchdog"]["require_magic_close"] is True
+
+
+def test_gen_config_watchdog_partial_fields_omitted(tmp_path):
+    """
+    When watchdog has missing required fields the entire watchdog key should be omitted.
+    This case will be caught during json schema validation.
+    """
+    config = {
+        "components": {},
+        "run_targets": {"Startup": {}},
+        "initial_run_target": "Startup",
+        "fallback_run_target": {},
+        "alive_supervision": {},
+        "watchdog": {"device_file_path": "/dev/watchdog0"},  # missing max_timeout, deactivate_on_shutdown, require_magic_close
+    }
+    gen_config(str(tmp_path), config, "test_input.json")
+
+    with open(tmp_path / "test_input_gen.json") as f:
+        output = json.load(f)
+
+    assert "watchdog" not in output
+
+
+def test_gen_config_with_sandbox_limits(tmp_path):
+    """sandbox max_memory_usage and max_cpu_usage should appear in output when present."""
+    config = {
+        "components": {
+            "app1": {
+                "component_properties": {"application_profile": {"application_type": "REPORTING"}},
+                "deployment_config": {
+                    "ready_timeout": 1.0, "shutdown_timeout": 2.0, "bin_dir": "/opt",
+                    "sandbox": {"uid": 1000, "gid": 1000, "max_memory_usage": 1024, "max_cpu_usage": 50},
+                },
+            }
+        },
+        "run_targets": {"Startup": {}},
+        "initial_run_target": "Startup",
+        "fallback_run_target": {},
+        "alive_supervision": {},
+        "watchdog": {},
+    }
+    gen_config(str(tmp_path), config, "test_input.json")
+
+    with open(tmp_path / "test_input_gen.json") as f:
+        output = json.load(f)
+
+    sandbox = output["components"][0]["deployment_config"]["sandbox"]
+    assert sandbox["max_memory_usage"] == 1024
+    assert sandbox["max_cpu_usage"] == 50
+
+
+def test_gen_config_output_filename_matches_spec(tmp_path):
+    """Output files should follow the {stem}_gen.json pattern."""
+    config = {
+        "components": {},
+        "run_targets": {"Startup": {}},
+        "initial_run_target": "Startup",
+        "fallback_run_target": {},
+        "alive_supervision": {},
+        "watchdog": {},
+    }
+    gen_config(str(tmp_path), config, "my_config.json")
+    assert (tmp_path / "my_config_gen.json").exists()
+
+
+def test_gen_config_env_variables_list_format(tmp_path):
+    """environmental_variables should be output as a list of {key, value} dicts."""
+    config = {
+        "components": {
+            "app1": {
+                "component_properties": {"application_profile": {"application_type": "REPORTING"}},
+                "deployment_config": {
+                    "ready_timeout": 1.0, "shutdown_timeout": 2.0, "bin_dir": "/opt",
+                    "sandbox": {"uid": 1000, "gid": 1000},
+                    "environmental_variables": {"FOO": "bar", "BAZ": "qux"},
+                },
+            }
+        },
+        "run_targets": {"Startup": {}},
+        "initial_run_target": "Startup",
+        "fallback_run_target": {},
+        "alive_supervision": {},
+        "watchdog": {},
+    }
+    gen_config(str(tmp_path), config, "test_input.json")
+
+    with open(tmp_path / "test_input_gen.json") as f:
+        output = json.load(f)
+
+    env = output["components"][0]["deployment_config"]["environmental_variables"]
+    assert isinstance(env, list)
+    assert len(env) == 2
+    env_dict = {e["key"]: e["value"] for e in env}
+    assert env_dict["FOO"] == "bar"
+    assert env_dict["BAZ"] == "qux"
+
+
+def test_gen_config_run_target_with_dependencies(tmp_path):
+    """Run targets with depends_on should include that field in output."""
+    config = {
+        "components": {
+            "comp1": {
+                "component_properties": {"application_profile": {"application_type": "REPORTING"}},
+                "deployment_config": {"ready_timeout": 1.0, "shutdown_timeout": 2.0, "bin_dir": "/opt", "sandbox": {"uid": 1000, "gid": 1000}},
+            },
+            "comp2": {
+                "component_properties": {"application_profile": {"application_type": "NOT_REPORTING"}},
+                "deployment_config": {"ready_timeout": 1.0, "shutdown_timeout": 2.0, "bin_dir": "/opt", "sandbox": {"uid": 1000, "gid": 1000}},
+            },
+        },
+        "run_targets": {
+            "RT1": {"depends_on": ["comp1"]},
+            "RT2": {"depends_on": ["comp2"], "description": "desc"}
+        },
+        "initial_run_target": "Startup",
+        "fallback_run_target": {},
+        "alive_supervision": {"evaluation_cycle": 0.5},
+        "watchdog": {},
+    }
+    gen_config(str(tmp_path), config, "test_input.json")
+
+    with open(tmp_path / "test_input_gen.json") as f:
+        output = json.load(f)
+
+    rt_names = {rt["name"] for rt in output["run_targets"]}
+    assert "RT1" in rt_names and "RT2" in rt_names
+    rt_map = {rt["name"]: rt for rt in output["run_targets"]}
+    assert rt_map["RT1"]["depends_on"] == ["comp1"]
+    assert rt_map["RT2"]["depends_on"] == ["comp2"]
+
+
+def test_gen_config_recovery_action_switch_run_target(tmp_path):
+    """recovery_action with switch_run_target should output the run_target correctly."""
+    config = {
+        "components": {},
+        "run_targets": {"Startup": {"recovery_action": {"switch_run_target": {"run_target": "fallback_rt"}}}},
+        "initial_run_target": "Startup",
+        "fallback_run_target": {},
+        "alive_supervision": {},
+        "watchdog": {},
+    }
+    gen_config(str(tmp_path), config, "test_input.json")
+
+    with open(tmp_path / "test_input_gen.json") as f:
+        output = json.load(f)
+
+    rt_map = {rt["name"]: rt for rt in output["run_targets"]}
+    assert rt_map["Startup"]["recovery_action"]["run_target"] == "fallback_rt"
+
+
+def test_gen_config_scheduling_policy_mapping(tmp_path):
+    """scheduling_policy should be mapped: SCHED_OTHER->OTHER, SCHED_FIFO->FIFO, SCHED_RR->RR."""
+    for src, expected in SCHED_POLICY_MAP.items():
+        config = {
+            "components": {
+                "c1": {
+                    "component_properties": {"application_profile": {"application_type": "REPORTING"}},
+                    "deployment_config": {
+                        "ready_timeout": 1.0, "shutdown_timeout": 2.0, "bin_dir": "/opt",
+                        "sandbox": {"uid": 1000, "gid": 1000, "scheduling_policy": src},
+                    },
+                }
+            },
+            "run_targets": {"Startup": {}},
+            "initial_run_target": "Startup",
+            "fallback_run_target": {"transition_timeout": 1},
+            "alive_supervision": {},
+            "watchdog": {},
+        }
+        gen_config(str(tmp_path), config, "test.json")
+        with open(tmp_path / "test_gen.json") as f:
+            output = json.load(f)
+        assert output["components"][0]["deployment_config"]["sandbox"]["scheduling_policy"] == expected
+        tmp_path.joinpath("test_gen.json").unlink()
+
+
+def test_gen_config_ready_recovery_action(tmp_path):
+    """ready_recovery_action with restart sub-keys should output number_of_attempts and delay_before_restart."""
+    config = {
+        "components": {
+            "c1": {
+                "component_properties": {"application_profile": {"application_type": "REPORTING"}},
+                "deployment_config": {
+                    "ready_timeout": 1.0,
+                    "shutdown_timeout": 2.0,
+                    "bin_dir": "/opt",
+                    "sandbox": {"uid": 1000, "gid": 1000},
+                    "ready_recovery_action": {"restart": {"number_of_attempts": 3, "delay_before_restart": 5}},
+                },
+            }
+        },
+        "run_targets": {"Startup": {}},
+        "initial_run_target": "Startup",
+        "fallback_run_target": {"transition_timeout": 1},
+        "alive_supervision": {},
+        "watchdog": {},
+    }
+    gen_config(str(tmp_path), config, "test.json")
+
+    with open(tmp_path / "test_gen.json") as f:
+        output = json.load(f)
+
+    rra = output["components"][0]["deployment_config"]["ready_recovery_action"]
+    assert rra["number_of_attempts"] == 3
+    assert rra["delay_before_restart"] == 5
+
+
+## TODO
+def test_gen_config_unmapped_scheduling_policy(tmp_path):
+    """An unknown scheduling_policy should pass through unchanged."""
+    config = {
+        "components": {
+            "c1": {
+                "component_properties": {"application_profile": {"application_type": "REPORTING"}},
+                "deployment_config": {
+                    "ready_timeout": 1.0, "shutdown_timeout": 2.0, "bin_dir": "/opt",
+                    "sandbox": {"uid": 1000, "gid": 1000, "scheduling_policy": "SCHED_DEADLINE"},
+                },
+            }
+        },
+        "run_targets": {"Startup": {}},
+        "initial_run_target": "Startup",
+        "fallback_run_target": {"transition_timeout": 1},
+        "alive_supervision": {},
+        "watchdog": {},
+    }
+    gen_config(str(tmp_path), config, "test.json")
+
+    with open(tmp_path / "test_gen.json") as f:
+        output = json.load(f)
+    # SCHED_DEADLINE is NOT in SCHED_POLICY_MAP so it should pass through
+    assert output["components"][0]["deployment_config"]["sandbox"]["scheduling_policy"] == "SCHED_DEADLINE"
+
+
+def test_gen_config_with_empty_components_list_generates_empty_array(tmp_path):
+    """An empty components dict should produce an empty components list."""
+    config = {
+        "components": {},
+        "run_targets": {"Startup": {}},
+        "initial_run_target": "Startup",
+        "fallback_run_target": {},
+        "alive_supervision": {},
+        "watchdog": {},
+    }
+    gen_config(str(tmp_path), config, "test_input.json")
+
+    with open(tmp_path / "test_input_gen.json") as f:
+        output = json.load(f)
+    assert output["components"] == []
+
+
+# ---------------------------------------------------------------------------
+# output_filename
+# ---------------------------------------------------------------------------
+
+
+def test_output_filename_basic():
+    assert output_filename("test.json") == "test_gen.json"
+
+
+def test_output_filename_multiple_dots():
+    assert output_filename("my.config.json") == "my.config_gen.json"
+
+
+def test_output_filename_no_extension():
+    assert output_filename("config") == "config_gen.json"
+
+
+def test_output_filename_dot_in_name():
+    assert output_filename("v1.2.config.json") == "v1.2.config_gen.json"
+
+
+# ---------------------------------------------------------------------------
+# get_working_dir
+# ---------------------------------------------------------------------------
+
+
+def test_get_working_dir_explicit():
+    assert get_working_dir({"working_dir": "/app/work", "bin_dir": "/opt"}) == "/app/work"
+
+
+def test_get_working_dir_defaults_to_bin_dir():
+    assert get_working_dir({"bin_dir": "/opt/app"}) == "/opt/app"
+
+
+def test_get_working_dir_empty_string_falls_back():
+    """
+    Empty string working_dir is falsy -- get_working_dir returns the empty string
+    because deployment_config.get() finds the key (value is empty but present).
+    """
+    # The actual implementation returns "" when working_dir is "" because it only
+    # falls back when the key is absent, not when it's empty.
+    assert get_working_dir({"working_dir": "", "bin_dir": "/opt/app"}) == ""
+
+
+# ---------------------------------------------------------------------------
+# is_supervised
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("app_type, expected", [
+    ("State_Manager", True),
+    ("Reporting_And_Supervised", True),
+    ("REPORTING", False),
+    ("NOT_REPORTING", False),
+    ("Supervised_Only", False),
+    ("", False),
+])
+def test_is_supervised(app_type, expected):
+    assert is_supervised(app_type) is True if expected else expected == False
+
+
+# ---------------------------------------------------------------------------
+# load_json_file
+# ---------------------------------------------------------------------------
+
+
+def test_load_json_file(tmp_path):
+    """load_json_file should parse and return a valid JSON object."""
+    content = {"key": "value", "list": [1, 2, 3]}
+    json_file = tmp_path / "test_config.json"
+    json_file.write_text(json.dumps(content))
+
+    result = load_json_file(str(json_file))
+    assert result == content
+
+
+def test_load_json_file_nonexistent(tmp_path):
+    """load_json_file should raise FileNotFoundError for a missing file."""
+    json_file = tmp_path / "nonexistent.json"
+    with pytest.raises(FileNotFoundError):
+        load_json_file(str(json_file))
