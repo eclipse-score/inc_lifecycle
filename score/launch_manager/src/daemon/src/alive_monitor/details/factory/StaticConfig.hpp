@@ -53,8 +53,6 @@ public:
     /// @brief By default hm daemon shutdown is disabled
     static constexpr bool k_hmDaemonDefaultShutdownEnabled{false};
 
-
-
     /// @brief Defaults for supervision buffer sizes
     static constexpr SupervisionBufferConfig kDefaultSupervisionBufferConfig{StaticConfig::k_DefaultAliveSupCheckpointBufferElements, StaticConfig::k_DefaultMonitorBufferElements};
 };

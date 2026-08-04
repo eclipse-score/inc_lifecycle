@@ -230,18 +230,17 @@ def output_filename(input_filename):
     return f"{stem}_gen.json"
 
 
-def gen_config(output_dir, config, input_filename, schema_version=None):
+def gen_config(output_dir, config, input_filename):
     """
     This function generates the launch manger flatbuffer json configuration file based on the input configuration.
     Input:
-        output_dir: The directory where the generated files should be saved
+        output_dir: The directory where the generated file should be saved
         config: The preprocessed user json configuration, with all defaults applied
         input_filename: The filename of the user provided json configuration
-        schema_version: The schema_version of the user provided configuration
 
     Output:
-    - The launch manager configuration file in output_dir, with the same name as the input 
-      configuration + "_gen" suffix to avoid naming collision
+        The launch manager configuration file in output_dir, with the same name as the input 
+        configuration + "_gen" suffix to avoid naming collision
     """
     out = {}
     schema_version = config.get("schema_version")

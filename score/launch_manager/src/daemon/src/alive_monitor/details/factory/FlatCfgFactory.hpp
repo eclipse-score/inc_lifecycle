@@ -115,7 +115,7 @@ private:
     /// @brief The buffer configuration for constructing supervision objects
     const factory::SupervisionBufferConfig& bufferConfig_r;
 
-const score::mw::launch_manager::configuration::Config* config_;
+    const score::mw::launch_manager::configuration::Config* config_;
     std::vector<const score::mw::launch_manager::configuration::ComponentConfig*> supervised_components_;
     std::vector<std::string> alive_cfg_names_;
 };
