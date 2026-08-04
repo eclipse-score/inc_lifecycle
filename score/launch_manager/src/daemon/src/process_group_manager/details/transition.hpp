@@ -14,12 +14,14 @@
 #define SCORE_LCM_TRANSITION_HPP
 
 #include "score/mw/launch_manager/common/concurrency/fixed_size_queue.hpp"
+#include "score/mw/launch_manager/common/constants.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/dependency_graph.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/icomponent.hpp"
 
 #include <score/assert.hpp>
 
 #include <algorithm>
+#include <bitset>
 #include <cstddef>
 #include <cstdint>
 #include <iterator>
@@ -221,8 +223,9 @@ class Transition
         const auto& successors = state_.phase == Phase::Starting ? graph_.dependents(node) : graph_.dependsOn(node);
         for (const GraphIndex s : successors)
         {
-            if (isReady(s))
+            if (isReady(s) && !state_.enqueued_set.test(s))
             {
+                state_.enqueued_set.set(s);
                 SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(
                     state_.next_nodes.push(s), "Transition queue should never exceed capacity");
             }
@@ -294,6 +297,12 @@ class Transition
         std::size_t pending = 0;    // nodes still to reach terminal state in this phase
         Phase phase = Phase::Done;  // active vs deactivation vs finished
 
+        /// @brief Nodes that have been enqueued for the current transition phase
+        /// @deprecated This is a workaround for the case where two processes are started in parallel and their events
+        /// processed in sequence. Both onNodeFinished() calls detect that all dependents are ready and try to enqueue
+        /// successors. Detection of dependency readiness should be reworked to remove this.
+        std::bitset<static_cast<std::size_t>(ProcessLimits::kMaxProcesses)> enqueued_set{};
+
         State(std::size_t nodes) : next_nodes(nodes)
         {
         }
@@ -361,6 +370,7 @@ class Transition
         clearNextNodes();
         state_.pending = 0;
         state_.phase = Phase::Stopping;
+        state_.enqueued_set.reset();
     }
 
     /// @brief Leave the Stopping phase for the Starting phase.
@@ -371,6 +381,7 @@ class Transition
         state_.phase = Phase::Starting;
         state_.pending = 0;
         clearNextNodes();
+        state_.enqueued_set.reset();
 
         setupActivation(state_.target_root);
         if (state_.pending == 0)
