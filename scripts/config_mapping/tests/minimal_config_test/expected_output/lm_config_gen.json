@@ -1,0 +1,19 @@
+{
+    "components": [],
+    "run_targets": [
+        {
+            "name": "Startup",
+            "transition_timeout": 3,
+            "recovery_action": {
+                "run_target": "fallback_run_target"
+            }
+        }
+    ],
+    "initial_run_target": "Startup",
+    "fallback_run_target": {
+        "transition_timeout": 3
+    },
+    "alive_supervision": {
+        "evaluation_cycle": 0.5
+    }
+}

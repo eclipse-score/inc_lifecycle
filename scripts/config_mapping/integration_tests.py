@@ -123,61 +123,38 @@ def compare_files(dir1: Path, dir2: Path, files: list) -> bool:
     return True
 
 
-def test_basic(schema_file):
+def test_smoke_test(schema_file):
     """
-    Basic Smoketest for generating both launch manager and health monitoring configuration
+    Basic smoketest for generating both launch manager and health monitoring configuration
     """
 
-    test_name = "basic_test"
+    test_name = "smoke_test"
     input_file = tests_dir / test_name / "input" / "lm_config.json"
 
     run(input_file, test_name, schema_file)
 
 
-def test_health_config_mapping(schema_file):
+def test_minimal_config(schema_file):
     """
-    Test generation of the health monitoring configuration with
-    * Different application types
-    * Different alive supervision parameters
-    * Different Uid
+    Test generation of launch manager configuration
+    with only minimal required fields (no defaults section, minimal components).
     """
-    test_name = "health_config_test"
+    test_name = "minimal_config_test"
     input_file = tests_dir / test_name / "input" / "lm_config.json"
 
-    run(input_file, test_name, schema_file, exclude_files=["lm_demo.json"])
+    run(input_file, test_name, schema_file)
 
 
-def test_empty_health_config_mapping(schema_file):
+def test_full_config(schema_file):
     """
-    Test generation of the health monitoring configuration with no supervised processes
+    Test generation of launch manager configuration
+    with all parameters specified at every level (defaults, components, run targets,
+    alive supervision, watchdog, sandbox, etc.).
     """
-    test_name = "empty_health_config_test"
+    test_name = "full_config_test"
     input_file = tests_dir / test_name / "input" / "lm_config.json"
 
-    run(input_file, test_name, schema_file, exclude_files=["lm_demo.json"])
-
-
-def test_launch_config_mapping(schema_file):
-    """
-    Test generation of the launch manager configuration with
-    * Different application types
-    * Different dependency configurations
-    * Different ready conditions
-    """
-    test_name = "lm_config_test"
-    input_file = tests_dir / test_name / "input" / "lm_config.json"
-
-    run(input_file, test_name, schema_file, compare_files_only=["lm_demo.json"])
-
-
-def test_empty_launch_config_mapping(schema_file):
-    """
-    Test generation of the launch manager configuration with no processes defined
-    """
-    test_name = "empty_lm_config_test"
-    input_file = tests_dir / test_name / "input" / "lm_config.json"
-
-    run(input_file, test_name, schema_file, compare_files_only=["lm_demo.json"])
+    run(input_file, test_name, schema_file)
 
 
 def test_custom_validation_failures(schema_file):

@@ -1,0 +1,229 @@
+{
+    "schema_version": 1,
+    "defaults": {
+        "deployment_config": {
+            "ready_timeout": 1.0,
+            "shutdown_timeout": 2.0,
+            "environmental_variables": {
+                "APP_ENV": "production",
+                "LOG_LEVEL": "info",
+                "CUSTOM_VAR": "value123"
+            },
+            "bin_dir": "/opt/apps",
+            "working_dir": "/var/run/apps",
+            "ready_recovery_action": {
+                "restart": {
+                    "number_of_attempts": 3,
+                    "delay_before_restart": 1.0
+                }
+            },
+            "recovery_action": {
+                "switch_run_target": {
+                    "run_target": "fallback_run_target"
+                }
+            },
+            "sandbox": {
+                "uid": 1000,
+                "gid": 1000,
+                "supplementary_group_ids": [100, 200, 300],
+                "security_policy": "apparmor_profile",
+                "scheduling_policy": "SCHED_FIFO",
+                "scheduling_priority": 50,
+                "max_memory_usage": 536870912,
+                "max_cpu_usage": 80
+            }
+        },
+        "component_properties": {
+            "binary_name": "default_app",
+            "application_profile": {
+                "application_type": "Reporting_And_Supervised",
+                "is_self_terminating": false,
+                "alive_supervision": {
+                    "reporting_cycle": 0.5,
+                    "failed_cycles_tolerance": 3,
+                    "min_indications": 1,
+                    "max_indications": 5
+                }
+            },
+            "depends_on": [],
+            "process_arguments": [],
+            "ready_condition": {
+                "process_state": "Running"
+            }
+        },
+        "run_target": {
+            "description": "Default run target",
+            "depends_on": [],
+            "transition_timeout": 5,
+            "recovery_action": {
+                "switch_run_target": {
+                    "run_target": "fallback_run_target"
+                }
+            }
+        },
+        "alive_supervision": {
+            "evaluation_cycle": 0.5
+        },
+        "watchdog": {
+            "device_file_path": "/dev/watchdog0",
+            "max_timeout": 10,
+            "deactivate_on_shutdown": false,
+            "require_magic_close": true
+        }
+    },
+    "components": {
+        "component_a": {
+            "description": "Component A - reporting with alive supervision",
+            "component_properties": {
+                "application_profile": {
+                    "application_type": "Reporting_And_Supervised",
+                    "is_self_terminating": false,
+                    "alive_supervision": {
+                        "reporting_cycle": 0.5,
+                        "failed_cycles_tolerance": 2,
+                        "min_indications": 1,
+                        "max_indications": 3
+                    }
+                },
+                "depends_on": [],
+                "process_arguments": ["--config", "/etc/a.conf", "--verbose"]
+            },
+            "deployment_config": {
+                "ready_timeout": 2.0,
+                "shutdown_timeout": 3.0,
+                "environmental_variables": {
+                    "COMP_A_VAR": "a_value"
+                },
+                "bin_dir": "/opt/apps/a",
+                "working_dir": "/var/run/a",
+                "ready_recovery_action": {
+                    "restart": {
+                        "number_of_attempts": 5,
+                        "delay_before_restart": 0.5
+                    }
+                },
+                "recovery_action": {
+                    "switch_run_target": {
+                        "run_target": "fallback_run_target"
+                    }
+                },
+                "sandbox": {
+                    "uid": 1001,
+                    "gid": 1001,
+                    "supplementary_group_ids": [50, 60],
+                    "security_policy": "apparmor_a",
+                    "scheduling_policy": "SCHED_RR",
+                    "scheduling_priority": 75,
+                    "max_memory_usage": 268435456,
+                    "max_cpu_usage": 50
+                }
+            }
+        },
+        "component_b": {
+            "description": "Component B - native (no LC integration)",
+            "component_properties": {
+                "binary_name": "app_b",
+                "application_profile": {
+                    "application_type": "Native",
+                    "is_self_terminating": true
+                },
+                "process_arguments": ["-b", "--option"]
+            },
+            "deployment_config": {
+                "bin_dir": "/opt/apps/b",
+                "sandbox": {
+                    "uid": 1002,
+                    "gid": 1002,
+                    "supplementary_group_ids": [70]
+                }
+            }
+        },
+        "component_c": {
+            "description": "Component C - reporting only (no alive supervision)",
+            "component_properties": {
+                "binary_name": "app_c",
+                "application_profile": {
+                    "application_type": "Reporting",
+                    "is_self_terminating": false
+                },
+                "depends_on": ["component_a"]
+            },
+            "deployment_config": {
+                "bin_dir": "/opt/apps/c",
+                "sandbox": {
+                    "uid": 1003,
+                    "gid": 1003
+                }
+            }
+        },
+        "state_manager": {
+            "description": "State Manager component",
+            "component_properties": {
+                "binary_name": "sm",
+                "application_profile": {
+                    "application_type": "State_Manager",
+                    "alive_supervision": {
+                        "reporting_cycle": 0.1,
+                        "failed_cycles_tolerance": 0,
+                        "min_indications": 0,
+                        "max_indications": 10
+                    }
+                }
+            },
+            "deployment_config": {
+                "bin_dir": "/opt/apps/sm",
+                "sandbox": {
+                    "uid": 0,
+                    "gid": 0
+                }
+            }
+        }
+    },
+    "run_targets": {
+        "Startup": {
+            "description": "Initial startup mode with minimal services",
+            "depends_on": ["state_manager"],
+            "transition_timeout": 3.0,
+            "recovery_action": {
+                "switch_run_target": {
+                    "run_target": "fallback_run_target"
+                }
+            }
+        },
+        "Full": {
+            "description": "Full operational mode with all services",
+            "depends_on": ["component_a", "component_b", "component_c", "Startup"],
+            "transition_timeout": 10.0,
+            "recovery_action": {
+                "switch_run_target": {
+                    "run_target": "fallback_run_target"
+                }
+            }
+        },
+        "Diagnostic": {
+            "description": "Diagnostic mode for troubleshooting",
+            "depends_on": ["component_a", "component_b"],
+            "transition_timeout": 7.5,
+            "recovery_action": {
+                "switch_run_target": {
+                    "run_target": "fallback_run_target"
+                }
+            }
+        }
+    },
+    "initial_run_target": "Startup",
+    "fallback_run_target": {
+        "description": "Fallback mode - all non-essential services stopped",
+        "depends_on": ["state_manager"],
+        "transition_timeout": 1.5
+    },
+    "alive_supervision": {
+        "evaluation_cycle": 0.25
+    },
+    "watchdog": {
+        "device_file_path": "/dev/watchdog",
+        "max_timeout": 2,
+        "deactivate_on_shutdown": true,
+        "require_magic_close": false
+    }
+}
