@@ -111,7 +111,7 @@ def launch_manager_config(
         schema = Label("//score/launch_manager/src/daemon/src/configuration/config_schema:launch_manager.schema.json"),
         script = Label("//scripts/config_mapping:lifecycle_config"),
         flatbuffer_out_dir = "flatbuffer_out",
-        lm_schema = Label("//score/launch_manager/src/daemon/src/configuration:new_lm_flatcfg_fbs"),
+        lm_schema = Label("//score/launch_manager/src/daemon/src/configuration:lm_flatcfg_fbs"),
         **kwargs):
     gen_name = name + "_gen"
     lm_config_generator(

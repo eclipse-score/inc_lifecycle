@@ -37,14 +37,13 @@ cc_library(
 
 cc_library(
     name = "flat_cfg_factory",
-    srcs = ["FlatCfgFactory_new.cpp"],
+    srcs = ["FlatCfgFactory.cpp"],
     hdrs = ["FlatCfgFactory.hpp"],
     include_prefix = "score/mw/launch_manager/alive_monitor/details/factory",
     strip_include_prefix = "/score/launch_manager/src/daemon/src/alive_monitor/details/factory",
     visibility = ["//score/launch_manager/src/daemon/src/alive_monitor:__subpackages__"],
     deps = [
         ":i_phm_factory",
-        "//score/launch_manager/src/daemon/src/alive_monitor/config",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/common:types",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/factory:static_config",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/ifappl:checkpoint",
@@ -59,7 +58,6 @@ cc_library(
         "//score/launch_manager/src/daemon/src/common:log",
         "//score/launch_manager/src/daemon/src/common:alive_interface_path",
         "//score/launch_manager/src/daemon/src/configuration:config",
-        "@score_baselibs//score/flatbuffers:flatbufferscpp",
     ] + select({
         "@platforms//os:qnx": [],
         "@platforms//os:linux": ["//externals/acl"],

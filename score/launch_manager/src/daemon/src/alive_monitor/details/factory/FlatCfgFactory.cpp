@@ -13,9 +13,9 @@
 
 #include "score/mw/launch_manager/alive_monitor/details/factory/FlatCfgFactory.hpp"
 
+#include <cassert>
 #include <cmath>
 #include <cstring>
-#include <fstream>
 
 #include "score/launch_manager/src/daemon/src/common/log.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/factory/IPhmFactory.hpp"
@@ -27,430 +27,306 @@
 #include "score/mw/launch_manager/alive_monitor/details/supervision/SupervisionCfg.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/TimeConversion.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
+#include "score/mw/launch_manager/common/alive_interface_path.hpp"
 #include "score/mw/launch_manager/common/identifier_hash.hpp"
 
-namespace score
-{
-namespace lcm
-{
-namespace saf
-{
-namespace factory
-{
+namespace score {
+namespace lcm {
+namespace saf {
+namespace factory {
 
 using BufferConfig = SupervisionBufferConfig;
+using Config = score::mw::launch_manager::configuration::Config;
+using ComponentConfig = score::mw::launch_manager::configuration::ComponentConfig;
+using ApplicationType = score::mw::launch_manager::configuration::ApplicationType;
 using RecoveryClient = score::lcm::IRecoveryClient;
 using NanoSecondType = saf::timers::NanoSecondType;
 using IdentifierHash = score::lcm::IdentifierHash;
 
-namespace
-{
-/// @brief Prefix for all log messages
-// coverity[autosar_cpp14_a2_10_4_violation:FALSE] Empty namespace ensures uniqueness for cpp file scope
-static constexpr const std::string_view kLogPrefix{"Factory for FlatCfg AR24-11:"};
+namespace {
 
-std::unique_ptr<char[]> read_flatbuffer_file(const std::string& f_filename_r)
-{
-    const std::string configFilePath = std::string("etc/") + f_filename_r.c_str();
-
-    std::ifstream infile;
-    infile.open(configFilePath, std::ios::binary | std::ios::in);
-    if (!infile.is_open())
-    {
-        return nullptr;
-    }
-    infile.seekg(0, std::ios::end);
-    const auto length = static_cast<size_t>(infile.tellg());
-    infile.seekg(0, std::ios::beg);
-    auto data = std::make_unique<char[]>(length);
-    infile.read(data.get(), length);
-    infile.close();
-    return data;
+bool isSupervisedType(ApplicationType app_type) {
+  return app_type == ApplicationType::ReportingAndSupervised ||
+         app_type == ApplicationType::StateManager;
 }
 
-}  // namespace
+} // namespace
 
-/* RULECHECKER_comment(0, 7, check_incomplete_data_member_construction, "Members processDataBase is not \
-required to be initialized using member initializer list.", true_no_defect) */
-FlatCfgFactory::FlatCfgFactory(const BufferConfig& f_bufferConfig_r)
-    : IPhmFactory(), bufferConfig_r(f_bufferConfig_r), flatBuffer_p(nullptr)
-// loadBuffer_p(nullptr)
-{
-    static_cast<void>(flatBuffer_p);
+FlatCfgFactory::FlatCfgFactory(
+  const BufferConfig &f_bufferConfig_r)
+    : IPhmFactory(), bufferConfig_r(f_bufferConfig_r), config_(nullptr) {}
+
+bool FlatCfgFactory::init(const Config &config) {
+  config_ = &config;
+
+  supervised_components_.clear();
+  for (const auto &comp : config_->components()) {
+    if (isSupervisedType(
+            comp.component_properties.application_profile.application_type)) {
+      supervised_components_.push_back(&comp);
+    }
+  }
+
+  return true;
 }
 
-bool FlatCfgFactory::init(const std::string& f_filename_r)
-{
-    loadBuffer_p = read_flatbuffer_file(f_filename_r);
-    if (!loadBuffer_p)
-    {
-        LM_LOG_ERROR() << kLogPrefix << "Could not open config file.";
-        return false;
-    }
+bool FlatCfgFactory::createProcessStates(
+    std::vector<ifexm::ProcessState> &f_processStates_r,
+    ifexm::ProcessStateReader &f_processStateReader_r) {
+  bool isSuccess{true};
 
-    // parse flatbuffer file
-    flatBuffer_p = HMFlatBuffer::GetHMEcuCfg(loadBuffer_p.get());
-    if (flatBuffer_p == nullptr)
-    {
-        LM_LOG_ERROR() << kLogPrefix << "Reading HealthMonitor configuration from FlatCfg failed.";
-        return false;
+  try {
+    f_processStates_r.reserve(supervised_components_.size());
+    for (const auto *comp : supervised_components_) {
+      ifexm::ProcessCfg processCfg{};
+      processCfg.processShortName = std::string_view(comp->name);
+
+      const auto processId = getProcessId(comp);
+      processCfg.processId = processId.data();
+
+      f_processStates_r.emplace_back(processCfg);
+      isSuccess = f_processStateReader_r.registerProcessState(
+          f_processStates_r.back(), processCfg.processId);
+      if (!isSuccess) {
+        break;
+      }
+
+      LM_LOG_DEBUG() << "Successfully created Process States:"
+                          << comp->name;
     }
-    return true;
+  } catch (const std::exception &f_exception_r) {
+    isSuccess = false;
+    LM_LOG_ERROR() << "Could not create Process States due to exception:"
+                        << std::string_view{f_exception_r.what()};
+  }
+
+  if (isSuccess) {
+    LM_LOG_DEBUG() << "Number of constructed Process States:"
+                        << static_cast<uint64_t>(f_processStates_r.size());
+  } else {
+    for (auto &processState_r : f_processStates_r) {
+      f_processStateReader_r.deregisterProcessState(
+          processState_r.getProcessId());
+    }
+    f_processStates_r.clear();
+    LM_LOG_ERROR() << "Could not create all necessary Process States.";
+  }
+
+  return isSuccess;
 }
 
-bool FlatCfgFactory::createProcessStates(std::vector<ifexm::ProcessState>& f_processStates_r,
-                                         ifexm::ProcessStateReader& f_processStateReader_r)
-{
-    bool isSuccess{true};
+bool FlatCfgFactory::initIpcServerWithUidBasedAccess(
+    ifappl::CheckpointIpcServer &f_ipcServer_r, const std::string &f_ipcPath_r,
+    const std::int32_t f_uid) noexcept(false) {
+  constexpr mode_t kOwnerReadWrite{384U}; // 0600 in octal
+  if (f_ipcServer_r.init(f_ipcPath_r, kOwnerReadWrite) !=
+      ifappl::CheckpointIpcServer::EIpcInitResult::kOk) {
+    return false;
+  }
 
-    if (flatBuffer_p->process() != nullptr)
-    {
-        try
-        {
-            f_processStates_r.reserve(static_cast<size_t>(flatBuffer_p->process()->size()));
-            for (const auto process_p : *flatBuffer_p->process())
-            {
-                // Construct Process States
-                ifexm::ProcessCfg processCfg{};
-                const auto* shortName = process_p->shortName();
-                const char* shortNameStr = shortName->c_str();
-                // coverity[cert_exp34_c_violation] PHM.ecucfgdsl Process.shortName MANDATORY
-                // coverity[dereference] PHM.ecucfgdsl Process.shortName MANDATORY
-                const std::size_t shortNameLen = shortName->size();
-                processCfg.processShortName = std::string_view(shortNameStr, shortNameLen);
-
-                // Not an EXM Process
-                if (process_p->processType() != HMFlatBuffer::ProcessType::LM_PROCESS)
-                {
-                    // coverity[cert_exp34_c_violation] PHM.ecucfgdsl Process.identifier MANDATORY
-                    // coverity[dereference] PHM.ecucfgdsl Process.identifier MANDATORY
-                    const std::string processPath{process_p->identifier()->c_str()};
-
-                    const auto processIdResult_p{getProcessId(processPath)};
-                    processCfg.processId = *processIdResult_p;
-
-                    f_processStates_r.emplace_back(processCfg);
-                    isSuccess =
-                        f_processStateReader_r.registerProcessState(f_processStates_r.back(), processCfg.processId);
-                    if (!isSuccess)
-                    {
-                        break;
-                    }
-                }
-                else
-                {
-                    // EXM processId
-                    processCfg.processId = -2;
-
-                    f_processStates_r.emplace_back(processCfg);
-                }
-
-                const std::string processShortNameRead{f_processStates_r.back().getConfigName()};
-                LM_LOG_DEBUG() << kLogPrefix << "Successfully created Process States:" << processShortNameRead;
-            }
-        }
-        catch (const std::exception& f_exception_r)
-        {
-            isSuccess = false;
-            LM_LOG_ERROR() << kLogPrefix << "Could not create Process States due to exception:"
-                           << std::string_view{f_exception_r.what()};
-        }
-    }
-    else
-    {
-        isSuccess = false;
-    }
-
-    if (isSuccess)
-    {
-        LM_LOG_DEBUG() << kLogPrefix
-                       << "Number of constructed Process States:" << static_cast<uint64_t>(f_processStates_r.size());
-    }
-    else
-    {
-        // Deregister all constructed process states
-        for (auto& processState_r : f_processStates_r)
-        {
-            f_processStateReader_r.deregisterProcessState(processState_r.getProcessId());
-        }
-        f_processStates_r.clear();
-        LM_LOG_ERROR() << kLogPrefix << "Could not create all necessary Process States.";
-    }
-
-    return isSuccess;
+  const uid_t uid = static_cast<uid_t>(f_uid);
+  if (!f_ipcServer_r.setAccessRights(uid)) {
+    LM_LOG_ERROR() << "Could not set ACL permissions (r/w for uid" << uid
+                        << ") for Monitor interface IPC with path:"
+                        << f_ipcPath_r;
+    return false;
+  }
+  return true;
 }
 
-bool FlatCfgFactory::initIpcServerWithUidBasedAccess(ifappl::CheckpointIpcServer& f_ipcServer_r,
-                                                     const std::string& f_ipcPath_r,
-                                                     const std::int32_t f_uid) noexcept(false)
-{
-    // PHM Daemon needs to read from IPC and set ACL permissions (owner: r/w access)
-    // Application needs to open the IPC channel and write to it (r/w access set via ACL for specific uid, group: no
-    // access)
-    constexpr mode_t kOwnerReadWrite{384U};  // 0600 in octal
-    if (f_ipcServer_r.init(f_ipcPath_r, kOwnerReadWrite) != ifappl::CheckpointIpcServer::EIpcInitResult::kOk)
-    {
-        return false;
-    }
+bool FlatCfgFactory::createAliveIfIpcs(
+    std::vector<ifappl::CheckpointIpcServer> &f_interfaceIpcs_r) {
+  bool isSuccess{true};
+  try {
+    f_interfaceIpcs_r.reserve(supervised_components_.size());
 
-    /// The allowed range of 0-65533 can be safely casted to uid_t (uint32_t on linux and int32_t on qnx)
-    const uid_t uid = static_cast<uid_t>(f_uid);
-    if (!f_ipcServer_r.setAccessRights(uid))
-    {
-        LM_LOG_ERROR() << kLogPrefix << "Could not set ACL permissions (r/w for uid" << uid
-                       << ") for Alive interface IPC with path:" << f_ipcPath_r;
-        return false;
+    for (const auto *comp : supervised_components_) {
+      const std::string pathInterface =
+          score::lcm::internal::aliveInterfacePath(comp->name);
+      f_interfaceIpcs_r.emplace_back();
+      const std::int32_t configuredUid =
+          static_cast<std::int32_t>(comp->deployment_config.sandbox.uid);
+      isSuccess = initIpcServerWithUidBasedAccess(f_interfaceIpcs_r.back(),
+                                                  pathInterface, configuredUid);
+
+      if (isSuccess) {
+        LM_LOG_DEBUG()
+            << "Successfully created Monitor interface IPC with path:"
+            << pathInterface;
+      } else {
+        LM_LOG_ERROR()
+            << "Could not create Monitor interface IPC with path:"
+            << pathInterface;
+        break;
+      }
     }
-    return true;
+  } catch (const std::exception &f_exception_r) {
+    isSuccess = false;
+    LM_LOG_ERROR()
+        << "Could not create Monitor interface IPC due to exception:"
+        << std::string_view{f_exception_r.what()};
+  }
+
+  if (isSuccess) {
+    LM_LOG_DEBUG() << "Number of constructed Monitor interface IPCs:"
+                        << static_cast<uint64_t>(f_interfaceIpcs_r.size());
+  } else {
+    f_interfaceIpcs_r.clear();
+    LM_LOG_ERROR()
+        << "Could not create all necessary Monitor interface IPCs.";
+  }
+
+  return isSuccess;
 }
 
-bool FlatCfgFactory::createAliveIfIpcs(std::vector<ifappl::CheckpointIpcServer>& f_interfaceIpcs_r)
-{
-    bool isSuccess{true};
-    if (flatBuffer_p->hmMonitorInterface() != nullptr)
-    {
-        try
-        {
-            f_interfaceIpcs_r.reserve(static_cast<size_t>(flatBuffer_p->hmMonitorInterface()->size()));
+bool FlatCfgFactory::createAliveIf(
+    std::vector<ifappl::MonitorIfDaemon> &f_interfaces_r,
+    std::vector<ifappl::CheckpointIpcServer> &f_interfaceIpcs_r,
+    std::vector<ifexm::ProcessState> &f_processStates_r) {
+  bool isSuccess{true};
+  try {
+    f_interfaces_r.reserve(supervised_components_.size());
+    for (std::size_t compIndex = 0; compIndex < supervised_components_.size();
+         ++compIndex) {
+      auto &interfaceIpc = f_interfaceIpcs_r.at(compIndex);
+      f_interfaces_r.emplace_back(interfaceIpc, interfaceIpc.getPath().data());
+      f_processStates_r.at(compIndex).attachObserver(f_interfaces_r.back());
 
-            for (auto hmMonitorInterface_p : *flatBuffer_p->hmMonitorInterface())
-            {
-                // coverity[cert_exp34_c_violation] PHM.ecucfgdsl PhmMonitorInterface.interfacePath MANDATORY
-                // coverity[dereference] PHM.ecucfgdsl PhmMonitorInterface.interfacePath MANDATORY
-                const std::string pathInterface{hmMonitorInterface_p->interfacePath()->c_str()};
-                f_interfaceIpcs_r.emplace_back();
-                const std::int32_t configuredUid{hmMonitorInterface_p->permittedUid()};
-                isSuccess = initIpcServerWithUidBasedAccess(f_interfaceIpcs_r.back(), pathInterface, configuredUid);
-
-                if (isSuccess)
-                {
-                    LM_LOG_DEBUG() << kLogPrefix
-                                   << "Successfully created Alive interface IPC with path:" << pathInterface;
-                }
-                else
-                {
-                    LM_LOG_ERROR() << kLogPrefix << "Could not create Alive interface IPC with path:" << pathInterface;
-                    break;
-                }
-            }
-        }
-        catch (const std::exception& f_exception_r)
-        {
-            isSuccess = false;
-            LM_LOG_ERROR() << kLogPrefix << "Could not create Alive interface IPC due to exception:"
-                           << std::string_view{f_exception_r.what()};
-        }
-    }
-    else
-    {
-        isSuccess = false;
-        LM_LOG_ERROR() << kLogPrefix << "Could not create Alive interface IPCs due to missing configuration";
+      LM_LOG_DEBUG() << "Successfully created MonitorInterface:"
+                          << f_interfaces_r.back().getInterfaceName();
     }
 
-    if (isSuccess)
-    {
-        LM_LOG_DEBUG() << kLogPrefix << "Number of constructed Alive interface IPCs:"
-                       << static_cast<uint64_t>(f_interfaceIpcs_r.size());
-    }
-    else
-    {
-        f_interfaceIpcs_r.clear();
-        LM_LOG_ERROR() << kLogPrefix << "Could not create all necessary Alive interface IPCs.";
-    }
+    LM_LOG_DEBUG() << "Number of constructed Monitor interfaces:"
+                        << static_cast<uint64_t>(f_interfaces_r.size());
+  } catch (const std::exception &f_exception_r) {
+    isSuccess = false;
+    f_interfaces_r.clear();
+    LM_LOG_ERROR()
+        << "Could not create all necessary Monitor interfaces due to exception:"
+        << std::string_view{f_exception_r.what()};
+  }
 
-    return isSuccess;
+  return isSuccess;
 }
 
-bool FlatCfgFactory::createAliveIf(std::vector<ifappl::MonitorIfDaemon>& f_interfaces_r,
-                                   std::vector<ifappl::CheckpointIpcServer>& f_interfaceIpcs_r,
-                                   std::vector<ifexm::ProcessState>& f_processStates_r)
-{
-    bool isSuccess{true};
-    try
-    {
-        uint32_t index{0U};
-        f_interfaces_r.reserve(f_interfaceIpcs_r.size());
-        for (auto& interfaceIpc : f_interfaceIpcs_r)
-        {
-            f_interfaces_r.emplace_back(interfaceIpc, interfaceIpc.getPath().data());
+bool FlatCfgFactory::createSupervisionCheckpoints(
+    std::vector<ifappl::Checkpoint> &f_checkpoints_r,
+    std::vector<ifappl::MonitorIfDaemon> &f_interfaces_r,
+    std::vector<ifexm::ProcessState> &f_processStates_r) {
+  bool isSuccess{true};
 
-            // Shared Memories (f_interfaceIpcs_r) has also been created from PhmMonitorInterface config
-            // Accessing the same index (vector <-> config vector) is mapping the same configuration.
-            // coverity[cert_exp34_c_violation] f_interfaceIpcs_r is created from PhmMonitorInterface
-            // coverity[dereference] f_interfaceIpcs_r is created from PhmMonitorInterface same size assured
-            auto refProcessIndex{flatBuffer_p->hmMonitorInterface()->Get(index)->refProcessIndex()};
+  try {
+    f_checkpoints_r.reserve(supervised_components_.size());
 
-            f_processStates_r.at(static_cast<size_t>(refProcessIndex)).attachObserver(f_interfaces_r.back());
+    for (size_t idx = 0; idx < supervised_components_.size(); ++idx) {
+      const auto *comp = supervised_components_[idx];
+      const std::string checkpointCfgName = comp->name + "_checkpoint";
+      const uint32_t checkpointId = StaticConfig::k_DefaultCheckpointId;
 
-            LM_LOG_DEBUG() << kLogPrefix
-                           << "Successfully created Alive Interface:" << f_interfaces_r.back().getInterfaceName();
-            // coverity[autosar_cpp14_a4_7_1_violation] Value limited by amount of interfaces, which is smaller.
-            index++;
-        }
+      const ifexm::ProcessState *process_p{&f_processStates_r.at(idx)};
+      f_checkpoints_r.emplace_back(checkpointCfgName.c_str(), checkpointId,
+                                   process_p);
+      f_interfaces_r.at(idx).attachCheckpoint(f_checkpoints_r.back());
 
-        LM_LOG_DEBUG() << kLogPrefix
-                       << "Number of constructed Alive interfaces:" << static_cast<uint64_t>(f_interfaces_r.size());
+      LM_LOG_DEBUG() << "Successfully created supervision checkpoint:"
+                          << f_checkpoints_r.back().getConfigName();
     }
-    catch (const std::exception& f_exception_r)
-    {
-        isSuccess = false;
-        f_interfaces_r.clear();
-        LM_LOG_ERROR() << kLogPrefix << "Could not create all necessary Alive interfaces due to exception:"
-                       << std::string_view{f_exception_r.what()};
-    }
+  } catch (const std::exception &f_exception_r) {
+    isSuccess = false;
+    LM_LOG_ERROR()
+        << "Could not create supervision worker objects, due to exception:"
+        << std::string_view{f_exception_r.what()};
+  }
 
-    return isSuccess;
+  if (isSuccess) {
+    LM_LOG_DEBUG() << "Number of constructed supervision checkpoints:"
+                        << static_cast<uint64_t>(f_checkpoints_r.size());
+  } else {
+    f_checkpoints_r.clear();
+    LM_LOG_ERROR()
+        << "Could not create all necessary supervision checkpoints.";
+  }
+
+  return isSuccess;
 }
 
-bool FlatCfgFactory::createSupervisionCheckpoints(std::vector<ifappl::Checkpoint>& f_checkpoints_r,
-                                                  std::vector<ifappl::MonitorIfDaemon>& f_interfaces_r,
-                                                  std::vector<ifexm::ProcessState>& f_processStates_r)
-{
-    bool isSuccess{true};
+bool FlatCfgFactory::createAliveSupervisions(
+    std::vector<supervision::Alive> &f_alive_r,
+    std::vector<ifappl::Checkpoint> &f_checkpoints_r,
+    std::vector<ifexm::ProcessState> &f_processStates_r,
+  std::shared_ptr<RecoveryClient> f_recoveryClient_r) {
+  bool isSuccess{true};
 
-    if (flatBuffer_p->hmSupervisionCheckpoint() != nullptr)
-    {
-        auto numberOfCheckpoints{flatBuffer_p->hmSupervisionCheckpoint()->size()};
-        try
-        {
-            f_checkpoints_r.reserve(static_cast<size_t>(numberOfCheckpoints));
+  try {
+    f_alive_r.reserve(supervised_components_.size());
+    alive_cfg_names_.clear();
+    alive_cfg_names_.reserve(supervised_components_.size());
 
-            for (auto hmSupervisionCheckpoint_p : *flatBuffer_p->hmSupervisionCheckpoint())
-            {
-                const char* const checkpointCfgName{hmSupervisionCheckpoint_p->shortName()->c_str()};
-                const uint32_t checkpointId{hmSupervisionCheckpoint_p->checkpointId()};
-                const uint32_t refInterfaceIndex{hmSupervisionCheckpoint_p->refInterfaceIndex()};
-                // coverity[cert_exp34_c_violation] PHM.ecucfgdsl ensures valid link btw. PhmSupervisionCheckpoint and
-                // PhmMonitorInterface coverity[dereference] PHM.ecucfgdsl ensures valid link btw.
-                // PhmSupervisionCheckpoint and PhmMonitorInterface
-                const auto refProcessIndex{
-                    flatBuffer_p->hmMonitorInterface()->Get(refInterfaceIndex)->refProcessIndex()};
-                const ifexm::ProcessState* process_p{&f_processStates_r.at(static_cast<size_t>(refProcessIndex))};
+    for (size_t idx = 0; idx < supervised_components_.size(); ++idx) {
+      const auto *comp = supervised_components_[idx];
+      const auto &alive_sup =
+          comp->component_properties.application_profile.alive_supervision;
+      assert(alive_sup.has_value() &&
+             "Supervised component must have alive_supervision configured");
 
-                // coverity[cert_exp34_c_violation] PHM.ecucfgdsl PhmSupervisionCheckpoint.shortName is MANDATORY
-                // coverity[dereference] PHM.ecucfgdsl PhmSupervisionCheckpoint.shortName is MANDATORY
-                f_checkpoints_r.emplace_back(checkpointCfgName, checkpointId, process_p);
-                f_interfaces_r.at(refInterfaceIndex).attachCheckpoint(f_checkpoints_r.back());
+      alive_cfg_names_.emplace_back(comp->name + "_alive_supervision");
+        NanoSecondType aliveReferenceCycleCfg{
+          timers::TimeConversion::convertMilliSecToNanoSec(
+              static_cast<double>(alive_sup->reporting_cycle_ms))};
+      uint32_t minAliveIndicationsCfg = alive_sup->min_indications.value_or(0U);
+      uint32_t maxAliveIndicationsCfg = alive_sup->max_indications.value_or(0U);
+      bool isMinCheckDisabledCfg = (minAliveIndicationsCfg == 0U);
+      bool isMaxCheckDisabledCfg = (maxAliveIndicationsCfg == 0U);
+      uint32_t failedCyclesToleranceCfg = alive_sup->failed_cycles_tolerance;
 
-                LM_LOG_DEBUG() << kLogPrefix << "Successfully created supervision checkpoint:"
-                               << f_checkpoints_r.back().getConfigName();
-            }
-        }
-        catch (const std::exception& f_exception_r)
-        {
-            isSuccess = false;
-            LM_LOG_ERROR() << kLogPrefix << "Could not create supervision worker objects, due to exception:"
-                           << std::string_view{f_exception_r.what()};
-        }
+      supervision::AliveSupervisionCfg aliveSupCfg{f_checkpoints_r.at(idx)};
+
+      aliveSupCfg.cfgName_p = alive_cfg_names_.back().c_str();
+      aliveSupCfg.aliveReferenceCycle = aliveReferenceCycleCfg;
+      aliveSupCfg.minAliveIndications = minAliveIndicationsCfg;
+      aliveSupCfg.maxAliveIndications = maxAliveIndicationsCfg;
+      aliveSupCfg.isMinCheckDisabled = isMinCheckDisabledCfg;
+      aliveSupCfg.isMaxCheckDisabled = isMaxCheckDisabledCfg;
+      aliveSupCfg.failedCyclesTolerance = failedCyclesToleranceCfg;
+      aliveSupCfg.checkpointBufferSize =
+          bufferConfig_r.bufferSizeAliveSupervision;
+      aliveSupCfg.recoveryClient = f_recoveryClient_r;
+
+      aliveSupCfg.processIdentifier = getProcessId(comp);
+
+      f_alive_r.emplace_back(aliveSupCfg);
+
+      f_processStates_r.at(idx).attachObserver(f_alive_r.back());
+
+      LM_LOG_DEBUG()
+          << "Successfully created alive supervision worker object:"
+          << f_alive_r.back().getConfigName();
     }
-    else
-    {
-        isSuccess = false;
-    }
+  } catch (const std::exception &f_exception_r) {
+    isSuccess = false;
+    LM_LOG_ERROR() << "Could not create all necessary alive supervision "
+                           "worker objects, due to exception:"
+                        << std::string_view{f_exception_r.what()};
+  }
 
-    if (isSuccess)
-    {
-        LM_LOG_DEBUG() << kLogPrefix << "Number of constructed supervision checkpoints:"
-                       << static_cast<uint64_t>(f_checkpoints_r.size());
-    }
-    else
-    {
-        f_checkpoints_r.clear();
-        LM_LOG_ERROR() << kLogPrefix << "Could not create all necessary supervision checkpoints.";
-    }
+  if (isSuccess) {
+    LM_LOG_DEBUG() << "Number of constructed alive supervisions:"
+                        << static_cast<uint64_t>(f_alive_r.size());
+  } else {
+    f_alive_r.clear();
+    LM_LOG_ERROR()
+        << "Could not create all necessary alive supervision worker objects";
+  }
 
-    return isSuccess;
+  return isSuccess;
 }
 
-bool FlatCfgFactory::createAliveSupervisions(std::vector<supervision::Alive>& f_alive_r,
-                                             std::vector<ifappl::Checkpoint>& f_checkpoints_r,
-                                             std::vector<ifexm::ProcessState>& f_processStates_r,
-                                             std::shared_ptr<RecoveryClient> f_recoveryClient_r)
-{
-    bool isSuccess{true};
-
-    // If HmAliveSupervision is not configured in configuration files, nullptr is returned by HmAliveSupervision().
-    // It is valid to have empty (zero) HmAliveSupervision in the configuration.
-    if (flatBuffer_p->hmAliveSupervision() != nullptr)
-    {
-        auto numberOfAliveSup{flatBuffer_p->hmAliveSupervision()->size()};
-        try
-        {
-            f_alive_r.reserve(static_cast<size_t>(numberOfAliveSup));
-
-            for (auto hmAliveSupervision_p : *flatBuffer_p->hmAliveSupervision())
-            {
-                // Collect Alive Supervision configuration
-                const char* nameCfgAlive_p{hmAliveSupervision_p->ruleContextKey()->c_str()};
-                NanoSecondType aliveReferenceCycleCfg{
-                    timers::TimeConversion::convertMilliSecToNanoSec(hmAliveSupervision_p->aliveReferenceCycle())};
-                uint32_t minAliveIndicationsCfg{hmAliveSupervision_p->minAliveIndications()};
-                uint32_t maxAliveIndicationsCfg{hmAliveSupervision_p->maxAliveIndications()};
-                bool isMinCheckDisabledCfg{hmAliveSupervision_p->isMinCheckDisabled()};
-                bool isMaxCheckDisabledCfg{hmAliveSupervision_p->isMaxCheckDisabled()};
-                uint32_t failedCyclesToleranceCfg{hmAliveSupervision_p->failedSupervisionCyclesTolerance()};
-                uint32_t refCheckPointIndexTemp{hmAliveSupervision_p->refCheckPointIndex()};
-
-                const auto processIndex{hmAliveSupervision_p->refProcessIndex()};
-
-                // Construct Alive Supervision
-                supervision::AliveSupervisionCfg aliveSupCfg{
-                    f_checkpoints_r.at(static_cast<size_t>(refCheckPointIndexTemp))};
-
-                aliveSupCfg.cfgName_p = nameCfgAlive_p;
-                aliveSupCfg.aliveReferenceCycle = aliveReferenceCycleCfg;
-                aliveSupCfg.minAliveIndications = minAliveIndicationsCfg;
-                aliveSupCfg.maxAliveIndications = maxAliveIndicationsCfg;
-                aliveSupCfg.isMinCheckDisabled = isMinCheckDisabledCfg;
-                aliveSupCfg.isMaxCheckDisabled = isMaxCheckDisabledCfg;
-                aliveSupCfg.failedCyclesTolerance = failedCyclesToleranceCfg;
-                aliveSupCfg.checkpointBufferSize = bufferConfig_r.bufferSizeAliveSupervision;
-                aliveSupCfg.recoveryClient = f_recoveryClient_r;
-
-                // coverity[cert_exp34_c_violation] PHM.ecucfgdsl Process.identifier MANDATORY
-                // coverity[dereference] PHM.ecucfgdsl Process.identifier MANDATORY
-                aliveSupCfg.processIdentifier =
-                    IdentifierHash{flatBuffer_p->process()->Get(processIndex)->identifier()->str()};
-
-                f_alive_r.emplace_back(aliveSupCfg);
-
-                // Subscribe created Alive Supervision to ProcessState class
-                f_processStates_r.at(static_cast<size_t>(processIndex)).attachObserver(f_alive_r.back());
-
-                LM_LOG_DEBUG() << kLogPrefix << "Successfully created alive supervision worker object:"
-                               << f_alive_r.back().getConfigName();
-            }
-        }
-        catch (const std::exception& f_exception_r)
-        {
-            isSuccess = false;
-            LM_LOG_ERROR() << kLogPrefix
-                           << "Could not create all necessary alive supervision "
-                              "worker objects, due to exception:"
-                           << std::string_view{f_exception_r.what()};
-        }
-    }
-
-    if (isSuccess)
-    {
-        LM_LOG_DEBUG() << kLogPrefix
-                       << "Number of constructed alive supervisions:" << static_cast<uint64_t>(f_alive_r.size());
-    }
-    else
-    {
-        f_alive_r.clear();
-        LM_LOG_ERROR() << kLogPrefix << "Could not create all necessary alive supervision worker objects";
-    }
-
-    return isSuccess;
+IdentifierHash FlatCfgFactory::getProcessId(
+    const ComponentConfig *comp) noexcept(true) {
+  return IdentifierHash{comp->name};
 }
 
-std::optional<common::ProcessId> FlatCfgFactory::getProcessId(const std::string& f_processPath_r) noexcept(true)
-{
-    return score::lcm::IdentifierHash{f_processPath_r}.data();
-}
-
-}  // namespace factory
-}  // namespace saf
-}  // namespace lcm
-}  // namespace score
+} // namespace factory
+} // namespace saf
+} // namespace lcm
+} // namespace score

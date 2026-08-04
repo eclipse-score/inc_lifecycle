@@ -15,7 +15,6 @@ load("@score_baselibs//score/flatbuffers/bazel:codegen.bzl", "generate_cpp")
 
 exports_files(
     [
-        "lm_flatcfg.fbs",
         "launch_manager.schema.json",
     ],
     visibility = ["//visibility:public"],
@@ -25,19 +24,4 @@ filegroup(
     name = "config_schema_files",
     srcs = glob(["**/*.json"]),
     visibility = ["//:__pkg__"],
-)
-
-generate_cpp(
-    name = "fbs_config",
-    output = "lm_flatcfg_generated.h",
-    schema = "lm_flatcfg.fbs",
-    visibility = ["//visibility:private"],
-)
-
-cc_library(
-    name = "config_schema",
-    hdrs = [":fbs_config"],
-    include_prefix = "score/mw/launch_manager/configuration",
-    visibility = ["//score/launch_manager/src/daemon/src/configuration:__subpackages__"],
-    deps = ["@score_baselibs//score/flatbuffers:flatbufferscpp"],
 )

@@ -14,7 +14,7 @@
 #include "score/mw/launch_manager/configuration/flatbuffer_config_loader.hpp"
 
 #include "score/launch_manager/src/daemon/src/configuration/details/flatbuffer_type_converters.hpp"
-#include "score/launch_manager/src/daemon/src/configuration/details/new_lm_flatcfg_generated.h"
+#include "score/launch_manager/src/daemon/src/configuration/details/lm_flatcfg_generated.h"
 
 #include "score/os/errno.h"
 
