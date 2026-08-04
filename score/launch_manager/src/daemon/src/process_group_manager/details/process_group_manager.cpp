@@ -38,10 +38,11 @@ void ProcessGroupManager::cancel()
     my_signal_handler(SIGTERM);
 }
 
-ProcessGroupManager::ProcessGroupManager(std::unique_ptr<IAliveMonitorThread> alive_monitor_thread,
-                                         std::shared_ptr<IRecoveryClient> recovery_client,
-                                         std::unique_ptr<score::lcm::IProcessStateNotifier> process_state_notifier,
-                                         std::unique_ptr<score::lcm::watchdog::IWatchdogIf> watchdog)
+ProcessGroupManager::ProcessGroupManager(
+    std::unique_ptr<IAliveMonitorThread> alive_monitor_thread,
+    std::shared_ptr<IRecoveryClient> recovery_client,
+    std::unique_ptr<score::lcm::IProcessStateNotifier> process_state_notifier,
+    std::unique_ptr<score::lcm::watchdog::IWatchdogIf> watchdog)
     : configuration_(),
       process_interface_(),
       process_map_(nullptr),
@@ -126,12 +127,6 @@ bool ProcessGroupManager::initialize()
     if (!alive_monitor_thread_->start())
     {
         LM_LOG_ERROR() << "Alive monitor thread failed to start";
-        return false;
-    }
-
-    if (launch_manager_config_ &&
-        OsalReturnType::kFail == IProcess::setSchedulingAndSecurity(launch_manager_config_->startup_config_))
-    {
         return false;
     }
 
@@ -357,8 +352,9 @@ bool ProcessGroupManager::run()
             {
                 LM_LOG_FATAL() << "ComponentEventQueue overflow - one or more events were lost";
                 overflow_logged = true;
-
+#ifdef USE_NEW_CONFIGURATION
                 watchdog_->fireWatchdogReaction();
+#endif
             }
 
             for (auto pg : process_groups_)
@@ -366,15 +362,8 @@ bool ProcessGroupManager::run()
                 controlClientHandler(*pg);
                 processGroupHandler(*pg);
             }
-            recoveryActionHandler();
 
 #ifdef USE_NEW_CONFIGURATION
-            if (recovery_client_ && recovery_client_->hasOverflow())
-            {
-                LM_LOG_ERROR() << "Recovery client overflow detected, firing watchdog";
-                watchdog_->fireWatchdogReaction();
-            }
-
             watchdog_->serviceWatchdog();
 #endif
         }
