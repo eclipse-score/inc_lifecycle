@@ -32,6 +32,7 @@ from lifecycle_config import (
     load_json_file,
     output_filename,
     preprocess_defaults,
+    schema_validation,
     score_defaults,
     SCHED_POLICY_MAP,
 )
@@ -1041,3 +1042,25 @@ def test_load_json_file_nonexistent(tmp_path):
     json_file = tmp_path / "nonexistent.json"
     with pytest.raises(FileNotFoundError):
         load_json_file(str(json_file))
+
+
+# ---------------------------------------------------------------------------
+# schema_validation
+# ---------------------------------------------------------------------------
+
+
+def test_schema_validation_smoke():
+    """Smoke test that schema_validation works (jsonschema is installed and functional)."""
+    schema = {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+            "name": {"type": "string"},
+            "count": {"type": "integer"},
+        },
+        "required": ["name"],
+    }
+    # Valid config
+    assert schema_validation({"name": "test", "count": 42}, schema) is True
+    # Invalid config (missing required field)
+    assert schema_validation({"count": 42}, schema) is False
