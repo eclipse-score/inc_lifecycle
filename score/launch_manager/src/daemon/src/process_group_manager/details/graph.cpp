@@ -431,6 +431,10 @@ void Graph::handleComponentEvent(const ComponentEvent& event)
                     handleNonTransitionExecution(getState());
                 }
             }
+            else if constexpr (std::is_same_v<T, JobSkipped>)
+            {
+                nodeExecuted(data.node_index, {});
+            }
         },
         event);
 }

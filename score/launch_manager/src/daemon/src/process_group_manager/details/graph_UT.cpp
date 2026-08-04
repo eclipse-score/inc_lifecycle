@@ -498,14 +498,11 @@ TEST_F(GraphCancelTest, cancelsOngoingTransition)
 
     const auto job = job_queue_->pop();
 
-    // The process monitor will actually not place an event on the queue if it reads the requested stop before starting
-    // the job, stalling the graph in kCancelled.
-
-    // graph_.handleComponentEvent(ActivationSuccessful{0});
+    graph_.handleComponentEvent(JobSkipped{0});
 
     EXPECT_TRUE(job->value().stop_token.stop_requested());
     EXPECT_EQ(graph_.getPendingEvent(), ControlClientCode::kSetStateCancelled);
-    EXPECT_EQ(graph_.getState(), GraphState::kUndefinedState);  // This will fail
+    EXPECT_EQ(graph_.getState(), GraphState::kUndefinedState);
 }
 
 class GraphUtilitiesTest : public GraphTest

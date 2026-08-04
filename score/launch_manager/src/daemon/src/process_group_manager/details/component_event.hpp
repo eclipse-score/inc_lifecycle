@@ -50,6 +50,12 @@ struct [[nodiscard]] UnexpectedTermination
     uint32_t node_index;
 };
 
+/// @brief A job was queued but cancelled by the time it was processed
+struct [[nodiscard]] JobSkipped
+{
+    uint32_t node_index;
+};
+
 /// @brief Alive supervision has failed for the given process identifier.
 struct [[nodiscard]] SupervisionFailure
 {
@@ -59,7 +65,7 @@ struct [[nodiscard]] SupervisionFailure
 /// @brief A graph-relevant state change. There is only ever a single graph, so no process-group
 /// identifier is needed to route most events. SupervisionFailure is routed by process identifier.
 using ComponentEvent = std::
-    variant<ActivationSuccessful, ActivationFailed, DeactivationComplete, UnexpectedTermination, SupervisionFailure>;
+    variant<ActivationSuccessful, ActivationFailed, DeactivationComplete, UnexpectedTermination, SupervisionFailure, JobSkipped>;
 
 }  // namespace score::mw::lifecycle::internal
 

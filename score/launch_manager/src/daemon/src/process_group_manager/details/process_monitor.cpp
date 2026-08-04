@@ -91,6 +91,10 @@ void ProcessMonitor::doWork(ComponentTask&& task)
 
     if (task.stop_token.stop_requested())
     {
+        if (!event_queue_.push(JobSkipped{task.component.get().getIndex()}))
+        {
+            LM_LOG_ERROR() << "Failed to send activation failed event to event queue!";
+        }
         return;
     }
 
