@@ -15,11 +15,10 @@
 #define WATCHDOGIMPL_HPP_INCLUDED
 
 #include <cstdint>
-#include <memory>
 
-#include "score/mw/launch_manager/watchdog/IDeviceConfigFactory.hpp"
 #include "score/mw/launch_manager/watchdog/IWatchdogIf.hpp"
 #include <vector>
+#include <string>
 
 namespace score
 {
@@ -84,6 +83,28 @@ class WatchdogImpl : public IWatchdogIf
      * would increase complexity", true_no_defect) */
     /* RULECHECKER_comment(1:0,15:0, check_non_private_non_pod_field, "We want to treat it as POD as alternative
      * implementation would increase complexity", true_no_defect) */
+
+    /// @brief The watchdog device configuration.
+    /* RULECHECKER_comment(1:0,2:0, check_non_pod_struct, "Intentionally using a struct with non-pod members as alternatives would more complex", true_no_defect) */
+    /* RULECHECKER_comment(1:0,18:0, check_non_private_non_pod_field, "Intentionally using a struct with non-pod members as alternatives would more complex", true_no_defect) */
+    struct DeviceConfig final
+    {
+        /// @brief Absolute file path of watchdog device file typically stored under /dev folder.
+        /// Example: /dev/watchdog
+        std::string fileName{};
+        /// @brief Minimum value of the watchdog timeout. If the watchdog does not support
+        /// a minumum value it is not a window watchdog and the value is 0.
+        /// The timeout is given in [ms].
+        /// @todo Consider tolerances of watchdog timer and OS timer
+        std::uint16_t timeoutMin{0U};
+        /// @brief Maximum value of the watchdog timeout. The timeout is given in [ms].
+        /// @todo Consider tolerances of watchdog timer and OS timer
+        std::uint16_t timeoutMax{0U};
+        /// @brief True if the watchdog device can be deactivated, else false (i.e. nowayout)
+        bool canBeDeactivated{true};
+        /// @brief True if the watchdog device needs a magic close operation for deactivation, else false
+        bool needsMagicClose{false};
+    };
 
     /// @brief The watchdog device state.
     struct WatchdogDevice
