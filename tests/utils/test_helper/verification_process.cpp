@@ -13,13 +13,46 @@
 
 #include "tests/utils/test_helper/test_helper.hpp"
 #include <iostream>
+#include <string_view>
 
-int main()
+/// @file  verification_process.cpp
+/// @brief Test process that touches signal files selected via command line
+///        arguments. Pass "fallback" to touch the fallback file and/or
+///        "test_end" to touch the test_end file.
+
+int main(int argc, char** argv)
 {
-    // This process must be active only in the fallback run target
-    if (!touch_file(fallback_file))
+    bool touch_fallback = false;
+    bool touch_test_end = false;
+
+    for (int i = 1; i < argc; ++i)
     {
-        std::cout << "Failed to write file!" << std::endl;
+        const std::string_view arg{argv[i]};
+        if (arg == "fallback")
+        {
+            touch_fallback = true;
+        }
+        else if (arg == "test_end")
+        {
+            std::cout << "Touching test_end file." << std::endl;
+            touch_test_end = true;
+        }
+        else
+        {
+            std::cerr << "Unknown argument '" << arg << "', expected 'fallback' and/or 'test_end'" << std::endl;
+            return EXIT_FAILURE;
+        }
+    }
+
+    if (touch_fallback && !touch_file(fallback_file))
+    {
+        std::cout << "Failed to write fallback file!" << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    if (touch_test_end && !touch_file(test_end_location))
+    {
+        std::cout << "Failed to write test_end file!" << std::endl;
         return EXIT_FAILURE;
     }
 

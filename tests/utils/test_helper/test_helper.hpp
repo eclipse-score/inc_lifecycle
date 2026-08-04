@@ -10,6 +10,9 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
+#ifndef TESTS_UTILS_TEST_HELPER_HPP
+#define TESTS_UTILS_TEST_HELPER_HPP
+
 #include <gtest/gtest.h>
 #include <filesystem>
 #include <string>
@@ -170,3 +173,6 @@ class TestRunner
         return res;
     }
 };
+
+
+#endif  // TESTS_UTILS_TEST_HELPER_HPP

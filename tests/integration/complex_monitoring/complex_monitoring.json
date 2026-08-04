@@ -75,6 +75,9 @@
         "verification_component": {
             "component_properties": {
                 "binary_name": "verification_process",
+                "process_arguments": [
+                    "fallback"
+                ],
                 "application_profile": {
                     "application_type": "Native",
                     "is_self_terminating": true

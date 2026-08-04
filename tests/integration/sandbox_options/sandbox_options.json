@@ -2,7 +2,7 @@
     "schema_version": 1,
     "defaults": {
         "deployment_config": {
-            "bin_dir": "/tmp/tests/process_complex_rep_failure",
+            "bin_dir": "/tmp/tests/sandbox_options",
             "ready_timeout": 1.0,
             "shutdown_timeout": 1.0,
             "ready_recovery_action": {
@@ -28,7 +28,7 @@
         "component_properties": {
             "application_profile": {
                 "application_type": "Reporting",
-                "is_self_terminating": true,
+                "is_self_terminating": false,
                 "alive_supervision": {
                     "reporting_cycle": 0.1,
                     "min_indications": 1,
@@ -42,59 +42,97 @@
         }
     },
     "components": {
-        "control_client_mock": {
+        "sandbox_options_process_a": {
             "component_properties": {
-                "binary_name": "control_client_mock",
+                "binary_name": "sandbox_options_process_a",
                 "application_profile": {
-                    "application_type": "State_Manager",
-                    "alive_supervision": {
-                        "min_indications": 0
-                    }
+                    "application_type": "Reporting",
+                    "is_self_terminating": true
+                },
+                "process_arguments": [
+                    "--uid=666",
+                    "--gid=666",
+                    "--supplementary-groups=123,321,456",
+                    "--scheduling-policy=SCHED_FIFO",
+                    "--scheduling-priority=10",
+                    "--working-dir=/tmp"
+                ],
+                "ready_condition": {
+                    "process_state": "Terminated"
                 }
             },
             "deployment_config": {
-                "ready_timeout": 1.0,
-                "shutdown_timeout": 1.0,
                 "environmental_variables": {
-                    "PROCESSIDENTIFIER": "control_client_mock"
+                    "PROCESSIDENTIFIER": "DefaultPG_app0"
+                },
+                "sandbox": {
+                    "uid": 666,
+                    "gid": 666,
+                    "supplementary_group_ids": [123, 321, 456],
+                    "scheduling_policy": "SCHED_FIFO",
+                    "scheduling_priority": 10
+                },
+                "working_dir": "/tmp"
+            }
+        },
+        "sandbox_options_process_b": {
+            "component_properties": {
+                "binary_name": "sandbox_options_process_b",
+                "application_profile": {
+                    "application_type": "Reporting",
+                    "is_self_terminating": true
+                },
+                "process_arguments": [
+                    "--uid=0",
+                    "--gid=0",
+                    "--scheduling-policy=SCHED_RR",
+                    "--scheduling-priority=10"
+                ],
+                "ready_condition": {
+                    "process_state": "Terminated"
+                }
+            },
+            "deployment_config": {
+                "environmental_variables": {
+                    "PROCESSIDENTIFIER": "DefaultPG_app1"
+                },
+                "sandbox": {
+                    "uid": 0,
+                    "gid": 0,
+                    "supplementary_group_ids": [],
+                    "scheduling_policy": "SCHED_RR",
+                    "scheduling_priority": 10
                 }
             }
         },
-        "component_does_report_krunning_in_time": {
+        "sandbox_options_process_c": {
             "component_properties": {
-                "binary_name": "complex_reporting_process",
+                "binary_name": "sandbox_options_process_c",
+                "application_profile": {
+                    "application_type": "Reporting",
+                    "is_self_terminating": true
+                },
                 "process_arguments": [
-                    "500.0"
-                ]
-            },
-            "deployment_config": {
-                "ready_timeout": 1.0,
-                "shutdown_timeout": 1.0,
-                "environmental_variables": {
-                    "PROCESSIDENTIFIER": "component_does_report_krunning_in_time"
+                    "--uid=0",
+                    "--gid=0",
+                    "--working-dir=/tmp/tests/sandbox_options"
+                ],
+                "ready_condition": {
+                    "process_state": "Terminated"
                 }
-            }
-        },
-        "component_does_not_report_krunning_in_time": {
-            "component_properties": {
-                "binary_name": "complex_reporting_process",
-                "process_arguments": [
-                    "1500.0"
-                ]
             },
             "deployment_config": {
-                "ready_timeout": 1.0,
-                "shutdown_timeout": 1.0,
                 "environmental_variables": {
-                    "PROCESSIDENTIFIER": "component_does_not_report_krunning_in_time"
+                    "PROCESSIDENTIFIER": "DefaultPG_app2"
                 }
             }
         },
         "verification_component": {
             "component_properties": {
                 "binary_name": "verification_process",
+                "depends_on": ["sandbox_options_process_a", "sandbox_options_process_b", "sandbox_options_process_c"],
                 "process_arguments": [
-                    "fallback"
+                    "test_end"
                 ],
                 "application_profile": {
                     "application_type": "Native",
@@ -109,38 +147,13 @@
     "run_targets": {
         "Startup": {
             "depends_on": [
-                "control_client_mock"
+                "verification_component"
             ],
             "recovery_action": {
                 "switch_run_target": {
                     "run_target": "fallback_run_target"
                 }
             }
-        },
-        "run_target_app_does_report_krunning_in_time": {
-            "depends_on": [
-                "control_client_mock",
-                "component_does_report_krunning_in_time"
-            ],
-            "recovery_action": {
-                "switch_run_target": {
-                    "run_target": "fallback_run_target"
-                }
-            }
-        },
-        "run_target_app_does_not_report_krunning_in_time": {
-            "depends_on": [
-                "control_client_mock",
-                "component_does_not_report_krunning_in_time"
-            ],
-            "recovery_action": {
-                "switch_run_target": {
-                    "run_target": "fallback_run_target"
-                }
-            }
-        },
-        "Off": {
-            "depends_on": []
         }
     },
     "initial_run_target": "Startup",
@@ -148,9 +161,6 @@
         "evaluation_cycle": 0.05
     },
     "fallback_run_target": {
-        "depends_on": [
-            "control_client_mock",
-            "verification_component"
-        ]
+        "depends_on": []
     }
 }

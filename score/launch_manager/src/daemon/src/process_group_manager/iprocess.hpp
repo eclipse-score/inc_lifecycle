@@ -67,6 +67,7 @@ struct OsalConfig
     int32_t scheduling_policy_;              ///< Scheduling policy defined for this process
     int32_t scheduling_priority_;            ///< Scheduling priority for this process
     OsalLimits resource_limits_;             ///< Resource limits for this process
+    std::string working_dir_{};                    ///< Working directory for the process
 };
 
 /// @brief Struct to hold configuration parameters for the child process.

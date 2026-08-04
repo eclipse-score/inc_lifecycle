@@ -33,8 +33,7 @@ Component
   ``run_target`` set to ``fallback_run_target``.
 * The ``ready_timeout`` is used as the timeout until process state Running is
   reached, even in case the ReadyCondition is ``process_state:Terminated``.
-* The parameter ``deployment_config/working_dir`` is currently not supported
-  and is ignored.
+
 
 Run target
 ----------

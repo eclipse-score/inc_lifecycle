@@ -22,15 +22,15 @@
 #include <limits.h>
 #include <signal.h>
 
-#include "score/mw/launch_manager/common/signal_safe_log.hpp"
-#include "score/mw/launch_manager/process_group_manager/iprocess.hpp"
-#include "score/mw/launch_manager/control/control_client_channel.hpp"
 #include "score/mw/launch_manager/common/log.hpp"
+#include "score/mw/launch_manager/common/signal_safe_log.hpp"
+#include "score/mw/launch_manager/control/control_client_channel.hpp"
 #include "score/mw/launch_manager/osal/ipc_comms.hpp"
 #include "score/mw/launch_manager/osal/security_policy.hpp"
 #include "score/mw/launch_manager/osal/set_affinity.hpp"
 #include "score/mw/launch_manager/osal/set_groups.hpp"
 #include "score/mw/launch_manager/osal/sys_exit.hpp"
+#include "score/mw/launch_manager/process_group_manager/iprocess.hpp"
 #include <cerrno>
 #include <csignal>
 #include <cstdio>
@@ -106,8 +106,7 @@ void handleComms(score::lcm::internal::osal::ChildProcessConfig& param)
         case CommsType::kReporting:
             if (-1 == fcntl(IpcCommsSync::sync_fd, F_SETFD, 0))
             {
-                static_cast<void>(signal_safe_log_errno(errno,
-                    "fcntl at line ", __LINE__, " failed"));
+                static_cast<void>(signal_safe_log_errno(errno, "fcntl at line ", __LINE__, " failed"));
                 sysexit(EXIT_FAILURE);
             }
             close(IpcCommsSync::control_client_handler_nudge_fd);
@@ -115,14 +114,12 @@ void handleComms(score::lcm::internal::osal::ChildProcessConfig& param)
         case CommsType::kControlClient:
             if (-1 == fcntl(IpcCommsSync::sync_fd, F_SETFD, 0))
             {
-                static_cast<void>(signal_safe_log_errno(errno,
-                    "fcntl at line ", __LINE__, " failed"));
+                static_cast<void>(signal_safe_log_errno(errno, "fcntl at line ", __LINE__, " failed"));
                 sysexit(EXIT_FAILURE);
             }
             if (-1 == fcntl(IpcCommsSync::control_client_handler_nudge_fd, F_SETFD, 0))
             {
-                static_cast<void>(signal_safe_log_errno(errno,
-                    "fcntl at line ", __LINE__, " failed"));
+                static_cast<void>(signal_safe_log_errno(errno, "fcntl at line ", __LINE__, " failed"));
                 sysexit(EXIT_FAILURE);
             }
             break;
@@ -130,7 +127,10 @@ void handleComms(score::lcm::internal::osal::ChildProcessConfig& param)
             // nothing to do here
             break;
         default:
-            static_cast<void>(signal_safe_log("at line ", __LINE__, " unknown CommsType ",
+            static_cast<void>(signal_safe_log(
+                "at line ",
+                __LINE__,
+                " unknown CommsType ",
                 static_cast<std::int32_t>(param.shared_block->comms_type_)));
             sysexit(EXIT_FAILURE);
             break;
@@ -140,23 +140,11 @@ void handleComms(score::lcm::internal::osal::ChildProcessConfig& param)
 /// @details The implementation should be async signal safe.
 void changeCurrentWorkingDirectory(const score::lcm::internal::osal::OsalConfig& config)
 {
-    // Change current working directory to the same as the executable
-    constexpr size_t string_size = static_cast<size_t>(PATH_MAX);
-    // Notice that this next static variable is duplicated by the fork() and so does not need
-    // any protection by a mutex although at first sight you may think it could need one.
-    static char path_copy[string_size + 1U] = {0};
-
-    if (config.executable_path_.size() >= string_size)
+    // working_dir_ is set by python configuration generator in lifecycle_config.py, so it should always be valid.
+    // If not, chdir will fail anyway and we will log an error and exit.
+    if (-1 == chdir(config.working_dir_.c_str()))
     {
-        static_cast<void>(signal_safe_log("executable path longer than ",
-            string_size, " chars: ", config.executable_path_));
-        sysexit(EXIT_FAILURE);
-    }
-
-    if (-1 == chdir(dirname(strncpy(path_copy, config.executable_path_.c_str(), string_size))))
-    {
-        static_cast<void>(signal_safe_log_errno(errno,
-            "chdir(", config.executable_path_, ") failed"));
+        static_cast<void>(signal_safe_log_errno(errno, "chdir(", config.working_dir_, ") failed."));
         sysexit(EXIT_FAILURE);
     }
 }
@@ -182,8 +170,8 @@ void changeSecurityPolicy(const score::lcm::internal::osal::OsalConfig& config)
     {
         if (score::lcm::internal::osal::setSecurityPolicy(config.security_policy_.c_str()) != 0)
         {
-            static_cast<void>(signal_safe_log_errno(errno,
-                "changeSecurityPolicy(", config.security_policy_, ") failed"));
+            static_cast<void>(
+                signal_safe_log_errno(errno, "changeSecurityPolicy(", config.security_policy_, ") failed"));
             sysexit(EXIT_FAILURE);
         }
     }
@@ -211,8 +199,7 @@ OsalReturnType IProcess::startProcess(ProcessID* pid, IpcCommsP* block, const Os
     {
         if (access(config->executable_path_.c_str(), X_OK) != 0)
         {
-            static_cast<void>(signal_safe_log(
-                "File does not exist or is not executable: ", config->executable_path_));
+            static_cast<void>(signal_safe_log("File does not exist or is not executable: ", config->executable_path_));
             return result;
         }
 
@@ -287,7 +274,8 @@ inline bool IProcess::setupComms(IpcCommsP& block, int& fd, const OsalConfig& co
         length += sizeof(ControlClientChannel);
     }
 
-    static_cast<void>(snprintf(shm_name,
+    static_cast<void>(snprintf(
+        shm_name,
         static_cast<uint32_t>(score::lcm::internal::ProcessLimits::maxLocalBuffSize),
         "/ipc_shared_mem%u",
         shm_name_counter++));
@@ -389,14 +377,22 @@ OsalReturnType IProcess::setSchedulingAndSecurity(const OsalConfig& config)
 
     if (sch_param.sched_priority < sched_get_priority_min(config.scheduling_policy_))
     {
-        static_cast<void>(signal_safe_log("Scheduling priority ", sch_param.sched_priority,
-            " is below minimum for policy ", config.scheduling_policy_, ", setting to minimum"));
+        static_cast<void>(signal_safe_log(
+            "Scheduling priority ",
+            sch_param.sched_priority,
+            " is below minimum for policy ",
+            config.scheduling_policy_,
+            ", setting to minimum"));
         sch_param.sched_priority = sched_get_priority_min(config.scheduling_policy_);
     }
     else if (sch_param.sched_priority > sched_get_priority_max(config.scheduling_policy_))
     {
-        static_cast<void>(signal_safe_log("Scheduling priority ", sch_param.sched_priority,
-            " is above maximum for policy ", config.scheduling_policy_, ", setting to maximum"));
+        static_cast<void>(signal_safe_log(
+            "Scheduling priority ",
+            sch_param.sched_priority,
+            " is above maximum for policy ",
+            config.scheduling_policy_,
+            ", setting to maximum"));
         sch_param.sched_priority = sched_get_priority_max(config.scheduling_policy_);
     }
 
@@ -460,8 +456,8 @@ inline void IProcess::handleChildProcess(ChildProcessConfig& param)
     // arguments.", true);
     if (-1 == execve(param.config->argv_[0], const_cast<char* const*>(param.config->argv_.data()), param.config->envp_))
     {
-        static_cast<void>(signal_safe_log_errno(errno, "execve failed: Unable to execute the ",
-            param.config->executable_path_, " app."));
+        static_cast<void>(signal_safe_log_errno(
+            errno, "execve failed: Unable to execute the ", param.config->executable_path_, " app."));
         sysexit(EXIT_FAILURE);
     }
 }

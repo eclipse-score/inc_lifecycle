@@ -77,6 +77,7 @@ void ConfigurationAdapter::fillStartupConfigFromDeployment(
     const auto& props = comp.component_properties;
 
     startup.executable_path_ = deploy.bin_dir + "/" + props.binary_name;
+    startup.working_dir_ = deploy.working_dir;
     startup.short_name_ = comp.name;
 
     startup.uid_ = deploy.sandbox.uid;

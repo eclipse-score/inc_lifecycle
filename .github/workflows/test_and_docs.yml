@@ -44,7 +44,7 @@ jobs:
       contents: read
       pull-requests: read
     with:
-      bazel-target: 'test --lockfile_mode=error //score/... //tests/... --config=x86_64-linux'
+      bazel-target: 'test --lockfile_mode=error //score/... //tests/... //scripts/... --config=x86_64-linux'
       upload-name: 'bazel-testlogs'
       packages: 'fakechroot'
   build-docs:
