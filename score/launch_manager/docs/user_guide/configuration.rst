@@ -485,3 +485,4 @@ Given that the **Launch Manager** supports multiple levels of default values, sp
 
 1. If a configuration value is not explicitly specified at a specific location (e.g., within an individual component's definition, a **Run Target's** definition, or a root-level property like ``alive_supervision``), the **Launch Manager** will first attempt to use the corresponding value from the user-defined ``defaults`` section.
 2. If the value is also not specified within the user-defined ``defaults`` section, then the **Launch Manager** will apply the S-CORE standard default value for that option.
+
