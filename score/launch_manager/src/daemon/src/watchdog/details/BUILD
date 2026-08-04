@@ -11,6 +11,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 load("@rules_cc//cc:defs.bzl", "cc_library")
+load("//tests/utils/bazel:unit_test.bzl", "lm_cc_test")
 
 cc_library(
     name = "watchdog",
@@ -37,5 +38,19 @@ cc_library(
         "@score_baselibs//score/os:fcntl",
         "@score_baselibs//score/os:ioctl",
         "@score_baselibs//score/os:unistd",
+    ],
+)
+
+lm_cc_test(
+    name = "watchdog_impl_UT",
+    srcs = ["WatchdogImpl_UT.cpp"],
+    copts = ["-D_GNU_SOURCE"],
+    deps = [
+        ":watchdog",
+        ":watchdog_impl",
+        "@googletest//:gtest_main",
+        "@score_baselibs//score/os/mocklib:fcntl_mock",
+        "@score_baselibs//score/os/mocklib:ioctl_mock",
+        "@score_baselibs//score/os/mocklib:unistd_mock",
     ],
 )

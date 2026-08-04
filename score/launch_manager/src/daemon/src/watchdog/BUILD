@@ -11,6 +11,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 load("@rules_cc//cc:defs.bzl", "cc_library")
+load("//tests/utils/bazel:unit_test.bzl", "lm_cc_test")
 
 cc_library(
     name = "i_watchdog_if",
@@ -33,5 +34,15 @@ cc_library(
     deps = [
         ":i_watchdog_if",
         "//score/launch_manager/src/daemon/src/watchdog/details:watchdog_impl",
+    ],
+)
+
+lm_cc_test(
+    name = "watchdog_factory_UT",
+    srcs = ["WatchdogFactory_UT.cpp"],
+    deps = [
+        ":watchdog_factory",
+        "//score/launch_manager/src/daemon/src/watchdog/details:watchdog_impl",
+        "@googletest//:gtest_main",
     ],
 )
