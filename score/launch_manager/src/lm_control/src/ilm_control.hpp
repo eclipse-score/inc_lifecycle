@@ -87,8 +87,7 @@ class ILmControl
     /// @brief Virtual destructor for safe deletion through this interface.
     virtual ~ILmControl() noexcept = default;
 
-    // Non-copyable and non-movable. Polymorphic types must not be copied or
-    // moved through the interface — it would slice the concrete implementation.
+    // Non-copyable and non-movable.
     // Transfer ownership via std::unique_ptr<ILmControl> instead.
     ILmControl(const ILmControl&) = delete;
     ILmControl& operator=(const ILmControl&) = delete;

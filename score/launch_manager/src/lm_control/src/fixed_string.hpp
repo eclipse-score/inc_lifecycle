@@ -71,7 +71,8 @@ struct FixedString
     constexpr explicit FixedString(std::string_view s) noexcept
     {
         const auto len = std::min(s.size(), MaxLength);
-        for (std::size_t i = 0; i < len; ++i) {
+        for (std::size_t i = 0; i < len; ++i)
+        {
             storage_[i] = s[i];
         }
         storage_[len] = '\0';
@@ -97,7 +98,8 @@ struct FixedString
     constexpr FixedString& operator=(std::string_view s) noexcept
     {
         const auto len = std::min(s.size(), MaxLength);
-        for (std::size_t i = 0; i < len; ++i) {
+        for (std::size_t i = 0; i < len; ++i)
+        {
             storage_[i] = s[i];
         }
         storage_[len] = '\0';
@@ -212,11 +214,11 @@ struct FixedString
     {
         // other.size() is already known — use it as a length guard and for
         // memcmp, avoiding strlen on our storage.
-        if (other.size() > MaxLength) {
+        if (other.size() > MaxLength)
+        {
             return false;
         }
-        return std::strncmp(storage_.data(), other.data(), other.size()) == 0
-               && storage_[other.size()] == '\0';
+        return std::strncmp(storage_.data(), other.data(), other.size()) == 0 && storage_[other.size()] == '\0';
     }
 
     /// @brief Inequality comparison with another FixedString of the same capacity.
