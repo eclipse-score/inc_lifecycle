@@ -1155,6 +1155,9 @@ The <code class="docutils literal notranslate"><span class="pre">alive_supervisi
 </dl>
 </li>
 </ul>
+<p>The name “Off” is reserved for a special <strong>Run Target</strong> that represents the system’s shutdown state.
+If a <strong>Run Target</strong> with this name is configured explicitly, the <strong>Launch Manager</strong> will transition to this <strong>Run Target</strong> when receiving a SIGTERM signal.
+If not configured explicitly, the <strong>Launch Manager</strong> will automatically create a default <strong>Run Target</strong> named “Off” with no dependencies.</p>
 </section>
 <section id="initial-run-target-string-required">
 <span id="lm-conf-initial-run-target-string-required"></span><h4>initial_run_target (string, required)<a class="headerlink" href="#initial-run-target-string-required" title="Link to this heading">#</a></h4>
