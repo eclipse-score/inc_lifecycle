@@ -428,6 +428,11 @@ void Graph::handleComponentEvent(const ComponentEvent& event)
                 // This is always an error after ready - an unexpected termination before ready is an activation failure
                 const auto error = IComponent::ComponentError::kErrorAfterReady;
                 abort(1, error);
+                
+                // Need to clean up any leftover resources
+                IComponent& failingComponent = componentOf(nodes_[data.node_index]);
+                static_cast<void>(failingComponent.deactivate({}));
+
                 if (jobs_in_progress_ == 0)
                 {
                     handleNonTransitionExecution(getState());
