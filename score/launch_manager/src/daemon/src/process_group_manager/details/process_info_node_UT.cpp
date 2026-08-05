@@ -547,6 +547,47 @@ TEST_F(ProcessInfoNodeDeactivationTest, CanTerminateNonSelfTerminatingProcess)
     ASSERT_THAT(node->getState(), Eq(score::lcm::ProcessState::kIdle));
 }
 
+// Bundles tests for the explicit move constructor, which is required because the class holds atomics.
+class ProcessInfoNodeMoveTest : public ProcessInfoNodeFixture
+{
+};
+
+TEST_F(ProcessInfoNodeMoveTest, MoveConstruct_IdleNode_PreservesObservableState)
+{
+    RecordProperty(
+        "Description",
+        "Move-constructing from an idle ProcessInfoNode preserves its observable state (index, idle state, inactive, "
+        "no pid, no control channel).");
+
+    auto source = createProcessInfoNode();
+
+    ProcessInfoNode moved{std::move(*source)};
+
+    ASSERT_THAT(moved.getIndex(), Eq(kProcessIndex));
+    ASSERT_THAT(moved.getState(), Eq(score::lcm::ProcessState::kIdle));
+    ASSERT_THAT(moved.active(), IsFalse());
+    ASSERT_THAT(moved.getPid(), Eq(0));
+    ASSERT_THAT(moved.getControlClientChannel(), IsNull());
+}
+
+TEST_F(ProcessInfoNodeMoveTest, MoveConstruct_RunningNode_PreservesAtomicState)
+{
+    RecordProperty(
+        "Description",
+        "Move-constructing from a running ProcessInfoNode carries over the atomic process state and ready flag, so the "
+        "moved node reports the running state and is active.");
+
+    auto source = createRunningProcessInfoNode(osal::CommsType::kNoComms);
+    ASSERT_THAT(source->getState(), Eq(score::lcm::ProcessState::kRunning));
+    ASSERT_THAT(source->active(), IsTrue());
+
+    ProcessInfoNode moved{std::move(*source)};
+
+    ASSERT_THAT(moved.getIndex(), Eq(kProcessIndex));
+    ASSERT_THAT(moved.getState(), Eq(score::lcm::ProcessState::kRunning));
+    ASSERT_THAT(moved.active(), IsTrue());
+}
+
 TEST_F(ProcessInfoNodeDeactivationTest, ProcessIgnoresSigterm_ForcedWithSigkill)
 {
     RecordProperty(

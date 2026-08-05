@@ -46,6 +46,9 @@ coverage --cache_test_results=no
 coverage --test_tag_filters=-no-coverage
 coverage --copt=-fprofile-update=atomic
 coverage --linkopt=-fprofile-update=atomic
+# Exclude mocks targets from coverge report
+coverage --instrumentation_filter="^//score/health_monitor/src/cpp[/:],^//score/launch_manager[/:],-[:/]mock_,-_mock"
+
 
 # Common Lifecycle Toolchain flags for build (do not use it in case of system toolchains!)
 build:toolchain_common --incompatible_strict_action_env
