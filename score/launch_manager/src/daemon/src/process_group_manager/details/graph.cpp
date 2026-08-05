@@ -135,13 +135,14 @@ inline void Graph::createRunTargetNodes(IdentifierHash pg_name)
     const auto num_processes = nodes_.size();
     const auto* states = configuration_->getListOfProcessGroupStates(pg_name).value_or(nullptr);
 
-    SCORE_LANGUAGE_FUTURECPP_ASSERT_PRD_MESSAGE(states != nullptr, "Process group states not found for process group");
+    SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(states != nullptr, "Process group states not found for process group");
 
     for (const auto& state : *states)
     {
         const auto node_index = static_cast<uint32_t>(nodes_.size());
         const auto emplaced_index = nodes_.emplace(std::in_place_type<RunTarget>, node_index);
-        SCORE_LANGUAGE_FUTURECPP_ASSERT_PRD_MESSAGE(
+        static_cast<void>(emplaced_index);
+        SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(
             emplaced_index == node_index, "RunTarget index must match its position in the graph");
         run_targets_.emplace_back(state.name_, node_index);
 
@@ -360,7 +361,7 @@ void Graph::startTransition(IdentifierHash pg_state)
     }
     const int32_t target_node = getRunTargetIndex(requested_state_.pg_state_name_);
 
-    SCORE_LANGUAGE_FUTURECPP_ASSERT_PRD_MESSAGE(
+    SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(
         target_node >= 0, "RunTarget node not found for requested process group state");
 
     bool reached_transition = setState(GraphState::kInTransition);

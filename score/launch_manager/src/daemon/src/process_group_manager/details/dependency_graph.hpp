@@ -73,6 +73,11 @@ class DependencyGraph
     /// During deactivation, node will be stopped before depends_on.
     void addDependency(const GraphIndex node, const GraphIndex depends_on)
     {
+        SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(
+            nodes[node].depends_on.size() < capacity(), "More dependencies added than there are nodes in the graph");
+        SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(
+            nodes[depends_on].dependents.size() < capacity(),
+            "More dependencies added than there are nodes in the graph");
         nodes[node].depends_on.push_back(depends_on);
         nodes[depends_on].dependents.push_back(node);
     }
@@ -120,7 +125,8 @@ class DependencyGraph
     {
         visited.assign(visited.size(), false);
         auto push_res = traversal_queue.push(start);
-        SCORE_LANGUAGE_FUTURECPP_ASSERT_PRD_MESSAGE(push_res, "Traversal queue was already full");
+        static_cast<void>(push_res);
+        SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(push_res, "Traversal queue was already full");
         visited[start] = true;
         while (!traversal_queue.empty())
         {
@@ -137,7 +143,7 @@ class DependencyGraph
                     continue;
                 }
                 push_res = traversal_queue.push(neighbor);
-                SCORE_LANGUAGE_FUTURECPP_ASSERT_PRD_MESSAGE(push_res, "Traversal queue was already full");
+                SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(push_res, "Traversal queue was already full");
                 visited[neighbor] = true;
             }
         }
