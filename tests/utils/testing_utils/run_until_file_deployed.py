@@ -62,21 +62,7 @@ def run_until_file_deployed(
 
         exit_code, _ = target.execute(f"test -f {file_path}")
         if exit_code == 0:
-            # Kill the entire process group so that children (e.g. the actual
-            # daemon binary launched under fakeroot) receive SIGTERM and can
-            # run their cleanup code before exiting.
-            kill_cmd = f"kill -TERM {proc.pid()}"
-            res, _ = target.execute(kill_cmd)
-            assert res == 0, "Couldn't kill lcm with SIGTERM"
-            try:
-                # wait() raises RuntimeError if the process is still running after
-                # stop_timeout_s.
-                exit_code = proc.wait(timeout_s=stop_timeout_s)
-            except RuntimeError as exc:
-                proc.stop()  # escalate to SIGKILL so we don't leak the process
-                assert False, (
-                    f"Process '{binary_path}' still running {stop_timeout_s}s after SIGTERM: {exc}"
-                )
+            exit_code = proc.stop()
             assert exit_code == 0, (
                 f"LCM did not exit cleanly, it died with code {exit_code}"
             )
