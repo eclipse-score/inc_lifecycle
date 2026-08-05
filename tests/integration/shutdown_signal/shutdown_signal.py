@@ -44,9 +44,6 @@ def test_shutdown_signal(target, setup_test, assert_test_results, remote_test_di
     control_daemon_mock after the "Startup" transition succeeds.
     """
 
-    # launch manager will simply ignore the arguments if run with --//config:use_new_configuration=False.
-    # the old configuration will be used, which is the default behavior.
-    # The new configuration will be used if run with --//config:use_new_configuration=True
     new_config_path = str(remote_test_dir / "etc/shutdown_signal.bin")
 
     run_until_file_deployed(
