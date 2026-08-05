@@ -50,6 +50,9 @@ class DependencyGraph
 
   public:
     /// @param count The exact number of nodes that will be added.
+    ///
+    /// @details The size of the internal traversal queue is either count - 1 or 1. This is because in each traversal
+    /// one node is pushed to the queue and then popped. From then on, dependencies are pushed to the queue.
     DependencyGraph(const std::size_t count) : traversal_queue(std::max(count, 2UL) - 1)
     {
         nodes.reserve(count);
@@ -109,8 +112,6 @@ class DependencyGraph
         return nodes[index].dependents;
     }
 
-
-
     /// @brief Traverse the graph, starting at @p start, performing @p per_node
     ///        on each node and moving to the nodes provided by the return
     ///        value from @p per_node.
@@ -124,8 +125,7 @@ class DependencyGraph
         while (!traversal_queue.empty())
         {
             const auto pop_res = traversal_queue.tryPop();
-            SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(
-                pop_res.has_value(), "Pop failed even though queue was not empty");
+            SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(pop_res.has_value(), "Pop failed even though queue was not empty");
             const auto current = pop_res.value();
 
             const auto& neighbors = per_node(current);
