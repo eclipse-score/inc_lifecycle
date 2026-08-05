@@ -41,7 +41,7 @@ integration_test(
         ":config",
         ":control_client_mock",
         ":process_crashing_once",
-        "//score/launch_manager"
+        "//score/launch_manager",
     ],
     config = ":fallback_to_same_target_restarts.json",
 )
