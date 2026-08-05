@@ -1794,21 +1794,7 @@
   {
     "name": "DependencyGraphTest__TraverseVisitsSharedDependencyExactlyOnce",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/dependency_graph_UT.cpp",
-    "line": "98",
-    "result": "passed",
-    "repo_name": null,
-    "hash": null,
-    "url": null,
-    "TestType": null,
-    "DerivationTechnique": null,
-    "result_text": "",
-    "PartiallyVerifies": null,
-    "FullyVerifies": null
-  },
-  {
-    "name": "DependencyGraphTest__TraverseFilterBoundsWhichNodesAreVisited",
-    "file": "score/launch_manager/src/daemon/src/process_group_manager/details/dependency_graph_UT.cpp",
-    "line": "128",
+    "line": "95",
     "result": "passed",
     "repo_name": null,
     "hash": null,
