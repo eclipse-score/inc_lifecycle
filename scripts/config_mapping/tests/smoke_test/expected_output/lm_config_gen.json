@@ -359,7 +359,8 @@
     "initial_run_target": "Startup",
     "fallback_run_target": {
         "transition_timeout": 1.5,
-        "description": "Switching off everything"
+        "description": "Switching off everything",
+        "depends_on": []
     },
     "alive_supervision": {
         "evaluation_cycle": 0.5

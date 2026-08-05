@@ -113,6 +113,10 @@ def preprocess_defaults(global_defaults, config):
     """
 
     def dict_merge(dict_a, dict_b):
+        """
+        Merges dict_a and dict_b, whereas dict_b takes precedence if the same key exists in both dicts.
+        """
+
         def dict_merge_recursive(dict_a, dict_b):
             for key, value in dict_b.items():
                 if (
@@ -359,14 +363,11 @@ def gen_config(output_dir, config, input_filename):
     out["initial_run_target"] = config["initial_run_target"]
 
     fallback = config.get("fallback_run_target", {})
-    fb_out = {}
-    if "transition_timeout" in fallback:
-        fb_out["transition_timeout"] = fallback["transition_timeout"]
-    if fallback.get("description"):
-        fb_out["description"] = fallback["description"]
-    if "depends_on" in fallback and fallback["depends_on"]:
-        fb_out["depends_on"] = fallback["depends_on"]
-    out["fallback_run_target"] = fb_out
+    out["fallback_run_target"] = {
+        key: fallback[key]
+        for key in ("transition_timeout", "description", "depends_on")
+        if key in fallback
+    }
 
     out["alive_supervision"] = {
         "evaluation_cycle": config.get("alive_supervision", {}).get(

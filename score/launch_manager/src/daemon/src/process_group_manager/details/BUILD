@@ -144,13 +144,13 @@ cc_library(
     deps = [
         ":icomponent",
         ":safe_process_map",
+        "//score/launch_manager/src/daemon/src/configuration:configuration_adapter",
         "//score/launch_manager/src/daemon/src/control:control_client_channel",
         "//score/launch_manager/src/daemon/src/osal:ipc_comms",
         "//score/launch_manager/src/daemon/src/osal:semaphore",
         "//score/launch_manager/src/daemon/src/process_group_manager:iprocess",
         "//score/launch_manager/src/daemon/src/process_state_client",
         "@score_baselibs//score/language/futurecpp",
-        "//score/launch_manager/src/daemon/src/configuration:configuration_adapter",
     ],
 )
 

@@ -12,7 +12,9 @@
     ],
     "initial_run_target": "Startup",
     "fallback_run_target": {
-        "transition_timeout": 3
+        "transition_timeout": 3,
+        "description": "",
+        "depends_on": []
     },
     "alive_supervision": {
         "evaluation_cycle": 0.5

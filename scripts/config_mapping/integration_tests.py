@@ -169,7 +169,7 @@ def test_custom_validation_failures(schema_file):
     """
     Test that custom validation checks implemented in lifecycle_config.py are correctly identifying invalid configurations.
     The input configuration contains the following issues:
-    * The run target "Minimal" has a recovery action that switches to a run target "Full" instead of "fallback_run_target"
+    * The run target "Minimal" has a recovery action that switches to a run target "Fallback" instead of "fallback_run_target"
     * The mandatory "fallback_run_target" is missing from the configuration
     * Reserved name "fallback_run_target" is used for a RunTarget name which is not allowed
     * Initial RunTarget is not configured to "Startup"
@@ -209,7 +209,7 @@ def test_schema_validation_failures(schema_file):
     """
     Test that schema validation errors are correctly raised when the input configuration does not conform to the defined JSON schema.
     The input configuration contains the following issues:
-    * Missing required fields
+    * Missing required field "initial_run_target"
     """
     test_name = "schema_validation_failure_test"
     input_file = tests_dir / test_name / "input" / "lm_config.json"
