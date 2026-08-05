@@ -18,7 +18,7 @@ from attribute_plugin import add_test_properties
 
 @add_test_properties(
     fully_verifies=[
-        "comp_req__lifecycle__shutdown_signal",
+        "feat_req__lifecycle__shutdown_signal",
     ],
     partially_verifies=[],
     test_type="requirements-based",
