@@ -15,7 +15,6 @@
 
 #include <functional>
 #include <memory>
-#include <string_view>
 
 #include "score/mw/lifecycle/execution_error.h"
 #include "score/mw/lifecycle/fixed_string.hpp"
@@ -119,7 +118,7 @@ class ILmControl
     /// @error kRunTargetDoesntExist Name of the requested Run Target does not exist in current configuration.
     /// @error kCommunicationError         Connection with Launch Manager cannot be established and request cannot be
     /// sent.
-    virtual score::Result<void> activate_run_target(std::string_view runTargetName, bool force = false) = 0;
+    virtual score::Result<void> activate_run_target(RunTargetName runTargetName, bool force = false) = 0;
 
     /// @brief Register a callback invoked whenever Launch Manager finishes a Run Target activation.
     ///
