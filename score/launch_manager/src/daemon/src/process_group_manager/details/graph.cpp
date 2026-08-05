@@ -11,7 +11,6 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include <cassert>
 #include <ctime>
 
 #include <score/span.hpp>
@@ -125,7 +124,8 @@ inline void Graph::createProcessInfoNodes(uint32_t num_processes)
             report_state_lambda,
             process_interface_,
             process_map_);
-        assert(index == process_id && "Graph indicies must line up with os process indices");
+        static_cast<void>(index);
+        SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(index == process_id, "Graph indicies must line up with os process indices");
     }
     LM_LOG_DEBUG() << "Created" << nodes_.size() << "process nodes";
 }

@@ -16,7 +16,7 @@
 #include "score/mw/launch_manager/osal/ipc_comms.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/safe_process_map.hpp"
 #include <unistd.h>
-#include <cassert>
+#include <score/assert.hpp>
 
 namespace score
 {
@@ -50,7 +50,7 @@ ProcessInfoNode::ProcessInfoNode(
 
 IComponent::RequestResult ProcessInfoNode::tryReportCompletion(score::lcm::ProcessState new_state)
 {
-    std::optional<ProcessState> desired_state = std::nullopt;
+    ProcessState desired_state {};
     switch (ready_condition_)
     {
         case ReadyCondition::kRunning:
@@ -59,20 +59,13 @@ IComponent::RequestResult ProcessInfoNode::tryReportCompletion(score::lcm::Proce
         case ReadyCondition::kTerminated:
             desired_state = ProcessState::kTerminated;
             break;
-        default:
-            break;
-    }
-    assert(desired_state.has_value() && "Ready condition is not implemented");
-    if (!desired_state.has_value())
-    {
-        return {IComponent::RequestState::kWaiting};
     }
     if (new_state == ProcessState::kFailed)
     {
         // Didn't reach running or startup
         return tryReportError(ComponentError::kErrorBeforeReady);
     }
-    if (new_state == desired_state.value())
+    if (new_state == desired_state)
     {
         return tryReportSuccess();
     }
@@ -205,9 +198,9 @@ IComponent::RequestResult ProcessInfoNode::startProcess(score::cpp::stop_token s
     {
         // setState(kIdle) will fail if the state is:
         // - Starting: this would mean we did not set state to kFailed on failure or exit when we successfully launched
-        assert(getState() != ProcessState::kStarting && "Process state is invalid");
+        SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(getState() != ProcessState::kStarting, "Process state is invalid");
         // - Running: we should already have exited the loop
-        assert(getState() != ProcessState::kRunning && "Restart attempted even though process is running");
+        SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(getState() != ProcessState::kRunning, "Restart attempted even though process is running");
         // - Terminating: A termination is in progress (allowed)
         if (!setState(score::lcm::ProcessState::kIdle))
         {
@@ -245,7 +238,7 @@ IComponent::RequestResult ProcessInfoNode::startProcess(score::cpp::stop_token s
                 break;
             }
             // Ordinary failure happened after the process started, e.g. kRunning timeout
-            assert(getState() == ProcessState::kTerminated && "Process was not terminated after failed startup");
+            SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(getState() == ProcessState::kTerminated, "Process was not terminated after failed startup");
             error = res.value().error();
         }
         else

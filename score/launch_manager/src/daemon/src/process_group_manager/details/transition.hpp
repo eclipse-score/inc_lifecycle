@@ -61,40 +61,6 @@ inline bool operator!=(const ReadyNode& lhs, const ReadyNode& rhs)
 template <typename T>
 class TransitionBuilder;
 
-/// @brief The Transition computes the nodes to activate/deactivate when transitioning between states in the graph.
-/// @details When transitioning to a target state, the Transition computes the nodes that need to be
-/// deactivated (those nodes not reachable from the target state) and those that need to be activated (those reachable
-/// from the target that are not yet active). This list is then used to drive the transition by iterating over the ready
-/// nodes (@ref nextReady()) and marking them as finished once activated/deactivated (@ref onNodeFinished()). The
-/// transition is split into two phases: Stopping phase and Starting phase. Stopping Phase: Every node that is currently
-/// running (@ref stopped() is false) and is not part of the target subgraph is deactivated. The stop set is derived
-/// from live component state across the whole graph rather than from a source subgraph, so it also captures nodes left
-/// running by a previously aborted transition. Once all nodes in the Stopping phase are finished, the transition moves
-/// to the Starting phase. Starting Phase: The nodes that need to be activated are processed next. Once all nodes in the
-/// Starting phase are finished, the transition is complete.
-///
-/// The template parameter is expected to be a type that can be used to retrieve the corresponding IComponent instance
-/// via the componentOf() function, which is expected to be defined for the type T.
-///
-/// Example Usage:
-///
-///   TransitionBuilder<std::variant<ProcessInfoNode, RunTarget>> builder(graph);
-///   auto& transition = builder.createTransition(target);
-///   for (const auto [node, action] : current_transition_)
-///   {
-///       if (action == Action::Start) {
-///          // queue activation of the node
-///       } else {
-///          // queue deactivation of the node
-///       }
-///   }
-///   // ... later on, when a node finishes activation/deactivation:
-///   transition.onNodeFinished(node);
-///
-/// Note: It is also supported to call @ref onNodeFinished() while iterating the ready nodes.
-///       This may be needed in case of node types that can be activated/deactivated synchronously, so that their
-///       successors can be dispatched immediately.
-///
 namespace detail
 {
 /// @brief True iff componentOf(U&) is callable (via ADL) and yields a reference convertible to
@@ -111,9 +77,28 @@ struct is_component_type<U, std::void_t<decltype(componentOf(std::declval<U&>())
 };
 }  // namespace detail
 
+/// @brief The Transition computes the nodes to activate/deactivate when
+///        transitioning between states in the graph.
+/// @details The Transition computes the nodes that need to be deactivated
+///          (those nodes not reachable from the target state) and those that
+///          need to be activated (those reachable from the target that are
+///          not yet active).
+///
 template <typename T>
 class Transition
 {
+    // The transition is split into two phases:
+    // - Stopping Phase: Every node that is currently running (@ref stopped() is false) and is
+    //   not part of the target subgraph is deactivated. The stop set is derived from live component state across
+    //   the whole graph rather than from a source subgraph, so it also captures nodes left running by a previously
+    //   aborted transition. Once all nodes in the Stopping phase are finished, the transition moves to the Starting
+    //   phase.
+    // - Starting Phase: The nodes that need to be activated are processed next. Once all nodes in the
+    //   Starting phase are finished, the transition is complete.
+    //
+    // The template parameter is expected to be a type that can be used to retrieve the corresponding IComponent
+    // instance via the componentOf() function, which is expected to be defined for the type T.
+
     static_assert(
         detail::is_component_type<T>::value,
         "Transition<T> requires an ADL-findable componentOf(T&) that returns a reference "
@@ -261,7 +246,13 @@ class Transition
     /// aborted transition are captured too). Then moves to the Starting Phase to bring up @p target.
     void setupTransition(GraphIndex target)
     {
-        beginSetup(target);
+        std::fill(state_.in_target_subgraph.begin(), state_.in_target_subgraph.end(), false);
+
+        state_.target_root = target;
+        clearNextNodes();
+        state_.pending = 0;
+        state_.phase = Phase::Stopping;
+        state_.enqueued_set.reset();
         setupDeactivation(target);
         if (state_.pending == 0)
         {
@@ -363,16 +354,6 @@ class Transition
         }
     }
 
-    /// @brief Reset the internal state before setting up the next phase
-    void beginSetup(GraphIndex target)
-    {
-        state_.target_root = target;
-        clearNextNodes();
-        state_.pending = 0;
-        state_.phase = Phase::Stopping;
-        state_.enqueued_set.reset();
-    }
-
     /// @brief Leave the Stopping phase for the Starting phase.
     /// @details Sets up activation of the `target` subgraph; if there is nothing to start (everything is
     /// already active()), the transition is finished.
@@ -397,7 +378,6 @@ class Transition
     /// - pending: the count of nodes that are still to be activated
     void setupActivation(GraphIndex root)
     {
-        std::fill(state_.in_target_subgraph.begin(), state_.in_target_subgraph.end(), false);
         graph_.traverse(
             root,
             [this](GraphIndex i) -> const std::vector<GraphIndex>& {
@@ -411,9 +391,6 @@ class Transition
                     }
                 }
                 return graph_.dependsOn(i);
-            },
-            [](GraphIndex) {
-                return true;
             });
     }
 
@@ -429,15 +406,11 @@ class Transition
     /// source subgraph — are still stopped.
     void setupDeactivation(GraphIndex target)
     {
-        std::fill(state_.in_target_subgraph.begin(), state_.in_target_subgraph.end(), false);
         graph_.traverse(
             target,
             [this](GraphIndex i) -> const std::vector<GraphIndex>& {
                 state_.in_target_subgraph[i] = true;
                 return graph_.dependsOn(i);
-            },
-            [](GraphIndex) {
-                return true;
             });
         for (GraphIndex i = 0; i < graph_.size(); ++i)
         {

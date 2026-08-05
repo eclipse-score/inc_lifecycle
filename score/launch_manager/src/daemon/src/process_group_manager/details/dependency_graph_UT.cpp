@@ -85,9 +85,6 @@ TEST(DependencyGraphTest, TraverseVisitsWholeChainThroughDependsOn)
         [&](GraphIndex i) -> const std::vector<GraphIndex>& {
             visited.push_back(graph[i]);
             return graph.dependsOn(i);
-        },
-        [](GraphIndex) {
-            return true;
         });
 
     EXPECT_THAT(
@@ -117,35 +114,9 @@ TEST(DependencyGraphTest, TraverseVisitsSharedDependencyExactlyOnce)
                 ++shared_visits;
             }
             return graph.dependsOn(i);
-        },
-        [](GraphIndex) {
-            return true;
         });
 
     EXPECT_EQ(shared_visits, 1U);
-}
-
-TEST(DependencyGraphTest, TraverseFilterBoundsWhichNodesAreVisited)
-{
-    DependencyGraph<IdentifierHash> graph(3);
-    const auto excluded = graph.emplace("excluded");
-    const auto included = graph.emplace("included");
-    const auto root = graph.emplace("root");
-    graph.addDependency(root, included);
-    graph.addDependency(root, excluded);
-
-    std::vector<GraphIndex> visited;
-    graph.traverse(
-        root,
-        [&](GraphIndex i) -> const std::vector<GraphIndex>& {
-            visited.push_back(i);
-            return graph.dependsOn(i);
-        },
-        [excluded](GraphIndex neighbor) {
-            return neighbor != excluded;
-        });
-
-    EXPECT_THAT(visited, ::testing::UnorderedElementsAre(root, included));
 }
 
 }  // namespace score::mw::lifecycle

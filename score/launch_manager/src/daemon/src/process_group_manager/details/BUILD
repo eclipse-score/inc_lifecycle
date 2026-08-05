@@ -153,6 +153,7 @@ cc_library(
         "//score/launch_manager/src/daemon/src/osal:semaphore",
         "//score/launch_manager/src/daemon/src/process_group_manager:iprocess",
         "//score/launch_manager/src/daemon/src/process_state_client",
+        "@score_baselibs//score/language/futurecpp",
     ] + select({
         "//config:lm_use_new_configuration": [
             "//score/launch_manager/src/daemon/src/configuration:configuration_adapter",

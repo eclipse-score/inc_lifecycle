@@ -93,7 +93,7 @@ void ProcessMonitor::doWork(ComponentTask&& task)
     {
         if (!event_queue_.push(JobSkipped{task.component.get().getIndex()}))
         {
-            LM_LOG_ERROR() << "Failed to send activation failed event to event queue!";
+            LM_LOG_ERROR() << "Failed to send job skipped event to event queue!";
         }
         return;
     }

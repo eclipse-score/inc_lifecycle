@@ -50,7 +50,7 @@ class DependencyGraph
 
   public:
     /// @param count The exact number of nodes that will be added.
-    DependencyGraph(std::size_t count) : traversal_queue(std::max(count, std::size_t(2)) - 1)
+    DependencyGraph(const std::size_t count) : traversal_queue(std::max(count, 2UL) - 1)
     {
         nodes.reserve(count);
         visited.resize(count);
@@ -92,6 +92,11 @@ class DependencyGraph
         return nodes[index].value;
     }
 
+    const T& operator[](const GraphIndex index) const
+    {
+        return nodes[index].value;
+    }
+
     /// @return The nodes that @p index depends on.
     const std::vector<GraphIndex>& dependsOn(GraphIndex index) const
     {
@@ -104,20 +109,22 @@ class DependencyGraph
         return nodes[index].dependents;
     }
 
-    /// @brief Traverse the graph, starting at @p start, performing @p per_node on each node and moving to the nodes
-    /// provided by the return value from @p per_node. Only nodes such that @c filter(node) is true are traversed.
-    /// Nodes are visited at most once.
-    template <typename PerNodeFn, typename FilterFn>
-    void traverse(const GraphIndex start, PerNodeFn per_node, FilterFn filter)
+
+
+    /// @brief Traverse the graph, starting at @p start, performing @p per_node
+    ///        on each node and moving to the nodes provided by the return
+    ///        value from @p per_node.
+    template <typename PerNodeFn>
+    void traverse(const GraphIndex start, PerNodeFn per_node)
     {
         visited.assign(visited.size(), false);
         auto push_res = traversal_queue.push(start);
-        SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(push_res, "Traversal queue was already full");
+        SCORE_LANGUAGE_FUTURECPP_ASSERT_PRD_MESSAGE(push_res, "Traversal queue was already full");
         visited[start] = true;
         while (!traversal_queue.empty())
         {
             const auto pop_res = traversal_queue.tryPop();
-            SCORE_LANGUAGE_FUTURECPP_ASSERT_PRD_MESSAGE(
+            SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(
                 pop_res.has_value(), "Pop failed even though queue was not empty");
             const auto current = pop_res.value();
 
@@ -125,12 +132,12 @@ class DependencyGraph
 
             for (const auto neighbor : neighbors)
             {
-                if (visited[neighbor] || !filter(neighbor))
+                if (visited[neighbor])
                 {
                     continue;
                 }
                 push_res = traversal_queue.push(neighbor);
-                SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(push_res, "Failed to push to traversal queue");
+                SCORE_LANGUAGE_FUTURECPP_ASSERT_PRD_MESSAGE(push_res, "Traversal queue was already full");
                 visited[neighbor] = true;
             }
         }

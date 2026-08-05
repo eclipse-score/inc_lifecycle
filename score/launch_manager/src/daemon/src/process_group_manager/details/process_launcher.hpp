@@ -54,7 +54,6 @@ class ProcessLauncher final : public IProcess
     ///                     information about the communication channel.
     /// @param[in,out] fd Reference to an integer where the file descriptor of the shared memory
     ///                    segment will be stored.
-    /// @param[in,out] block Reference to a pointer that will be set to point to the shared memory block.
     /// @param[in] config Pointer to the configuration for initializing the communication.
     /// @return True if shared memory creation and initialization are successful, false otherwise.
     inline bool setupComms(IpcCommsP& sync, int& fd, const OsalConfig& config);
@@ -65,7 +64,6 @@ class ProcessLauncher final : public IProcess
     inline bool initializeSemaphores(IpcCommsP block);
 
     /// @brief Initializes the Control Client for communication using the shared memory block.
-    /// @param[in] shared_block Pointer to the shared memory block.
     /// @param[in,out] fd Reference to store the file descriptor of the shared memory.
     /// @param[in] config Pointer to the configuration for initializing the Control Client.
     /// @return None.
