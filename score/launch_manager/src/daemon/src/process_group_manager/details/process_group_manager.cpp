@@ -341,9 +341,7 @@ bool ProcessGroupManager::run()
             {
                 LM_LOG_FATAL() << "ComponentEventQueue overflow - one or more events were lost";
                 overflow_logged = true;
-#ifdef USE_NEW_CONFIGURATION
                 watchdog_->fireWatchdogReaction();
-#endif
             }
 
             for (auto pg : process_groups_)
@@ -352,15 +350,6 @@ bool ProcessGroupManager::run()
                 processGroupHandler(*pg);
             }
 
-<<<<<<< HEAD
-#ifdef USE_NEW_CONFIGURATION
-            == == == = if (recovery_client_ && recovery_client_->hasOverflow())
-            {
-                LM_LOG_ERROR() << "Recovery client overflow detected, firing watchdog";
-                watchdog_->fireWatchdogReaction();
-            }
-
->>>>>>> a2bc80b4b (Use new config by default)
             watchdog_->serviceWatchdog();
         }
 

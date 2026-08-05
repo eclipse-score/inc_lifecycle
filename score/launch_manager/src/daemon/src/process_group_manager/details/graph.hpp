@@ -50,12 +50,8 @@ namespace internal
 
 using namespace score::mw::lifecycle;
 
-#ifdef USE_NEW_CONFIGURATION
 using ConfigurationInterface = ConfigurationAdapter;
 using Config = score::mw::launch_manager::configuration::Config;
-#else
-using ConfigurationInterface = IConfigurationManager;
-#endif
 
 using WorkerQueue =
     MPMCConcurrentQueue<std::optional<ComponentTask>, static_cast<std::size_t>(ProcessLimits::kMaxProcesses)>;
