@@ -121,17 +121,3 @@ config_setting(
     },
     visibility = ["//visibility:public"],
 )
-
-bool_flag(
-    name = "use_new_configuration",
-    build_setting_default = False,
-    visibility = ["//visibility:public"],
-)
-
-config_setting(
-    name = "lm_use_new_configuration",
-    flag_values = {
-        ":use_new_configuration": "True",
-    },
-    visibility = ["//visibility:public"],
-)
