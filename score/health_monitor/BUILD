@@ -11,8 +11,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-load("@rules_cc//cc:defs.bzl", "cc_library")
-
 alias(
     name = "health_monitoring_cc",
     actual = "//score/health_monitor/src/cpp:health_monitoring_cc",
