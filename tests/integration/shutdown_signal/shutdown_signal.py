@@ -31,12 +31,12 @@ def test_shutdown_signal(target, setup_test, assert_test_results, remote_test_di
     SIGKILL.
 
     The control daemon activates the "Running" run target (starting the managed
-    gtest_process), then switches back to "Startup". The gtest_process installs a
+    shutdown_signal_process), then switches back to "Startup". The shutdown_signal_process installs a
     SIGTERM handler that records the received SIGTERM and then deliberately sleeps
     past its shutdown_timeout instead of terminating, forcing the Launch Manager
     to send SIGKILL. Finally the control daemon activates "Off".
 
-    Expected Behaviour: gtest_process receives a SIGTERM (proven by the
+    Expected Behaviour: shutdown_signal_process receives a SIGTERM (proven by the
     `sigterm_received` file, which is written before the sleep and therefore
     survives SIGKILL) and is then force-terminated by SIGKILL (proven by the
     absence of the `graceful_exit` file, which would only exist had the process
@@ -61,8 +61,8 @@ def test_shutdown_signal(target, setup_test, assert_test_results, remote_test_di
     # Additionally verify on the target filesystem that the SIGTERM was received
     # and that the process was force-killed (no graceful exit was recorded).
     res, _ = target.execute(f"test -f {remote_test_dir / 'sigterm_received'}")
-    assert res == 0, "gtest_process did not receive a SIGTERM during shutdown"
+    assert res == 0, "shutdown_signal_process did not receive a SIGTERM during shutdown"
     res, _ = target.execute(f"test -f {remote_test_dir / 'graceful_exit'}")
-    assert res != 0, "gtest_process was not force-terminated with SIGKILL"
+    assert res != 0, "shutdown_signal_process was not force-terminated with SIGKILL"
 
-    assert_test_results({"control_daemon_mock.xml", "gtest_process.xml"})
+    assert_test_results({"control_daemon_mock.xml", "shutdown_signal_process.xml"})

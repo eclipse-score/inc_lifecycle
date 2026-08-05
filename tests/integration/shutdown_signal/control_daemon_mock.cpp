@@ -21,12 +21,12 @@
 // The Launch Manager shall shut a process down by sending it a SIGTERM, and, if
 // the process does not terminate itself in time, a SIGKILL.
 //
-// The managed gtest_process installs a SIGTERM handler that records the SIGTERM
+// The managed shutdown_signal_process installs a SIGTERM handler that records the SIGTERM
 // (writing `sigterm_received_file`) and then sleeps past its shutdown_timeout
 // instead of terminating, forcing the Launch Manager to send SIGKILL.
 //
-// We drive the shutdown by activating "Running" (which starts gtest_process) and
-// then switching back to "Startup". "Startup" no longer depends on gtest_process,
+// We drive the shutdown by activating "Running" (which starts shutdown_signal_process) and
+// then switching back to "Startup". "Startup" no longer depends on shutdown_signal_process,
 // so it is terminated, while the control daemon itself stays alive (it is part of
 // "Startup") and can therefore assert the outcome. Switching to "Off" instead
 // would terminate the control daemon too, so it could not run the assertion.
@@ -47,7 +47,7 @@ TEST(ShutdownSignal, Daemon)
         EXPECT_TRUE(result.has_value()) << "Activating target Running failed: " << result.error().Message();
     }
 
-    // Switching away from "Running" terminates gtest_process. Because it does not
+    // Switching away from "Running" terminates shutdown_signal_process. Because it does not
     // self-terminate on SIGTERM, the Launch Manager must escalate to SIGKILL for
     // the transition to complete.
     TEST_STEP("Activate RunTarget Startup")
@@ -61,11 +61,11 @@ TEST(ShutdownSignal, Daemon)
     {
         // SIGTERM was delivered: the process recorded it before sleeping.
         EXPECT_TRUE(std::filesystem::exists(sigterm_received_file))
-            << "gtest_process did not receive a SIGTERM during shutdown";
+            << "shutdown_signal_process did not receive a SIGTERM during shutdown";
         // SIGKILL forced termination: the process was killed mid-sleep and thus
         // never reached the point where it would have flagged a graceful exit.
         EXPECT_FALSE(std::filesystem::exists(graceful_exit_file))
-            << "gtest_process was not force-terminated with SIGKILL; it exited its sleep gracefully";
+            << "shutdown_signal_process was not force-terminated with SIGKILL; it exited its sleep gracefully";
     }
 
     TEST_STEP("Activate RunTarget Off")

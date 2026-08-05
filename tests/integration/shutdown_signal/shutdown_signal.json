@@ -60,9 +60,9 @@
                 }
             }
         },
-        "gtest_process": {
+        "shutdown_signal_process": {
             "component_properties": {
-                "binary_name": "gtest_process",
+                "binary_name": "shutdown_signal_process",
                 "application_profile": {
                     "application_type": "Reporting"
                 }
@@ -89,7 +89,7 @@
         "Running": {
             "depends_on": [
                 "control_daemon",
-                "gtest_process"
+                "shutdown_signal_process"
             ],
             "recovery_action": {
                 "switch_run_target": {

@@ -10,8 +10,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
-load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 load("//tests/utils/bazel:integration.bzl", "integration_test")
 
 cc_library(
@@ -32,8 +31,8 @@ cc_binary(
 )
 
 cc_binary(
-    name = "gtest_process",
-    srcs = ["gtest_process.cpp"],
+    name = "shutdown_signal_process",
+    srcs = ["shutdown_signal_process.cpp"],
     deps = [
         ":shutdown_signal_common",
         "//score/launch_manager:control_cc",
@@ -48,7 +47,7 @@ integration_test(
     srcs = ["shutdown_signal.py"],
     binaries = [
         ":control_daemon_mock",
-        ":gtest_process",
+        ":shutdown_signal_process",
         "//score/launch_manager",
     ],
     config = ":shutdown_signal.json",
