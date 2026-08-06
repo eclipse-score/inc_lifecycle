@@ -102,6 +102,16 @@ auto AlterOutParamBy(std::int32_t delta)
     });
 }
 
+/// @brief Steps of the enable() sequence, in the order they are issued.
+enum class EnableStep
+{
+    kOpen,
+    kGetTimeout,
+    kGetTimeLeft,
+    kSetTimeout,
+    kSetOptions,
+};
+
 /// @brief WatchdogImpl subclass that mocks waitForever() so fireWatchdogReaction() returns for testing.
 class WatchdogImpl_FireWatchdogMock : public WatchdogImpl
 {
@@ -164,6 +174,36 @@ class WatchdogImplTest : public ::testing::Test
         EXPECT_CALL(*ioctlMock_, ioctl(fd, WDIOC_GETTIMELEFT, _)).WillOnce(Return(IoctlOk()));
         EXPECT_CALL(*ioctlMock_, ioctl(fd, WDIOC_SETTIMEOUT, _)).WillOnce(Return(IoctlOk()));
         EXPECT_CALL(*ioctlMock_, ioctl(fd, WDIOC_SETOPTIONS, _)).WillOnce(Return(IoctlOk()));
+    }
+
+    /// @brief Programs the enable() sequence so steps before `failingStep` succeed, `failingStep`
+    /// returns an error, and every step after it is never reached.
+    void expectEnableFailingAt(const WatchdogConfig& cfg, EnableStep failingStep, std::int32_t fd = 1)
+    {
+        // An ioctl step succeeds before the failure, fails at it, and is never called after it.
+        auto ioctlStep = [&](EnableStep step, unsigned long request, auto successAction) {
+            auto& call = EXPECT_CALL(*ioctlMock_, ioctl(fd, request, _));
+            if (step < failingStep)
+            {
+                call.WillOnce(successAction);
+            }
+            else if (step == failingStep)
+            {
+                call.WillOnce(Return(IoctlErr()));
+            }
+            else
+            {
+                call.Times(0);
+            }
+        };
+
+        EXPECT_CALL(*fcntlMock_, open(StrEq(cfg.device_file_path), _))
+            .WillOnce(Return(failingStep == EnableStep::kOpen ? OpenErr() : OpenOk(fd)));
+
+        ioctlStep(EnableStep::kGetTimeout, WDIOC_GETTIMEOUT, SetOutParam(0));
+        ioctlStep(EnableStep::kGetTimeLeft, WDIOC_GETTIMELEFT, Return(IoctlOk()));
+        ioctlStep(EnableStep::kSetTimeout, WDIOC_SETTIMEOUT, Return(IoctlOk()));
+        ioctlStep(EnableStep::kSetOptions, WDIOC_SETOPTIONS, Return(IoctlOk()));
     }
 
     /// @brief Programs the mocks for a successful disableDevice() sequence on `fd`.
@@ -334,20 +374,6 @@ TEST_F(WatchdogImplTest, WdgEnable_FailsIfNotInIdleState)
     EXPECT_FALSE(wdg->enable());
 }
 
-TEST_F(WatchdogImplTest, WdgEnable_FailsIfOpenFails)
-{
-    RecordProperty("Description", "enable() fails when opening the configured device file fails.");
-
-    auto cfg = makeCfg("/dev/watchdog", 2000U, true /*canBeDeactivated*/, false /*needsMagicClose*/);
-    auto wdg = makeWatchdog();
-    ASSERT_TRUE(wdg->init(cfg, kDefaultCycleTimeNs));
-
-    EXPECT_CALL(*fcntlMock_, open(StrEq(cfg.device_file_path), _)).WillOnce(Return(OpenErr()));
-    EXPECT_CALL(*ioctlMock_, ioctl).Times(0);
-
-    EXPECT_FALSE(wdg->enable());
-}
-
 TEST_F(WatchdogImplTest, WdgEnable_DoesNotSetConfiguredTimeoutValue_WhenTimeoutAlreadyCorrect)
 {
     RecordProperty(
@@ -375,57 +401,53 @@ TEST_F(WatchdogImplTest, WdgEnable_DoesNotSetConfiguredTimeoutValue_WhenTimeoutA
     EXPECT_TRUE(wdg->enable());
 }
 
-TEST_F(WatchdogImplTest, WdgEnable_FailsIfGetTimeoutFails)
+struct EnableFailureCase
 {
-    RecordProperty("Description", "enable() fails and skips the remaining ioctls when WDIOC_GETTIMEOUT fails.");
+    std::string name;
+    std::string description;
+    EnableStep failingStep;
+};
+
+class WatchdogImpl_UT_EnableFailure : public WatchdogImplTest,
+                                      public ::testing::WithParamInterface<EnableFailureCase>
+{
+};
+
+TEST_P(WatchdogImpl_UT_EnableFailure, WdgEnable_FailsAndStopsSequence)
+{
+    const auto& param = GetParam();
+    RecordProperty("Description", param.description);
 
     auto cfg = makeCfg("/dev/watchdog", 2000U, true /*canBeDeactivated*/, false /*needsMagicClose*/);
     auto wdg = makeWatchdog();
     ASSERT_TRUE(wdg->init(cfg, kDefaultCycleTimeNs));
 
-    EXPECT_CALL(*fcntlMock_, open(StrEq(cfg.device_file_path), _)).WillOnce(Return(OpenOk(1)));
-    EXPECT_CALL(*ioctlMock_, ioctl(1, WDIOC_GETTIMEOUT, _)).WillOnce(Return(IoctlErr()));
-    EXPECT_CALL(*ioctlMock_, ioctl(1, WDIOC_GETTIMELEFT, _)).Times(0);
-    EXPECT_CALL(*ioctlMock_, ioctl(1, WDIOC_SETTIMEOUT, _)).Times(0);
-    EXPECT_CALL(*ioctlMock_, ioctl(1, WDIOC_SETOPTIONS, _)).Times(0);
+    expectEnableFailingAt(cfg, param.failingStep);
 
     EXPECT_FALSE(wdg->enable());
 }
 
-TEST_F(WatchdogImplTest, WdgEnable_FailsIfGetRemainingTimeLeftFails)
-{
-    RecordProperty(
-        "Description", "enable() fails and skips WDIOC_SETTIMEOUT/WDIOC_SETOPTIONS when WDIOC_GETTIMELEFT fails.");
-
-    auto cfg = makeCfg("/dev/watchdog", 2000U, true /*canBeDeactivated*/, false /*needsMagicClose*/);
-    auto wdg = makeWatchdog();
-    ASSERT_TRUE(wdg->init(cfg, kDefaultCycleTimeNs));
-
-    EXPECT_CALL(*fcntlMock_, open(StrEq(cfg.device_file_path), _)).WillOnce(Return(OpenOk(1)));
-    EXPECT_CALL(*ioctlMock_, ioctl(1, WDIOC_GETTIMEOUT, _)).WillOnce(SetOutParam(0));
-    EXPECT_CALL(*ioctlMock_, ioctl(1, WDIOC_GETTIMELEFT, _)).WillOnce(Return(IoctlErr()));
-    EXPECT_CALL(*ioctlMock_, ioctl(1, WDIOC_SETTIMEOUT, _)).Times(0);
-    EXPECT_CALL(*ioctlMock_, ioctl(1, WDIOC_SETOPTIONS, _)).Times(0);
-
-    EXPECT_FALSE(wdg->enable());
-}
-
-TEST_F(WatchdogImplTest, WdgEnable_FailsIfSetTimeoutFails)
-{
-    RecordProperty("Description", "enable() fails and skips WDIOC_SETOPTIONS when WDIOC_SETTIMEOUT fails.");
-
-    auto cfg = makeCfg("/dev/watchdog", 2000U, true /*canBeDeactivated*/, false /*needsMagicClose*/);
-    auto wdg = makeWatchdog();
-    ASSERT_TRUE(wdg->init(cfg, kDefaultCycleTimeNs));
-
-    EXPECT_CALL(*fcntlMock_, open(StrEq(cfg.device_file_path), _)).WillOnce(Return(OpenOk(1)));
-    EXPECT_CALL(*ioctlMock_, ioctl(1, WDIOC_GETTIMEOUT, _)).WillOnce(SetOutParam(0));
-    EXPECT_CALL(*ioctlMock_, ioctl(1, WDIOC_GETTIMELEFT, _)).WillOnce(Return(IoctlOk()));
-    EXPECT_CALL(*ioctlMock_, ioctl(1, WDIOC_SETTIMEOUT, _)).WillOnce(Return(IoctlErr()));
-    EXPECT_CALL(*ioctlMock_, ioctl(1, WDIOC_SETOPTIONS, _)).Times(0);
-
-    EXPECT_FALSE(wdg->enable());
-}
+INSTANTIATE_TEST_SUITE_P(
+    EnableFailures,
+    WatchdogImpl_UT_EnableFailure,
+    ::testing::Values(
+        EnableFailureCase{
+            "OpenFails", "enable() fails when opening the configured device file fails.", EnableStep::kOpen},
+        EnableFailureCase{
+            "GetTimeoutFails",
+            "enable() fails and skips the remaining ioctls when WDIOC_GETTIMEOUT fails.",
+            EnableStep::kGetTimeout},
+        EnableFailureCase{
+            "GetRemainingTimeLeftFails",
+            "enable() fails and skips WDIOC_SETTIMEOUT/WDIOC_SETOPTIONS when WDIOC_GETTIMELEFT fails.",
+            EnableStep::kGetTimeLeft},
+        EnableFailureCase{
+            "SetTimeoutFails",
+            "enable() fails and skips WDIOC_SETOPTIONS when WDIOC_SETTIMEOUT fails.",
+            EnableStep::kSetTimeout},
+        EnableFailureCase{
+            "EnablecardFails", "enable() fails when the WDIOS_ENABLECARD ioctl fails.", EnableStep::kSetOptions}),
+    [](const ::testing::TestParamInfo<EnableFailureCase>& info) { return info.param.name; });
 
 TEST_F(WatchdogImplTest, WdgEnable_FailsIfTimeoutValueIsAltered)
 {
@@ -441,23 +463,6 @@ TEST_F(WatchdogImplTest, WdgEnable_FailsIfTimeoutValueIsAltered)
     // Device alters the requested timeout to a value that doesn't match what was requested.
     EXPECT_CALL(*ioctlMock_, ioctl(1, WDIOC_SETTIMEOUT, _)).WillOnce(AlterOutParamBy(1));
     EXPECT_CALL(*ioctlMock_, ioctl(1, WDIOC_SETOPTIONS, _)).Times(0);
-
-    EXPECT_FALSE(wdg->enable());
-}
-
-TEST_F(WatchdogImplTest, WdgEnable_FailsIfEnablecardFails)
-{
-    RecordProperty("Description", "enable() fails when the WDIOS_ENABLECARD ioctl fails.");
-
-    auto cfg = makeCfg("/dev/watchdog", 2000U, true /*canBeDeactivated*/, false /*needsMagicClose*/);
-    auto wdg = makeWatchdog();
-    ASSERT_TRUE(wdg->init(cfg, kDefaultCycleTimeNs));
-
-    EXPECT_CALL(*fcntlMock_, open(StrEq(cfg.device_file_path), _)).WillOnce(Return(OpenOk(1)));
-    EXPECT_CALL(*ioctlMock_, ioctl(1, WDIOC_GETTIMEOUT, _)).WillOnce(SetOutParam(0));
-    EXPECT_CALL(*ioctlMock_, ioctl(1, WDIOC_GETTIMELEFT, _)).WillOnce(Return(IoctlOk()));
-    EXPECT_CALL(*ioctlMock_, ioctl(1, WDIOC_SETTIMEOUT, _)).WillOnce(Return(IoctlOk()));
-    EXPECT_CALL(*ioctlMock_, ioctl(1, WDIOC_SETOPTIONS, _)).WillOnce(Return(IoctlErr()));
 
     EXPECT_FALSE(wdg->enable());
 }
