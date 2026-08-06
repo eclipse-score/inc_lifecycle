@@ -17,7 +17,7 @@
 #include "score/mw/log/rust/stdout_logger_init.h"
 #include "tests/utils/test_helper/test_helper.hpp"
 #include <score/mw/health/common.h>
-#include <score/mw/health/health_monitor.h>
+#include <score/mw/health/health_monitor_builder.h>
 
 TEST(ComplexMonitoring, ComponentComplexMonitoring)
 {
@@ -28,21 +28,20 @@ TEST(ComplexMonitoring, ComponentComplexMonitoring)
     using namespace score::mw::health;
     using namespace std::chrono_literals;
 
-    auto hm_result = HealthMonitorBuilder()
-                         .add_heartbeat_monitor(MonitorTag("complex_monitoring_monitor"),
-                                                heartbeat::HeartbeatMonitorBuilder(TimeRange(50ms, 150ms)))
-                         .with_internal_processing_cycle(50ms)
-                         .with_supervisor_api_cycle(50ms)
-                         .build();
+    auto hm_result = HealthMonitorBuilder::Create()
+                         ->AddHeartbeatMonitor(Tag("complex_monitoring_monitor"), TimeRange(50ms, 150ms))
+                         .WithInternalProcessingCycle(50ms)
+                         .WithSupervisorApiCycle(50ms)
+                         .Build();
     ASSERT_TRUE(hm_result.has_value()) << "Failed to build HealthMonitor";
 
     auto hm = std::move(*hm_result);
 
-    auto heartbeat_monitor_result = hm.get_heartbeat_monitor(MonitorTag("complex_monitoring_monitor"));
+    auto heartbeat_monitor_result = hm->GetHeartbeatMonitor(Tag("complex_monitoring_monitor"));
     ASSERT_TRUE(heartbeat_monitor_result.has_value()) << "Failed to get heartbeat monitor";
     auto heartbeat_monitor = std::move(*heartbeat_monitor_result);
 
-    hm.start();
+    hm->Start();
 
     TEST_STEP("Report running")
     {
@@ -56,7 +55,7 @@ TEST(ComplexMonitoring, ComponentComplexMonitoring)
         while (std::chrono::steady_clock::now() < time_to_report_checkpoints_until)
         {
             std::this_thread::sleep_for(75ms);
-            heartbeat_monitor.heartbeat();
+            heartbeat_monitor->Heartbeat();
         }
         EXPECT_FALSE(TestRunner::exitRequested) << "Process should not be terminated yet";
     }

@@ -15,76 +15,48 @@
 
 #include <score/assert.hpp>
 #include <chrono>
-#include <optional>
+#include <cstddef>
+#include <cstdint>
+#include <string_view>
+#include <type_traits>
 
 namespace score::mw::health
 {
 
-/// FFI internal helpers
-namespace internal
-{
-
-/// Internal success representation.
-constexpr int kSuccess = 0;
-
-/// Internal return code.
-using FFICode = uint8_t;
-
-/// Opaque handle type for Rust managed object
-using FFIHandle = void*;
-
-/// Droppable wrapper that denotes that the object can be dropped by Rust side
-template <typename T>
-class RustDroppable
+/// Compile-time string tag. Only constructible from string literals (static storage duration).
+/// Pointers are always valid — no lifetime management needed.
+class Tag
 {
   public:
-    virtual ~RustDroppable() = default;
-
-  protected:
-    /// Marks object as no longer managed by C++ side, releasing handle to be passed to Rust side for dropping
-    std::optional<FFIHandle> drop_by_rust()
+    template <size_t N>
+    constexpr explicit Tag(const char (&literal)[N]) : data_(literal), length_(N - 1)
     {
-        return static_cast<T*>(this)->_drop_by_rust_impl();
     }
-};
 
-/// Wrapper for FFIHandle that ensures proper dropping via provided drop function
-class DroppableFFIHandle
-{
-  public:
-    using DropFn = internal::FFICode (*)(FFIHandle);
+    constexpr bool operator==(const Tag& other) const noexcept
+    {
+        return std::string_view{data_, length_} == std::string_view{other.data_, other.length_};
+    }
 
-    DroppableFFIHandle(FFIHandle handle, DropFn drop_fn);
-
-    DroppableFFIHandle(const DroppableFFIHandle&) = delete;
-    DroppableFFIHandle& operator=(const DroppableFFIHandle&) = delete;
-
-    DroppableFFIHandle(DroppableFFIHandle&& other) noexcept;
-    DroppableFFIHandle& operator=(DroppableFFIHandle&& other) noexcept;
-
-    /// Get the underlying FFI handle if it was not dropped before
-    std::optional<FFIHandle> as_rust_handle() const;
-
-    /// Marks object as no longer managed by C++ side, releasing handle to be passed to Rust side for dropping
-    std::optional<FFIHandle> drop_by_rust();
-
-    virtual ~DroppableFFIHandle();
+    constexpr bool operator!=(const Tag& other) const noexcept
+    {
+        return !(*this == other);
+    }
 
   private:
-    FFIHandle handle_;
-    DropFn drop_fn_;
+    const char* data_;
+    size_t length_;
 };
 
-}  // namespace internal
+static_assert(std::is_standard_layout_v<Tag>, "Tag must be standard-layout for FFI compatibility");
 
-enum class Error : internal::FFICode
+enum class Error : uint8_t
 {
-    NullParameter = internal::kSuccess + 1,
-    NotFound,
-    AlreadyExists,
-    InvalidArgument,
-    WrongState,
-    Failed
+    kNotFound = 2,
+    kAlreadyExists,
+    kInvalidArgument,
+    kWrongState,
+    kFailed
 };
 
 ///
@@ -98,19 +70,19 @@ class TimeRange
         SCORE_LANGUAGE_FUTURECPP_PRECONDITION(min_ms_ <= max_ms_);
     }
 
-    uint32_t min_ms() const
+    std::chrono::milliseconds Min() const
     {
-        return min_ms_.count();
+        return min_ms_;
     }
 
-    uint32_t max_ms() const
+    std::chrono::milliseconds Max() const
     {
-        return max_ms_.count();
+        return max_ms_;
     }
 
   private:
-    const std::chrono::milliseconds min_ms_;
-    const std::chrono::milliseconds max_ms_;
+    std::chrono::milliseconds min_ms_;
+    std::chrono::milliseconds max_ms_;
 };
 
 }  // namespace score::mw::health

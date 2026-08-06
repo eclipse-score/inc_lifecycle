@@ -23,10 +23,10 @@
 #include <sys/prctl.h>
 #endif
 
+#include <score/mw/health/common.h>
+#include <score/mw/health/health_monitor_builder.h>
 #include <score/mw/lifecycle/report_running.h>
 #include <score/mw/log/rust/stdout_logger_init.h>
-#include <score/mw/health/common.h>
-#include <score/mw/health/health_monitor.h>
 #include <thread>
 
 /// @brief CLI configuration options for the demo_application process
@@ -114,22 +114,19 @@ int main(int argc, char** argv)
     using namespace score::mw::health;
 
     auto builder_mon =
-        deadline::DeadlineMonitorBuilder()
-            .add_deadline(DeadlineTag("deadline_1"),
-                          TimeRange(std::chrono::milliseconds(50), std::chrono::milliseconds(150)))
-            .add_deadline(DeadlineTag("deadline_2"),
-                          TimeRange(std::chrono::milliseconds(2),
-                                    std::chrono::milliseconds(20)));  // Not used, only shows
-                                                                      // that multiple deadlines can be added
-
-    MonitorTag ident("monitor");
+        DeadlineMonitorConfiguration()
+            .AddDeadline(Tag("deadline_1"), TimeRange(std::chrono::milliseconds(50), std::chrono::milliseconds(150)))
+            .AddDeadline(Tag("deadline_2"),
+                         TimeRange(std::chrono::milliseconds(2),
+                                   std::chrono::milliseconds(20)));  // Not used, only shows
+                                                                     // that multiple deadlines can be added
 
     {
-        auto hm_res = HealthMonitorBuilder()
-                          .add_deadline_monitor(ident, std::move(builder_mon))
-                          .with_internal_processing_cycle(std::chrono::milliseconds(50))
-                          .with_supervisor_api_cycle(std::chrono::milliseconds(50))
-                          .build();
+        auto hm_res = HealthMonitorBuilder::Create()
+                          ->AddDeadlineMonitor(Tag("monitor"), std::move(builder_mon))
+                          .WithInternalProcessingCycle(std::chrono::milliseconds(50))
+                          .WithSupervisorApiCycle(std::chrono::milliseconds(50))
+                          .Build();
         if (!hm_res.has_value())
         {
             std::cerr << "Failed to build health monitor" << std::endl;
@@ -137,20 +134,27 @@ int main(int argc, char** argv)
         }
         auto hm = std::move(*hm_res);
 
-        auto deadline_monitor_res = hm.get_deadline_monitor(ident);
+        auto deadline_monitor_res = hm->GetDeadlineMonitor(Tag("monitor"));
         if (!deadline_monitor_res.has_value())
         {
             std::cerr << "Failed to get deadline monitor" << std::endl;
             return EXIT_FAILURE;
         }
 
-        hm.start();
+        hm->Start();
 
         score::mw::lifecycle::report_running();
 
         auto deadline_mon = std::move(*deadline_monitor_res);
 
-        auto deadline_res = deadline_mon.get_deadline(DeadlineTag("deadline_1"));
+        auto deadline_result = deadline_mon->GetDeadline(Tag("deadline_1"));
+        if (!deadline_result.has_value())
+        {
+            std::cerr << "Failed to get deadline" << std::endl;
+            return EXIT_FAILURE;
+        }
+        auto deadline = std::move(*deadline_result);
+
         while (!exitRequested)
         {
             if (stopReportingCheckpoints.load())
@@ -158,12 +162,13 @@ int main(int argc, char** argv)
                 break;
             }
 
-            auto deadline_guard = deadline_res.value().start();
+            {
+                DeadlineGuard deadline_guard(*deadline);
 
-            std::this_thread::sleep_for(std::chrono::milliseconds(config->delayInMs));
+                std::this_thread::sleep_for(std::chrono::milliseconds(config->delayInMs));
 
-            // deadline_guard.stop(); // Optional, will be stopped automatically when going out of scope - this way we
-            // dont check Result from start() call
+                // Deadline is automatically stopped when deadline_guard goes out of scope.
+            }
         }
     }
 

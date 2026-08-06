@@ -12,22 +12,11 @@
  ********************************************************************************/
 
 #include "score/mw/health/heartbeat_monitor.h"
-#include "score/mw/health/health_monitor.h"
+#include "score/mw/health/health_monitor_builder.h"
+
 #include <gtest/gtest.h>
 
 using namespace score::mw::health;
-using namespace score::mw::health::heartbeat;
-
-TEST(HeartbeatMonitorBuilder, New_Succeeds)
-{
-    RecordProperty("TestType", "interface-test");
-    RecordProperty("DerivationTechnique", "explorative-testing");
-    RecordProperty("Description", "Object successfully constructed.");
-
-    using namespace std::chrono_literals;
-    TimeRange range{100ms, 200ms};
-    HeartbeatMonitorBuilder heartbeat_monitor_builder{range};
-}
 
 TEST(HeartbeatMonitor, Heartbeat_Succeeds)
 {
@@ -36,24 +25,19 @@ TEST(HeartbeatMonitor, Heartbeat_Succeeds)
     RecordProperty("Description", "Heartbeat successfully used.");
 
     // Monitor must be obtained from HMON.
-    // Initialize heartbeat monitor builder.
     using namespace std::chrono_literals;
-    MonitorTag heartbeat_monitor_tag{"heartbeat_monitor"};
     TimeRange range{100ms, 200ms};
-    HeartbeatMonitorBuilder heartbeat_monitor_builder{range};
 
     // Build HMON, including heartbeat monitor.
-    auto hmon_build_result{HealthMonitorBuilder{}
-                               .add_heartbeat_monitor(heartbeat_monitor_tag, std::move(heartbeat_monitor_builder))
-                               .build()};
+    auto hmon_build_result{HealthMonitorBuilder::Create()->AddHeartbeatMonitor(Tag("heartbeat_monitor"), range).Build()};
     ASSERT_TRUE(hmon_build_result.has_value());
     auto hmon{std::move(hmon_build_result.value())};
 
     // Get heartbeat monitor.
-    auto get_heartbeat_monitor_result{hmon.get_heartbeat_monitor(heartbeat_monitor_tag)};
+    auto get_heartbeat_monitor_result{hmon->GetHeartbeatMonitor(Tag("heartbeat_monitor"))};
     ASSERT_TRUE(get_heartbeat_monitor_result.has_value());
     auto heartbeat_monitor{std::move(get_heartbeat_monitor_result.value())};
 
     // Check heartbeat is not failing.
-    heartbeat_monitor.heartbeat();
+    heartbeat_monitor->Heartbeat();
 }

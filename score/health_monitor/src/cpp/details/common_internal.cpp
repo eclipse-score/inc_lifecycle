@@ -10,43 +10,42 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
+#include "score/mw/health/details/common_internal.h"
+
 #include <score/assert.hpp>
-#include "score/mw/health/common.h"
 
 namespace score::mw::health::internal
 {
 
-DroppableFFIHandle::DroppableFFIHandle(FFIHandle handle, DropFn drop_fn) : handle_(handle), drop_fn_(drop_fn) {}
+DroppableFfiHandle::DroppableFfiHandle(FfiHandle handle, DropFn drop_fn) : handle_(handle), drop_fn_(drop_fn) {}
 
-DroppableFFIHandle::DroppableFFIHandle(DroppableFFIHandle&& other) noexcept
+DroppableFfiHandle::DroppableFfiHandle(DroppableFfiHandle&& other) noexcept
     : handle_(other.handle_), drop_fn_(other.drop_fn_)
 {
     other.handle_ = nullptr;
     other.drop_fn_ = nullptr;
 }
 
-DroppableFFIHandle& DroppableFFIHandle::operator=(DroppableFFIHandle&& other) noexcept
+DroppableFfiHandle& DroppableFfiHandle::operator=(DroppableFfiHandle&& other) noexcept
 {
     if (this != &other)
     {
-        // Clean up existing resources
         if (drop_fn_)
         {
-            drop_fn_(handle_);
+            auto result{drop_fn_(handle_)};
+            SCORE_LANGUAGE_FUTURECPP_ASSERT(result == kSuccess);
         }
 
-        // Move resources from other
         handle_ = other.handle_;
         drop_fn_ = other.drop_fn_;
 
-        // Nullify other's resources
         other.handle_ = nullptr;
         other.drop_fn_ = nullptr;
     }
     return *this;
 }
 
-std::optional<FFIHandle> DroppableFFIHandle::as_rust_handle() const
+std::optional<FfiHandle> DroppableFfiHandle::AsRustHandle() const
 {
     if (handle_ == nullptr)
     {
@@ -56,23 +55,22 @@ std::optional<FFIHandle> DroppableFFIHandle::as_rust_handle() const
     return handle_;
 }
 
-std::optional<FFIHandle> DroppableFFIHandle::drop_by_rust()
+std::optional<FfiHandle> DroppableFfiHandle::DropByRust()
 {
     if (handle_ == nullptr)
     {
         return std::nullopt;
     }
 
-    FFIHandle temp = handle_;
+    FfiHandle temp = handle_;
     handle_ = nullptr;
     drop_fn_ = nullptr;
 
     return temp;
 }
 
-DroppableFFIHandle::~DroppableFFIHandle()
+DroppableFfiHandle::~DroppableFfiHandle()
 {
-    // Clean up resources associated with the FFI handle
     if (drop_fn_)
     {
         auto result{drop_fn_(handle_)};

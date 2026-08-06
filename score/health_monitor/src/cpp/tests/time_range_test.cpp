@@ -46,6 +46,6 @@ TEST_F(TimeRangeFixture, MinMax)
     RecordProperty("Description", "`min` and `max` member functions are returning correct values.");
     using namespace std::chrono_literals;
     TimeRange range{123ms, 456ms};
-    ASSERT_EQ(range.min_ms(), 123);
-    ASSERT_EQ(range.max_ms(), 456);
+    ASSERT_EQ(range.Min(), 123ms);
+    ASSERT_EQ(range.Max(), 456ms);
 }

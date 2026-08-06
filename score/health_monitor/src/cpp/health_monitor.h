@@ -17,87 +17,34 @@
 #include "score/mw/health/deadline_monitor.h"
 #include "score/mw/health/heartbeat_monitor.h"
 #include "score/mw/health/logic_monitor.h"
-#include "score/mw/health/tag.h"
-#include "score/mw/health/thread.h"
+
+#include <memory>
 
 namespace score::mw::health
 {
 
-class HealthMonitor;
-
-///
-/// Builder for HealthMonitor instances.
-///
-class HealthMonitorBuilder final
+class HealthMonitor
 {
   public:
-    /// Create a new `HealthMonitorBuilder`.
-    HealthMonitorBuilder();
+    HealthMonitor() = default;
+    virtual ~HealthMonitor() = default;
 
-    ~HealthMonitorBuilder() = default;
-    HealthMonitorBuilder(const HealthMonitorBuilder&) = delete;
-    HealthMonitorBuilder& operator=(const HealthMonitorBuilder&) = delete;
-
-    HealthMonitorBuilder(HealthMonitorBuilder&&) = default;
-    HealthMonitorBuilder& operator=(HealthMonitorBuilder&&) = delete;
-
-    /// Adds a deadline monitor to the builder to construct DeadlineMonitor instances during HealthMonitor build.
-    HealthMonitorBuilder add_deadline_monitor(const MonitorTag& monitor_tag,
-                                              deadline::DeadlineMonitorBuilder&& monitor) &&;
-
-    /// Adds a heartbeat monitor for a specific identifier tag.
-    HealthMonitorBuilder add_heartbeat_monitor(const MonitorTag& monitor_tag,
-                                               heartbeat::HeartbeatMonitorBuilder&& monitor) &&;
-
-    /// Adds a logic monitor for a specific identifier tag.
-    HealthMonitorBuilder add_logic_monitor(const MonitorTag& monitor_tag, logic::LogicMonitorBuilder&& monitor) &&;
-
-    /// Sets the cycle duration for supervisor API notifications.
-    /// This duration determines how often the health monitor notifies the supervisor that the system is alive.
-    HealthMonitorBuilder with_supervisor_api_cycle(std::chrono::milliseconds cycle_duration) &&;
-
-    /// Sets the internal processing cycle duration.
-    /// This duration determines how often the health monitor checks deadlines.
-    HealthMonitorBuilder with_internal_processing_cycle(std::chrono::milliseconds cycle_duration) &&;
-
-    /// Sets the monitoring thread parameters.
-    HealthMonitorBuilder thread_parameters(score::mw::health::ThreadParameters&& thread_parameters) &&;
-
-    /// Build a new `HealthMonitor` instance based on provided parameters.
-    score::cpp::expected<HealthMonitor, Error> build() &&;
-
-  private:
-    internal::DroppableFFIHandle health_monitor_builder_handle_;
-
-    std::optional<uint64_t> supervisor_api_cycle_ms_;
-    std::optional<uint64_t> internal_processing_cycle_ms_;
-    std::optional<ThreadParameters> thread_parameters_;
-};
-
-class HealthMonitor final
-{
-  public:
     HealthMonitor(const HealthMonitor&) = delete;
     HealthMonitor& operator=(const HealthMonitor&) = delete;
+    HealthMonitor(HealthMonitor&&) = delete;
+    HealthMonitor& operator=(HealthMonitor&&) = delete;
 
-    HealthMonitor(HealthMonitor&& other);
-    HealthMonitor& operator=(HealthMonitor&&);
+    /// Retrieves the deadline monitor registered with the given tag.
+    virtual score::cpp::expected<std::unique_ptr<DeadlineMonitor>, Error> GetDeadlineMonitor(Tag tag) = 0;
 
-    ~HealthMonitor();
+    /// Retrieves the heartbeat monitor registered with the given tag.
+    virtual score::cpp::expected<std::unique_ptr<HeartbeatMonitor>, Error> GetHeartbeatMonitor(Tag tag) = 0;
 
-    score::cpp::expected<deadline::DeadlineMonitor, Error> get_deadline_monitor(const MonitorTag& monitor_tag);
-    score::cpp::expected<heartbeat::HeartbeatMonitor, Error> get_heartbeat_monitor(const MonitorTag& monitor_tag);
-    score::cpp::expected<logic::LogicMonitor, Error> get_logic_monitor(const MonitorTag& monitor_tag);
+    /// Retrieves the logic monitor registered with the given tag.
+    virtual score::cpp::expected<std::unique_ptr<LogicMonitor>, Error> GetLogicMonitor(Tag tag) = 0;
 
-    void start();
-
-  private:
-    // Allow only the builder to create HealthMonitor instances.
-    friend class HealthMonitorBuilder;
-
-    HealthMonitor(internal::FFIHandle handle);
-
-    internal::FFIHandle health_monitor_;
+    /// Starts the health monitor's background monitoring thread.
+    virtual void Start() = 0;
 };
 
 }  // namespace score::mw::health

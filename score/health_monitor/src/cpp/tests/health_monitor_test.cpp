@@ -11,29 +11,21 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include "score/mw/health/health_monitor.h"
-#include "score/mw/health/deadline_monitor.h"
-#include "score/mw/health/heartbeat_monitor.h"
-#include "score/mw/health/logic_monitor.h"
+#include "score/mw/health/health_monitor_builder.h"
+
 #include <gtest/gtest.h>
 
 using namespace score::mw::health;
-using namespace score::mw::health::deadline;
-using namespace score::mw::health::heartbeat;
-using namespace score::mw::health::logic;
 
-HeartbeatMonitorBuilder def_heartbeat_monitor_builder()
+TimeRange def_heartbeat_range()
 {
     using namespace std::chrono_literals;
-    TimeRange range{100ms, 200ms};
-    return HeartbeatMonitorBuilder{range};
+    return TimeRange{100ms, 200ms};
 }
 
-LogicMonitorBuilder def_logic_monitor_builder()
+LogicMonitorConfiguration def_logic_monitor_builder()
 {
-    StateTag state1{"state1"};
-    StateTag state2{"state2"};
-    return LogicMonitorBuilder{state1}.add_state(state1, {state2}).add_state(state2, {state1});
+    return LogicMonitorConfiguration{Tag("state1")}.AddState(Tag("state1"), {Tag("state2")}).AddState(Tag("state2"), {Tag("state1")});
 }
 
 class HealthMonitorBuilderFixture : public ::testing::Test
@@ -46,28 +38,25 @@ class HealthMonitorBuilderFixture : public ::testing::Test
     }
 };
 
-TEST_F(HealthMonitorBuilderFixture, New_Succeeds)
+TEST_F(HealthMonitorBuilderFixture, Create_Succeeds)
 {
-    RecordProperty("Description", "Object successfully constructed.");
-    // Check able to construct and destruct only.
-    HealthMonitorBuilder health_monitor_builder;
+    RecordProperty("Description", "Object successfully constructed via factory.");
+    auto builder = HealthMonitorBuilder::Create();
+    ASSERT_NE(builder, nullptr);
 }
 
 TEST_F(HealthMonitorBuilderFixture, Build_Succeeds)
 {
     RecordProperty("Description", "Successfully build monitor containing all monitor types.");
-    MonitorTag deadline_monitor_tag{"deadline_monitor"};
-    DeadlineMonitorBuilder deadline_monitor_builder;
-    MonitorTag heartbeat_monitor_tag{"heartbeat_monitor"};
-    auto heartbeat_monitor_builder{def_heartbeat_monitor_builder()};
-    MonitorTag logic_monitor_tag{"logic_monitor"};
+    DeadlineMonitorConfiguration deadline_monitor_builder;
+    auto heartbeat_range{def_heartbeat_range()};
     auto logic_monitor_builder{def_logic_monitor_builder()};
 
-    auto result{HealthMonitorBuilder{}
-                    .add_deadline_monitor(deadline_monitor_tag, std::move(deadline_monitor_builder))
-                    .add_heartbeat_monitor(heartbeat_monitor_tag, std::move(heartbeat_monitor_builder))
-                    .add_logic_monitor(logic_monitor_tag, std::move(logic_monitor_builder))
-                    .build()};
+    auto result{HealthMonitorBuilder::Create()
+                    ->AddDeadlineMonitor(Tag("deadline_monitor"), std::move(deadline_monitor_builder))
+                    .AddHeartbeatMonitor(Tag("heartbeat_monitor"), heartbeat_range)
+                    .AddLogicMonitor(Tag("logic_monitor"), std::move(logic_monitor_builder))
+                    .Build()};
     ASSERT_TRUE(result.has_value());
 }
 
@@ -77,183 +66,169 @@ TEST_F(HealthMonitorBuilderFixture, Build_InvalidCycles)
         "Description",
         "Failed to build monitor with mismatched supervisor API cycle and internal processing cycle values.");
     using namespace std::chrono_literals;
-    auto result{HealthMonitorBuilder{}.with_supervisor_api_cycle(123ms).with_internal_processing_cycle(100ms).build()};
+    auto result{
+        HealthMonitorBuilder::Create()->WithSupervisorApiCycle(123ms).WithInternalProcessingCycle(100ms).Build()};
     ASSERT_FALSE(result.has_value());
-    ASSERT_EQ(result.error(), Error::InvalidArgument);
+    ASSERT_EQ(result.error(), Error::kInvalidArgument);
 }
 
 TEST_F(HealthMonitorBuilderFixture, Build_NoMonitors)
 {
     RecordProperty("Description", "Failed to build monitor with no monitors.");
-    auto result{HealthMonitorBuilder{}.build()};
+    auto result{HealthMonitorBuilder::Create()->Build()};
     ASSERT_FALSE(result.has_value());
-    ASSERT_EQ(result.error(), Error::WrongState);
+    ASSERT_EQ(result.error(), Error::kWrongState);
 }
 
 TEST(HealthMonitor, GetDeadlineMonitor_Available)
 {
     RecordProperty("Description", "Successfully obtained deadline monitor.");
-    MonitorTag deadline_monitor_tag{"deadline_monitor"};
-    DeadlineMonitorBuilder deadline_monitor_builder;
-    auto health_monitor{HealthMonitorBuilder{}
-                            .add_deadline_monitor(deadline_monitor_tag, std::move(deadline_monitor_builder))
-                            .build()
+    DeadlineMonitorConfiguration deadline_monitor_builder;
+    auto health_monitor{HealthMonitorBuilder::Create()
+                            ->AddDeadlineMonitor(Tag("deadline_monitor"), std::move(deadline_monitor_builder))
+                            .Build()
                             .value()};
 
-    auto result{health_monitor.get_deadline_monitor(deadline_monitor_tag)};
+    auto result{health_monitor->GetDeadlineMonitor(Tag("deadline_monitor"))};
     ASSERT_TRUE(result.has_value());
 }
 
 TEST(HealthMonitor, GetDeadlineMonitor_Taken)
 {
     RecordProperty("Description", "Failed to reobtain already taken deadline monitor.");
-    MonitorTag deadline_monitor_tag{"deadline_monitor"};
-    DeadlineMonitorBuilder deadline_monitor_builder;
-    auto health_monitor{HealthMonitorBuilder{}
-                            .add_deadline_monitor(deadline_monitor_tag, std::move(deadline_monitor_builder))
-                            .build()
+    DeadlineMonitorConfiguration deadline_monitor_builder;
+    auto health_monitor{HealthMonitorBuilder::Create()
+                            ->AddDeadlineMonitor(Tag("deadline_monitor"), std::move(deadline_monitor_builder))
+                            .Build()
                             .value()};
 
-    health_monitor.get_deadline_monitor(deadline_monitor_tag);
-    auto result{health_monitor.get_deadline_monitor(deadline_monitor_tag)};
+    health_monitor->GetDeadlineMonitor(Tag("deadline_monitor"));
+    auto result{health_monitor->GetDeadlineMonitor(Tag("deadline_monitor"))};
     ASSERT_FALSE(result.has_value());
 }
 
 TEST(HealthMonitor, GetDeadlineMonitor_Unknown)
 {
     RecordProperty("Description", "Failed to obtain deadline monitor using unknown tag.");
-    MonitorTag deadline_monitor_tag{"deadline_monitor"};
-    DeadlineMonitorBuilder deadline_monitor_builder;
-    auto health_monitor{HealthMonitorBuilder{}
-                            .add_deadline_monitor(deadline_monitor_tag, std::move(deadline_monitor_builder))
-                            .build()
+    DeadlineMonitorConfiguration deadline_monitor_builder;
+    auto health_monitor{HealthMonitorBuilder::Create()
+                            ->AddDeadlineMonitor(Tag("deadline_monitor"), std::move(deadline_monitor_builder))
+                            .Build()
                             .value()};
 
-    auto result{health_monitor.get_deadline_monitor(MonitorTag{"undefined_monitor"})};
+    auto result{health_monitor->GetDeadlineMonitor(Tag("undefined_monitor"))};
     ASSERT_FALSE(result.has_value());
 }
 
 TEST(HealthMonitor, GetHeartbeatMonitor_Available)
 {
     RecordProperty("Description", "Successfully obtained heartbeat monitor.");
-    MonitorTag heartbeat_monitor_tag{"heartbeat_monitor"};
-    auto heartbeat_monitor_builder{def_heartbeat_monitor_builder()};
-    auto health_monitor{HealthMonitorBuilder{}
-                            .add_heartbeat_monitor(heartbeat_monitor_tag, std::move(heartbeat_monitor_builder))
-                            .build()
-                            .value()};
+    auto heartbeat_range{def_heartbeat_range()};
+    auto health_monitor{
+        HealthMonitorBuilder::Create()->AddHeartbeatMonitor(Tag("heartbeat_monitor"), heartbeat_range).Build().value()};
 
-    auto result{health_monitor.get_heartbeat_monitor(heartbeat_monitor_tag)};
+    auto result{health_monitor->GetHeartbeatMonitor(Tag("heartbeat_monitor"))};
     ASSERT_TRUE(result.has_value());
 }
 
 TEST(HealthMonitor, GetHeartbeatMonitor_Taken)
 {
     RecordProperty("Description", "Failed to reobtain already taken heartbeat monitor.");
-    MonitorTag heartbeat_monitor_tag{"heartbeat_monitor"};
-    HeartbeatMonitorBuilder heartbeat_monitor_builder{def_heartbeat_monitor_builder()};
-    auto health_monitor{HealthMonitorBuilder{}
-                            .add_heartbeat_monitor(heartbeat_monitor_tag, std::move(heartbeat_monitor_builder))
-                            .build()
-                            .value()};
+    auto heartbeat_range{def_heartbeat_range()};
+    auto health_monitor{
+        HealthMonitorBuilder::Create()->AddHeartbeatMonitor(Tag("heartbeat_monitor"), heartbeat_range).Build().value()};
 
-    health_monitor.get_heartbeat_monitor(heartbeat_monitor_tag);
-    auto result{health_monitor.get_heartbeat_monitor(heartbeat_monitor_tag)};
+    health_monitor->GetHeartbeatMonitor(Tag("heartbeat_monitor"));
+    auto result{health_monitor->GetHeartbeatMonitor(Tag("heartbeat_monitor"))};
     ASSERT_FALSE(result.has_value());
 }
 
 TEST(HealthMonitor, GetHeartbeatMonitor_Unknown)
 {
-    RecordProperty("Description", "Failed to obtain deadline monitor using unknown tag.");
-    MonitorTag heartbeat_monitor_tag{"heartbeat_monitor"};
-    HeartbeatMonitorBuilder heartbeat_monitor_builder{def_heartbeat_monitor_builder()};
-    auto health_monitor{HealthMonitorBuilder{}
-                            .add_heartbeat_monitor(heartbeat_monitor_tag, std::move(heartbeat_monitor_builder))
-                            .build()
-                            .value()};
+    RecordProperty("Description", "Failed to obtain heartbeat monitor using unknown tag.");
+    auto heartbeat_range{def_heartbeat_range()};
+    auto health_monitor{
+        HealthMonitorBuilder::Create()->AddHeartbeatMonitor(Tag("heartbeat_monitor"), heartbeat_range).Build().value()};
 
-    auto result{health_monitor.get_heartbeat_monitor(MonitorTag{"undefined_monitor"})};
+    auto result{health_monitor->GetHeartbeatMonitor(Tag("undefined_monitor"))};
     ASSERT_FALSE(result.has_value());
 }
 
 TEST(HealthMonitor, GetLogicMonitor_Available)
 {
     RecordProperty("Description", "Successfully obtained logic monitor.");
-    MonitorTag logic_monitor_tag{"logic_monitor"};
     auto logic_monitor_builder{def_logic_monitor_builder()};
-    auto health_monitor{
-        HealthMonitorBuilder{}.add_logic_monitor(logic_monitor_tag, std::move(logic_monitor_builder)).build().value()};
+    auto health_monitor{HealthMonitorBuilder::Create()
+                            ->AddLogicMonitor(Tag("logic_monitor"), std::move(logic_monitor_builder))
+                            .Build()
+                            .value()};
 
-    auto result{health_monitor.get_logic_monitor(logic_monitor_tag)};
+    auto result{health_monitor->GetLogicMonitor(Tag("logic_monitor"))};
     ASSERT_TRUE(result.has_value());
 }
 
 TEST(HealthMonitor, GetLogicMonitor_Taken)
 {
     RecordProperty("Description", "Failed to reobtain already taken logic monitor.");
-    MonitorTag logic_monitor_tag{"logic_monitor"};
-    LogicMonitorBuilder logic_monitor_builder{def_logic_monitor_builder()};
-    auto health_monitor{
-        HealthMonitorBuilder{}.add_logic_monitor(logic_monitor_tag, std::move(logic_monitor_builder)).build().value()};
+    LogicMonitorConfiguration logic_monitor_builder{def_logic_monitor_builder()};
+    auto health_monitor{HealthMonitorBuilder::Create()
+                            ->AddLogicMonitor(Tag("logic_monitor"), std::move(logic_monitor_builder))
+                            .Build()
+                            .value()};
 
-    health_monitor.get_logic_monitor(logic_monitor_tag);
-    auto result{health_monitor.get_logic_monitor(logic_monitor_tag)};
+    health_monitor->GetLogicMonitor(Tag("logic_monitor"));
+    auto result{health_monitor->GetLogicMonitor(Tag("logic_monitor"))};
     ASSERT_FALSE(result.has_value());
 }
 
 TEST(HealthMonitor, GetLogicMonitor_Unknown)
 {
-    RecordProperty("Description", "Failed to obtain deadline monitor using unknown tag.");
-    MonitorTag logic_monitor_tag{"logic_monitor"};
-    LogicMonitorBuilder logic_monitor_builder{def_logic_monitor_builder()};
-    auto health_monitor{
-        HealthMonitorBuilder{}.add_logic_monitor(logic_monitor_tag, std::move(logic_monitor_builder)).build().value()};
+    RecordProperty("Description", "Failed to obtain logic monitor using unknown tag.");
+    LogicMonitorConfiguration logic_monitor_builder{def_logic_monitor_builder()};
+    auto health_monitor{HealthMonitorBuilder::Create()
+                            ->AddLogicMonitor(Tag("logic_monitor"), std::move(logic_monitor_builder))
+                            .Build()
+                            .value()};
 
-    auto result{health_monitor.get_logic_monitor(MonitorTag{"undefined_monitor"})};
+    auto result{health_monitor->GetLogicMonitor(Tag("undefined_monitor"))};
     ASSERT_FALSE(result.has_value());
 }
 
 TEST(HealthMonitor, Start_Succeeds)
 {
     RecordProperty("Description", "Successfully started monitor containing all monitor types.");
-    MonitorTag deadline_monitor_tag{"deadline_monitor"};
-    DeadlineMonitorBuilder deadline_monitor_builder;
-    MonitorTag heartbeat_monitor_tag{"heartbeat_monitor"};
-    auto heartbeat_monitor_builder{def_heartbeat_monitor_builder()};
-    MonitorTag logic_monitor_tag{"logic_monitor"};
+    DeadlineMonitorConfiguration deadline_monitor_builder;
+    auto heartbeat_range{def_heartbeat_range()};
     auto logic_monitor_builder{def_logic_monitor_builder()};
 
-    auto health_monitor{HealthMonitorBuilder{}
-                            .add_deadline_monitor(deadline_monitor_tag, std::move(deadline_monitor_builder))
-                            .add_heartbeat_monitor(heartbeat_monitor_tag, std::move(heartbeat_monitor_builder))
-                            .add_logic_monitor(logic_monitor_tag, std::move(logic_monitor_builder))
-                            .build()
+    auto health_monitor{HealthMonitorBuilder::Create()
+                            ->AddDeadlineMonitor(Tag("deadline_monitor"), std::move(deadline_monitor_builder))
+                            .AddHeartbeatMonitor(Tag("heartbeat_monitor"), heartbeat_range)
+                            .AddLogicMonitor(Tag("logic_monitor"), std::move(logic_monitor_builder))
+                            .Build()
                             .value()};
 
-    health_monitor.get_deadline_monitor(deadline_monitor_tag);
-    health_monitor.get_heartbeat_monitor(heartbeat_monitor_tag);
-    health_monitor.get_logic_monitor(logic_monitor_tag);
+    health_monitor->GetDeadlineMonitor(Tag("deadline_monitor"));
+    health_monitor->GetHeartbeatMonitor(Tag("heartbeat_monitor"));
+    health_monitor->GetLogicMonitor(Tag("logic_monitor"));
 
-    health_monitor.start();
+    health_monitor->Start();
 }
 
 TEST(HealthMonitor, Start_MonitorsNotTaken)
 {
     RecordProperty("Description", "Failed to start of a health monitor with no monitors obtained.");
-    MonitorTag deadline_monitor_tag{"deadline_monitor"};
-    DeadlineMonitorBuilder deadline_monitor_builder;
-    MonitorTag heartbeat_monitor_tag{"heartbeat_monitor"};
-    auto heartbeat_monitor_builder{def_heartbeat_monitor_builder()};
-    MonitorTag logic_monitor_tag{"logic_monitor"};
+    DeadlineMonitorConfiguration deadline_monitor_builder;
+    auto heartbeat_range{def_heartbeat_range()};
     auto logic_monitor_builder{def_logic_monitor_builder()};
 
-    auto health_monitor{HealthMonitorBuilder{}
-                            .add_deadline_monitor(deadline_monitor_tag, std::move(deadline_monitor_builder))
-                            .add_heartbeat_monitor(heartbeat_monitor_tag, std::move(heartbeat_monitor_builder))
-                            .add_logic_monitor(logic_monitor_tag, std::move(logic_monitor_builder))
-                            .build()
+    auto health_monitor{HealthMonitorBuilder::Create()
+                            ->AddDeadlineMonitor(Tag("deadline_monitor"), std::move(deadline_monitor_builder))
+                            .AddHeartbeatMonitor(Tag("heartbeat_monitor"), heartbeat_range)
+                            .AddLogicMonitor(Tag("logic_monitor"), std::move(logic_monitor_builder))
+                            .Build()
                             .value()};
 
     // `SIGABRT` is expected.
-    ASSERT_DEATH({ health_monitor.start(); }, "");
+    ASSERT_DEATH({ health_monitor->Start(); }, "");
 }
