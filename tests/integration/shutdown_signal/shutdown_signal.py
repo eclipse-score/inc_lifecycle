@@ -46,13 +46,20 @@ def test_shutdown_signal(target, setup_test, assert_test_results, remote_test_di
 
     new_config_path = str(remote_test_dir / "etc/shutdown_signal.bin")
 
-    run_until_file_deployed(
+    lm_process = run_until_file_deployed(
         target=target,
         binary_path=str(remote_test_dir / "launch_manager"),
         file_path=remote_test_dir.parent / "test_end",
         cwd=str(remote_test_dir),
         args=["-c", new_config_path],
         timeout_s=10.0,
+    )
+
+    # shutdown_signal_process prints this line on a file system failure; guard
+    # against it explicitly so a write error can never masquerade as a SIGKILL.
+    assert "[FAILED] Failed to create file" not in lm_process.get_output(), (
+        "shutdown_signal_process hit a filesystem error writing a marker file; "
+        "the graceful_exit assertion would be unreliable"
     )
 
     assert_test_results({"control_daemon_mock.xml", "shutdown_signal_process.xml"})
