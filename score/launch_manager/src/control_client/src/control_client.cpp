@@ -23,6 +23,8 @@
 namespace score::mw::lifecycle
 {
 
+namespace
+{
 // coverity[exn_spec_violation:FALSE] SetError cannot raise an exception in this instance
 score::concurrency::InterruptibleFuture<void> GetErrorFuture(ExecErrc errType) noexcept
 {
@@ -30,6 +32,7 @@ score::concurrency::InterruptibleFuture<void> GetErrorFuture(ExecErrc errType) n
     tmp_.SetError(errType);
     return tmp_.GetInterruptibleFuture().value();
 }
+}  // namespace
 
 ControlClient::ControlClient() noexcept
 {
