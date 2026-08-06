@@ -33,7 +33,7 @@
 TEST(ShutdownSignal, Daemon)
 {
     score::mw::lifecycle::ControlClient client{};
-    ASSERT_TRUE(check_clean({test_end_location, sigterm_received_file, graceful_exit_file}));
+    ASSERT_TRUE(check_clean({test_end_location, sigterm_received_file, sigkill_not_received_file}));
 
     TEST_STEP("Control daemon report running")
     {
@@ -64,7 +64,7 @@ TEST(ShutdownSignal, Daemon)
             << "shutdown_signal_process did not receive a SIGTERM during shutdown";
         // SIGKILL forced termination: the process was killed mid-sleep and thus
         // never reached the point where it would have flagged a graceful exit.
-        EXPECT_FALSE(std::filesystem::exists(graceful_exit_file))
+        EXPECT_FALSE(std::filesystem::exists(sigkill_not_received_file))
             << "shutdown_signal_process was not force-terminated with SIGKILL; it exited its sleep gracefully";
     }
 

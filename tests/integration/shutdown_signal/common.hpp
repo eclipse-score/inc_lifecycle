@@ -22,10 +22,8 @@
 constexpr std::string_view sigterm_received_file = "sigterm_received";
 
 /// @brief Written by gtest_process only if its SIGTERM handler ever returns from
-/// the (long) sleep, i.e. if it was allowed to shut down gracefully. Because the
-/// process intentionally sleeps past its shutdown_timeout, the Launch Manager
-/// must escalate to SIGKILL, which interrupts the sleep. Hence this file must
-/// NOT exist: its absence proves SIGKILL forcibly terminated the process.
-constexpr std::string_view graceful_exit_file = "graceful_exit";
+/// the (long) sleep, i.e. if it was allowed to shut down gracefully and did not 
+/// receive a SIGKILL. Its absence proves the Launch Manager escalated to SIGKILL.
+constexpr std::string_view sigkill_not_received_file = "sigkill_not_received";
 
 #endif  // SCORE_TESTS_INTEGRATION_SHUTDOWN_SIGNAL_COMMON_HPP

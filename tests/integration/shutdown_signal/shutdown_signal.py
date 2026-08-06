@@ -39,7 +39,7 @@ def test_shutdown_signal(target, setup_test, assert_test_results, remote_test_di
     Expected Behaviour: shutdown_signal_process receives a SIGTERM (proven by the
     `sigterm_received` file, which is written before the sleep and therefore
     survives SIGKILL) and is then force-terminated by SIGKILL (proven by the
-    absence of the `graceful_exit` file, which would only exist had the process
+    absence of the `sigkill_not_received` file, which would only exist had the process
     been allowed to finish sleeping). Both assertions are checked in
     control_daemon_mock after the "Startup" transition succeeds.
     """
@@ -59,7 +59,7 @@ def test_shutdown_signal(target, setup_test, assert_test_results, remote_test_di
     # against it explicitly so a write error can never masquerade as a SIGKILL.
     assert "[FAILED] Failed to create file" not in lm_process.get_output(), (
         "shutdown_signal_process hit a filesystem error writing a marker file; "
-        "the graceful_exit assertion would be unreliable"
+        "the sigkill_not_received assertion would be unreliable"
     )
 
     assert_test_results({"control_daemon_mock.xml", "shutdown_signal_process.xml"})

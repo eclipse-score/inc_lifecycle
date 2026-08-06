@@ -61,14 +61,14 @@ void shutdownSignalHandler(int /*signum*/)
 
     // Reaching this point means we were not SIGKILLed - record graceful exit so
     // the assertion in control_daemon_mock can detect that SIGKILL did not work.
-    createFileAsyncSignalSafe(graceful_exit_file);
+    createFileAsyncSignalSafe(sigkill_not_received_file);
 }
 }  // namespace
 
 TEST(ShutdownSignal, Process)
 {
     // Remove any leftover files from a previous manual run.
-    ASSERT_TRUE(check_clean({sigterm_received_file, graceful_exit_file}, false));
+    ASSERT_TRUE(check_clean({sigterm_received_file, sigkill_not_received_file}, false));
 
     // Install our own SIGTERM handler. This must happen after the TestRunner
     // constructor (which registers its default handler), so that ours takes
