@@ -22,13 +22,7 @@
 #include "score/mw/launch_manager/common/log.hpp"
 #include "score/mw/launch_manager/common/signal_safe_log.hpp"
 
-namespace score
-{
-
-namespace lcm
-{
-
-namespace internal
+namespace score::lcm::internal
 {
 
 bool ControlClientChannel::loadControlNudge()
@@ -258,15 +252,16 @@ void ControlClientChannel::nudgeControlClientHandler()
             exit(EXIT_FAILURE);
         }
     }
-
-    LM_LOG_DEBUG() << "Control Client handler nudged";
 }
 
 void ControlClientChannel::nudgeLMHandler()
 {
     const auto result = nudge_LM_Handler_.post();
-    SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(
-        result == osal::OsalReturnType::kSuccess, "ControlClientChannel semaphore post failed");
+    if (result != osal::OsalReturnType::kSuccess)
+    {
+        static_cast<void>(signal_safe_log("ControlClientChannel semaphore post failed"));
+        exit(EXIT_FAILURE);
+    }
 }
 
 void ControlClientChannel::releaseParentMapping()
@@ -292,8 +287,4 @@ bool ControlClientChannel::is_initialized_ = false;
 std::condition_variable ControlClientChannel::init_cv_{};
 std::mutex ControlClientChannel::init_mutex_{};
 
-}  // namespace internal
-
-}  // namespace lcm
-
-}  // namespace score
+}  // namespace score::lcm::internal
