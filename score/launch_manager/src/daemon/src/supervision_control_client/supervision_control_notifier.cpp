@@ -35,6 +35,16 @@ SupervisionControlNotifier::~SupervisionControlNotifier() noexcept
 {
 }
 
+bool SupervisionControlNotifier::reportActivation(IdentifierHash id, timespec time) noexcept
+{
+    return queueSupervisionEvent({id, SupervisionEventType::kActivation, time});
+}
+
+bool SupervisionControlNotifier::reportDeactivation(IdentifierHash id, timespec time) noexcept
+{
+    return queueSupervisionEvent({id, SupervisionEventType::kDeactivation, time});
+}
+
 bool SupervisionControlNotifier::queueSupervisionEvent(const score::lcm::SupervisionEvent& f_event) noexcept
 {
     bool ret = true;

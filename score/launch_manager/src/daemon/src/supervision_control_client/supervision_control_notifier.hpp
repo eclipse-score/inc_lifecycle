@@ -16,6 +16,7 @@
 
 #include "ipc_dropin/ringbuffer.hpp"
 #include "score/mw/launch_manager/supervision_control_client/isupervision_control_notifier.hpp"
+#include "score/mw/launch_manager/supervision_control_client/supervision_event.hpp"
 
 namespace score
 {
@@ -54,12 +55,16 @@ class SupervisionControlNotifier final : public ISupervisionControlNotifier
     /// @return Supervision control receiver instance
     std::unique_ptr<score::lcm::ISupervisionControlReceiver> constructReceiver() override;
 
+    bool reportActivation(IdentifierHash id, timespec time) noexcept override;
+
+    bool reportDeactivation(IdentifierHash id, timespec time) noexcept override;
+
+  private:
     /// @brief Writes via IPC the latest supervision event, so that the alive monitor can be informed about it.
     /// @param[in]   f_event   The SupervisionEvent to be queued
     /// @returns True on success, false for failure
-    bool queueSupervisionEvent(const score::lcm::SupervisionEvent& f_event) noexcept override;
+    bool queueSupervisionEvent(const score::lcm::SupervisionEvent& f_event) noexcept;
 
-  private:
     /// @brief Ring buffer through which supervision events are forwarded to the alive monitor
     std::shared_ptr<ipc_dropin::RingBuffer<
         static_cast<size_t>(score::lcm::BufferConstants::BUFFER_QUEUE_SIZE),

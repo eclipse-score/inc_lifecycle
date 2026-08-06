@@ -17,6 +17,8 @@
 #include "score/mw/launch_manager/configuration/configuration_adapter.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/graph.hpp"
 #include "score/mw/launch_manager/process_group_manager/mock_iprocess.hpp"
+#include "score/mw/launch_manager/process_group_manager/process_group_manager.hpp"
+#include "score/mw/launch_manager/supervision_control_client/mock_supervision_event_publisher.hpp"
 
 namespace score::lcm::internal
 {
@@ -30,13 +32,6 @@ class MockProcessMap : public SafeProcessMapInserter
 {
   public:
     MOCK_METHOD(SafeProcessMapReturnType, insertIfNotTerminated, (osal::ProcessID key, IComponent* object), (override));
-};
-
-class MockProcessStateNotifier : public ISupervisionControlNotifier
-{
-  public:
-    MOCK_METHOD(std::unique_ptr<score::lcm::ISupervisionControlReceiver>, constructReceiver, (), (override));
-    MOCK_METHOD(bool, queueSupervisionEvent, (const score::lcm::SupervisionEvent& f_event), (override, noexcept));
 };
 
 class MockTransitionResultPublisher : public ITransitionResultPublisher

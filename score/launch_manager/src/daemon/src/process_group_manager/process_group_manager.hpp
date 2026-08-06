@@ -146,14 +146,6 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     /// @return Shared pointer to the MpmcQueue object for ProcessInfoNode jobs.
     std::shared_ptr<WorkerQueue> getWorkerJobs();
 
-    /// @brief Control Activation / Deactivation of alive supervisions
-    /// @param[in]   f_event   The SupervisionEvent to be queued
-    /// @returns True on success, false for failure
-    bool queueSupervisionEvent(const score::lcm::SupervisionEvent& f_event)
-    {
-        return supervision_control_notifier_->queueSupervisionEvent(f_event);
-    }
-
     /// @brief Cancels processGroupManager main routine as though SIGTERM had been sent
     void cancel();
 

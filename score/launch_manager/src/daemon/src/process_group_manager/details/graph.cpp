@@ -99,15 +99,6 @@ void Graph::createProcessInfoNodes(uint32_t num_processes)
                                    ? ProcessInfoNode::ReadyCondition::kTerminated
                                    : ProcessInfoNode::ReadyCondition::kRunning;
 
-        auto report_state_lambda = [this](IdentifierHash id, ProcessState state, timespec timestamp) {
-            score::lcm::PosixProcess process_info;
-            process_info.id = id;
-            process_info.processStateId = state;
-            process_info.processGroupStateId = getProcessGroupState();
-            process_info.systemClockTimestamp = timestamp;
-            return supervision_control_notifier_->queuePosixProcess(process_info);
-        };
-
         const auto* config =
             configuration_->getOsProcessConfiguration(getProcessGroupName(), process_id).value_or(nullptr);
         if (!config)
@@ -121,7 +112,7 @@ void Graph::createProcessInfoNodes(uint32_t num_processes)
             config,
             process_id,
             ready_condition,
-            report_state_lambda,
+            supervision_control_notifier_,
             process_interface_,
             process_map_);
         static_cast<void>(index);

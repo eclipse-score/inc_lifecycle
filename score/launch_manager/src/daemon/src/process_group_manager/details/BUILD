@@ -150,7 +150,7 @@ cc_library(
         "//score/launch_manager/src/daemon/src/osal:ipc_comms",
         "//score/launch_manager/src/daemon/src/osal:semaphore",
         "//score/launch_manager/src/daemon/src/process_group_manager:iprocess",
-        "//score/launch_manager/src/daemon/src/supervision_control_client",
+        "//score/launch_manager/src/daemon/src/supervision_control_client:isupervision_event_publisher",
         "@score_baselibs//score/language/futurecpp",
     ],
 )
@@ -162,6 +162,7 @@ cc_test(
         ":process_info_node",
         ":safe_process_map",
         "//score/launch_manager/src/daemon/src/process_group_manager:mock_iprocess",
+        "//score/launch_manager/src/daemon/src/supervision_control_client:mock_supervision_event_publisher",
         "@googletest//:gtest_main",
     ],
 )
@@ -209,6 +210,7 @@ cc_test(
         ":graph",
         "//score/launch_manager/src/daemon/src/configuration:configuration_adapter",
         "//score/launch_manager/src/daemon/src/process_group_manager:mock_iprocess",
+        "//score/launch_manager/src/daemon/src/supervision_control_client:mock_supervision_event_publisher",
         "@googletest//:gtest_main",
     ],
 )

@@ -45,6 +45,31 @@ cc_library(
     deps = [
         ":isupervision_control_receiver",
         ":supervision_event",
+        ":isupervision_event_publisher"
+    ],
+)
+
+cc_library(
+    name = "isupervision_event_publisher",
+    hdrs = ["isupervision_event_publisher.hpp"],
+    include_prefix = "score/mw/launch_manager/supervision_control_client",
+    strip_include_prefix = "/score/launch_manager/src/daemon/src/supervision_control_client",
+    visibility = ["//score:__subpackages__"],
+    deps = [
+        "//score/launch_manager/src/daemon/src/common:identifier_hash",
+    ],
+)
+
+cc_library(
+    name = "mock_supervision_event_publisher",
+    hdrs = ["mock_supervision_event_publisher.hpp"],
+    testonly = True,
+    include_prefix = "score/mw/launch_manager/supervision_control_client",
+    strip_include_prefix = "/score/launch_manager/src/daemon/src/supervision_control_client",
+    visibility = ["//score:__subpackages__"],
+    deps = [
+        ":isupervision_event_publisher",
+        "@googletest//:gtest_main",
     ],
 )
 

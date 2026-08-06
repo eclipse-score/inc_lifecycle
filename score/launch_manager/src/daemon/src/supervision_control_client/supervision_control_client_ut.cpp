@@ -59,9 +59,9 @@ TEST_F(SupervisionControlClient_UT, SupervisionControlClient_QueueOneEvent_Succe
     SupervisionEvent event1{
         .id = score::lcm::IdentifierHash("Process1"),
         .eventType = score::lcm::SupervisionEventType::kActivation,
-    };
+        .systemClockTimestamp = {}};
 
-    bool queued = notifier_->queueSupervisionEvent(event1);
+    bool queued = notifier_->reportActivation(event1.id, event1.systemClockTimestamp);
     ASSERT_TRUE(queued);
 
     auto result = receiver_->getNextSupervisionEvent();
@@ -87,8 +87,8 @@ TEST_F(SupervisionControlClient_UT, SupervisionControlClient_QueueMaxNumberOfEve
         SupervisionEvent event{
             .id = score::lcm::IdentifierHash("Process" + std::to_string(i)),
             .eventType = score::lcm::SupervisionEventType::kActivation,
-        };
-        bool queued = notifier_->queueSupervisionEvent(event);
+            .systemClockTimestamp = {}};
+        bool queued = notifier_->reportActivation(event.id, event.systemClockTimestamp);
         ASSERT_TRUE(queued) << "Failed to queue event at index " << i;
     }
 
@@ -114,19 +114,19 @@ TEST_F(SupervisionControlClient_UT, SupervisionControlClient_QueueOneEventTooMan
     SupervisionEvent event1{
         .id = score::lcm::IdentifierHash("Process1"),
         .eventType = score::lcm::SupervisionEventType::kActivation,
-    };
+        .systemClockTimestamp = {}};
 
     for (size_t i = 0; i < static_cast<size_t>(BufferConstants::BUFFER_QUEUE_SIZE); ++i)
     {
         SupervisionEvent event{
             .id = score::lcm::IdentifierHash("Process" + std::to_string(i)),
             .eventType = score::lcm::SupervisionEventType::kActivation,
-        };
-        bool queued = notifier_->queueSupervisionEvent(event);
+            .systemClockTimestamp = {}};
+        bool queued = notifier_->reportActivation(event.id, event.systemClockTimestamp);
         ASSERT_TRUE(queued) << "Failed to queue event at index " << i;
     }
 
-    bool queued = notifier_->queueSupervisionEvent(event1);
+    bool queued = notifier_->reportActivation(event1.id, event1.systemClockTimestamp);
     ASSERT_FALSE(queued) << "Expected queuing to fail due to full buffer";
 
     auto result = receiver_->getNextSupervisionEvent();

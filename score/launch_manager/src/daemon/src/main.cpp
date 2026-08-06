@@ -157,8 +157,6 @@ int main(int argc, const char* argv[])
         }
         LM_LOG_DEBUG() << "Launch Manager Started !!!!";
         std::shared_ptr<score::lcm::IRecoveryClient> recoveryClient{std::make_shared<score::lcm::RecoveryClient>()};
-        std::unique_ptr<score::lcm::saf::watchdog::IWatchdogIf> watchdog{
-            std::make_unique<score::lcm::saf::watchdog::WatchdogImpl>()};
         auto supervision_control_notifier = std::make_unique<score::lcm::internal::SupervisionControlNotifier>();
         std::unique_ptr<score::lcm::saf::daemon::IAliveMonitor> healthMonitor{
             std::make_unique<score::lcm::saf::daemon::AliveMonitorImpl>(

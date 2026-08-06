@@ -14,6 +14,7 @@
 #include "score/mw/launch_manager/process_group_manager/details/process_info_node.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/safe_process_map.hpp"
 #include "score/mw/launch_manager/process_group_manager/mock_iprocess.hpp"
+#include "score/mw/launch_manager/supervision_control_client/mock_supervision_event_publisher.hpp"
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <memory>
@@ -56,7 +57,7 @@ class ProcessInfoNodeFixture : public ::testing::Test
         config_.pgm_config_ = pgm_config;
 
         return std::make_unique<ProcessInfoNode>(
-            &config_, kProcessIndex, ready_condition, report_fn_, &mock_processIf_, process_map_);
+            &config_, kProcessIndex, ready_condition, &mock_publisher_, &mock_processIf_, process_map_);
     }
 
     /// @brief Helper method to create a ProcessInfoNode that is self-terminating.
@@ -122,7 +123,7 @@ class ProcessInfoNodeFixture : public ::testing::Test
     std::shared_ptr<MockSafeProcessMapInserter> process_map_{std::make_shared<MockSafeProcessMapInserter>()};
     StrictMock<osal::MockIProcess> mock_processIf_{};
     MockFunction<bool(IdentifierHash, score::lcm::ProcessState, timespec)> mock_report_fn_{};
-    ReportStateFn report_fn_{mock_report_fn_.AsStdFunction()};
+    MockSupervisionEventPublisher mock_publisher_{};
 };
 
 // Bundles different cases for activate() that occur during startup, before the ready condition is reached.

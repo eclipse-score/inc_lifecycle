@@ -16,10 +16,7 @@
 
 #include <cstdint>
 
-namespace score
-{
-
-namespace lcm
+namespace score::lcm
 {
 
 /// @brief Represents the state of a modelled process.
@@ -29,11 +26,10 @@ enum class ProcessState : std::uint8_t
     kStarting = 1,     ///< process in starting state.
     kRunning = 2,      ///< process in running state.
     kTerminating = 3,  ///< process in terminating state.
-    kTerminated = 4    ///< process in terminated state.
+    kTerminated = 4,   ///< process in terminated state.
+    kFailed = 5        ///< process failed to start.
 };
 
-}  // namespace lcm
-
-}  // namespace score
+}  // namespace score::lcm
 
 #endif  // SCORE_LCM_PROCESS_STATE_HPP_INCLUDED

@@ -31,7 +31,7 @@ ProcessInfoNode::ProcessInfoNode(
     const OsProcess* config,
     uint32_t index,
     ReadyCondition ready_condition,
-    ReportStateFn report_function,
+    ISupervisionEventPublisher* state_publisher,
     osal::IProcess* process_interface,
     std::shared_ptr<SafeProcessMapInserter> process_map)
     : terminator_(),
@@ -42,7 +42,7 @@ ProcessInfoNode::ProcessInfoNode(
       process_state_(score::lcm::ProcessState::kIdle),
       ready_condition_(ready_condition),
       config_(config),
-      report_state_(std::move(report_function)),
+      state_publisher_(state_publisher),
       process_interface_(process_interface),
       process_map_(std::move(process_map))
 {
@@ -116,24 +116,22 @@ bool ProcessInfoNode::setState(score::lcm::ProcessState new_state)
         score::lcm::ProcessState::kIdle != new_state)
     {
         // for a reporting process, report a process state change to PHM
-        std::optional<score::lcm::SupervisionEventType> eventType;
-        if (new_state == score::lcm::ProcessState::kRunning)
-        {
-            eventType = score::lcm::SupervisionEventType::kActivation;
-        }
-        else if (
-            new_state == score::lcm::ProcessState::kTerminating || new_state == score::lcm::ProcessState::kTerminated)
-        {
-            eventType = score::lcm::SupervisionEventType::kDeactivation;
-        }
-
         timespec timestamp{};
         static_cast<void>(clock_gettime(CLOCK_MONOTONIC, &timestamp));
+
         // Note that we ignore the return value.
         // An error would indicate that PHM is not reading values fast enough from the shared memory; the buffer
         // over-run should be visible at the PHM side and handled there. If PHM is not responding do we need to handle
         // this? If PHM terminates state manager will be informed in any case.
-        static_cast<void>(report_state_(config_->process_id_, eventType, timestamp));
+        if (new_state == score::lcm::ProcessState::kRunning)
+        {
+            state_publisher_->reportActivation(config_->process_id_, timestamp);
+        }
+        else if (
+            new_state == score::lcm::ProcessState::kTerminating || new_state == score::lcm::ProcessState::kTerminated)
+        {
+            state_publisher_->reportDeactivation(config_->process_id_, timestamp);
+        }
     }
 
     return success;

@@ -18,6 +18,7 @@
 #include "score/mw/launch_manager/control/control_client_channel.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/icomponent.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/safe_process_map.hpp"
+#include "score/mw/launch_manager/supervision_control_client/isupervision_event_publisher.hpp"
 #include <score/stop_token.hpp>
 #include <atomic>
 
@@ -31,8 +32,6 @@ namespace internal
 {
 
 using namespace score::mw::lifecycle::internal;
-
-using ReportStateFn = std::function<bool(IdentifierHash, ProcessState, timespec)>;
 
 /// @brief Represents both a process and a component in the graph.
 /// @details A ProcessInfoNode is a node in the dependency graph that represents an OS process and its associated
@@ -57,14 +56,14 @@ class ProcessInfoNode final : public IComponent
     /// @param config Configuration for the OS process.
     /// @param index The process index within its process group.
     /// @param ready_condition Whether this process is considered ready when running or when terminated.
-    /// @param report_function Callback used to report state changes to the platform health manager.
+    /// @param state_publisher Interface used to report state changes to the platform health manager.
     /// @param process_interface The OS process interface used to start and stop the process.
     /// @param process_map The shared process map used to track process pids.
     ProcessInfoNode(
         const OsProcess* config,
         uint32_t index,
         ReadyCondition ready_condition,
-        ReportStateFn report_function,
+        ISupervisionEventPublisher* state_publisher,
         osal::IProcess* process_interface,
         std::shared_ptr<SafeProcessMapInserter> process_map);
 
@@ -203,8 +202,8 @@ class ProcessInfoNode final : public IComponent
     /// @brief Pointer to the comms for this process
     osal::IpcCommsP sync_{nullptr};
 
-    /// @brief Callback for reporting process state to health monitor
-    ReportStateFn report_state_;
+    /// @brief Interface for reporting component state to health monitor
+    ISupervisionEventPublisher* state_publisher_;
 
     /// @brief True if we have returned a success or failure for the current activation/deactivation
     std::atomic_flag success_returned_{false};
