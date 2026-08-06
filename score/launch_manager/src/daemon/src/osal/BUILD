@@ -62,6 +62,12 @@ cc_library(
     }),
     hdrs = ["security_policy.hpp"],
     include_prefix = "score/mw/launch_manager/osal",
+    linkopts = select({
+        "@platforms//os:qnx": [
+            "-lsecpol",
+        ],
+        "//conditions:default": [],
+    }),
     strip_include_prefix = "/score/launch_manager/src/daemon/src/osal",
     visibility = ["//score:__subpackages__"],
 )

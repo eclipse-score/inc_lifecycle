@@ -16,8 +16,8 @@ cc_binary(
     name = "launch_manager",
     srcs = ["src/main.cpp"],
     linkopts = select({
-        "@platforms//os:qnx": ["-lsecpol"],
         "@platforms//os:linux": ["-lpthread"],
+        "//conditions:default": [],
     }),
     visibility = ["//score/launch_manager:__subpackages__"],
     deps = [
