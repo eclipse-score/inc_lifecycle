@@ -27,8 +27,6 @@
 namespace score::mw::launch_manager::configuration
 {
 
-namespace fb = score::mw::launch_manager::configuration::fb;
-
 namespace details
 {
 
