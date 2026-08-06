@@ -162,7 +162,7 @@ void ProcessGroupManager::deinitialize()
     process_map_.reset();
 }
 
-inline bool ProcessGroupManager::initializeControlClientHandler()
+bool ProcessGroupManager::initializeControlClientHandler()
 {
     bool result = false;
 
@@ -220,7 +220,7 @@ inline bool ProcessGroupManager::initializeControlClientHandler()
     return result;
 }
 
-inline bool ProcessGroupManager::initializeProcessGroups()
+bool ProcessGroupManager::initializeProcessGroups()
 {
     bool success = false;
 
@@ -266,7 +266,7 @@ inline bool ProcessGroupManager::initializeProcessGroups()
     return success;
 }
 
-inline void ProcessGroupManager::createProcessComponentsObjects(std::size_t total_processes)
+void ProcessGroupManager::createProcessComponentsObjects(std::size_t total_processes)
 {
     LM_LOG_DEBUG() << "Creating component event queue...";
     event_queue_ = std::make_unique<ComponentEventQueue>(total_processes);
@@ -295,7 +295,7 @@ inline void ProcessGroupManager::createProcessComponentsObjects(std::size_t tota
         worker_jobs_, static_cast<uint32_t>(ProcessLimits::kNumWorkerThreads), *process_monitor_);
 }
 
-inline void ProcessGroupManager::initializeGraphNodes()
+void ProcessGroupManager::initializeGraphNodes()
 {
     auto pg_list = configuration_.getListOfProcessGroups().value_or(nullptr);
 
@@ -376,7 +376,7 @@ void ProcessGroupManager::processComponentEvents()
     }
 }
 
-inline bool ProcessGroupManager::startInitialTransition()
+bool ProcessGroupManager::startInitialTransition()
 {
     bool result = false;
     LM_LOG_DEBUG() << "=============STARTING MAINPG STARTUP STATE============";
@@ -401,7 +401,7 @@ inline bool ProcessGroupManager::startInitialTransition()
     return result;
 }
 
-inline void ProcessGroupManager::allProcessGroupsOff()
+void ProcessGroupManager::allProcessGroupsOff()
 {
     // Wait for process group states to change while actively draining shutdown events.
     // SupervisionFailure is intentionally ignored here so recovery transitions do not
@@ -470,13 +470,13 @@ inline void ProcessGroupManager::allProcessGroupsOff()
     }
 }
 
-inline void ProcessGroupManager::controlClientHandler(Graph& pg)
+void ProcessGroupManager::controlClientHandler(Graph& pg)
 {
     controlClientRequests(pg);
     controlClientResponses(pg);
 }
 
-inline void ProcessGroupManager::controlClientResponses(Graph& pg)
+void ProcessGroupManager::controlClientResponses(Graph& pg)
 {
     // Are there any events to report to Control Clients for this process group?
     ControlClientMessage msg;
@@ -535,7 +535,7 @@ bool ProcessGroupManager::sendResponse(ControlClientMessage msg)
     return ret;
 }
 
-inline void ProcessGroupManager::controlClientRequests(Graph& pg)
+void ProcessGroupManager::controlClientRequests(Graph& pg)
 {
     const auto* control_client = pg.findControlClient();
 
@@ -608,7 +608,7 @@ inline void ProcessGroupManager::controlClientRequests(Graph& pg)
     }
 }
 
-inline void ProcessGroupManager::handleRecoveryRequest(const IdentifierHash& process_identifier)
+void ProcessGroupManager::handleRecoveryRequest(const IdentifierHash& process_identifier)
 {
     auto pg = getProcessGroupByProcessId(process_identifier);
 
@@ -654,7 +654,7 @@ inline void ProcessGroupManager::handleRecoveryRequest(const IdentifierHash& pro
     }
 }
 
-inline void ProcessGroupManager::processStateTransition(ControlClientChannelP scc)
+void ProcessGroupManager::processStateTransition(ControlClientChannelP scc)
 {
     // First of all, if the process group is not known, then return kSetStateInvalidArguments straight away
     // Set new pending target state
@@ -707,7 +707,7 @@ inline void ProcessGroupManager::processStateTransition(ControlClientChannelP sc
     }
 }
 
-inline void ProcessGroupManager::processGetExecutionError(ControlClientChannelP scc)
+void ProcessGroupManager::processGetExecutionError(ControlClientChannelP scc)
 {
     // This is a synchronous call at the client side, but it's treated just like all the others,
     // sending the response on the response channel. (The Control Client library will have to hide
@@ -731,7 +731,7 @@ inline void ProcessGroupManager::processGetExecutionError(ControlClientChannelP 
     }
 }
 
-inline void ProcessGroupManager::processGetInitialMachineStateTransitionResult(ControlClientChannelP scc)
+void ProcessGroupManager::processGetInitialMachineStateTransitionResult(ControlClientChannelP scc)
 {
     // If the machine process group is not valid or we have requested the result the maximum number of times
     // we immediately return an error. Otherwise, the response is deferred until later.
@@ -747,7 +747,7 @@ inline void ProcessGroupManager::processGetInitialMachineStateTransitionResult(C
     }
 }
 
-inline void ProcessGroupManager::processValidateFunctionStateID(ControlClientChannelP scc)
+void ProcessGroupManager::processValidateFunctionStateID(ControlClientChannelP scc)
 {
     if (configuration_.getProcessIndexesList(scc->request().process_group_state_))
     {
@@ -759,7 +759,7 @@ inline void ProcessGroupManager::processValidateFunctionStateID(ControlClientCha
     }
 }
 
-inline void ProcessGroupManager::processGroupHandler(Graph& pg)
+void ProcessGroupManager::processGroupHandler(Graph& pg)
 {
     // check to see if there is a state change request to process
     // If current pg not in transition and there is a pending request state

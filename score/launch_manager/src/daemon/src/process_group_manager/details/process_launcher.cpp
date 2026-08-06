@@ -260,7 +260,7 @@ OsalReturnType ProcessLauncher::startProcess(ProcessID* pid, IpcCommsP* block, c
     return result;
 }
 
-inline bool ProcessLauncher::setupComms(IpcCommsP& block, int& fd, const OsalConfig& config)
+bool ProcessLauncher::setupComms(IpcCommsP& block, int& fd, const OsalConfig& config)
 {
     bool comms_result = true;
     char shm_name[static_cast<uint32_t>(score::lcm::internal::ProcessLimits::maxLocalBuffSize)];
@@ -324,7 +324,7 @@ inline bool ProcessLauncher::setupComms(IpcCommsP& block, int& fd, const OsalCon
     return comms_result;
 }
 
-inline IpcCommsP ProcessLauncher::initializeControlClient(int& fd, const OsalConfig& config)
+IpcCommsP ProcessLauncher::initializeControlClient(int& fd, const OsalConfig& config)
 {
     LM_LOG_DEBUG() << "Initialize the control client for" << config.short_name_ << " process";
     /* Initialise the control client communications */
@@ -340,7 +340,7 @@ inline IpcCommsP ProcessLauncher::initializeControlClient(int& fd, const OsalCon
     return shared_block;
 }
 
-inline bool ProcessLauncher::initializeSemaphores(IpcCommsP shared_block)
+bool ProcessLauncher::initializeSemaphores(IpcCommsP shared_block)
 {
     bool result = true;
 
@@ -433,7 +433,7 @@ OsalReturnType ProcessLauncher::setSchedulingAndSecurity(const OsalConfig& confi
 }
 
 /// @details The implementation should be async signal safe.
-inline void ProcessLauncher::handleChildProcess(ChildProcessConfig& param)
+void ProcessLauncher::handleChildProcess(ChildProcessConfig& param)
 {
     handleComms(param);
 

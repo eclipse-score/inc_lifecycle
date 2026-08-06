@@ -90,7 +90,7 @@ void Graph::initProcessGroupNodes(IdentifierHash pg_name, uint32_t num_processes
     }
 }
 
-inline void Graph::createProcessInfoNodes(uint32_t num_processes)
+void Graph::createProcessInfoNodes(uint32_t num_processes)
 {
     for (uint32_t process_id = 0U; process_id < num_processes; ++process_id)
     {
@@ -131,7 +131,7 @@ inline void Graph::createProcessInfoNodes(uint32_t num_processes)
     LM_LOG_DEBUG() << "Created" << nodes_.size() << "process nodes";
 }
 
-inline void Graph::createRunTargetNodes(IdentifierHash pg_name)
+void Graph::createRunTargetNodes(IdentifierHash pg_name)
 {
     const auto num_processes = nodes_.size();
     const auto* states = configuration_->getListOfProcessGroupStates(pg_name).value_or(nullptr);
@@ -182,7 +182,7 @@ bool Graph::nodeHasTerminatedDeps(IdentifierHash pg_name, uint32_t node_index)
     return false;
 }
 
-inline void Graph::createSuccessorLists(IdentifierHash pg_name)
+void Graph::createSuccessorLists(IdentifierHash pg_name)
 {
     LM_LOG_DEBUG() << "Creating successor lists for process group" << pg_name;
 
@@ -320,7 +320,7 @@ void Graph::finalizeTransitionSuccess()
     setPendingEvent(ControlClientCode::kSetStateSuccess);
 }
 
-inline void Graph::tryQueueNode(ComponentTask task)
+void Graph::tryQueueNode(ComponentTask task)
 {
     while (GraphState::kInTransition == getState())
     {
@@ -467,7 +467,7 @@ void Graph::nodeExecuted(uint32_t node, score::cpp::expected_blank<IComponent::C
     }
 }
 
-inline void Graph::handleNonTransitionExecution(GraphState current_state)
+void Graph::handleNonTransitionExecution(GraphState current_state)
 {
     if (is_initial_state_transition_)
     {

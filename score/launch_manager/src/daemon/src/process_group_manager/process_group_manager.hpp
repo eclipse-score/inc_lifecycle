@@ -277,16 +277,16 @@ class ProcessGroupManager final : public ITransitionResultPublisher
 
     /// @brief Initializes the process groups.
     /// @return Returns true if initialization was successful, false otherwise.
-    inline bool initializeProcessGroups();
+    bool initializeProcessGroups();
 
     /// @brief Creates process component objects, including the job queue and worker threads.
-    inline void createProcessComponentsObjects(std::size_t total_processes);
+    void createProcessComponentsObjects(std::size_t total_processes);
 
     /// @brief Initializes the graph nodes.
-    inline void initializeGraphNodes();
+    void initializeGraphNodes();
 
     /// @brief Initializes the Control Client handler.
-    inline bool initializeControlClientHandler();
+    bool initializeControlClientHandler();
 
     /// @brief The configuration object associated with the ProcessGroupManager.
     ConfigurationType configuration_;

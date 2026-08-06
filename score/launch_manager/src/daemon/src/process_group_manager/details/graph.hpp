@@ -311,12 +311,12 @@ class Graph final
 
     /// @brief Creates one ProcessInfoNode per process and adds it to the dependency graph.
     /// @param num_processes The number of processes in this process group.
-    inline void createProcessInfoNodes(uint32_t num_processes);
+    void createProcessInfoNodes(uint32_t num_processes);
 
     /// @brief Creates one RunTarget node per configured ProcessGroupState and wires it to depend
     /// on the processes listed for that state.
     /// @param pg_name The identifier of the process group.
-    inline void createRunTargetNodes(IdentifierHash pg_name);
+    void createRunTargetNodes(IdentifierHash pg_name);
 
     /// @return The index of the RunTarget node for @p pg_state, or -1 if not found.
     int32_t getRunTargetIndex(IdentifierHash pg_state) const;
@@ -324,12 +324,12 @@ class Graph final
     /// @brief Reads process dependencies from the configuration and adds the corresponding
     /// edges to the dependency graph.
     /// @param pg_name The identifier of the process group.
-    inline void createSuccessorLists(IdentifierHash pg_name);
+    void createSuccessorLists(IdentifierHash pg_name);
 
     /// @brief Pushes the given task onto the worker queue while the graph is in transition.
     /// Retries on timeout.
     /// @param task The task to enqueue.
-    inline void tryQueueNode(ComponentTask task);
+    void tryQueueNode(ComponentTask task);
 
     /// @brief Every node that is ready to execute is either executed in place (RunTarget) or queued for execution
     /// (ProcessInfoNode).
@@ -348,7 +348,7 @@ class Graph final
     /// @brief Finalizes a failed or cancelled transition after the last in-flight job
     /// completes. Moves the graph state to kUndefinedState and posts the appropriate event.
     /// @param current_state The graph state when the last job completed (not kInTransition).
-    inline void handleNonTransitionExecution(GraphState current_state);
+    void handleNonTransitionExecution(GraphState current_state);
 
     /// @brief The process group index
     uint32_t pg_index_;

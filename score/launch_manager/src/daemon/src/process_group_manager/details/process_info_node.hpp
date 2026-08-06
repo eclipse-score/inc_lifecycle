@@ -144,31 +144,30 @@ class ProcessInfoNode final : public IComponent
     /// process has been created. Routes to the appropriate handler based on whether the
     /// process is still running or has already terminated.
     /// @returns An error if the process map error is unrecoverable, the result from the relevant handler otherwise.
-    inline score::cpp::expected<score::cpp::expected_blank<ComponentError>, ComponentError> handleProcessStarted(
+    score::cpp::expected<score::cpp::expected_blank<ComponentError>, ComponentError> handleProcessStarted(
         const score::cpp::stop_token& stop_token);
 
     /// @brief Waits for the process to report kRunning, terminating the process if it times out.
     /// @post Process state is either running or terminated.
     /// @returns an error if the startup times out.
-    inline score::cpp::expected_blank<ComponentError> handleProcessStillStarting(
-        const score::cpp::stop_token& stop_token);
+    score::cpp::expected_blank<ComponentError> handleProcessStillStarting(const score::cpp::stop_token& stop_token);
 
     /// @brief Handles the case where the process exited before the map insertion completed.
     /// @returns success only for self-terminating, non-reporting processes with exit status 0.
-    inline score::cpp::expected_blank<ComponentError> handleProcessAlreadyTerminated();
+    score::cpp::expected_blank<ComponentError> handleProcessAlreadyTerminated();
 
     /// @brief Logs that the process has reached the running state.
-    inline void handleProcessRunning();
+    void handleProcessRunning();
 
     /// @brief Sends SIGTERM to the process and waits up to the configured timeout for it to exit. If the timeout is
     /// reached, force the termination.
-    inline void handleTerminationProcess(const score::cpp::stop_token& stop_token);
+    void handleTerminationProcess(const score::cpp::stop_token& stop_token);
 
     /// @brief Sends SIGKILL repeatedly until the process exits or the stop token is triggered.
-    inline void handleForcedTermination(const score::cpp::stop_token& stop_token);
+    void handleForcedTermination(const score::cpp::stop_token& stop_token);
 
     /// @brief Creates the ControlClientChannel from the process's IPC comms handle.
-    inline void setupControlClientChannel();
+    void setupControlClientChannel();
 
     /// @brief semaphore used to check termination with timeout
     osal::Semaphore terminator_{};

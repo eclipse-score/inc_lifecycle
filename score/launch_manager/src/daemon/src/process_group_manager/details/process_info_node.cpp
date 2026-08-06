@@ -264,7 +264,7 @@ IComponent::RequestResult ProcessInfoNode::startProcess(score::cpp::stop_token s
     return tryReportCompletion(ProcessState::kRunning);
 }
 
-inline void ProcessInfoNode::setupControlClientChannel()
+void ProcessInfoNode::setupControlClientChannel()
 {
     // Make sure we store the control_client_channel before waiting for kRunning
     std::atomic_store(&control_client_channel_, ControlClientChannel::getControlClientChannel(sync_));
@@ -358,7 +358,7 @@ void ProcessInfoNode::terminateProcess(const score::cpp::stop_token& stop_token)
                    << ") done";
 }
 
-inline void ProcessInfoNode::handleTerminationProcess(const score::cpp::stop_token& stop_token)
+void ProcessInfoNode::handleTerminationProcess(const score::cpp::stop_token& stop_token)
 {
     static_cast<void>(terminator_.init(0U, false));
     has_semaphore_.store(true);
@@ -382,7 +382,7 @@ inline void ProcessInfoNode::handleTerminationProcess(const score::cpp::stop_tok
     static_cast<void>(terminator_.deinit());
 }
 
-inline void ProcessInfoNode::handleForcedTermination(const score::cpp::stop_token& stop_token)
+void ProcessInfoNode::handleForcedTermination(const score::cpp::stop_token& stop_token)
 {
     static_cast<void>(stop_token);  // Not yet supported
 

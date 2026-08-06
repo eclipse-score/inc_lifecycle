@@ -48,7 +48,7 @@ bool ControlClientImpl::instance_created_{false};
 std::mutex ControlClientImpl::instance_creation_mutex_{};
 
 // coverity[exn_spec_violation:FALSE] SetError cannot raise an exception in this instance
-inline score::concurrency::InterruptibleFuture<void> GetErrorFuture(score::mw::lifecycle::ExecErrc errType) noexcept
+score::concurrency::InterruptibleFuture<void> GetErrorFuture(score::mw::lifecycle::ExecErrc errType) noexcept
 {
     score::concurrency::InterruptiblePromise<void> tmp_{};
     tmp_.SetError(errType);

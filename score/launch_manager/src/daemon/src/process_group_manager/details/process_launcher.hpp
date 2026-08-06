@@ -56,22 +56,22 @@ class ProcessLauncher final : public IProcess
     ///                    segment will be stored.
     /// @param[in] config Pointer to the configuration for initializing the communication.
     /// @return True if shared memory creation and initialization are successful, false otherwise.
-    inline bool setupComms(IpcCommsP& sync, int& fd, const OsalConfig& config);
+    bool setupComms(IpcCommsP& sync, int& fd, const OsalConfig& config);
 
     /// @brief Initializes semaphores within a given shared memory block.
     /// @param[in] block Pointer to the shared memory block where semaphores will be initialized.
     /// @return True if semaphore initialization is successful, false otherwise.
-    inline bool initializeSemaphores(IpcCommsP block);
+    bool initializeSemaphores(IpcCommsP block);
 
     /// @brief Initializes the Control Client for communication using the shared memory block.
     /// @param[in,out] fd Reference to store the file descriptor of the shared memory.
     /// @param[in] config Pointer to the configuration for initializing the Control Client.
     /// @return None.
-    inline IpcCommsP initializeControlClient(int& fd, const OsalConfig& config);
+    IpcCommsP initializeControlClient(int& fd, const OsalConfig& config);
 
     /// @brief Handles the execution of the child process after forking.
     /// @param[in] param Reference to child process configuration.
-    inline void handleChildProcess(ChildProcessConfig& param);
+    void handleChildProcess(ChildProcessConfig& param);
 
     /// @brief Sets up all the scheduling and security parameters described in the config, for the current process.
     /// @param config the configuration to use

@@ -24,7 +24,7 @@ namespace score::mw::lifecycle
 {
 
 // coverity[exn_spec_violation:FALSE] SetError cannot raise an exception in this instance
-inline score::concurrency::InterruptibleFuture<void> GetErrorFuture(ExecErrc errType) noexcept
+score::concurrency::InterruptibleFuture<void> GetErrorFuture(ExecErrc errType) noexcept
 {
     score::concurrency::InterruptiblePromise<void> tmp_{};
     tmp_.SetError(errType);

@@ -53,7 +53,7 @@ class MockComponent : public IComponent
 
 /// @brief Test-only projection for Transition<IComponent*>, mirroring component_of.hpp's
 /// production overload. Declared in this namespace so Transition<IComponent*> finds it via ADL.
-inline IComponent& componentOf(IComponent* node)
+IComponent& componentOf(IComponent* node)
 {
     return *node;
 }

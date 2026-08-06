@@ -45,7 +45,7 @@ SafeProcessMap::SafeProcessMap(uint32_t capacity, IComponentController& terminat
     }
 }
 
-inline void SafeProcessMap::findNode(uint32_t& mask, uint32_t& last, osal::ProcessID key)
+void SafeProcessMap::findNode(uint32_t& mask, uint32_t& last, osal::ProcessID key)
 {
     while (rover_ != LINK_NO_VALUE && key != items_[rover_].pid_)
     {
@@ -73,7 +73,7 @@ inline void SafeProcessMap::findNode(uint32_t& mask, uint32_t& last, osal::Proce
 }
 
 // RULECHECKER_comment(1, 1, check_max_parameters, "refactored with WI #9343", true);
-inline int32_t SafeProcessMap::insertNode(uint32_t& mask, uint32_t& last, osal::ProcessID& key, ProcessInfoData& data)
+int32_t SafeProcessMap::insertNode(uint32_t& mask, uint32_t& last, osal::ProcessID& key, ProcessInfoData& data)
 {
     int32_t ret_value = -1;
 
@@ -116,8 +116,7 @@ inline int32_t SafeProcessMap::insertNode(uint32_t& mask, uint32_t& last, osal::
 }
 
 // RULECHECKER_comment(1, 1, check_max_parameters, "refactored with WI #9343", true);
-inline int32_t
-SafeProcessMap::removeNode(ProcessInfoData& target, ProcessInfoData& data, uint32_t& last, uint32_t& local_root)
+int32_t SafeProcessMap::removeNode(ProcessInfoData& target, ProcessInfoData& data, uint32_t& last, uint32_t& local_root)
 {
     // found key. There are 4 situations:
     // data.pin_ == nullptr, stored pin_ != nullptr: normal findTerminated
@@ -156,7 +155,7 @@ SafeProcessMap::removeNode(ProcessInfoData& target, ProcessInfoData& data, uint3
     return ret_value;
 }
 
-inline void SafeProcessMap::findLeaf(uint32_t& leaf, uint32_t& previous)
+void SafeProcessMap::findLeaf(uint32_t& leaf, uint32_t& previous)
 {
     while (true)
     {
@@ -178,7 +177,7 @@ inline void SafeProcessMap::findLeaf(uint32_t& leaf, uint32_t& previous)
 }
 
 // RULECHECKER_comment(1, 1, check_max_parameters, "refactored with WI #9343", true);
-inline void SafeProcessMap::deleteNode(uint32_t& last, uint32_t& leaf, uint32_t& local_root, uint32_t& previous)
+void SafeProcessMap::deleteNode(uint32_t& last, uint32_t& leaf, uint32_t& local_root, uint32_t& previous)
 {
     if (leaf == local_root)
     {
