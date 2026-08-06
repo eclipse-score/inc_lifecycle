@@ -25,7 +25,6 @@ def run_until_file_deployed(
     file_path: str,
     timeout_s: float = 30.0,
     poll_interval_s: float = 0.5,
-    stop_timeout_s: float = 3.0,
     args=None,
     cwd: str = "/",
 ) -> AsyncProcess:
@@ -36,8 +35,6 @@ def run_until_file_deployed(
     :param file_path: path of the file to wait for on the target.
     :param timeout_s: maximum seconds to wait for the file (default: 30).
     :param poll_interval_s: seconds between file checks (default: 0.5).
-    :param stop_timeout_s: maximum seconds to wait for the process to terminate
-        after SIGTERM (default: 3).
     :param args: optional list of arguments to pass to the binary.
     :param cwd: working directory on the target (default: "/").
     :return: the stopped :class:`AsyncProcess` handle.
