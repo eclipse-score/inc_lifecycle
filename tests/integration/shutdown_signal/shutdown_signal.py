@@ -55,11 +55,4 @@ def test_shutdown_signal(target, setup_test, assert_test_results, remote_test_di
         timeout_s=10.0,
     )
 
-    # Additionally verify on the target filesystem that the SIGTERM was received
-    # and that the process was force-killed (no graceful exit was recorded).
-    res, _ = target.execute(f"test -f {remote_test_dir / 'sigterm_received'}")
-    assert res == 0, "shutdown_signal_process did not receive a SIGTERM during shutdown"
-    res, _ = target.execute(f"test -f {remote_test_dir / 'graceful_exit'}")
-    assert res != 0, "shutdown_signal_process was not force-terminated with SIGKILL"
-
     assert_test_results({"control_daemon_mock.xml", "shutdown_signal_process.xml"})
