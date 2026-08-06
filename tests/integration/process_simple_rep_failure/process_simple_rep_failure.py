@@ -22,7 +22,7 @@ from attribute_plugin import add_test_properties
         "feat_req__lifecycle__recovery_action_support",
     ],
     fully_verifies=[
-        "feat_req__lifecycle__failure_detect",
+        "comp_req__launch_man__failure_detect",
     ],
     test_type="requirements-based",
     derivation_technique="requirements-analysis",
