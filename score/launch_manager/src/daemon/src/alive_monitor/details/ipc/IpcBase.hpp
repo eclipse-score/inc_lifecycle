@@ -16,8 +16,8 @@
 
 #include <memory>
 
-#include <string_view>
 #include "ipc_dropin/socket.hpp"
+#include <string_view>
 
 namespace score
 {
@@ -36,8 +36,10 @@ namespace ipc
 /// Valid interval is [4, 32768]. Only numbers divisible by 2 are valid.
 /// @tparam Socket The socket type (templated for dependency injection)
 
-template <class Payload, std::uint16_t MaxNumberElements,
-          class Socket = ipc_dropin::Socket<sizeof(Payload), MaxNumberElements>>
+template <
+    class Payload,
+    std::uint16_t MaxNumberElements,
+    class Socket = ipc_dropin::Socket<sizeof(Payload), MaxNumberElements>>
 class IpcBase
 {
     // Payload must have a trivial memory layout, so that it will be the exactly same object
@@ -46,7 +48,7 @@ class IpcBase
     // Payload must not require special destruction, so that shared memory can safely be reused
     static_assert(std::is_trivially_destructible<Payload>::value, "Payload must be trivially destructible");
 
-public:
+  public:
     /// @brief Common ipc initialization return type.
     enum class EIpcInitResult : std::uint8_t
     {
@@ -85,8 +87,9 @@ public:
     template <typename... Args>
     bool sendEmplace(Args&&... f_args) noexcept(true)
     {
-        static_assert(std::is_nothrow_constructible<Payload, Args&&...>::value,
-                      "Payload must be nothrow constructible with Args&&...");
+        static_assert(
+            std::is_nothrow_constructible<Payload, Args&&...>::value,
+            "Payload must be nothrow constructible with Args&&...");
 
         if (!isInitialized)
         {
@@ -149,7 +152,7 @@ public:
         }
     }
 
-protected:
+  protected:
     /// @brief Instantiate the IPC channel
     explicit IpcBase(std::unique_ptr<Socket> f_socket) noexcept(true) : socket(std::move(f_socket))
     {

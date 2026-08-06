@@ -15,8 +15,8 @@
 #include "score/mw/launch_manager/common/log.hpp"
 #include "score/mw/launch_manager/osal/ipc_comms.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/safe_process_map.hpp"
-#include <unistd.h>
 #include <score/assert.hpp>
+#include <unistd.h>
 
 namespace score
 {
@@ -50,7 +50,7 @@ ProcessInfoNode::ProcessInfoNode(
 
 IComponent::RequestResult ProcessInfoNode::tryReportCompletion(score::lcm::ProcessState new_state)
 {
-    ProcessState desired_state {};
+    ProcessState desired_state{};
     switch (ready_condition_)
     {
         case ReadyCondition::kRunning:
@@ -200,7 +200,8 @@ IComponent::RequestResult ProcessInfoNode::startProcess(score::cpp::stop_token s
         // - Starting: this would mean we did not set state to kFailed on failure or exit when we successfully launched
         SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(getState() != ProcessState::kStarting, "Process state is invalid");
         // - Running: we should already have exited the loop
-        SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(getState() != ProcessState::kRunning, "Restart attempted even though process is running");
+        SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(
+            getState() != ProcessState::kRunning, "Restart attempted even though process is running");
         // - Terminating: A termination is in progress (allowed)
         if (!setState(score::lcm::ProcessState::kIdle))
         {
@@ -238,7 +239,8 @@ IComponent::RequestResult ProcessInfoNode::startProcess(score::cpp::stop_token s
                 break;
             }
             // Ordinary failure happened after the process started, e.g. kRunning timeout
-            SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(getState() == ProcessState::kTerminated, "Process was not terminated after failed startup");
+            SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(
+                getState() == ProcessState::kTerminated, "Process was not terminated after failed startup");
             error = res.value().error();
         }
         else
@@ -318,7 +320,7 @@ ProcessInfoNode::handleProcessStarted(const score::cpp::stop_token& stop_token)
     switch (process_map_->insertIfNotTerminated(pid_, this))
     {
         case score::lcm::internal::SafeProcessMapReturnType::kOk:  // Normal case, entry was put in
-                                                                                   // the map, process still running
+                                                                   // the map, process still running
             return handleProcessStillStarting(stop_token);
         case score::lcm::internal::SafeProcessMapReturnType::kYield:  // Process has already exited
             return handleProcessAlreadyTerminated();
@@ -382,7 +384,7 @@ inline void ProcessInfoNode::handleTerminationProcess(const score::cpp::stop_tok
 
 inline void ProcessInfoNode::handleForcedTermination(const score::cpp::stop_token& stop_token)
 {
-    static_cast<void>(stop_token); // Not yet supported
+    static_cast<void>(stop_token);  // Not yet supported
 
     LM_LOG_WARN() << "Process" << process_index_ << "(" << config_->startup_config_.short_name_
                   << ") did not respond to SIGTERM, sending SIGKILL";

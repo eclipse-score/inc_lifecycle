@@ -17,18 +17,17 @@
 #include <score/mw/lifecycle/control_client.h>
 #include <score/mw/lifecycle/report_running.h>
 
-
 TEST(ComplexMonitoring, ControlClientMock)
 {
     score::mw::lifecycle::ControlClient client;
-    
+
     ASSERT_TRUE(check_clean({test_end_location, fallback_file}));
 
     TEST_STEP("Report running")
     {
         score::mw::lifecycle::report_running();
     }
-    
+
     TEST_STEP("Launch monitored process")
     {
         score::cpp::stop_token stop_token;

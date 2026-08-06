@@ -13,8 +13,8 @@
 #ifndef SCORE_HM_HEARTBEAT_HEARTBEAT_MONITOR_H
 #define SCORE_HM_HEARTBEAT_HEARTBEAT_MONITOR_H
 
-#include <score/expected.hpp>
 #include "score/mw/health/common.h"
+#include <score/expected.hpp>
 
 namespace score::mw::health
 {

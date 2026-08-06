@@ -21,8 +21,8 @@
 #include "score/mw/launch_manager/process_group_manager/details/os_handler.hpp"
 
 #include "score/mw/launch_manager/common/constants.hpp"
-#include "score/mw/launch_manager/process_group_manager/details/mock_component_controller.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/mock_component.hpp"
+#include "score/mw/launch_manager/process_group_manager/details/mock_component_controller.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/safe_process_map.hpp"
 #include "score/os/mocklib/sys_wait_mock.h"
 
@@ -152,8 +152,7 @@ TEST_F(OsHandlerTest, WaitReturnsProcessIdBeforeRegistration_LaterRegistrationRe
     // callback immediately with the saved exit status instead of creating a new live entry.
     EXPECT_CALL(ccontroller_, terminated(_, 99)).Times(1);
     EXPECT_EQ(
-        process_map_.insertIfNotTerminated(4000, &component_),
-        score::lcm::internal::SafeProcessMapReturnType::kYield);
+        process_map_.insertIfNotTerminated(4000, &component_), score::lcm::internal::SafeProcessMapReturnType::kYield);
 
     sut_.reset();
 }

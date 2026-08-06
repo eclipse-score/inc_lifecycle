@@ -116,10 +116,8 @@ inline int32_t SafeProcessMap::insertNode(uint32_t& mask, uint32_t& last, osal::
 }
 
 // RULECHECKER_comment(1, 1, check_max_parameters, "refactored with WI #9343", true);
-inline int32_t SafeProcessMap::removeNode(ProcessInfoData& target,
-                                          ProcessInfoData& data,
-                                          uint32_t& last,
-                                          uint32_t& local_root)
+inline int32_t
+SafeProcessMap::removeNode(ProcessInfoData& target, ProcessInfoData& data, uint32_t& last, uint32_t& local_root)
 {
     // found key. There are 4 situations:
     // data.pin_ == nullptr, stored pin_ != nullptr: normal findTerminated

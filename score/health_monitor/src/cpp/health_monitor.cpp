@@ -25,29 +25,36 @@ using namespace score::mw::health::logic;
 
 FFICode health_monitor_builder_create(FFIHandle* health_monitor_builder_handle_out);
 FFICode health_monitor_builder_destroy(FFIHandle health_monitor_builder_handle);
-FFICode health_monitor_builder_build(FFIHandle health_monitor_builder_handle,
-                                     const uint64_t* supervisor_cycle_ms,
-                                     const uint64_t* internal_cycle_ms,
-                                     FFIHandle thread_parameters_handle,
-                                     FFIHandle* health_monitor_handle_out);
-FFICode health_monitor_builder_add_deadline_monitor(FFIHandle health_monitor_builder_handle,
-                                                    const MonitorTag* monitor_tag,
-                                                    FFIHandle deadline_monitor_builder_handle);
-FFICode health_monitor_builder_add_heartbeat_monitor(FFIHandle health_monitor_builder_handle,
-                                                     const MonitorTag* monitor_tag,
-                                                     FFIHandle heartbeat_monitor_builder_handle);
-FFICode health_monitor_builder_add_logic_monitor(FFIHandle health_monitor_builder_handle,
-                                                 const MonitorTag* monitor_tag,
-                                                 FFIHandle logic_monitor_builder_handle);
-FFICode health_monitor_get_deadline_monitor(FFIHandle health_monitor_handle,
-                                            const MonitorTag* monitor_tag,
-                                            FFIHandle* deadline_monitor_handle_out);
-FFICode health_monitor_get_heartbeat_monitor(FFIHandle health_monitor_handle,
-                                             const MonitorTag* monitor_tag,
-                                             FFIHandle* heartbeat_monitor_handle_out);
-FFICode health_monitor_get_logic_monitor(FFIHandle health_monitor_handle,
-                                         const MonitorTag* monitor_tag,
-                                         FFIHandle* logic_monitor_handle_out);
+FFICode health_monitor_builder_build(
+    FFIHandle health_monitor_builder_handle,
+    const uint64_t* supervisor_cycle_ms,
+    const uint64_t* internal_cycle_ms,
+    FFIHandle thread_parameters_handle,
+    FFIHandle* health_monitor_handle_out);
+FFICode health_monitor_builder_add_deadline_monitor(
+    FFIHandle health_monitor_builder_handle,
+    const MonitorTag* monitor_tag,
+    FFIHandle deadline_monitor_builder_handle);
+FFICode health_monitor_builder_add_heartbeat_monitor(
+    FFIHandle health_monitor_builder_handle,
+    const MonitorTag* monitor_tag,
+    FFIHandle heartbeat_monitor_builder_handle);
+FFICode health_monitor_builder_add_logic_monitor(
+    FFIHandle health_monitor_builder_handle,
+    const MonitorTag* monitor_tag,
+    FFIHandle logic_monitor_builder_handle);
+FFICode health_monitor_get_deadline_monitor(
+    FFIHandle health_monitor_handle,
+    const MonitorTag* monitor_tag,
+    FFIHandle* deadline_monitor_handle_out);
+FFICode health_monitor_get_heartbeat_monitor(
+    FFIHandle health_monitor_handle,
+    const MonitorTag* monitor_tag,
+    FFIHandle* heartbeat_monitor_handle_out);
+FFICode health_monitor_get_logic_monitor(
+    FFIHandle health_monitor_handle,
+    const MonitorTag* monitor_tag,
+    FFIHandle* logic_monitor_handle_out);
 FFICode health_monitor_start(FFIHandle health_monitor_handle);
 FFICode health_monitor_destroy(FFIHandle health_monitor_handle);
 }
@@ -72,8 +79,9 @@ HealthMonitorBuilder::HealthMonitorBuilder()
 {
 }
 
-HealthMonitorBuilder HealthMonitorBuilder::add_deadline_monitor(const MonitorTag& monitor_tag,
-                                                                DeadlineMonitorBuilder&& monitor) &&
+HealthMonitorBuilder HealthMonitorBuilder::add_deadline_monitor(
+    const MonitorTag& monitor_tag,
+    DeadlineMonitorBuilder&& monitor) &&
 {
     auto monitor_handle = monitor.drop_by_rust();
     SCORE_LANGUAGE_FUTURECPP_PRECONDITION(monitor_handle.has_value());
@@ -86,8 +94,9 @@ HealthMonitorBuilder HealthMonitorBuilder::add_deadline_monitor(const MonitorTag
     return std::move(*this);
 }
 
-HealthMonitorBuilder HealthMonitorBuilder::add_heartbeat_monitor(const MonitorTag& monitor_tag,
-                                                                 HeartbeatMonitorBuilder&& monitor) &&
+HealthMonitorBuilder HealthMonitorBuilder::add_heartbeat_monitor(
+    const MonitorTag& monitor_tag,
+    HeartbeatMonitorBuilder&& monitor) &&
 {
     auto monitor_handle = monitor.drop_by_rust();
     SCORE_LANGUAGE_FUTURECPP_PRECONDITION(monitor_handle.has_value());
@@ -100,8 +109,9 @@ HealthMonitorBuilder HealthMonitorBuilder::add_heartbeat_monitor(const MonitorTa
     return std::move(*this);
 }
 
-HealthMonitorBuilder HealthMonitorBuilder::add_logic_monitor(const MonitorTag& monitor_tag,
-                                                             LogicMonitorBuilder&& monitor) &&
+HealthMonitorBuilder HealthMonitorBuilder::add_logic_monitor(
+    const MonitorTag& monitor_tag,
+    LogicMonitorBuilder&& monitor) &&
 {
     auto monitor_handle = monitor.drop_by_rust();
     SCORE_LANGUAGE_FUTURECPP_PRECONDITION(monitor_handle.has_value());
@@ -163,11 +173,12 @@ score::cpp::expected<HealthMonitor, Error> HealthMonitorBuilder::build() &&
     }
 
     FFIHandle health_monitor_handle{nullptr};
-    auto result{health_monitor_builder_build(health_monitor_builder_handle.value(),
-                                             supervisor_api_cycle_ms,
-                                             internal_processing_cycle_ms,
-                                             thread_parameters_handle,
-                                             &health_monitor_handle)};
+    auto result{health_monitor_builder_build(
+        health_monitor_builder_handle.value(),
+        supervisor_api_cycle_ms,
+        internal_processing_cycle_ms,
+        thread_parameters_handle,
+        &health_monitor_handle)};
     if (result != kSuccess)
     {
         return score::cpp::unexpected(static_cast<Error>(result));

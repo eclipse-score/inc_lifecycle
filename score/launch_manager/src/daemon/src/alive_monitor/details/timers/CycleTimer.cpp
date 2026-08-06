@@ -25,8 +25,8 @@ namespace timers
 using constexpr enforces constant initialization by the compiler", false) */
 constexpr int CycleTimer::kDeadlineAlreadyOver;
 
-CycleTimer::CycleTimer(score::lcm::saf::timers::OsClockInterface const* f_osInterface) noexcept :
-    osInterface{f_osInterface}, sleepIntervalNs{0}, deadline{}
+CycleTimer::CycleTimer(const score::lcm::saf::timers::OsClockInterface* f_osInterface) noexcept
+    : osInterface{f_osInterface}, sleepIntervalNs{0}, deadline{}
 {
     static_cast<void>(0U);
 }

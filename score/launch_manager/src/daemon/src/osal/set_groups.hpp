@@ -11,7 +11,6 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-
 #ifndef SETGROUPS_HPP_INCLUDED
 #define SETGROUPS_HPP_INCLUDED
 
@@ -19,22 +18,26 @@
 
 #include <cstdint>
 
-namespace score {
+namespace score
+{
 
-namespace lcm {
+namespace lcm
+{
 
-namespace internal {
+namespace internal
+{
 
-namespace osal {
+namespace osal
+{
 
 /// @brief Call the setgroups() function, which has a different signature in Linux and QNX.
 /// @param __n the size of the list. If this is zero, NULL is passed as the second paramter
 /// to the underlying OS call.
 /// @param __groups pointer to the list of groups, may be NULL
 /// @returns 0 on success, -1 on failure.
-[[nodiscard]] std::int32_t setgroups(size_t __n, const gid_t *__groups) noexcept(true);
+[[nodiscard]] std::int32_t setgroups(size_t __n, const gid_t* __groups) noexcept(true);
 }  // namespace osal
-}  // namespace lcm
 }  // namespace internal
+}  // namespace lcm
 }  // namespace score
 #endif

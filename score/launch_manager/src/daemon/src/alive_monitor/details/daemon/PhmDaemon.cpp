@@ -88,7 +88,8 @@ bool PhmDaemon::construct(const Config& config, const SupervisionBufferConfig& f
         for (auto strSwClusterName : listSwClustersPhm.value())
         {
             swClusterHandlers.emplace_back(strSwClusterName);
-            isSuccess = swClusterHandlers.back().constructWorkers(config, recoveryClient, processStateReader, f_bufferConfig_r);
+            isSuccess =
+                swClusterHandlers.back().constructWorkers(config, recoveryClient, processStateReader, f_bufferConfig_r);
             if (!isSuccess)
             {
                 LM_LOG_ERROR() << "Phm Daemon: failed to create worker objects for swclusterhandler:"

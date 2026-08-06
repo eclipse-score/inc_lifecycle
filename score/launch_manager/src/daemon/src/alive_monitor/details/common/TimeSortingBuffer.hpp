@@ -40,12 +40,14 @@ class TimeSortingBuffer
 {
     /// @brief To allow for nothrow move constructor and move assignment operator,
     /// the underlying type also needs to be nothrow move constructible and nothrow move assignable
-    static_assert(std::is_nothrow_move_constructible<TimeSortedElementType>::value,
-                  "Type must be nothrow move constructible");
-    static_assert(std::is_nothrow_move_assignable<TimeSortedElementType>::value,
-                  "Type must be nothrow move assignable");
+    static_assert(
+        std::is_nothrow_move_constructible<TimeSortedElementType>::value,
+        "Type must be nothrow move constructible");
+    static_assert(
+        std::is_nothrow_move_assignable<TimeSortedElementType>::value,
+        "Type must be nothrow move assignable");
 
-public:
+  public:
     /// Constructor
     /// @param [in] f_bufferSize    Number of available buffer elements
     explicit TimeSortingBuffer(uint16_t f_bufferSize) noexcept(false) : timeSortedBuffer(f_bufferSize)
@@ -123,11 +125,13 @@ public:
         timeSortedBuffer.clear();
     }
 
-private:
+  private:
     /// Sort Chain Element
     /// Structure used for sorting the elements
-    /* RULECHECKER_comment(0, 11, check_non_private_non_pod_field, "Struct is only used internally within this class", true_no_defect) */
-    /* RULECHECKER_comment(0, 10, check_non_pod_struct, "Struct is only used internally within this class", true_no_defect) */
+    /* RULECHECKER_comment(0, 11, check_non_private_non_pod_field, "Struct is only used internally within this class",
+     * true_no_defect) */
+    /* RULECHECKER_comment(0, 10, check_non_pod_struct, "Struct is only used internally within this class",
+     * true_no_defect) */
     struct SortChainElement
     {
         SortChainElement* previous_p{

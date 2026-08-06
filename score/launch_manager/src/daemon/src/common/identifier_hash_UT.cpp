@@ -34,9 +34,10 @@ class IdentifierHashTest : public ::testing::Test
 
 TEST_F(IdentifierHashTest, IdentifierHash_with_string_view_created)
 {
-    RecordProperty("Description",
-                   "This test verifies that an IdentifierHash can be successfully created using a std::string_view, "
-                   "and that its string representation can be retrieved correctly.");
+    RecordProperty(
+        "Description",
+        "This test verifies that an IdentifierHash can be successfully created using a std::string_view, "
+        "and that its string representation can be retrieved correctly.");
     std::string_view idStrView = "ProcessGroup1/Startup";
     IdentifierHash identifierHash(idStrView);
     stringstream strStream;
@@ -46,9 +47,10 @@ TEST_F(IdentifierHashTest, IdentifierHash_with_string_view_created)
 
 TEST_F(IdentifierHashTest, IdentifierHash_with_string_created)
 {
-    RecordProperty("Description",
-                   "This test verifies that an IdentifierHash can be successfully created using a std::string, and "
-                   "that its string representation can be retrieved correctly.");
+    RecordProperty(
+        "Description",
+        "This test verifies that an IdentifierHash can be successfully created using a std::string, and "
+        "that its string representation can be retrieved correctly.");
     std::string idStr = "ProcessGroup1/Startup";
     IdentifierHash identifierHash(idStr);
     stringstream strStream;
@@ -58,9 +60,10 @@ TEST_F(IdentifierHashTest, IdentifierHash_with_string_created)
 
 TEST_F(IdentifierHashTest, IdentifierHash_default_created)
 {
-    RecordProperty("Description",
-                   "This test verifies that a default-constructed IdentifierHash can be created, and that its string "
-                   "representation is empty.");
+    RecordProperty(
+        "Description",
+        "This test verifies that a default-constructed IdentifierHash can be created, and that its string "
+        "representation is empty.");
     IdentifierHash identifierHash;
     stringstream strStream;
     strStream << identifierHash;
@@ -69,9 +72,10 @@ TEST_F(IdentifierHashTest, IdentifierHash_default_created)
 
 TEST_F(IdentifierHashTest, IdentifierHash_invalid_hash_no_string_representation)
 {
-    RecordProperty("Description",
-                   "This test verifies that if an IdentifierHash is created with a string that is not registered in "
-                   "the registry, its string representation indicates that it is unknown and includes the hash value.");
+    RecordProperty(
+        "Description",
+        "This test verifies that if an IdentifierHash is created with a string that is not registered in "
+        "the registry, its string representation indicates that it is unknown and includes the hash value.");
     std::string idStr = "MainFG";
     IdentifierHash identifierHash(idStr);
 
@@ -89,10 +93,11 @@ TEST_F(IdentifierHashTest, IdentifierHash_invalid_hash_no_string_representation)
 
 TEST_F(IdentifierHashTest, IdentifierHash_no_dangling_pointer_after_source_string_dies)
 {
-    RecordProperty("Description",
-                   "This test verifies that an IdentifierHash created from a std::string does not have a dangling "
-                   "pointer to the original string after it goes out of scope, and that its string representation can "
-                   "still be retrieved correctly.");
+    RecordProperty(
+        "Description",
+        "This test verifies that an IdentifierHash created from a std::string does not have a dangling "
+        "pointer to the original string after it goes out of scope, and that its string representation can "
+        "still be retrieved correctly.");
     std::unique_ptr<IdentifierHash> hash_ptr;
     std::string_view idStrView = "this string will be destroyed";
 
@@ -110,9 +115,10 @@ TEST_F(IdentifierHashTest, IdentifierHash_no_dangling_pointer_after_source_strin
 
 TEST_F(IdentifierHashTest, IdentifierHash_EqualityOperators)
 {
-    RecordProperty("Description",
-                   "This test verifies that the equality and inequality operators of IdentifierHash work correctly when "
-                   "comparing with other IdentifierHash objects and with std::string_view.");
+    RecordProperty(
+        "Description",
+        "This test verifies that the equality and inequality operators of IdentifierHash work correctly when "
+        "comparing with other IdentifierHash objects and with std::string_view.");
     IdentifierHash hash1("ProcessGroup1/Startup");
     IdentifierHash hash2("ProcessGroup1/Startup");
     IdentifierHash hash3("ProcessGroup2/Startup");
@@ -132,25 +138,27 @@ TEST_F(IdentifierHashTest, IdentifierHash_EqualityOperators)
 
 TEST_F(IdentifierHashTest, IdentifierHash_LessThanOperator)
 {
-    RecordProperty("Description",
-                   "This test verifies that the less than operator of IdentifierHash provides a consistent ordering based on "
-                   "the hash values, and that it can be used to compare different IdentifierHash objects.");
+    RecordProperty(
+        "Description",
+        "This test verifies that the less than operator of IdentifierHash provides a consistent ordering based on "
+        "the hash values, and that it can be used to compare different IdentifierHash objects.");
     IdentifierHash hash1("ProcessGroup1/Startup");
     IdentifierHash hash2("ProcessGroup2/Startup");
 
-    if(hash1.data() < hash2.data())
+    if (hash1.data() < hash2.data())
     {
         ASSERT_TRUE(hash1 < hash2);
         ASSERT_FALSE(hash2 < hash1);
     }
-    else if(hash2.data() < hash1.data())
+    else if (hash2.data() < hash1.data())
     {
         ASSERT_TRUE(hash2 < hash1);
         ASSERT_FALSE(hash1 < hash2);
     }
     else
     {
-        // In the unlikely event of a hash collision, they should be considered equal and neither should be less than the other.
+        // In the unlikely event of a hash collision, they should be considered equal and neither should be less than
+        // the other.
         ASSERT_FALSE(hash1 < hash2);
         ASSERT_FALSE(hash2 < hash1);
     }

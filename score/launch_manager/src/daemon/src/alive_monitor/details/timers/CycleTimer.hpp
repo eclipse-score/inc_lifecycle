@@ -11,7 +11,6 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-
 #ifndef CYCLETIMER_HPP_INCLUDED
 #define CYCLETIMER_HPP_INCLUDED
 
@@ -40,7 +39,7 @@ constexpr int64_t k_nanoSecondsPerSecond{1000000000};
 /// for fault injection.
 class CycleTimer
 {
-public:
+  public:
     /// @brief sleep() return code in case the deadline was already over before going to sleep
     // coverity[autosar_cpp14_a0_1_1_violation:FALSE] kDeadlineAlreadyOver is used in PhmDaemon.hpp
     static constexpr int kDeadlineAlreadyOver{-1};
@@ -48,7 +47,7 @@ public:
     /// @brief Sets the interface for performing the OS clock system calls.
     /// @param[in] f_osInterface OS clock interface to access clock_nanosleep() and clock_gettime() via
     /// OsClockInterface. The pointer allows the interface exchange to enhance testability.
-    explicit CycleTimer(score::lcm::saf::timers::OsClockInterface const* f_osInterface) noexcept;
+    explicit CycleTimer(const score::lcm::saf::timers::OsClockInterface* f_osInterface) noexcept;
 
     /// @brief Initialize the time interval object and check for internal errors, which prevent from incorrect
     /// execution.
@@ -85,7 +84,7 @@ public:
     /* RULECHECKER_comment(0, 4, check_cheap_to_copy_in_parameter, "f_exitRequested_r is passed as reference\
        to refer to original object", true_no_defect) */
     template <typename TerminationSignalPredType>
-    int sleep(TerminationSignalPredType const& f_exitRequested_r, std::uint64_t& f_nsOverDeadline_r) const noexcept
+    int sleep(const TerminationSignalPredType& f_exitRequested_r, std::uint64_t& f_nsOverDeadline_r) const noexcept
     {
         struct timespec now = {};
         f_nsOverDeadline_r = 0U;
@@ -120,7 +119,7 @@ public:
     /// @details Increments for the given time interval and normalizes the timespec struct (see 'handleOverflow()').
     struct timespec& calcNextShot() noexcept;
 
-private:
+  private:
     /// @pre 'calcNextShot()'
     /// @brief Corrects the timespec object after a time interval increment
     /// @return The adjusted timespec structure. Returned value can be

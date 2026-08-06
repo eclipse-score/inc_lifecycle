@@ -11,36 +11,44 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-
 #ifndef CONTROL_CLIENT_IMPL_H_
 #define CONTROL_CLIENT_IMPL_H_
 
-#include <mutex>
 #include <atomic>
 #include <functional>
+#include <mutex>
 
 #include "score/mw/launch_manager/common/constants.hpp"
 #include "score/mw/launch_manager/common/identifier_hash.hpp"
-#include "score/mw/launch_manager/osal/semaphore.hpp"
 #include "score/mw/launch_manager/control/control_client_channel.hpp"
+#include "score/mw/launch_manager/osal/semaphore.hpp"
 #include "score/mw/lifecycle/execution_error.h"
 #include "score/mw/lifecycle/execution_error_event.h"
 
-namespace score::mw::lifecycle {
+namespace score::mw::lifecycle
+{
 
 /// @brief Data structure used to manage active, i.e. still not completed, requests from ControlClient.
 /// Most of the ControlClient methods are asynchronous. This means that when an API call returns,
 /// the request was communicated to LCM and LCM agreed to work on it. The result of that request usually
 /// arrives later, so ControlClientImpl needs a storage where those active requests can wait for completion.
-struct ControlClientRequestInfo {
+struct ControlClientRequestInfo
+{
     score::concurrency::InterruptiblePromise<void>
-        promise_;  ///< promise that should be fulfilled, i.e. set_value(), when answer from LCM is available. SetState() and GetInitialMachineStateTransitionResult() use this type.
-    std::atomic_bool
-        in_use_;  ///< information whether this slot in the array is used or not. We are using atomic flag as only the code that reserves the slot will use synchronization primitive. There is no reason to protect release code, thanks to the std::atomic_flag
-    bool
-        initial_machine_state_transition_request_;  ///< is this a request that originated from GetInitialMachineStateTransitionResult? Due to the design of LCM, there is no place to cache those request on LCM side. As there is no limit on how many times ControlClient instance can call GetInitialMachineStateTransitionResult method, we will cache them on ControlClientImpl side.
+        promise_;  ///< promise that should be fulfilled, i.e. set_value(), when answer from LCM is available.
+                   ///< SetState() and GetInitialMachineStateTransitionResult() use this type.
+    std::atomic_bool in_use_;  ///< information whether this slot in the array is used or not. We are using atomic flag
+                               ///< as only the code that reserves the slot will use synchronization primitive. There is
+                               ///< no reason to protect release code, thanks to the std::atomic_flag
+    bool initial_machine_state_transition_request_;  ///< is this a request that originated from
+                                                     ///< GetInitialMachineStateTransitionResult? Due to the design of
+                                                     ///< LCM, there is no place to cache those request on LCM side. As
+                                                     ///< there is no limit on how many times ControlClient instance can
+                                                     ///< call GetInitialMachineStateTransitionResult method, we will
+                                                     ///< cache them on ControlClientImpl side.
     // Constructor to initialize all members
-    ControlClientRequestInfo() : promise_(), in_use_(false), initial_machine_state_transition_request_(false) {
+    ControlClientRequestInfo() : promise_(), in_use_(false), initial_machine_state_transition_request_(false)
+    {
     }
 };
 
@@ -64,14 +72,12 @@ struct ControlClientRequestInfo {
 ///     - This class is essentially a singleton, we can only have one thread that manages the response_ link.
 ///       For this reason factory pattern will be deployed and ControlClient instances will only hold
 ///       shared pointers to this class.
-class ControlClientImpl final {
-   public:
-
+class ControlClientImpl final
+{
+  public:
     ControlClientImpl() = delete;
 
-
-    ControlClientImpl(
-       std::function<void(const score::lcm::ExecutionErrorEvent&)> undefinedStateCallback) noexcept;
+    ControlClientImpl(std::function<void(const score::lcm::ExecutionErrorEvent&)> undefinedStateCallback) noexcept;
 
     // this class is not movable or copyable by definition
     ControlClientImpl(const ControlClientImpl&) = delete;
@@ -89,29 +95,42 @@ class ControlClientImpl final {
     ///
     ///
     /// @param[in] pg_name representing meta-model definition of a specific Process Group
-    /// @param[in] pg_state representing meta-model definition of a state. Launch Manager will perform state transition from the current state to the state identified by this parameter.
+    /// @param[in] pg_state representing meta-model definition of a state. Launch Manager will perform state transition
+    /// from the current state to the state identified by this parameter.
     ///
     /// @returns void if requested transition is successful, otherwise it returns ExecErrorDomain error.
-    /// @error score::mw::lifecycle::ExecErrc::kCancelled if transition to the requested Process Group state was cancelled by a newer request
+    /// @error score::mw::lifecycle::ExecErrc::kCancelled if transition to the requested Process Group state was
+    /// cancelled by a newer request
     /// @error score::mw::lifecycle::ExecErrc::kFailed if transition to the requested Process Group state failed
-    /// @error score::mw::lifecycle::ExecErrc::kFailedUnexpectedTerminationOnExit if Unexpected Termination in Process of previous Process Group State happened.
-    /// @error score::mw::lifecycle::ExecErrc::kFailedUnexpectedTerminationOnEnter if Unexpected Termination in Process of target Process Group State happened.
-    /// @error score::mw::lifecycle::ExecErrc::kInvalidArguments if arguments passed doesn't appear to be valid (e.g. after a software update, given processGroup doesn't exist anymore)
-    /// @error score::mw::lifecycle::ExecErrc::kCommunicationError if ControlClient can't communicate with Launch Manager (e.g. IPC link is down)
+    /// @error score::mw::lifecycle::ExecErrc::kFailedUnexpectedTerminationOnExit if Unexpected Termination in Process
+    /// of previous Process Group State happened.
+    /// @error score::mw::lifecycle::ExecErrc::kFailedUnexpectedTerminationOnEnter if Unexpected Termination in Process
+    /// of target Process Group State happened.
+    /// @error score::mw::lifecycle::ExecErrc::kInvalidArguments if arguments passed doesn't appear to be valid (e.g.
+    /// after a software update, given processGroup doesn't exist anymore)
+    /// @error score::mw::lifecycle::ExecErrc::kCommunicationError if ControlClient can't communicate with Launch
+    /// Manager (e.g. IPC link is down)
     /// @error score::mw::lifecycle::ExecErrc::kAlreadyInState if the ProcessGroup is already in the requested state
-    /// @error score::mw::lifecycle::ExecErrc::kInTransitionToSameState if a transition to the requested state is already ongoing
-    /// @error score::mw::lifecycle::ExecErrc::kInvalidTransition if transition to the requested state is prohibited (e.g. Off state for MainPG)
+    /// @error score::mw::lifecycle::ExecErrc::kInTransitionToSameState if a transition to the requested state is
+    /// already ongoing
+    /// @error score::mw::lifecycle::ExecErrc::kInvalidTransition if transition to the requested state is prohibited
+    /// (e.g. Off state for MainPG)
     /// @error score::mw::lifecycle::ExecErrc::kGeneralError if any other error occurs.
-    score::concurrency::InterruptibleFuture<void> SetState(const score::lcm::IdentifierHash& pg_name, const score::lcm::IdentifierHash& pg_state) noexcept;
+    score::concurrency::InterruptibleFuture<void> SetState(
+        const score::lcm::IdentifierHash& pg_name,
+        const score::lcm::IdentifierHash& pg_state) noexcept;
 
     /// @brief Method to retrieve result of Machine State initial transition to Startup state.
     ///
-    /// Please note that this transition happens once per machine life cycle, thus result delivered by this method shall not change (unless machine is started again).
+    /// Please note that this transition happens once per machine life cycle, thus result delivered by this method shall
+    /// not change (unless machine is started again).
     ///
     /// @returns void if requested transition is successful, otherwise it returns ExecErrorDomain error.
-    /// @error score::mw::lifecycle::ExecErrc::kCancelled if transition to the requested Process Group state was cancelled by a newer request
+    /// @error score::mw::lifecycle::ExecErrc::kCancelled if transition to the requested Process Group state was
+    /// cancelled by a newer request
     /// @error score::mw::lifecycle::ExecErrc::kFailed if transition to the requested Process Group state failed
-    /// @error score::mw::lifecycle::ExecErrc::kCommunicationError if ControlClient can't communicate with Launch Manager (e.g. IPC link is down)
+    /// @error score::mw::lifecycle::ExecErrc::kCommunicationError if ControlClient can't communicate with Launch
+    /// Manager (e.g. IPC link is down)
     /// @error score::mw::lifecycle::ExecErrc::kGeneralError if any other error occurs.
     score::concurrency::InterruptibleFuture<void> GetInitialMachineStateTransitionResult() noexcept;
 
@@ -123,13 +142,16 @@ class ControlClientImpl final {
     /// @param[in] processGroup   For which Process Group the error should be retrieved.
     ///
     /// @returns The execution error which changed the given Process Group to an Undefined Process Group State.
-    /// @error score::mw::lifecycle::ExecErrc::kFailed    Given Process Group is not in an Undefined Process Group State.
-    /// @error score::mw::lifecycle::ExecErrc::kCommunicationError if ControlClient can't communicate with Launch Manager (e.g. IPC link is down)
+    /// @error score::mw::lifecycle::ExecErrc::kFailed    Given Process Group is not in an Undefined Process Group
+    /// State.
+    /// @error score::mw::lifecycle::ExecErrc::kCommunicationError if ControlClient can't communicate with Launch
+    /// Manager (e.g. IPC link is down)
     score::Result<score::lcm::ExecutionErrorEvent> GetExecutionError(
         const score::lcm::IdentifierHash& processGroup) noexcept;
 
     ~ControlClientImpl() noexcept;
-    private:
+
+  private:
     /// @brief Flag to indicate whether an instance of ControlClient has already been created.
     /// Only one instance per process is allowed. If a second instance is created, the application
     /// will be aborted.
@@ -146,8 +168,9 @@ class ControlClientImpl final {
     /// ControlClientImpl classify such a request as an active or ongoing request.
     /// A promise for such a request is stored in this array and is fulfilled when
     /// answer arrives from LCM.
-    std::array<ControlClientRequestInfo,
-                     static_cast<uint16_t>(score::lcm::internal::ControlClientLimits::kControlClientMaxRequests)>
+    std::array<
+        ControlClientRequestInfo,
+        static_cast<uint16_t>(score::lcm::internal::ControlClientLimits::kControlClientMaxRequests)>
         control_client_requests_;
 
     /// @brief Semaphore used to protect access to the request_ link of ControlClientChannel,
@@ -194,13 +217,15 @@ class ControlClientImpl final {
     ///                    Otherwise msg.originating_control_client_.future_id_ is not updated and
     ///                    error is returned.
     ///
-    /// @returns score::concurrency::InterruptibleFuture<void> when message is successfully sent to LCM. This future can be
+    /// @returns score::concurrency::InterruptibleFuture<void> when message is successfully sent to LCM. This future can
+    /// be
     ///                                  used to retrieve LCM response at a later time.
     /// @error score::mw::lifecycle::ExecErrc::kFailed if the message could not be send to LCM
     /// @error score::mw::lifecycle::ExecErrc::kCommunicationError if we can't get access to the request_ link
     ///
     /// @threadsafety{thread-safe}
-    score::concurrency::InterruptibleFuture<void> SendIpcMessage(score::lcm::internal::ControlClientMessage& msg) noexcept;
+    score::concurrency::InterruptibleFuture<void> SendIpcMessage(
+        score::lcm::internal::ControlClientMessage& msg) noexcept;
 };
 
 }  // namespace score::mw::lifecycle

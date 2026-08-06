@@ -245,12 +245,13 @@ class Config
   private:
     friend class ConfigBuilder;
 
-    Config(std::vector<ComponentConfig> components,
-           std::vector<RunTargetConfig> run_targets,
-           std::string initial_run_target,
-           FallbackRunTargetConfig fallback_run_target,
-           AliveSupervisionConfig alive_supervision,
-           std::optional<WatchdogConfig> watchdog);
+    Config(
+        std::vector<ComponentConfig> components,
+        std::vector<RunTargetConfig> run_targets,
+        std::string initial_run_target,
+        FallbackRunTargetConfig fallback_run_target,
+        AliveSupervisionConfig alive_supervision,
+        std::optional<WatchdogConfig> watchdog);
 
     std::vector<ComponentConfig> components_;
     std::vector<RunTargetConfig> run_targets_;

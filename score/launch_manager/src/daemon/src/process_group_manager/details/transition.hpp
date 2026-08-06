@@ -378,20 +378,18 @@ class Transition
     /// - pending: the count of nodes that are still to be activated
     void setupActivation(GraphIndex root)
     {
-        graph_.traverse(
-            root,
-            [this](GraphIndex i) -> const std::vector<GraphIndex>& {
-                state_.in_target_subgraph[i] = true;
-                if (!active(i))
+        graph_.traverse(root, [this](GraphIndex i) -> const std::vector<GraphIndex>& {
+            state_.in_target_subgraph[i] = true;
+            if (!active(i))
+            {
+                ++state_.pending;
+                if (allDepsActive(i))
                 {
-                    ++state_.pending;
-                    if (allDepsActive(i))
-                    {
-                        state_.next_nodes.push(i);
-                    }
+                    state_.next_nodes.push(i);
                 }
-                return graph_.dependsOn(i);
-            });
+            }
+            return graph_.dependsOn(i);
+        });
     }
 
     /// @brief Setup the Stopping phase of the transition
@@ -406,12 +404,10 @@ class Transition
     /// source subgraph — are still stopped.
     void setupDeactivation(GraphIndex target)
     {
-        graph_.traverse(
-            target,
-            [this](GraphIndex i) -> const std::vector<GraphIndex>& {
-                state_.in_target_subgraph[i] = true;
-                return graph_.dependsOn(i);
-            });
+        graph_.traverse(target, [this](GraphIndex i) -> const std::vector<GraphIndex>& {
+            state_.in_target_subgraph[i] = true;
+            return graph_.dependsOn(i);
+        });
         for (GraphIndex i = 0; i < graph_.size(); ++i)
         {
             if (!state_.in_target_subgraph[i] && !stopped(i))

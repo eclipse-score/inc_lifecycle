@@ -33,8 +33,8 @@ auto& GetDestructorCallback() noexcept
 
 auto& GetRunCallback() noexcept
 {
-    static std::function<std::int32_t(score::mw::lifecycle::Application & app,
-                                      const score::mw::lifecycle::ApplicationContext& context)>
+    static std::function<std::int32_t(
+        score::mw::lifecycle::Application & app, const score::mw::lifecycle::ApplicationContext& context)>
         run_callback;
     return run_callback;
 }
@@ -60,17 +60,19 @@ score::mw::lifecycle::LifeCycleManagerMock::~LifeCycleManagerMock()
 }
 
 void score::mw::lifecycle::LifeCycleManagerMock::SetCallbackForRunMethod(
-    std::function<std::int32_t(score::mw::lifecycle::Application& app, const score::mw::lifecycle::ApplicationContext& context)> callback)
+    std::function<
+        std::int32_t(score::mw::lifecycle::Application& app, const score::mw::lifecycle::ApplicationContext& context)>
+        callback)
 {
     GetRunCallback() = std::move(callback);
 }
 
 void score::mw::lifecycle::LifeCycleManagerMock::ResetCallbackForRunMethod()
 {
-    GetRunCallback() = [this](score::mw::lifecycle::Application& app,
-                              const score::mw::lifecycle::ApplicationContext& context) {
-        return run(app, context);
-    };
+    GetRunCallback() =
+        [this](score::mw::lifecycle::Application& app, const score::mw::lifecycle::ApplicationContext& context) {
+            return run(app, context);
+        };
 }
 
 score::mw::lifecycle::LifeCycleManager::LifeCycleManager(std::unique_ptr<score::os::Signal>) noexcept
@@ -85,8 +87,9 @@ score::mw::lifecycle::LifeCycleManager::~LifeCycleManager() noexcept
     destructor_callback();
 }
 
-std::int32_t score::mw::lifecycle::LifeCycleManager::run(score::mw::lifecycle::Application& app,
-                                                         const score::mw::lifecycle::ApplicationContext& context)
+std::int32_t score::mw::lifecycle::LifeCycleManager::run(
+    score::mw::lifecycle::Application& app,
+    const score::mw::lifecycle::ApplicationContext& context)
 {
     report_running();
     auto& run_callback = GetRunCallback();

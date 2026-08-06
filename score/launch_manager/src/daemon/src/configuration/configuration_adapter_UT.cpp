@@ -10,8 +10,8 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
-#include "score/mw/launch_manager/configuration/configuration_adapter.hpp"
 #include "score/mw/launch_manager/configuration/config.hpp"
+#include "score/mw/launch_manager/configuration/configuration_adapter.hpp"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -19,8 +19,10 @@
 #include <cstring>
 #include <string>
 
-namespace score::mw::launch_manager::configuration {
-namespace {
+namespace score::mw::launch_manager::configuration
+{
+namespace
+{
 
 using ::testing::Eq;
 using ::testing::IsNull;
@@ -103,7 +105,8 @@ Config makeMinimalConfig()
         .build();
 }
 
-class ConfigurationAdapterTest : public ::testing::Test {
+class ConfigurationAdapterTest : public ::testing::Test
+{
   protected:
     void SetUp() override
     {
@@ -125,7 +128,8 @@ class ConfigurationAdapterTest : public ::testing::Test {
 
 TEST_F(ConfigurationAdapterTest, GetListOfProcessGroupsReturnsSingleImplicitGroup)
 {
-    RecordProperty("Description", "After initialize, getListOfProcessGroups returns a list with the single MainPG group.");
+    RecordProperty(
+        "Description", "After initialize, getListOfProcessGroups returns a list with the single MainPG group.");
 
     auto result = adapter_.getListOfProcessGroups();
 
@@ -169,8 +173,7 @@ TEST_F(ConfigurationAdapterTest, GetProcessIndexesListResolvesRunTargetDependenc
 {
     RecordProperty("Description", "getProcessIndexesList resolves RunTarget depends_on to component indexes.");
 
-    score::lcm::internal::ProcessGroupStateID startup_id{
-        IdentifierHash{"MainPG"}, IdentifierHash{"MainPG/Startup"}};
+    score::lcm::internal::ProcessGroupStateID startup_id{IdentifierHash{"MainPG"}, IdentifierHash{"MainPG/Startup"}};
 
     auto result = adapter_.getProcessIndexesList(startup_id);
 
@@ -182,10 +185,11 @@ TEST_F(ConfigurationAdapterTest, GetProcessIndexesListResolvesRunTargetDependenc
 
 TEST_F(ConfigurationAdapterTest, GetProcessIndexesListResolvesTransitiveDependencies)
 {
-    RecordProperty("Description", "Full run target depends on comp_b and Startup; transitive resolution yields both component indexes.");
+    RecordProperty(
+        "Description",
+        "Full run target depends on comp_b and Startup; transitive resolution yields both component indexes.");
 
-    score::lcm::internal::ProcessGroupStateID full_id{
-        IdentifierHash{"MainPG"}, IdentifierHash{"MainPG/Full"}};
+    score::lcm::internal::ProcessGroupStateID full_id{IdentifierHash{"MainPG"}, IdentifierHash{"MainPG/Full"}};
 
     auto result = adapter_.getProcessIndexesList(full_id);
 
@@ -231,8 +235,10 @@ TEST_F(ConfigurationAdapterTest, GetOsProcessConfigurationInjectsAliveInterfaceF
     const auto* os_proc = *result;
 
     bool found = false;
-    for (size_t i = 0; os_proc->startup_config_.envp_[i] != nullptr; ++i) {
-        if (std::string(os_proc->startup_config_.envp_[i]) == "LCM_ALIVE_INTERFACE_PATH=/lifecycle_health_comp_a") {
+    for (size_t i = 0; os_proc->startup_config_.envp_[i] != nullptr; ++i)
+    {
+        if (std::string(os_proc->startup_config_.envp_[i]) == "LCM_ALIVE_INTERFACE_PATH=/lifecycle_health_comp_a")
+        {
             found = true;
             break;
         }
@@ -249,9 +255,10 @@ TEST_F(ConfigurationAdapterTest, GetOsProcessConfigurationNoAliveInterfaceForNat
     ASSERT_TRUE(result.has_value());
     const auto* os_proc = *result;
 
-    for (size_t i = 0; os_proc->startup_config_.envp_[i] != nullptr; ++i) {
-        EXPECT_THAT(std::string(os_proc->startup_config_.envp_[i]).find("LCM_ALIVE_INTERFACE_PATH"),
-                    Eq(std::string::npos))
+    for (size_t i = 0; os_proc->startup_config_.envp_[i] != nullptr; ++i)
+    {
+        EXPECT_THAT(
+            std::string(os_proc->startup_config_.envp_[i]).find("LCM_ALIVE_INTERFACE_PATH"), Eq(std::string::npos))
             << "Native component should not have LCM_ALIVE_INTERFACE_PATH";
     }
 }
@@ -327,8 +334,7 @@ TEST_F(ConfigurationAdapterTest, OffStateReturnsProcessIndexesListEmpty)
 {
     RecordProperty("Description", "The Off state has no process indexes.");
 
-    score::lcm::internal::ProcessGroupStateID off_id{
-        IdentifierHash{"MainPG"}, IdentifierHash{"MainPG/Off"}};
+    score::lcm::internal::ProcessGroupStateID off_id{IdentifierHash{"MainPG"}, IdentifierHash{"MainPG/Off"}};
 
     auto result = adapter_.getProcessIndexesList(off_id);
 
@@ -338,7 +344,8 @@ TEST_F(ConfigurationAdapterTest, OffStateReturnsProcessIndexesListEmpty)
 
 TEST(ConfigurationAdapterReadyConditionTest, DependencyUsesTargetComponentReadyCondition)
 {
-    RecordProperty("Description",
+    RecordProperty(
+        "Description",
         "The dependency process_state is derived from the target component's ready_condition, not the source's.");
     RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "explorative-testing");
@@ -389,12 +396,12 @@ TEST(ConfigurationAdapterReadyConditionTest, DependencyUsesTargetComponentReadyC
     alive.evaluation_cycle_ms = 500;
 
     auto config = ConfigBuilder{}
-        .setComponents(std::move(components))
-        .setRunTargets(std::move(run_targets))
-        .setInitialRunTarget("Startup")
-        .setFallbackRunTarget(std::move(fallback))
-        .setAliveSupervision(alive)
-        .build();
+                      .setComponents(std::move(components))
+                      .setRunTargets(std::move(run_targets))
+                      .setInitialRunTarget("Startup")
+                      .setFallbackRunTarget(std::move(fallback))
+                      .setAliveSupervision(alive)
+                      .build();
 
     ConfigurationAdapter adapter;
     adapter.initialize(config);
@@ -413,8 +420,8 @@ TEST(ConfigurationAdapterReadyConditionTest, DependencyUsesTargetComponentReadyC
 
 TEST(ConfigurationAdapterReadyConditionTest, DependencyDefaultsToRunningWhenTargetHasNoReadyCondition)
 {
-    RecordProperty("Description",
-        "When the dependency target has no ready_condition, the dependency defaults to Running.");
+    RecordProperty(
+        "Description", "When the dependency target has no ready_condition, the dependency defaults to Running.");
     RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "explorative-testing");
 
@@ -463,12 +470,12 @@ TEST(ConfigurationAdapterReadyConditionTest, DependencyDefaultsToRunningWhenTarg
     alive.evaluation_cycle_ms = 500;
 
     auto config = ConfigBuilder{}
-        .setComponents(std::move(components))
-        .setRunTargets(std::move(run_targets))
-        .setInitialRunTarget("Startup")
-        .setFallbackRunTarget(std::move(fallback))
-        .setAliveSupervision(alive)
-        .build();
+                      .setComponents(std::move(components))
+                      .setRunTargets(std::move(run_targets))
+                      .setInitialRunTarget("Startup")
+                      .setFallbackRunTarget(std::move(fallback))
+                      .setAliveSupervision(alive)
+                      .build();
 
     ConfigurationAdapter adapter;
     adapter.initialize(config);
@@ -486,8 +493,7 @@ TEST(ConfigurationAdapterReadyConditionTest, DependencyDefaultsToRunningWhenTarg
 
 TEST(ConfigurationAdapterFallbackTest, FallbackRunTargetResolvesDependenciesRecursively)
 {
-    RecordProperty("Description",
-        "Fallback run target resolves transitive component dependencies.");
+    RecordProperty("Description", "Fallback run target resolves transitive component dependencies.");
     RecordProperty("TestType", "interface-test");
     RecordProperty("DerivationTechnique", "explorative-testing");
 
@@ -536,12 +542,12 @@ TEST(ConfigurationAdapterFallbackTest, FallbackRunTargetResolvesDependenciesRecu
     alive.evaluation_cycle_ms = 500;
 
     auto config = ConfigBuilder{}
-        .setComponents(std::move(components))
-        .setRunTargets(std::move(run_targets))
-        .setInitialRunTarget("Startup")
-        .setFallbackRunTarget(std::move(fallback))
-        .setAliveSupervision(alive)
-        .build();
+                      .setComponents(std::move(components))
+                      .setRunTargets(std::move(run_targets))
+                      .setInitialRunTarget("Startup")
+                      .setFallbackRunTarget(std::move(fallback))
+                      .setAliveSupervision(alive)
+                      .build();
 
     ConfigurationAdapter adapter;
     adapter.initialize(config);

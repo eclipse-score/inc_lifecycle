@@ -27,8 +27,9 @@ namespace daemon
 {
 
 /// @brief Interface for HealthMonitor functionality
-class IAliveMonitor {
-public:
+class IAliveMonitor
+{
+  public:
     virtual ~IAliveMonitor() = default;
 
     /// @brief Initialize the AliveMonitor functionality

@@ -176,8 +176,8 @@ inline std::ostream& operator<<(std::ostream& stream, const IdentifierHash& id_h
 namespace score::lcm
 {
 
-inline score::mw::log::LogStream& operator<<(score::mw::log::LogStream& stream,
-                                             const IdentifierHash& id_hash) noexcept(false)
+inline score::mw::log::LogStream& operator<<(score::mw::log::LogStream& stream, const IdentifierHash& id_hash) noexcept(
+    false)
 {
     const std::lock_guard<std::mutex> lock(IdentifierHash::get_registry_mutex());
     const auto& reg = IdentifierHash::get_registry();

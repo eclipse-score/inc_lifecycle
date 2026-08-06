@@ -14,17 +14,17 @@
 #ifndef IPC_SERVER_HPP_INCLUDED
 #define IPC_SERVER_HPP_INCLUDED
 
+#include <fcntl.h>
+#include <sys/acl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <sys/acl.h>
-#include <fcntl.h>
 
 #include <memory>
 
-#include <string>
+#include "ipc_dropin/socket.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ipc/IpcBase.hpp"
 #include <unistd.h>
-#include "ipc_dropin/socket.hpp"
+#include <string>
 
 namespace score
 {
@@ -42,8 +42,10 @@ namespace ipc
 /// @tparam MaxNumberElements The maximum number of elements that can be stored at once in IPC channel.
 /// Valid interval is [4, 32768]. Only numbers divisible by 2 are valid.
 /// @tparam Socket The socket type (default: pipc socket, templated for dependency injection)
-template <class Payload, std::uint16_t MaxNumberElements,
-          class Socket = ipc_dropin::Socket<sizeof(Payload), MaxNumberElements>>
+template <
+    class Payload,
+    std::uint16_t MaxNumberElements,
+    class Socket = ipc_dropin::Socket<sizeof(Payload), MaxNumberElements>>
 // coverity[autosar_cpp14_a12_1_6_violation:FALSE] Base class constructor is used
 class IpcServer final : public IpcBase<Payload, MaxNumberElements, Socket>
 {
@@ -57,7 +59,7 @@ class IpcServer final : public IpcBase<Payload, MaxNumberElements, Socket>
     /// Octal representation is 0600
     static constexpr mode_t kOwnerReadWrite = 384U;
 
-public:
+  public:
     /// @brief Make base class EIpcInitResult enum accessible
     using typename Base::EIpcInitResult;
     /// @brief Make base class EIpcPeekResult enum accessible
@@ -65,8 +67,8 @@ public:
 
     /// @brief Default Constructor
     /// @throws std::bad_alloc in case of insufficient heap and usage of default socket argument
-    explicit IpcServer(std::unique_ptr<Socket> f_socket = std::make_unique<Socket>()) noexcept(false) :
-        Base(std::move(f_socket))
+    explicit IpcServer(std::unique_ptr<Socket> f_socket = std::make_unique<Socket>()) noexcept(false)
+        : Base(std::move(f_socket))
     {
     }
 
@@ -132,7 +134,8 @@ public:
             return false;
         }
 
-        auto addPermissionEntry = [&](acl_tag_t tag, bool read, bool write, uid_t uid = 0U, bool useQualifier = false) -> bool {
+        auto addPermissionEntry =
+            [&](acl_tag_t tag, bool read, bool write, uid_t uid = 0U, bool useQualifier = false) -> bool {
             acl_entry_t entry;
             if (acl_create_entry(&acl, &entry) == -1)
             {

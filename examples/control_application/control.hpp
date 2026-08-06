@@ -15,11 +15,12 @@
 
 #include <cstddef>
 
-struct RunTargetInfo {
+struct RunTargetInfo
+{
     char runTargetName[1024]{};
 };
 
-static constexpr char const* control_socket_path = "/sm_control";
+static constexpr const char* control_socket_path = "/sm_control";
 static constexpr std::size_t control_socket_capacity = 32;
 
 #endif

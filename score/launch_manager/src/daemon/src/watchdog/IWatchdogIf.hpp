@@ -11,7 +11,6 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-
 #ifndef IWATCHDOGIF_HPP_INCLUDED
 #define IWATCHDOGIF_HPP_INCLUDED
 
@@ -37,8 +36,9 @@ namespace watchdog
 /// there may be multiple implementations in the future depending on what types of watchdogs should be supported.
 class IWatchdogIf
 {
-public:
-    /* RULECHECKER_comment(0, 14, check_single_use_pod_variable, "Constants are required for testing", true_no_defect) */
+  public:
+    /* RULECHECKER_comment(0, 14, check_single_use_pod_variable, "Constants are required for testing", true_no_defect)
+     */
 #ifdef __QNXNTO__
     /// @brief Minimum supported timeout value in ms for QNX target
     static constexpr std::uint16_t kTimeoutMinMillis{100U};
@@ -55,8 +55,9 @@ public:
 
     /// The main loop cycle time must be strictly less than the minimum watchdog timeout to ensure that
     /// the watchdog timeout cannot expire during an unblocked run of the main loop.
-    static_assert(score::lcm::internal::kMainLoopCycleTimeMs < kTimeoutMinMillis,
-                  "Main loop cycle time must be less than the minimum watchdog timeout");
+    static_assert(
+        score::lcm::internal::kMainLoopCycleTimeMs < kTimeoutMinMillis,
+        "Main loop cycle time must be less than the minimum watchdog timeout");
 
     /// @brief Destructor.
     /* RULECHECKER_comment(0, 2, check_min_instructions, "Default destructor has no body", true_no_defect) */
@@ -76,8 +77,9 @@ public:
     ///            that the configured watchdog timeout is long enough to be serviced in time.
     /// @return Status of configuration. True all device configurations are valid and has been successfully taken over
     /// by the Watchdog Interface library, false otherwise.
-    virtual bool init(const score::mw::launch_manager::configuration::WatchdogConfig& watchdog_config,
-                      std::int64_t cycle_time_ns) noexcept = 0;
+    virtual bool init(
+        const score::mw::launch_manager::configuration::WatchdogConfig& watchdog_config,
+        std::int64_t cycle_time_ns) noexcept = 0;
 
     /// @brief Activate the watchdogs.
     /// @details Initialize and activate all watchdogs which are configured for use by the Watchdog Interface library.
@@ -109,7 +111,7 @@ public:
     /// @note Method is not reentrant safe.
     virtual void fireWatchdogReaction(void) noexcept = 0;
 
-protected:
+  protected:
     /// @brief Default constructor.
     /* RULECHECKER_comment(0, 2, check_min_instructions, "Default destructor has no body", true_no_defect) */
     IWatchdogIf() = default;

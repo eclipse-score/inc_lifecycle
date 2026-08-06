@@ -11,31 +11,32 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-
 #ifndef PROCESSSTATERECEIVER_HPP_INCLUDED
 #define PROCESSSTATERECEIVER_HPP_INCLUDED
 
-#include "score/mw/launch_manager/process_state_client/iprocess_state_receiver.hpp"
 #include "ipc_dropin/ringbuffer.hpp"
+#include "score/mw/launch_manager/process_state_client/iprocess_state_receiver.hpp"
 
-namespace score {
+namespace score
+{
 
-namespace lcm {
+namespace lcm
+{
 
 using BufferP = std::shared_ptr<ipc_dropin::RingBuffer<
-                static_cast<size_t>(score::lcm::BufferConstants::BUFFER_QUEUE_SIZE),
-                           static_cast<size_t>(score::lcm::BufferConstants::BUFFER_MAXPAYLOAD)
-                          >>;
+    static_cast<size_t>(score::lcm::BufferConstants::BUFFER_QUEUE_SIZE),
+    static_cast<size_t>(score::lcm::BufferConstants::BUFFER_MAXPAYLOAD)>>;
 
 /// @brief ProcessStateReceiver implementation for handling the information about current state of each Process.
-class ProcessStateReceiver final : public IProcessStateReceiver {
-   public:
+class ProcessStateReceiver final : public IProcessStateReceiver
+{
+  public:
     /// @brief Constructor that creates the ProcessStateReceiver
     /// @param ring_buffer Shared pointer to the ring buffer used to receive process state updates from LCM
     ProcessStateReceiver(BufferP ring_buffer) noexcept;
 
     /// @brief Copy constructor that creates the ProcessStateReceiver. It is disabled.
-    ProcessStateReceiver(ProcessStateReceiver const&) noexcept = delete;
+    ProcessStateReceiver(const ProcessStateReceiver&) noexcept = delete;
 
     /// @brief Move constructor that creates the ProcessStateReceiver. It is disabled.
     ProcessStateReceiver(ProcessStateReceiver&&) noexcept = delete;
@@ -59,7 +60,7 @@ class ProcessStateReceiver final : public IProcessStateReceiver {
     ///          "score::mw::lifecycle::ExecErrc::kGeneralError" is returned in case of any other error.
     score::Result<std::optional<PosixProcess>> getNextChangedPosixProcess() noexcept override;
 
-   private:
+  private:
     /// @brief ipc_dropin::RingBuffer through which we retrieve process state updates from LCM
     BufferP ring_buffer_{};
 };

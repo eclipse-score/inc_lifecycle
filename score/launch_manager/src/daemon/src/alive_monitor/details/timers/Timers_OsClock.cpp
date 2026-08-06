@@ -39,12 +39,12 @@ NanoSecondType OsClock::getMonotonicSystemClock(void) noexcept(true)
     if (clock_gettime(CLOCK_MONOTONIC, &systemClock) == 0)
     {
         // Calculate max number of seconds which can be stored in 64 bit unsigned integer
-        static constexpr NanoSecondType timeMaxSecond{std::numeric_limits<NanoSecondType>::max() /
-                                                      TimeConversion::k_nanoSecInSec};
+        static constexpr NanoSecondType timeMaxSecond{
+            std::numeric_limits<NanoSecondType>::max() / TimeConversion::k_nanoSecInSec};
         if (static_cast<NanoSecondType>(systemClock.tv_sec) <= timeMaxSecond)
         {
-            NanoSecondType timeNanoSecPart1{static_cast<NanoSecondType>(systemClock.tv_sec) *
-                                            TimeConversion::k_nanoSecInSec};
+            NanoSecondType timeNanoSecPart1{
+                static_cast<NanoSecondType>(systemClock.tv_sec) * TimeConversion::k_nanoSecInSec};
             if ((std::numeric_limits<NanoSecondType>::max() - timeNanoSecPart1) >=
                 static_cast<NanoSecondType>(systemClock.tv_nsec))
             {

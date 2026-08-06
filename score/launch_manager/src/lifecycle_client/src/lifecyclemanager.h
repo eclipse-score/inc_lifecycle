@@ -84,7 +84,7 @@ class LifeCycleManager
     /**
      * \brief Hook function for reporting running state.
      */
-    virtual void report_running() noexcept ;
+    virtual void report_running() noexcept;
     /**
      * \brief Hook function for reporting shutdown state.
      */

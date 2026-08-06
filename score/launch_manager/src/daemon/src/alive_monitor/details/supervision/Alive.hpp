@@ -124,7 +124,7 @@ class Alive : public ISupervision,
     /// @return True if sendRecoveryRequest failed
     bool hasRecoveryEnqueueFailed(void) const noexcept;
 
-private:
+  private:
     /// @brief The pointer is only stored for the identification of a checkpoint observer. It can be further used for
     /// accessing const members only.
     using CheckpointIdentifier = const score::lcm::saf::ifappl::Checkpoint*;
@@ -153,8 +153,7 @@ private:
     using SyncSnapshot = timers::NanoSecondType;
 
     /// @brief Defines one element of time sorted update event
-    using TimeSortedUpdateEvent =
-        std::variant<ProcessStateSnapshot, CheckpointSnapshot, SyncSnapshot>;
+    using TimeSortedUpdateEvent = std::variant<ProcessStateSnapshot, CheckpointSnapshot, SyncSnapshot>;
 
     /// @brief Enumeration of supervision update events
     enum class EUpdateEventType : std::uint8_t
@@ -175,34 +174,38 @@ private:
     /// @brief Check and trigger transition out of state Deactivated
     /// @param [in] f_updateEventType       Type of update event (e.g, Activation, Deactivation, Checkpoint, ...)
     /// @param [in] f_updateEventTimestamp  Timestamp of update event
-    void checkTransitionsOutOfDeactivated(const EUpdateEventType f_updateEventType,
-                                          const timers::NanoSecondType f_updateEventTimestamp) noexcept(true);
+    void checkTransitionsOutOfDeactivated(
+        const EUpdateEventType f_updateEventType,
+        const timers::NanoSecondType f_updateEventTimestamp) noexcept(true);
 
     /// @brief Check and trigger common transitions to state Deactivated
     /// @param [in] f_updateEventType       Type of update event (e.g, Activation, Deactivation, Checkpoint, ...)
     /// @param [in] f_updateEventTimestamp  Timestamp of update event
-    void checkTransitionsToDeactivated(const EUpdateEventType f_updateEventType,
-                                       const timers::NanoSecondType f_updateEventTimestamp) noexcept(true);
+    void checkTransitionsToDeactivated(
+        const EUpdateEventType f_updateEventType,
+        const timers::NanoSecondType f_updateEventTimestamp) noexcept(true);
 
     /// @brief Check and trigger transition out of state Ok
     /// @param [in] f_updateEventType       Type of update event (e.g, Activation, Deactivation, Checkpoint, ...)
     /// @param [in] f_updateEventTimestamp  Timestamp of update event
-    void checkTransitionsOutOfOk(const EUpdateEventType f_updateEventType,
-                                 const timers::NanoSecondType f_updateEventTimestamp) noexcept(true);
+    void checkTransitionsOutOfOk(
+        const EUpdateEventType f_updateEventType,
+        const timers::NanoSecondType f_updateEventTimestamp) noexcept(true);
 
     /// @brief Check and trigger transition out of state Failed
     /// @param [in] f_updateEventType       Type of update event (e.g, Activation, Deactivation, Checkpoint, ...)
     /// @param [in] f_updateEventTimestamp  Timestamp of update event
-    void checkTransitionsOutOfFailed(const EUpdateEventType f_updateEventType,
-                                     const timers::NanoSecondType f_updateEventTimestamp) noexcept(true);
+    void checkTransitionsOutOfFailed(
+        const EUpdateEventType f_updateEventType,
+        const timers::NanoSecondType f_updateEventTimestamp) noexcept(true);
 
     /// @brief Get the type of current update events for alive supervision (including evaluation event)
     /// @param [in] f_isEvaluationEvent  Flag for indicating evaluation event
     /// @param [in] f_updateEvent        Sorted update event (e.g, Activation, Deactivation, Checkpoint, ...) from
     /// Buffer
     /// @return                     type of update event
-    EUpdateEventType getAliveEventType(bool f_isEvaluationEvent,
-                                       const TimeSortedUpdateEvent f_updateEvent) noexcept(true);
+    EUpdateEventType getAliveEventType(bool f_isEvaluationEvent, const TimeSortedUpdateEvent f_updateEvent) noexcept(
+        true);
 
     /// @brief Detect evaluation event for alive supervision
     /// @details If reference cycle end is reached, evaluation event is triggered. Otherwise original event from history
@@ -210,8 +213,9 @@ private:
     /// @param [in] f_timestampOfUpdateEvent   Timestamp of current update event
     /// @param [in] f_updateEvent   Sorted update event (e.g, Activation, Deactivation, Checkpoint, ...) from Buffer
     /// @return                     True: evaluation event is set, False: no evaluation event
-    bool detectEvaluationEvent(const timers::NanoSecondType f_timestampOfUpdateEvent,
-                               const TimeSortedUpdateEvent f_updateEvent) const noexcept(true);
+    bool detectEvaluationEvent(
+        const timers::NanoSecondType f_timestampOfUpdateEvent,
+        const TimeSortedUpdateEvent f_updateEvent) const noexcept(true);
 
     /// @brief Evaluate alive supervision after reference cycle in Ok state
     void evaluateRefCycleOutOfOk(void) noexcept(true);

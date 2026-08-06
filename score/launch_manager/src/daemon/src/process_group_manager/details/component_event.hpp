@@ -64,8 +64,13 @@ struct [[nodiscard]] SupervisionFailure
 
 /// @brief A graph-relevant state change. There is only ever a single graph, so no process-group
 /// identifier is needed to route most events. SupervisionFailure is routed by process identifier.
-using ComponentEvent = std::
-    variant<ActivationSuccessful, ActivationFailed, DeactivationComplete, UnexpectedTermination, SupervisionFailure, JobSkipped>;
+using ComponentEvent = std::variant<
+    ActivationSuccessful,
+    ActivationFailed,
+    DeactivationComplete,
+    UnexpectedTermination,
+    SupervisionFailure,
+    JobSkipped>;
 
 }  // namespace score::mw::lifecycle::internal
 

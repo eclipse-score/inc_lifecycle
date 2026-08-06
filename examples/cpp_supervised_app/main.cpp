@@ -23,10 +23,10 @@
 #include <sys/prctl.h>
 #endif
 
-#include <score/mw/lifecycle/report_running.h>
-#include <score/mw/log/rust/stdout_logger_init.h>
 #include <score/mw/health/common.h>
 #include <score/mw/health/health_monitor.h>
+#include <score/mw/lifecycle/report_running.h>
+#include <score/mw/log/rust/stdout_logger_init.h>
 #include <thread>
 
 /// @brief CLI configuration options for the demo_application process
@@ -115,12 +115,14 @@ int main(int argc, char** argv)
 
     auto builder_mon =
         deadline::DeadlineMonitorBuilder()
-            .add_deadline(DeadlineTag("deadline_1"),
-                          TimeRange(std::chrono::milliseconds(50), std::chrono::milliseconds(150)))
-            .add_deadline(DeadlineTag("deadline_2"),
-                          TimeRange(std::chrono::milliseconds(2),
-                                    std::chrono::milliseconds(20)));  // Not used, only shows
-                                                                      // that multiple deadlines can be added
+            .add_deadline(
+                DeadlineTag("deadline_1"), TimeRange(std::chrono::milliseconds(50), std::chrono::milliseconds(150)))
+            .add_deadline(
+                DeadlineTag("deadline_2"),
+                TimeRange(
+                    std::chrono::milliseconds(2),
+                    std::chrono::milliseconds(20)));  // Not used, only shows
+                                                      // that multiple deadlines can be added
 
     MonitorTag ident("monitor");
 

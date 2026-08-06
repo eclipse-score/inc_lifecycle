@@ -20,8 +20,8 @@
 #include "score/os/fcntl.h"
 #include "score/os/ioctl.h"
 #include "score/os/unistd.h"
-#include <vector>
 #include <string>
+#include <vector>
 
 namespace score
 {
@@ -46,9 +46,10 @@ class WatchdogImpl : public IWatchdogIf
     ///        Defaults to the production singleton. A mock can be injected for testing.
     /// @param[in] unistd The score::os::Unistd instance used to close watchdog device files.
     ///        Defaults to the production singleton. A mock can be injected for testing.
-    explicit WatchdogImpl(score::os::Ioctl& ioctl = score::os::Ioctl::instance(),
-                          score::os::Fcntl& fcntl = score::os::Fcntl::instance(),
-                          score::os::Unistd& unistd = score::os::Unistd::instance()) noexcept;
+    explicit WatchdogImpl(
+        score::os::Ioctl& ioctl = score::os::Ioctl::instance(),
+        score::os::Fcntl& fcntl = score::os::Fcntl::instance(),
+        score::os::Unistd& unistd = score::os::Unistd::instance()) noexcept;
 
     /// @brief No copy constructor.
     WatchdogImpl(const WatchdogImpl&) = delete;
@@ -67,8 +68,9 @@ class WatchdogImpl : public IWatchdogIf
     ~WatchdogImpl() override = default;
 
     /// @copydoc IWatchdogIf::init()
-    bool init(const score::mw::launch_manager::configuration::WatchdogConfig& watchdog_config,
-              std::int64_t cycle_time_ns) noexcept override;
+    bool init(
+        const score::mw::launch_manager::configuration::WatchdogConfig& watchdog_config,
+        std::int64_t cycle_time_ns) noexcept override;
 
     /// @copydoc IWatchdogIf::enable()
     bool enable() noexcept override;
@@ -96,8 +98,10 @@ class WatchdogImpl : public IWatchdogIf
      * implementation would increase complexity", true_no_defect) */
 
     /// @brief The watchdog device configuration.
-    /* RULECHECKER_comment(1:0,2:0, check_non_pod_struct, "Intentionally using a struct with non-pod members as alternatives would more complex", true_no_defect) */
-    /* RULECHECKER_comment(1:0,18:0, check_non_private_non_pod_field, "Intentionally using a struct with non-pod members as alternatives would more complex", true_no_defect) */
+    /* RULECHECKER_comment(1:0,2:0, check_non_pod_struct, "Intentionally using a struct with non-pod members as
+     * alternatives would more complex", true_no_defect) */
+    /* RULECHECKER_comment(1:0,18:0, check_non_private_non_pod_field, "Intentionally using a struct with non-pod members
+     * as alternatives would more complex", true_no_defect) */
     struct DeviceConfig final
     {
         /// @brief Absolute file path of watchdog device file typically stored under /dev folder.

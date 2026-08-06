@@ -39,9 +39,10 @@ TEST_F(AliveImplTest, ThrowsWhenInterfacePathEnvVarIsNotSet)
 
 TEST_F(AliveImplTest, DoesNotThrowWhenInterfacePathEnvVarIsSet)
 {
-    RecordProperty("Description",
-                   "AliveImpl construction succeeds when LCM_ALIVE_INTERFACE_PATH is set, "
-                   "even if the IPC path does not exist.");
+    RecordProperty(
+        "Description",
+        "AliveImpl construction succeeds when LCM_ALIVE_INTERFACE_PATH is set, "
+        "even if the IPC path does not exist.");
 
     setenv("LCM_ALIVE_INTERFACE_PATH", "nonexistent_ipc_path", 1);
     EXPECT_NO_THROW({ AliveImpl impl("test/instance"); });

@@ -33,8 +33,8 @@ class RecoveryClientTest : public ::testing::Test
 
 TEST_F(RecoveryClientTest, SendRecoveryRequestInvokesRegisteredCallback)
 {
-    RecordProperty("Description",
-                   "RecoveryClient invokes the registered callback with the provided process identifier.");
+    RecordProperty(
+        "Description", "RecoveryClient invokes the registered callback with the provided process identifier.");
 
     RecoveryClient client;
     IdentifierHash received{""};
@@ -57,8 +57,8 @@ TEST_F(RecoveryClientTest, SendRecoveryRequestReturnsFalseWithoutRegisteredCallb
 
 TEST_F(RecoveryClientTest, MultipleRequestsInvokeCallbackInOrder)
 {
-    RecordProperty("Description",
-                   "RecoveryClient invokes the callback once per request in the same order requests are sent.");
+    RecordProperty(
+        "Description", "RecoveryClient invokes the callback once per request in the same order requests are sent.");
 
     RecoveryClient client;
     std::vector<IdentifierHash> received;
@@ -82,8 +82,8 @@ TEST_F(RecoveryClientTest, MultipleRequestsInvokeCallbackInOrder)
 
 TEST_F(RecoveryClientTest, ReRegisteringCallbackReplacesPreviousCallback)
 {
-    RecordProperty("Description",
-                   "RecoveryClient uses the latest callback when setRecoveryRequestCallback is called again.");
+    RecordProperty(
+        "Description", "RecoveryClient uses the latest callback when setRecoveryRequestCallback is called again.");
 
     RecoveryClient client;
     std::size_t callback1_calls = 0U;

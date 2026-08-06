@@ -16,9 +16,9 @@
 
 #include <cstdint>
 
+#include "score/mw/launch_manager/alive_monitor/details/common/Types.hpp"
 #include <string_view>
 #include <vector>
-#include "score/mw/launch_manager/alive_monitor/details/common/Types.hpp"
 
 namespace score
 {
@@ -33,7 +33,7 @@ namespace ifexm
  data class therefore scope is set to public intentionally.", true_no_defect) */
 class ProcessCfg final
 {
-public:
+  public:
     /// @brief Process shortname
     std::string_view processShortName;
 

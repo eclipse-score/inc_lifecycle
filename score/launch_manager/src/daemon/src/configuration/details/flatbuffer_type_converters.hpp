@@ -40,16 +40,16 @@ namespace details
 template <typename TargetT>
 score::cpp::expected<TargetT, IConfigLoader::Error> validateRange(int64_t value, const std::string_view field_name)
 {
-    // Asserts ensure that std::numeric_limits<TargetT>::min() and std::numeric_limits<TargetT>::max() can be 
+    // Asserts ensure that std::numeric_limits<TargetT>::min() and std::numeric_limits<TargetT>::max() can be
     // safely cast to int64_t for the range check:
     // Case 1: TargetT is unsigned and smaller than int64_t, so max fits in int64_t and min is 0
     // Case 2: TargetT is signed and smaller than int64_t, so both min and max fit in int64_t
     // Case 3: TargetT is signed and exactly int64_t, so min and max are the full int64_t range
 
     static_assert(std::numeric_limits<TargetT>::is_integer, "TargetT must be an integer type");
-    static_assert(sizeof(TargetT) < sizeof(int64_t) ||
-                      (sizeof(TargetT) == sizeof(int64_t) && std::is_signed_v<TargetT>),
-                  "TargetT max must be representable as int64_t");
+    static_assert(
+        sizeof(TargetT) < sizeof(int64_t) || (sizeof(TargetT) == sizeof(int64_t) && std::is_signed_v<TargetT>),
+        "TargetT max must be representable as int64_t");
 
     if (value < static_cast<int64_t>(std::numeric_limits<TargetT>::min()) ||
         value > static_cast<int64_t>(std::numeric_limits<TargetT>::max()))
@@ -70,8 +70,7 @@ score::cpp::expected<TargetT, IConfigLoader::Error> validateRange(int64_t value,
 /// @brief Converts a FlatBuffer ProcessState enum to the config ProcessState.
 [[nodiscard]] ProcessState convertProcessState(fb::ProcessState fb_state);
 /// @brief Converts a FlatBuffer SchedulingPolicy enum to a POSIX scheduling policy constant.
-[[nodiscard]] score::cpp::expected<int32_t, IConfigLoader::Error> convertSchedulingPolicy(
-    fb::SchedulingPolicy policy);
+[[nodiscard]] score::cpp::expected<int32_t, IConfigLoader::Error> convertSchedulingPolicy(fb::SchedulingPolicy policy);
 
 // --- String and vector helpers ---
 
@@ -93,16 +92,15 @@ score::cpp::expected<TargetT, IConfigLoader::Error> validateRange(int64_t value,
 [[nodiscard]] score::cpp::expected<std::optional<RestartAction>, IConfigLoader::Error> convertRestartAction(
     const fb::RestartAction* ra);
 /// @brief Converts a FlatBuffer SwitchRunTargetAction to a config SwitchRunTargetAction, or nullopt if absent.
-[[nodiscard]] std::optional<SwitchRunTargetAction> convertSwitchRunTargetAction(
-    const fb::SwitchRunTargetAction* sa);
+[[nodiscard]] std::optional<SwitchRunTargetAction> convertSwitchRunTargetAction(const fb::SwitchRunTargetAction* sa);
 /// @brief Converts a required FlatBuffer SwitchRunTargetAction; asserts if null.
 [[nodiscard]] SwitchRunTargetAction convertRequiredSwitchRunTargetAction(const fb::SwitchRunTargetAction* sa);
 
 // --- Component converters ---
 
 /// @brief Converts a FlatBuffer ComponentAliveSupervision to the config equivalent.
-[[nodiscard]] score::cpp::expected<ComponentAliveSupervision, IConfigLoader::Error>
-convertComponentAliveSupervision(const fb::ComponentAliveSupervision* fb_cas);
+[[nodiscard]] score::cpp::expected<ComponentAliveSupervision, IConfigLoader::Error> convertComponentAliveSupervision(
+    const fb::ComponentAliveSupervision* fb_cas);
 /// @brief Converts a FlatBuffer ApplicationProfile to the config equivalent.
 [[nodiscard]] score::cpp::expected<ApplicationProfile, IConfigLoader::Error> convertApplicationProfile(
     const fb::ApplicationProfile* fb_ap);
@@ -127,8 +125,7 @@ convertComponentAliveSupervision(const fb::ComponentAliveSupervision* fb_cas);
 // --- Run target converters ---
 
 /// @brief Converts a single FlatBuffer RunTarget to a RunTargetConfig.
-[[nodiscard]] score::cpp::expected<RunTargetConfig, IConfigLoader::Error> convertRunTarget(
-    const fb::RunTarget* fb_rt);
+[[nodiscard]] score::cpp::expected<RunTargetConfig, IConfigLoader::Error> convertRunTarget(const fb::RunTarget* fb_rt);
 /// @brief Converts a FlatBuffer FallbackRunTarget to a FallbackRunTargetConfig.
 [[nodiscard]] score::cpp::expected<FallbackRunTargetConfig, IConfigLoader::Error> convertFallbackRunTarget(
     const fb::FallbackRunTarget* fb_frt);

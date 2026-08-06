@@ -125,7 +125,8 @@ inline void Graph::createProcessInfoNodes(uint32_t num_processes)
             process_interface_,
             process_map_);
         static_cast<void>(index);
-        SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(index == process_id, "Graph indicies must line up with os process indices");
+        SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(
+            index == process_id, "Graph indicies must line up with os process indices");
     }
     LM_LOG_DEBUG() << "Created" << nodes_.size() << "process nodes";
 }

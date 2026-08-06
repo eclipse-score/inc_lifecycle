@@ -107,12 +107,13 @@ void Environment::rebuildPointers() const
 
 // --- Config ---
 
-Config::Config(std::vector<ComponentConfig> components,
-               std::vector<RunTargetConfig> run_targets,
-               std::string initial_run_target,
-               FallbackRunTargetConfig fallback_run_target,
-               AliveSupervisionConfig alive_supervision,
-               std::optional<WatchdogConfig> watchdog)
+Config::Config(
+    std::vector<ComponentConfig> components,
+    std::vector<RunTargetConfig> run_targets,
+    std::string initial_run_target,
+    FallbackRunTargetConfig fallback_run_target,
+    AliveSupervisionConfig alive_supervision,
+    std::optional<WatchdogConfig> watchdog)
     : components_{std::move(components)},
       run_targets_{std::move(run_targets)},
       initial_run_target_{std::move(initial_run_target)},
@@ -160,12 +161,13 @@ ConfigBuilder& ConfigBuilder::setWatchdog(WatchdogConfig watchdog)
 
 Config ConfigBuilder::build()
 {
-    return Config(std::move(components_),
-                  std::move(run_targets_),
-                  std::move(initial_run_target_),
-                  std::move(fallback_run_target_),
-                  std::move(alive_supervision_),
-                  std::move(watchdog_));
+    return Config(
+        std::move(components_),
+        std::move(run_targets_),
+        std::move(initial_run_target_),
+        std::move(fallback_run_target_),
+        std::move(alive_supervision_),
+        std::move(watchdog_));
 }
 
 const std::vector<ComponentConfig>& Config::components() const

@@ -11,25 +11,26 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-
 #ifndef FLATCFGFACTORY_HPP_INCLUDED
 #define FLATCFGFACTORY_HPP_INCLUDED
 
 #include <memory>
 
-#include <string>
-#include <vector>
 #include "score/mw/launch_manager/alive_monitor/details/common/Types.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/factory/IPhmFactory.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/factory/StaticConfig.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ProcessStateReader.hpp"
 #include "score/mw/launch_manager/configuration/config.hpp"
+#include <string>
+#include <vector>
 
-namespace score {
-    namespace lcm {
-        class ControlClient;
-    }
+namespace score
+{
+namespace lcm
+{
+class ControlClient;
 }
+}  // namespace score
 
 namespace score
 {
@@ -46,7 +47,7 @@ namespace factory
 ///          and establishes required links between the worker objects automatically.
 class FlatCfgFactory : public IPhmFactory
 {
-public:
+  public:
     /// @brief Constructor
     /// @param [in] f_bufferConfig_r Buffer configuration used for constructing supervisions
     explicit FlatCfgFactory(const factory::SupervisionBufferConfig& f_bufferConfig_r);
@@ -69,33 +70,36 @@ public:
     /// @param [inout] f_flatCfgPhm_r   FlatCfg configuration for PHM
     /// @param [in] f_nameSwCluster_r   Software Cluster name which for which workers shall be constructed
     /// @return                         Initialization is successful (true), otherwise failure (false)
-bool init(const score::mw::launch_manager::configuration::Config& config);
+    bool init(const score::mw::launch_manager::configuration::Config& config);
 
     /// @brief Refer to the description of the base class (IPhmFactory)
-    bool createProcessStates(std::vector<ifexm::ProcessState>& f_processStates_r,
-                             ifexm::ProcessStateReader& f_processStateReader_r) override;
+    bool createProcessStates(
+        std::vector<ifexm::ProcessState>& f_processStates_r,
+        ifexm::ProcessStateReader& f_processStateReader_r) override;
 
     /// Refer to the description of the base class (IPhmFactory)
     bool createAliveIfIpcs(std::vector<ifappl::CheckpointIpcServer>& f_interfaceIpcs_r) override;
 
     /// Refer to the description of the base class (IPhmFactory)
-    bool createAliveIf(std::vector<ifappl::MonitorIfDaemon>& f_interfaces_r,
-                                  std::vector<ifappl::CheckpointIpcServer>& f_interfaceIpcs_r,
-                                  std::vector<ifexm::ProcessState>& f_processStates_r) override;
+    bool createAliveIf(
+        std::vector<ifappl::MonitorIfDaemon>& f_interfaces_r,
+        std::vector<ifappl::CheckpointIpcServer>& f_interfaceIpcs_r,
+        std::vector<ifexm::ProcessState>& f_processStates_r) override;
 
     /// Refer to the description of the base class (IPhmFactory)
-    bool createSupervisionCheckpoints(std::vector<ifappl::Checkpoint>& f_checkpoints_r,
-                                      std::vector<ifappl::MonitorIfDaemon>& f_interfaces_r,
-                                      std::vector<ifexm::ProcessState>& f_processStates_r) override;
+    bool createSupervisionCheckpoints(
+        std::vector<ifappl::Checkpoint>& f_checkpoints_r,
+        std::vector<ifappl::MonitorIfDaemon>& f_interfaces_r,
+        std::vector<ifexm::ProcessState>& f_processStates_r) override;
 
     /// Refer to the description of the base class (IPhmFactory)
-    bool createAliveSupervisions(std::vector<supervision::Alive>& f_alive_r,
-                                 std::vector<ifappl::Checkpoint>& f_checkpoints_r,
-                                 std::vector<ifexm::ProcessState>& f_processStates_r,
-                                 std::shared_ptr<score::lcm::IRecoveryClient> f_recoveryClient_r) override;
+    bool createAliveSupervisions(
+        std::vector<supervision::Alive>& f_alive_r,
+        std::vector<ifappl::Checkpoint>& f_checkpoints_r,
+        std::vector<ifexm::ProcessState>& f_processStates_r,
+        std::shared_ptr<score::lcm::IRecoveryClient> f_recoveryClient_r) override;
 
-private:
-
+  private:
     /// @brief Get process id based on ASR path of process
     /// @param[in] comp  Pointer to component configuration
     /// @return          process id
@@ -108,9 +112,10 @@ private:
     /// @param[in] f_ipcPath_r The name of the IPC channel
     /// @param[in] f_uid The uid that will be assigned r/w permissions for ipc communication
     /// @return True if creation was successful, else false
-    bool initIpcServerWithUidBasedAccess(ifappl::CheckpointIpcServer& f_ipcServer_r,
-                                         const std::string& f_ipcPath_r,
-                                         const std::int32_t f_uid) noexcept(false);
+    bool initIpcServerWithUidBasedAccess(
+        ifappl::CheckpointIpcServer& f_ipcServer_r,
+        const std::string& f_ipcPath_r,
+        const std::int32_t f_uid) noexcept(false);
 
     /// @brief The buffer configuration for constructing supervision objects
     const factory::SupervisionBufferConfig& bufferConfig_r;

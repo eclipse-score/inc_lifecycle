@@ -21,9 +21,15 @@
 #include <valgrind/helgrind.h>
 #else
 // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
-#define ANNOTATE_HAPPENS_BEFORE(obj) do {} while (false)
+#define ANNOTATE_HAPPENS_BEFORE(obj) \
+    do                               \
+    {                                \
+    } while (false)
 // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
-#define ANNOTATE_HAPPENS_AFTER(obj) do {} while (false)
+#define ANNOTATE_HAPPENS_AFTER(obj) \
+    do                              \
+    {                               \
+    } while (false)
 #endif
 
 #endif  // HELGRIND_ANNOTATIONS_HPP_INCLUDED

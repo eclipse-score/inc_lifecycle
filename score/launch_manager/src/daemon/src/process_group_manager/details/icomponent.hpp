@@ -44,7 +44,7 @@ class IComponent
     {
         /// @brief Activation was successful and the component is now ready.
         kSuccess,
-        /// @brief Activation is waiting on a notification from another thread. The component may not be ready.  
+        /// @brief Activation is waiting on a notification from another thread. The component may not be ready.
         kWaiting
     };
 
@@ -69,7 +69,7 @@ class IComponent
 
     /// @returns the index of the component in the graph.
     [[nodiscard]] virtual uint32_t getIndex() const = 0;
-    
+
     /// @returns True if the component is active in the active run target.
     [[nodiscard]] virtual bool active() const = 0;
 

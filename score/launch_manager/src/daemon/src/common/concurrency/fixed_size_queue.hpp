@@ -22,7 +22,7 @@ namespace score::lcm::internal
 {
 
 /// @brief Fixed-size FIFO queue
-/// @details Uses std::optional to eliminate default construction of 
+/// @details Uses std::optional to eliminate default construction of
 ///          type T elements at construction
 /// @tparam T The type of elements stored in the queue.
 ///          Supports move-only and copy-only types.
@@ -33,14 +33,17 @@ class FixedSizeQueue
     /// @brief Constructs a FixedSizeQueue with zero capacity.
     /// @details push will always return false
     ///          tryPop will always return std::nullopt
-    FixedSizeQueue() : capacity_{0U}, slots_{} {}
+    FixedSizeQueue() : capacity_{0U}, slots_{}
+    {
+    }
 
     /// @brief Constructs a FixedSizeQueue with a fixed runtime capacity.
     /// @details If the specified size is 0, it is equivalent
-    ///          to a default constructed FixedSizeQueue. 
+    ///          to a default constructed FixedSizeQueue.
     /// @param size The desired maximum number of elements.
-    explicit FixedSizeQueue(std::size_t size) : capacity_(size) {
-        slots_.resize(capacity_); 
+    explicit FixedSizeQueue(std::size_t size) : capacity_(size)
+    {
+        slots_.resize(capacity_);
     }
 
     /// @brief Inserts a new element directly at the tail of the queue.
@@ -48,32 +51,34 @@ class FixedSizeQueue
     /// @param args The arguments used to construct the object of type T.
     /// @return true if the element was successfully inserted; false if the queue is full (overflow protection).
     template <typename... Args>
-    bool push(Args&&... args) {
-        if(full()) {
+    bool push(Args&&... args)
+    {
+        if (full())
+        {
             return false;
         }
 
         slots_[tail_].emplace(std::forward<Args>(args)...);
         tail_ = (tail_ + 1U) % capacity_;
         count_++;
-        
+
         return true;
     }
 
-    
     /// @brief Attempts to extract and remove the oldest element from the queue.
-    /// @details The popped element is immediately destroyed in the internal 
+    /// @details The popped element is immediately destroyed in the internal
     ///          buffer to free resources.
-    /// @return A std::optional containing the element, 
+    /// @return A std::optional containing the element,
     ///         or std::nullopt if the queue was empty (underflow protection).
-    std::optional<T> tryPop() {
+    std::optional<T> tryPop()
+    {
         if (empty())
         {
             return std::nullopt;
         }
 
         std::optional<T> item = std::move(slots_[head_]);
-        slots_[head_] = std::nullopt; 
+        slots_[head_] = std::nullopt;
         head_ = (head_ + 1U) % capacity_;
         count_--;
 
@@ -82,20 +87,31 @@ class FixedSizeQueue
 
     /// @brief Checks if the queue contains no elements.
     /// @return true if empty, otherwise false.
-    bool empty() const { return (count_ == 0U); }
+    bool empty() const
+    {
+        return (count_ == 0U);
+    }
 
     /// @brief Checks if the queue has reached its maximum capacity.
     /// @return true if full, otherwise false.
-    bool full() const { return (count_ >= capacity_); }
+    bool full() const
+    {
+        return (count_ >= capacity_);
+    }
 
     /// @brief Retrieves the current number of active elements in the queue.
     /// @return The count of stored elements.
-    std::size_t size() const { return count_;}; 
+    std::size_t size() const
+    {
+        return count_;
+    };
 
     /// @brief Retrieves the capacity of the queue.
     /// @return The capacity of the queue
-    std::size_t capacity() const { return capacity_;}; 
-
+    std::size_t capacity() const
+    {
+        return capacity_;
+    };
 
   private:
     /// @brief Index of the oldest element in the buffer (read index).

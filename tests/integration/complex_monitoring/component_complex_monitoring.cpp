@@ -28,12 +28,13 @@ TEST(ComplexMonitoring, ComponentComplexMonitoring)
     using namespace score::mw::health;
     using namespace std::chrono_literals;
 
-    auto hm_result = HealthMonitorBuilder()
-                         .add_heartbeat_monitor(MonitorTag("complex_monitoring_monitor"),
-                                                heartbeat::HeartbeatMonitorBuilder(TimeRange(50ms, 150ms)))
-                         .with_internal_processing_cycle(50ms)
-                         .with_supervisor_api_cycle(50ms)
-                         .build();
+    auto hm_result =
+        HealthMonitorBuilder()
+            .add_heartbeat_monitor(
+                MonitorTag("complex_monitoring_monitor"), heartbeat::HeartbeatMonitorBuilder(TimeRange(50ms, 150ms)))
+            .with_internal_processing_cycle(50ms)
+            .with_supervisor_api_cycle(50ms)
+            .build();
     ASSERT_TRUE(hm_result.has_value()) << "Failed to build HealthMonitor";
 
     auto hm = std::move(*hm_result);

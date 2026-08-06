@@ -54,8 +54,9 @@ WatchdogImpl::WatchdogImpl(score::os::Ioctl& ioctl, score::os::Fcntl& fcntl, sco
 {
 }
 
-bool WatchdogImpl::init(const score::mw::launch_manager::configuration::WatchdogConfig& watchdog_config,
-                        std::int64_t cycle_time_ns) noexcept
+bool WatchdogImpl::init(
+    const score::mw::launch_manager::configuration::WatchdogConfig& watchdog_config,
+    std::int64_t cycle_time_ns) noexcept
 {
     bool isSuccess{true};
     try
@@ -167,7 +168,8 @@ void WatchdogImpl::serviceWatchdog() noexcept
              * true_no_defect) */
             /* RULECHECKER_comment(1:0,2:0, check_underlying_signedness_conversion, "Linux-only constant from external
              * interface", true_no_defect) */
-            static_cast<void>(ioctl_.ioctl(watchdogDevice.fileDescriptor, static_cast<std::int32_t>(WDIOC_KEEPALIVE), nullptr));
+            static_cast<void>(
+                ioctl_.ioctl(watchdogDevice.fileDescriptor, static_cast<std::int32_t>(WDIOC_KEEPALIVE), nullptr));
         }
     }
 }
@@ -395,7 +397,8 @@ bool WatchdogImpl::disableDevice(WatchdogDevice& f_watchdogDevice_r) const noexc
      * true_no_defect) */
     /* RULECHECKER_comment(1:0,2:0, check_underlying_signedness_conversion, "Linux-only constant from external
      * interface", true_no_defect) */
-    static_cast<void>(ioctl_.ioctl(f_watchdogDevice_r.fileDescriptor, static_cast<std::int32_t>(WDIOC_SETOPTIONS), &option));
+    static_cast<void>(
+        ioctl_.ioctl(f_watchdogDevice_r.fileDescriptor, static_cast<std::int32_t>(WDIOC_SETOPTIONS), &option));
     static_cast<void>(unistd_.close(f_watchdogDevice_r.fileDescriptor));
     f_watchdogDevice_r.fileDescriptor = -1;
     return true;

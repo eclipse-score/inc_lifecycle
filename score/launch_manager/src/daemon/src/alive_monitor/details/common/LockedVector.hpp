@@ -28,20 +28,22 @@ namespace common
 template <class Type>
 class LockedVector final : private FixedSizeVector<Type>
 {
-public:
+  public:
     // Required guarantee for move constructors to be noexcept(true)
-    static_assert(std::is_nothrow_move_constructible<FixedSizeVector<Type>>::value,
-                  "FixedSizeVector<Type> should be nothrow move constructible");
+    static_assert(
+        std::is_nothrow_move_constructible<FixedSizeVector<Type>>::value,
+        "FixedSizeVector<Type> should be nothrow move constructible");
 
-    explicit LockedVector(FixedSizeVector<Type>&& f_fixedSizeVector_r) noexcept(true) :
-        FixedSizeVector<Type>(std::move(f_fixedSizeVector_r))
+    explicit LockedVector(FixedSizeVector<Type>&& f_fixedSizeVector_r) noexcept(true)
+        : FixedSizeVector<Type>(std::move(f_fixedSizeVector_r))
     {
     }
-    explicit LockedVector(std::vector<Type>&& f_araCoreVector_r) noexcept(true) :
-        FixedSizeVector<Type>(std::move(f_araCoreVector_r))
+    explicit LockedVector(std::vector<Type>&& f_araCoreVector_r) noexcept(true)
+        : FixedSizeVector<Type>(std::move(f_araCoreVector_r))
     {
     }
-    /* RULECHECKER_comment(0, 70, check_member_function_missing_static, "The underlying FixedSizeVector object could not be made static", true_no_defect) */
+    /* RULECHECKER_comment(0, 70, check_member_function_missing_static, "The underlying FixedSizeVector object could not
+     * be made static", true_no_defect) */
     /// @brief Return a reference to the first element of the LockedVector
     /// @details If LockedVector is empty, return value is undefined
     Type& front(void) noexcept(true)

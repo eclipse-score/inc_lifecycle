@@ -39,11 +39,16 @@ inline std::ostream& operator<<(std::ostream& os, ConcurrencyErrc errc) noexcept
 {
     switch (errc)
     {
-        case ConcurrencyErrc::kOsError:  return os << "kOsError";
-        case ConcurrencyErrc::kOverflow: return os << "kOverflow";
-        case ConcurrencyErrc::kStopped:  return os << "kStopped";
-        case ConcurrencyErrc::kTimeout:  return os << "kTimeout";
-        default:                         return os << static_cast<std::uint8_t>(errc);
+        case ConcurrencyErrc::kOsError:
+            return os << "kOsError";
+        case ConcurrencyErrc::kOverflow:
+            return os << "kOverflow";
+        case ConcurrencyErrc::kStopped:
+            return os << "kStopped";
+        case ConcurrencyErrc::kTimeout:
+            return os << "kTimeout";
+        default:
+            return os << static_cast<std::uint8_t>(errc);
     }
 }
 
@@ -72,7 +77,7 @@ inline score::mw::log::LogStream& operator<<(score::mw::log::LogStream& os, Conc
     }
 }
 
-} // score::lcm::internal
+}  // namespace score::lcm::internal
 
 #endif  // LC_LOG_SCORE_MW_LOG
 

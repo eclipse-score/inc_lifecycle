@@ -17,36 +17,45 @@
 
 #include "score/mw/launch_manager/osal/semaphore.hpp"
 
-namespace score {
+namespace score
+{
 
-namespace lcm {
+namespace lcm
+{
 
-namespace internal {
+namespace internal
+{
 
-namespace osal {
+namespace osal
+{
 
-OsalReturnType Semaphore::init(uint32_t value, bool shared) {
+OsalReturnType Semaphore::init(uint32_t value, bool shared)
+{
     OsalReturnType result = OsalReturnType::kFail;
     int pshared = shared ? 1 : 0;
 
-    if (sem_init(&sem_, pshared, value) == 0) {
+    if (sem_init(&sem_, pshared, value) == 0)
+    {
         result = OsalReturnType::kSuccess;
     }
 
     return result;
 }
 
-OsalReturnType Semaphore::deinit() {
+OsalReturnType Semaphore::deinit()
+{
     OsalReturnType result = OsalReturnType::kFail;
 
-    if (sem_destroy(&sem_) == 0) {
+    if (sem_destroy(&sem_) == 0)
+    {
         result = OsalReturnType::kSuccess;
     }
 
     return result;
 }
 
-OsalReturnType Semaphore::timedWait(std::chrono::milliseconds delay) {
+OsalReturnType Semaphore::timedWait(std::chrono::milliseconds delay)
+{
     // Cannot use sem_timedwait because it relies on the absolute time of
     // the system clock, which is not monotonic and could be changed
     // by another thread.
@@ -63,7 +72,8 @@ OsalReturnType Semaphore::timedWait(std::chrono::milliseconds delay) {
         if (sem_trywait(&sem_) == 0)
             return OsalReturnType::kSuccess;
 
-        switch (errno) {
+        switch (errno)
+        {
             case (EINTR):
                 continue;
 
@@ -80,20 +90,24 @@ OsalReturnType Semaphore::timedWait(std::chrono::milliseconds delay) {
     };
 }
 
-OsalReturnType Semaphore::post() {
+OsalReturnType Semaphore::post()
+{
     OsalReturnType result = OsalReturnType::kFail;
 
-    if (sem_post(&sem_) == 0) {
+    if (sem_post(&sem_) == 0)
+    {
         result = OsalReturnType::kSuccess;
     }
 
     return result;
 }
 
-OsalReturnType Semaphore::wait() {
+OsalReturnType Semaphore::wait()
+{
     OsalReturnType result = OsalReturnType::kFail;
 
-    if (sem_wait(&sem_) == 0) {
+    if (sem_wait(&sem_) == 0)
+    {
         result = OsalReturnType::kSuccess;
     }
 
@@ -102,8 +116,8 @@ OsalReturnType Semaphore::wait() {
 
 }  // namespace osal
 
-}  // namespace lcm
-
 }  // namespace internal
+
+}  // namespace lcm
 
 }  // namespace score

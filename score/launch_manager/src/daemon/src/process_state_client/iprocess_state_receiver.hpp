@@ -13,8 +13,8 @@
 #ifndef IPROCESSSTATERECEIVER_HPP_INCLUDED
 #define IPROCESSSTATERECEIVER_HPP_INCLUDED
 
-#include "score/result/result.h"
 #include "score/mw/lifecycle/execution_error.h"
+#include "score/result/result.h"
 #include <memory>
 #include <optional>
 

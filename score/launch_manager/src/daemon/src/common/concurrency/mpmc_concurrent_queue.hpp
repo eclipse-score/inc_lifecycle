@@ -20,15 +20,15 @@
 #include <cstddef>
 #include <cstdint>
 #include <limits>
+#include <thread>
 #include <type_traits>
 #include <utility>
-#include <thread>
 
 #include "concurrency_error_domain.hpp"
-#include <score/expected.hpp>
 #include "score/mw/launch_manager/common/concurrency/details/helgrind_annotations.hpp"
 #include "score/mw/launch_manager/osal/return_types.hpp"
 #include "score/mw/launch_manager/osal/semaphore.hpp"
+#include <score/expected.hpp>
 
 namespace score::lcm::internal
 {
@@ -43,19 +43,23 @@ class MPMCConcurrentQueue
 {
     static_assert(Capacity > 0U, "Capacity must be at least 1");
 
-    static_assert(Capacity <= std::numeric_limits<std::uint32_t>::max(),
-                  "Capacity exceeds uint32_t range used by the semaphore");
+    static_assert(
+        Capacity <= std::numeric_limits<std::uint32_t>::max(),
+        "Capacity exceeds uint32_t range used by the semaphore");
 
     static_assert(std::is_default_constructible_v<T>, "T must be default-constructible for in-place slot storage");
 
-    static_assert(std::is_nothrow_destructible_v<T>,
-                  "T must be nothrow-destructible to allow consume_slot to be noexcept");
+    static_assert(
+        std::is_nothrow_destructible_v<T>,
+        "T must be nothrow-destructible to allow consume_slot to be noexcept");
 
-    static_assert(std::is_nothrow_move_constructible_v<T>,
-                  "T must be nothrow-move-constructible to wrap into std::optional in pop()");
+    static_assert(
+        std::is_nothrow_move_constructible_v<T>,
+        "T must be nothrow-move-constructible to wrap into std::optional in pop()");
 
-    static_assert(std::is_move_assignable_v<T> || std::is_copy_assignable_v<T>,
-                  "T must be move-assignable or copy-assignable to be stored via push()");
+    static_assert(
+        std::is_move_assignable_v<T> || std::is_copy_assignable_v<T>,
+        "T must be move-assignable or copy-assignable to be stored via push()");
 
     // optimization to work out the turns
     static_assert((Capacity & (Capacity - 1U)) == 0U, "Capacity must be a power of 2");
@@ -113,7 +117,8 @@ class MPMCConcurrentQueue
     ///         Note: If the push returns false, the object is still valid for
     ///         the user.
     [[nodiscard]] score::cpp::expected_blank<ConcurrencyErrc> push(
-        T&& item, std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
+        T&& item,
+        std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
     {
         return push_impl(std::move(item), timeout);
     }
@@ -126,7 +131,8 @@ class MPMCConcurrentQueue
     /// @param timeout Maximum time to wait for a free slot. Zero means wait forever.
     /// @return Success if item was pushed, Error otherwise.
     [[nodiscard]] score::cpp::expected_blank<ConcurrencyErrc> push(
-        const T& item, std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
+        const T& item,
+        std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
     {
         return push_impl(item, timeout);
     }
@@ -162,7 +168,7 @@ class MPMCConcurrentQueue
         const auto wait_result =
             (timeout == std::chrono::milliseconds{0}) ? m_items.wait() : m_items.timedWait(timeout);
 
-        if(wait_result == osal::OsalReturnType::kTimeout)
+        if (wait_result == osal::OsalReturnType::kTimeout)
         {
             return score::cpp::make_unexpected(ConcurrencyErrc::kTimeout);
         }
@@ -225,7 +231,7 @@ class MPMCConcurrentQueue
         const auto wait_result =
             (timeout == std::chrono::milliseconds{0}) ? m_spaces.wait() : m_spaces.timedWait(timeout);
 
-        if(wait_result == osal::OsalReturnType::kTimeout)
+        if (wait_result == osal::OsalReturnType::kTimeout)
         {
             return score::cpp::make_unexpected(ConcurrencyErrc::kTimeout);
         }

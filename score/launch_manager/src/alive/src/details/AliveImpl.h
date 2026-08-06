@@ -17,9 +17,9 @@
 #include <memory>
 #include <optional>
 
-#include <string>
 #include "score/mw/launch_manager/alive_monitor/details/ifappl/DataStructures.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ipc/IpcClient.hpp"
+#include <string>
 
 namespace score::mw::lifecycle
 {
@@ -34,8 +34,8 @@ class AliveImpl
     /// @brief The element that is sent via IPC
     using CheckpointBufferElement = score::lcm::saf::ifappl::CheckpointBufferElement;
     /// @brief The IPC Connection type
-    using CheckpointIpcClient = score::lcm::saf::ipc::IpcClient<CheckpointBufferElement,
-                                                                score::lcm::saf::ifappl::k_maxCheckpointBufferElements>;
+    using CheckpointIpcClient = score::lcm::saf::ipc::
+        IpcClient<CheckpointBufferElement, score::lcm::saf::ifappl::k_maxCheckpointBufferElements>;
 
     /// @brief Non-parametric constructor is not supported
     AliveImpl() = delete;
@@ -74,7 +74,7 @@ class AliveImpl
     /// @throws std::runtime_error in case ipc path could not be read from configuration
     void connectToPhmDaemon(void) noexcept(false);
 
-    /// @brief Read the Alive Interface Path from an environment variable. 
+    /// @brief Read the Alive Interface Path from an environment variable.
     /// This is then used to initialise the IPC client
     /// @return Value of environment variable or nullopt if getenv fails
     static std::optional<std::string_view> readInterfacePath() noexcept;

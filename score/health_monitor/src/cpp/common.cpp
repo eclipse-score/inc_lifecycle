@@ -10,13 +10,15 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
-#include <score/assert.hpp>
 #include "score/mw/health/common.h"
+#include <score/assert.hpp>
 
 namespace score::mw::health::internal
 {
 
-DroppableFFIHandle::DroppableFFIHandle(FFIHandle handle, DropFn drop_fn) : handle_(handle), drop_fn_(drop_fn) {}
+DroppableFFIHandle::DroppableFFIHandle(FFIHandle handle, DropFn drop_fn) : handle_(handle), drop_fn_(drop_fn)
+{
+}
 
 DroppableFFIHandle::DroppableFFIHandle(DroppableFFIHandle&& other) noexcept
     : handle_(other.handle_), drop_fn_(other.drop_fn_)

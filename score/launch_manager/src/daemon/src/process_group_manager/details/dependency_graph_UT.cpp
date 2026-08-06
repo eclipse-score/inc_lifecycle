@@ -80,12 +80,10 @@ TEST(DependencyGraphTest, TraverseVisitsWholeChainThroughDependsOn)
     graph.addDependency(mid, leaf);
 
     std::vector<IdentifierHash> visited;
-    graph.traverse(
-        root,
-        [&](GraphIndex i) -> const std::vector<GraphIndex>& {
-            visited.push_back(graph[i]);
-            return graph.dependsOn(i);
-        });
+    graph.traverse(root, [&](GraphIndex i) -> const std::vector<GraphIndex>& {
+        visited.push_back(graph[i]);
+        return graph.dependsOn(i);
+    });
 
     EXPECT_THAT(
         visited,
@@ -106,15 +104,13 @@ TEST(DependencyGraphTest, TraverseVisitsSharedDependencyExactlyOnce)
     graph.addDependency(root, b);
 
     std::size_t shared_visits = 0;
-    graph.traverse(
-        root,
-        [&](GraphIndex i) -> const std::vector<GraphIndex>& {
-            if (i == shared)
-            {
-                ++shared_visits;
-            }
-            return graph.dependsOn(i);
-        });
+    graph.traverse(root, [&](GraphIndex i) -> const std::vector<GraphIndex>& {
+        if (i == shared)
+        {
+            ++shared_visits;
+        }
+        return graph.dependsOn(i);
+    });
 
     EXPECT_EQ(shared_visits, 1U);
 }

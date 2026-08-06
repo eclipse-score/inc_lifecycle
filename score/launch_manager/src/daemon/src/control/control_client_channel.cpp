@@ -36,8 +36,8 @@ void ControlClientChannel::initialize()
     response_.empty_.store(true);
 
     const auto result = nudge_LM_Handler_.init(0U, true);
-    SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(result == osal::OsalReturnType::kSuccess,
-                                            "ControlClientChannel semaphore init failed");
+    SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(
+        result == osal::OsalReturnType::kSuccess, "ControlClientChannel semaphore init failed");
 
     initial_result_count_ = 0U;
 
@@ -47,8 +47,8 @@ void ControlClientChannel::initialize()
 void ControlClientChannel::deinitialize()
 {
     const auto result = nudge_LM_Handler_.deinit();
-    SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(result == osal::OsalReturnType::kSuccess,
-                                            "ControlClientChannel semaphore deinit failed");
+    SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(
+        result == osal::OsalReturnType::kSuccess, "ControlClientChannel semaphore deinit failed");
 }
 
 bool ControlClientChannel::sendResponse(ControlClientMessage& msg)
@@ -63,8 +63,8 @@ bool ControlClientChannel::sendResponse(ControlClientMessage& msg)
     response_.empty_ = false;
 
     const auto result = nudge_LM_Handler_.post();
-    SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(result == osal::OsalReturnType::kSuccess,
-                                            "ControlClientChannel semaphore post failed");
+    SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(
+        result == osal::OsalReturnType::kSuccess, "ControlClientChannel semaphore post failed");
 
     LM_LOG_DEBUG() << "Response sent.";
     return true;
@@ -103,15 +103,15 @@ void ControlClientChannel::sendRequest(ControlClientMessage& msg)
 
         // coverity[cert_mem52_cpp_violation:FALSE] The allocated memory is checked by the containing if statement.
         const auto result = semaphore->post();
-        SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(result == osal::OsalReturnType::kSuccess,
-                                                "ControlClientChannel semaphore post failed");
+        SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(
+            result == osal::OsalReturnType::kSuccess, "ControlClientChannel semaphore post failed");
 
         munmap(nudgeLM, sizeof(osal::Semaphore));  // Unmap the semaphore
     }
 
     const auto result = nudge_LM_Handler_.wait();
-    SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(result == osal::OsalReturnType::kSuccess,
-                                            "ControlClientChannel semaphore wait failed");
+    SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(
+        result == osal::OsalReturnType::kSuccess, "ControlClientChannel semaphore wait failed");
 
     // Wait for acknowledgment
     while (!request_.empty_)
@@ -136,8 +136,8 @@ ControlClientMessage& ControlClientChannel::request()
 void ControlClientChannel::acknowledgeRequest()
 {
     const auto result = nudge_LM_Handler_.post();
-    SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(result == osal::OsalReturnType::kSuccess,
-                                            "ControlClientChannel semaphore post failed");
+    SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(
+        result == osal::OsalReturnType::kSuccess, "ControlClientChannel semaphore post failed");
 
     request_.empty_ = true;
 
@@ -187,8 +187,9 @@ ControlClientChannelP ControlClientChannel::initializeControlClientChannel(int f
 
     char* controlClientStartPtr =
         std::next(static_cast<char*>(channelMemory), static_cast<std::ptrdiff_t>(sizeof(osal::IpcCommsSync)));
-    result = ControlClientChannelP(static_cast<ControlClientChannel*>(static_cast<void*>(controlClientStartPtr)),
-                                   [](ControlClientChannel*) {});
+    result = ControlClientChannelP(
+        static_cast<ControlClientChannel*>(static_cast<void*>(controlClientStartPtr)), [](ControlClientChannel*) {
+        });
     if (result)
     {
         std::unique_lock<std::mutex> lock(init_mutex_);
@@ -222,8 +223,9 @@ ControlClientChannelP ControlClientChannel::getControlClientChannel(osal::IpcCom
         void* controlClientChannelPos = static_cast<void*>(std::next(sharedMemoryPtr, ipcCommSyncStartPtr));
 
         // coverity[cert_mem56_cpp_violation:INTENTIONAL] Pointer is only owned by one shared pointer.
-        result = ControlClientChannelP(static_cast<ControlClientChannel*>(controlClientChannelPos),
-                                       [](ControlClientChannel*) {});
+        result = ControlClientChannelP(
+            static_cast<ControlClientChannel*>(controlClientChannelPos), [](ControlClientChannel*) {
+            });
 
         result->ipc_parent_ = sync;
         LM_LOG_DEBUG() << "ControlClientChannel obtained from sync.";
@@ -241,8 +243,8 @@ void ControlClientChannel::nudgeControlClientHandler()
     if (nudgeControlClientHandler_)
     {
         const auto result = nudgeControlClientHandler_->post();
-        SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(result == osal::OsalReturnType::kSuccess,
-                                                "ControlClientChannel semaphore post failed");
+        SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(
+            result == osal::OsalReturnType::kSuccess, "ControlClientChannel semaphore post failed");
 
         LM_LOG_DEBUG() << "Control Client handler nudged";
     }
@@ -251,8 +253,8 @@ void ControlClientChannel::nudgeControlClientHandler()
 void ControlClientChannel::nudgeLMHandler()
 {
     const auto result = nudge_LM_Handler_.post();
-    SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(result == osal::OsalReturnType::kSuccess,
-                                            "ControlClientChannel semaphore post failed");
+    SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(
+        result == osal::OsalReturnType::kSuccess, "ControlClientChannel semaphore post failed");
 }
 
 void ControlClientChannel::releaseParentMapping()

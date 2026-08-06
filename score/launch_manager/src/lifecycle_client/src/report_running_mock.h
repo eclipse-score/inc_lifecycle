@@ -16,20 +16,24 @@
 
 #include <gmock/gmock.h>
 
-namespace score {
-namespace mw {
-namespace lifecycle {
+namespace score
+{
+namespace mw
+{
+namespace lifecycle
+{
 
-class ReportRunningMock {
-public:
-  ReportRunningMock();
-  ~ReportRunningMock();
+class ReportRunningMock
+{
+  public:
+    ReportRunningMock();
+    ~ReportRunningMock();
 
-  MOCK_METHOD(void, report_running, (), (noexcept));
+    MOCK_METHOD(void, report_running, (), (noexcept));
 };
 
-} // namespace lifecycle
-} // namespace mw
-} // namespace score
+}  // namespace lifecycle
+}  // namespace mw
+}  // namespace score
 
-#endif // SCORE_MW_LIFECYCLE_MOCKS_REPORTRUNNINGMOCK_H_
+#endif  // SCORE_MW_LIFECYCLE_MOCKS_REPORTRUNNINGMOCK_H_

@@ -14,19 +14,24 @@
 
 #include "score/mw/launch_manager/osal/set_groups.hpp"
 
-namespace score {
+namespace score
+{
 
-namespace lcm {
+namespace lcm
+{
 
-namespace internal {
+namespace internal
+{
 
-namespace osal {
+namespace osal
+{
 
-int setgroups(size_t __n, const gid_t* __groups) noexcept(true) {
+int setgroups(size_t __n, const gid_t* __groups) noexcept(true)
+{
     return ::setgroups(static_cast<int>(__n & 0X7FFFFFFFUL), __n ? __groups : NULL);
 }
 
 }  // namespace osal
-}  // namespace lcm
 }  // namespace internal
+}  // namespace lcm
 }  // namespace score

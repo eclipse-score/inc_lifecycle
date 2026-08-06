@@ -49,8 +49,8 @@ Alive::Alive(const AliveSupervisionCfg& f_aliveCfg_r)
     SCORE_LANGUAGE_FUTURECPP_PRECONDITION_PRD_MESSAGE(
         (aliveStatus == EStatus::kDeactivated), "Alive Supervision must start in deactivated state, see SWS_PHM_00204");
 
-    SCORE_LANGUAGE_FUTURECPP_PRECONDITION_PRD_MESSAGE((recoveryClient_p != nullptr),
-                                                      "Recovery client must be provided");
+    SCORE_LANGUAGE_FUTURECPP_PRECONDITION_PRD_MESSAGE(
+        (recoveryClient_p != nullptr), "Recovery client must be provided");
 }
 
 // coverity[exn_spec_violation:FALSE] std::length_error is not thrown from push() which uses fixed-size-vector
@@ -80,10 +80,9 @@ void Alive::updateData(const ifexm::ProcessState& f_observable_r) noexcept(true)
 {
     const ifexm::ProcessState::EProcState state{f_observable_r.getState()};
 
-    const bool isRelevant = (state == ifexm::ProcessState::EProcState::running) ||
-                            (state == ifexm::ProcessState::EProcState::sigterm) ||
-                            (state == ifexm::ProcessState::EProcState::failed) ||
-                            (state == ifexm::ProcessState::EProcState::off);
+    const bool isRelevant =
+        (state == ifexm::ProcessState::EProcState::running) || (state == ifexm::ProcessState::EProcState::sigterm) ||
+        (state == ifexm::ProcessState::EProcState::failed) || (state == ifexm::ProcessState::EProcState::off);
 
     if (isRelevant)
     {
@@ -210,8 +209,9 @@ void Alive::handleDataLossReaction(void) noexcept(true)
     dataLossReason = EDataLossReason::kNoDataLoss;
 }
 
-bool Alive::detectEvaluationEvent(const timers::NanoSecondType f_timestampOfUpdateEvent,
-                                  const TimeSortedUpdateEvent f_updateEvent) const noexcept(true)
+bool Alive::detectEvaluationEvent(
+    const timers::NanoSecondType f_timestampOfUpdateEvent,
+    const TimeSortedUpdateEvent f_updateEvent) const noexcept(true)
 {
     bool isEvaluationEvent;
 
@@ -264,8 +264,9 @@ bool Alive::detectEvaluationEvent(const timers::NanoSecondType f_timestampOfUpda
     return isEvaluationEvent;
 }
 
-Alive::EUpdateEventType Alive::getAliveEventType(bool f_isEvaluationEvent,
-                                                 const TimeSortedUpdateEvent f_updateEvent) noexcept(true)
+Alive::EUpdateEventType Alive::getAliveEventType(
+    bool f_isEvaluationEvent,
+    const TimeSortedUpdateEvent f_updateEvent) noexcept(true)
 {
     if (f_isEvaluationEvent)
     {
@@ -298,8 +299,9 @@ Alive::EUpdateEventType Alive::getAliveEventType(bool f_isEvaluationEvent,
     return EUpdateEventType::kSync;
 }
 
-void Alive::checkTransitionsOutOfDeactivated(const EUpdateEventType f_updateEventType,
-                                             const timers::NanoSecondType f_updateEventTimestamp) noexcept(true)
+void Alive::checkTransitionsOutOfDeactivated(
+    const EUpdateEventType f_updateEventType,
+    const timers::NanoSecondType f_updateEventTimestamp) noexcept(true)
 {
     if (f_updateEventType == EUpdateEventType::kActivation)
     {
@@ -311,8 +313,9 @@ void Alive::checkTransitionsOutOfDeactivated(const EUpdateEventType f_updateEven
     }
 }
 
-void Alive::checkTransitionsToDeactivated(const EUpdateEventType f_updateEventType,
-                                          const timers::NanoSecondType f_updateEventTimestamp) noexcept(true)
+void Alive::checkTransitionsToDeactivated(
+    const EUpdateEventType f_updateEventType,
+    const timers::NanoSecondType f_updateEventTimestamp) noexcept(true)
 {
     if ((f_updateEventType == EUpdateEventType::kDeactivation) && (aliveStatus != EStatus::kDeactivated))
     {
@@ -321,8 +324,9 @@ void Alive::checkTransitionsToDeactivated(const EUpdateEventType f_updateEventTy
     }
 }
 
-void Alive::checkTransitionsOutOfOk(const EUpdateEventType f_updateEventType,
-                                    const timers::NanoSecondType f_updateEventTimestamp) noexcept(true)
+void Alive::checkTransitionsOutOfOk(
+    const EUpdateEventType f_updateEventType,
+    const timers::NanoSecondType f_updateEventTimestamp) noexcept(true)
 {
     // Accept only alive checkpoint or evaluation event.
     // Deactivation event is handled at the end of evaluate function.
@@ -387,8 +391,9 @@ void Alive::evaluateRefCycleOutOfOk(void) noexcept(true)
     }
 }
 
-void Alive::checkTransitionsOutOfFailed(const EUpdateEventType f_updateEventType,
-                                        const timers::NanoSecondType f_updateEventTimestamp) noexcept(true)
+void Alive::checkTransitionsOutOfFailed(
+    const EUpdateEventType f_updateEventType,
+    const timers::NanoSecondType f_updateEventTimestamp) noexcept(true)
 {
     // Accept only alive checkpoint or evaluation event.
     // Deactivation event is handled at the end of evaluate function.

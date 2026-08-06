@@ -19,7 +19,6 @@
 #include <chrono>
 #include <thread>
 
-
 // Given a correct configuration with:
 //   - An initial Run Target named "Startup" containing "control_client_mock"
 //   - A Run Target named "run_target_crashing_app_on_runtime" containing "control_client_mock" and
@@ -28,14 +27,14 @@
 TEST(ProcessCrashMonitoring, ControlClientMock)
 {
     score::mw::lifecycle::ControlClient client;
-    
+
     ASSERT_TRUE(check_clean({test_end_location, fallback_file}));
     // Establish communication with launch manager
     TEST_STEP("Report running")
     {
         score::mw::lifecycle::report_running();
     }
-    
+
     TEST_STEP("Start crashing process")
     {
         score::cpp::stop_token stop_token;

@@ -16,9 +16,9 @@
 
 #include <memory>
 
-#include <string>
-#include "score/mw/launch_manager/alive_monitor/details/ipc/IpcBase.hpp"
 #include "ipc_dropin/socket.hpp"
+#include "score/mw/launch_manager/alive_monitor/details/ipc/IpcBase.hpp"
+#include <string>
 
 namespace score
 {
@@ -36,8 +36,10 @@ namespace ipc
 /// @tparam MaxNumberElements The maximum number of elements that can be stored at once in IPC channel.
 /// Valid interval is [4, 32768]. Only numbers divisible by 2 are valid.
 /// @tparam Socket The socket type (default: pipc socket, templated for dependency injection)
-template <typename Payload, std::uint16_t MaxNumberElements,
-          class Socket = ipc_dropin::Socket<sizeof(Payload), MaxNumberElements>>
+template <
+    typename Payload,
+    std::uint16_t MaxNumberElements,
+    class Socket = ipc_dropin::Socket<sizeof(Payload), MaxNumberElements>>
 // coverity[autosar_cpp14_a12_1_6_violation:FALSE] Base class constructor is used
 class IpcClient final : public IpcBase<Payload, MaxNumberElements, Socket>
 {
@@ -48,7 +50,7 @@ class IpcClient final : public IpcBase<Payload, MaxNumberElements, Socket>
     /// @brief Take over definitions from base class
     using Base::isInitialized;
 
-public:
+  public:
     /// @brief Make base class EIpcInitResult enum accessible
     using typename Base::EIpcInitResult;
     /// @brief Make base class EIpcPeekResult enum accessible
@@ -56,8 +58,8 @@ public:
 
     /// @brief Default Constructor
     /// @throws std::bad_alloc in case of insufficient heap and usage of default socket argument
-    explicit IpcClient(std::unique_ptr<Socket> f_socket = std::make_unique<Socket>()) noexcept(false) :
-        Base(std::move(f_socket))
+    explicit IpcClient(std::unique_ptr<Socket> f_socket = std::make_unique<Socket>()) noexcept(false)
+        : Base(std::move(f_socket))
     {
     }
 

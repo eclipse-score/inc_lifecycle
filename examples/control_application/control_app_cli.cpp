@@ -12,28 +12,33 @@
  ********************************************************************************/
 #include <iostream>
 
-#include "ipc_dropin/socket.hpp"
 #include "control.hpp"
+#include "ipc_dropin/socket.hpp"
 
 int main(int argc, char** argv)
 {
-    if(argc <= 1) {
+    if (argc <= 1)
+    {
         std::cout << "Usage: " << argv[0] << " MyRunTargetName" << std::endl;
         return EXIT_FAILURE;
     }
 
     ipc_dropin::Socket<static_cast<size_t>(sizeof(RunTargetInfo)), control_socket_capacity> sm_control_socket{};
-    if (sm_control_socket.connect(control_socket_path) != ipc_dropin::ReturnCode::kOk) {
+    if (sm_control_socket.connect(control_socket_path) != ipc_dropin::ReturnCode::kOk)
+    {
         std::cerr << "Could not connect to control socket" << std::endl;
         return EXIT_FAILURE;
     }
 
     RunTargetInfo info{};
     std::strncpy(info.runTargetName, argv[1], sizeof(info.runTargetName) - 1);
-    if(ipc_dropin::ReturnCode::kOk == sm_control_socket.trySend(info)) {
+    if (ipc_dropin::ReturnCode::kOk == sm_control_socket.trySend(info))
+    {
         std::cout << "Successfully sent request" << std::endl;
         return EXIT_SUCCESS;
-    } else {
+    }
+    else
+    {
         std::cerr << "Request could not be sent" << std::endl;
         return EXIT_FAILURE;
     }

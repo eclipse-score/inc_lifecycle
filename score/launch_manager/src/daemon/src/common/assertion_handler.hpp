@@ -27,8 +27,8 @@ inline void registerAssertionHandler() noexcept
     score::cpp::set_assertion_handler([](const score::cpp::handler_parameters& params) {
         std::ostringstream msg;
         msg << "Assertion failed: " << (params.condition != nullptr ? params.condition : "")
-            << "\n  Location: " << (params.file != nullptr ? params.file : "?") << ":" << params.line
-            << " (" << (params.function != nullptr ? params.function : "?") << ")";
+            << "\n  Location: " << (params.file != nullptr ? params.file : "?") << ":" << params.line << " ("
+            << (params.function != nullptr ? params.function : "?") << ")";
         if (params.message != nullptr)
         {
             msg << "\n  Message:  " << params.message;

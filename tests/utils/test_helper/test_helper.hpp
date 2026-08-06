@@ -64,8 +64,9 @@ constexpr std::string_view test_end_location = "../test_end";
 /// @param[in] files Files to check
 /// @param[in] strict If true, return a failure if any files exist. Otherwise attempt to remove them.
 [[nodiscard]]
-inline testing::AssertionResult check_clean(const std::initializer_list<std::string_view> files,
-                                            const bool strict = true)
+inline testing::AssertionResult check_clean(
+    const std::initializer_list<std::string_view> files,
+    const bool strict = true)
 {
     std::stringstream failures{};
     for (const auto file : files)
@@ -97,14 +98,14 @@ inline testing::AssertionResult check_clean(const std::initializer_list<std::str
 
 enum class TerminationBehavior : std::uint8_t
 {
-    kWait = 0, // Wait for a signal before terminating
-    kContinue, // Terminate immediately
+    kWait = 0,  // Wait for a signal before terminating
+    kContinue,  // Terminate immediately
 };
 
 enum class TerminationNotification : std::uint8_t
 {
-    kNone = 0, // Terminate without any notification
-    kTestEnd,  // Signal that the test has completed
+    kNone = 0,  // Terminate without any notification
+    kTestEnd,   // Signal that the test has completed
 };
 
 /// @brief Helper class to setup, run, and clean up GTEST tests
@@ -126,9 +127,10 @@ class TestRunner
     /// @param[in] termination_behavior what to do when running tests has completed
     /// @param[in] termination_notification what notification to send (if any) when running tests has completed.
     ///            Usually the control daemon should signal test end.
-    TestRunner(std::string_view test_path,
-               TerminationBehavior termination_behavior = TerminationBehavior::kWait,
-               TerminationNotification termination_notification = TerminationNotification::kNone)
+    TestRunner(
+        std::string_view test_path,
+        TerminationBehavior termination_behavior = TerminationBehavior::kWait,
+        TerminationNotification termination_notification = TerminationNotification::kNone)
         : m_termination_notification(termination_notification),
           m_termination_behavior(termination_behavior),
           m_test_path(test_path)
@@ -173,6 +175,5 @@ class TestRunner
         return res;
     }
 };
-
 
 #endif  // TESTS_UTILS_TEST_HELPER_HPP
