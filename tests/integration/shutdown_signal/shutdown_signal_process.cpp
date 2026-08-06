@@ -15,7 +15,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <csignal>
-
 #include "common.hpp"
 #include "tests/utils/test_helper/test_helper.hpp"
 #include <score/mw/lifecycle/report_running.h>
@@ -32,10 +31,18 @@ constexpr unsigned int kSleepAfterSigtermSeconds = 5U;
 void createFileAsyncSignalSafe(const std::string_view path)
 {
     const int fd = open(path.data(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
-    if (fd >= 0)
+    if (fd < 0)
     {
-        static_cast<void>(close(fd));
+        // write()/_exit() are async-signal-safe; std::cerr/std::exit are not.
+        static constexpr char prefix[] = "[FAILED] Failed to create file ";
+        static constexpr char suffix[] = " in signal handler\n";
+        static_cast<void>(write(STDERR_FILENO, prefix, sizeof(prefix) - 1));
+        static_cast<void>(write(STDERR_FILENO, path.data(), path.size()));
+        static_cast<void>(write(STDERR_FILENO, suffix, sizeof(suffix) - 1));
+        static_cast<void>(unlink(path.data()));  // leave no partial file
+        _exit(-1);
     }
+    static_cast<void>(close(fd));
 }
 
 /// @brief SIGTERM handler installed by the process under test.
