@@ -150,35 +150,17 @@ class WatchdogImplTest : public ::testing::Test
         return std::make_unique<WatchdogImpl_FireWatchdogMock>(*ioctlMock_, *fcntlMock_, *unistdMock_);
     }
 
-    /// @brief Programs the mocks so that opening the devices in `cfgs` succeeds (each returning `fd`).
-    void expectDeviceOpens(std::initializer_list<const WatchdogConfig*> cfgs, std::int32_t fd = 1)
-    {
-        for (const WatchdogConfig* cfg : cfgs)
-        {
-            EXPECT_CALL(*fcntlMock_, open(StrEq(cfg->device_file_path), _)).WillOnce(Return(OpenOk(fd)));
-        }
-    }
-
-    /// @brief Programs the mocks so that `times` devices go through the full enable ioctl sequence
-    /// (GETTIMEOUT -> GETTIMELEFT -> SETTIMEOUT -> SETOPTIONS) and succeed.
-    /// @note A single combined expectation per ioctl request is used (rather than one per device) since
-    /// gmock does not fall back to an older matching WillOnce() expectation once the newest one saturates.
-    void expectFullEnableIoctls(int times, std::int32_t fd = 1)
-    {
-        // Report a current timeout of 0, which never matches a configured device timeout, so that the
-        // enable sequence always goes through GETTIMELEFT + SETTIMEOUT.
-        EXPECT_CALL(*ioctlMock_, ioctl(fd, WDIOC_GETTIMEOUT, _)).Times(times).WillRepeatedly(SetOutParam(0));
-        EXPECT_CALL(*ioctlMock_, ioctl(fd, WDIOC_GETTIMELEFT, _)).Times(times).WillRepeatedly(Return(IoctlOk()));
-        EXPECT_CALL(*ioctlMock_, ioctl(fd, WDIOC_SETTIMEOUT, _)).Times(times).WillRepeatedly(Return(IoctlOk()));
-        EXPECT_CALL(*ioctlMock_, ioctl(fd, WDIOC_SETOPTIONS, _)).Times(times).WillRepeatedly(Return(IoctlOk()));
-    }
-
-    /// @brief Programs the mocks so that enabling the single device for `cfg` goes through the full enable
+    /// @brief Programs the mocks so that enabling the device for `cfg` goes through the full enable
     /// sequence (open -> GETTIMEOUT -> GETTIMELEFT -> SETTIMEOUT -> SETOPTIONS) and succeeds.
     void expectFullEnable(const WatchdogConfig& cfg, std::int32_t fd = 1)
     {
-        expectDeviceOpens({&cfg}, fd);
-        expectFullEnableIoctls(1, fd);
+        EXPECT_CALL(*fcntlMock_, open(StrEq(cfg.device_file_path), _)).WillOnce(Return(OpenOk(fd)));
+        // Report a current timeout of 0, which never matches the configured device timeout, so that the
+        // enable sequence always goes through GETTIMELEFT + SETTIMEOUT.
+        EXPECT_CALL(*ioctlMock_, ioctl(fd, WDIOC_GETTIMEOUT, _)).WillOnce(SetOutParam(0));
+        EXPECT_CALL(*ioctlMock_, ioctl(fd, WDIOC_GETTIMELEFT, _)).WillOnce(Return(IoctlOk()));
+        EXPECT_CALL(*ioctlMock_, ioctl(fd, WDIOC_SETTIMEOUT, _)).WillOnce(Return(IoctlOk()));
+        EXPECT_CALL(*ioctlMock_, ioctl(fd, WDIOC_SETOPTIONS, _)).WillOnce(Return(IoctlOk()));
     }
 
     /// @brief Programs the mocks for a successful disableDevice() sequence on `fd`.
@@ -262,26 +244,17 @@ TEST_F(WatchdogImplTest, WdgInit_FailsIfTimeoutResolutionIsWrong)
 }
 #endif
 
-TEST_F(WatchdogImplTest, WdgInit_FailsIfSameDeviceAlreadyConfigured)
+TEST_F(WatchdogImplTest, WdgInit_FailsIfDeviceAlreadyConfigured)
 {
-    RecordProperty("Description", "init() fails when the same device file path is configured a second time.");
+    RecordProperty("Description",
+                   "init() fails when called a second time, since only a single watchdog device is supported.");
 
     auto cfg = makeCfg("/dev/watchdog", 2000U, true, false);
     auto wdg = makeWatchdog();
     ASSERT_TRUE(wdg->init(cfg, kDefaultCycleTimeNs));
 
     EXPECT_FALSE(wdg->init(cfg, kDefaultCycleTimeNs));
-}
-
-TEST_F(WatchdogImplTest, WdgInit_SucceedsWithMultipleDifferentValidDeviceConfiguration)
-{
-    RecordProperty("Description",
-                   "init() succeeds when called multiple times with distinct, valid device configurations.");
-
-    auto wdg = makeWatchdog();
-    EXPECT_TRUE(wdg->init(makeCfg("/dev/watchdog_0", 2000U, true, false), kDefaultCycleTimeNs));
-    EXPECT_TRUE(wdg->init(makeCfg("/dev/watchdog_1", 2000U, true, false), kDefaultCycleTimeNs));
-    EXPECT_TRUE(wdg->init(makeCfg("/dev/watchdog_2", 2000U, true, false), kDefaultCycleTimeNs));
+    EXPECT_FALSE(wdg->init(makeCfg("/dev/watchdog_2", 2000U, true, false), kDefaultCycleTimeNs));
 }
 
 class WatchdogImpl_UT_paramConfigName : public WatchdogImplTest, public ::testing::WithParamInterface<std::uint32_t>
@@ -330,18 +303,16 @@ TEST_F(WatchdogImplTest, WdgEnable_FailsIfNotInIdleState)
     EXPECT_FALSE(wdg->enable());
 }
 
-TEST_F(WatchdogImplTest, WdgEnable_FailsIfNotAllWatchdogsCouldBeEnabled)
+TEST_F(WatchdogImplTest, WdgEnable_FailsIfOpenFails)
 {
-    RecordProperty("Description",
-                   "enable() fails when opening one of multiple configured devices fails.");
+    RecordProperty("Description", "enable() fails when opening the configured device file fails.");
 
-    auto cfg1 = makeCfg("/dev/watchdog_0", 2000U, true, false);
-    auto cfg2 = makeCfg("/dev/watchdog_1", 2000U, true, false);
+    auto cfg = makeCfg("/dev/watchdog", 2000U, true, false);
     auto wdg = makeWatchdog();
-    ASSERT_TRUE(wdg->init(cfg1, kDefaultCycleTimeNs));
-    ASSERT_TRUE(wdg->init(cfg2, kDefaultCycleTimeNs));
-    expectFullEnable(cfg1);
-    EXPECT_CALL(*fcntlMock_, open(StrEq(cfg2.device_file_path), _)).WillOnce(Return(OpenErr()));
+    ASSERT_TRUE(wdg->init(cfg, kDefaultCycleTimeNs));
+
+    EXPECT_CALL(*fcntlMock_, open(StrEq(cfg.device_file_path), _)).WillOnce(Return(OpenErr()));
+    EXPECT_CALL(*ioctlMock_, ioctl).Times(0);
 
     EXPECT_FALSE(wdg->enable());
 }
@@ -461,67 +432,9 @@ TEST_F(WatchdogImplTest, WdgEnable_FailsIfEnablecardFails)
     EXPECT_FALSE(wdg->enable());
 }
 
-TEST_F(WatchdogImplTest, WdgEnable_FailsForMultipleDevices)
-{
-    RecordProperty("Description",
-                   "enable() fails and performs no ioctls when opening all configured devices fails.");
-
-    auto cfg1 = makeCfg("/dev/watchdog_0", 2000U, true, false);
-    auto cfg2 = makeCfg("/dev/watchdog_1", 2000U, true, false);
-    auto wdg = makeWatchdog();
-    ASSERT_TRUE(wdg->init(cfg1, kDefaultCycleTimeNs));
-    ASSERT_TRUE(wdg->init(cfg2, kDefaultCycleTimeNs));
-
-    EXPECT_CALL(*fcntlMock_, open(_, _)).Times(2).WillRepeatedly(Return(OpenErr()));
-    EXPECT_CALL(*ioctlMock_, ioctl).Times(0);
-
-    EXPECT_FALSE(wdg->enable());
-}
-
-TEST_F(WatchdogImplTest, WdgEnable_EnablesMultipleDevices)
-{
-    RecordProperty("Description",
-                   "enable() succeeds when all of multiple configured devices are enabled successfully.");
-
-    auto cfg1 = makeCfg("/dev/watchdog_0", IWatchdogIf::kTimeoutMinMillis, false, false);
-    auto cfg2 = makeCfg("/dev/watchdog_1", 2000U, true, false);
-    auto cfg3 = makeCfg("/dev/watchdog_2", IWatchdogIf::kTimeoutMaxMillis, true, true);
-
-    auto wdg = makeWatchdog();
-    ASSERT_TRUE(wdg->init(cfg1, kDefaultCycleTimeNs));
-    ASSERT_TRUE(wdg->init(cfg2, kDefaultCycleTimeNs));
-    ASSERT_TRUE(wdg->init(cfg3, kDefaultCycleTimeNs));
-
-    expectDeviceOpens({&cfg1, &cfg2, &cfg3});
-    expectFullEnableIoctls(3);
-
-    EXPECT_TRUE(wdg->enable());
-}
-
 // ═══════════════════════════════════════════════════════════
 // serviceWatchdog() tests
 // ═══════════════════════════════════════════════════════════
-
-TEST_F(WatchdogImplTest, WdgServiceWatchdog_OnlyServicesActivatedWatchdogs)
-{
-    RecordProperty("Description",
-                   "serviceWatchdog() only issues WDIOC_KEEPALIVE for devices that were successfully activated.");
-
-    auto cfg1 = makeCfg("/dev/watchdog_0", 2000U, true, false);
-    auto cfg2 = makeCfg("/dev/watchdog_1", 2000U, true, false);
-    auto wdg = makeWatchdog();
-
-    expectFullEnable(cfg1);
-    ASSERT_TRUE(wdg->init(cfg1, kDefaultCycleTimeNs));
-
-    EXPECT_CALL(*fcntlMock_, open(StrEq(cfg2.device_file_path), _)).WillOnce(Return(OpenErr()));
-    ASSERT_TRUE(wdg->init(cfg2, kDefaultCycleTimeNs));
-
-    ASSERT_FALSE(wdg->enable());
-
-    EXPECT_CALL(*ioctlMock_, ioctl(1, WDIOC_KEEPALIVE, nullptr)).Times(1).WillOnce(Return(IoctlOk()));
-    wdg->serviceWatchdog();
-}
 
 TEST_F(WatchdogImplTest, WdgServiceWatchdog_NotInActivatedState)
 {
@@ -558,25 +471,6 @@ TEST_F(WatchdogImplTest, WdgServiceWatchdog_OneDevice)
     ASSERT_TRUE(wdg->enable());
 
     EXPECT_CALL(*ioctlMock_, ioctl(1, WDIOC_KEEPALIVE, nullptr)).Times(1).WillOnce(Return(IoctlOk()));
-    wdg->serviceWatchdog();
-}
-
-TEST_F(WatchdogImplTest, WdgServiceWatchdog_NotifiesEveryWatchdogDevice)
-{
-    RecordProperty("Description", "serviceWatchdog() issues WDIOC_KEEPALIVE for every activated device.");
-
-    auto cfg1 = makeCfg("/dev/watchdog_0", 2000U, true, false);
-    auto cfg2 = makeCfg("/dev/watchdog_1", 2000U, true, true);
-    auto wdg = makeWatchdog();
-
-    ASSERT_TRUE(wdg->init(cfg1, kDefaultCycleTimeNs));
-    ASSERT_TRUE(wdg->init(cfg2, kDefaultCycleTimeNs));
-
-    expectDeviceOpens({&cfg1, &cfg2});
-    expectFullEnableIoctls(2);
-    ASSERT_TRUE(wdg->enable());
-
-    EXPECT_CALL(*ioctlMock_, ioctl(1, WDIOC_KEEPALIVE, nullptr)).Times(2).WillRepeatedly(Return(IoctlOk()));
     wdg->serviceWatchdog();
 }
 
@@ -617,51 +511,6 @@ TEST_F(WatchdogImplTest, WdgFireWatchdogReaction_OneDevice)
     wdg->fireWatchdogReaction();
 }
 
-TEST_F(WatchdogImplTest, WdgFireWatchdogReaction_FiresEveryDevice)
-{
-    RecordProperty("Description",
-                   "fireWatchdogReaction() sets WDIOC_SETTIMEOUT to 0 for every activated device before calling "
-                   "waitForever().");
-
-    auto cfg1 = makeCfg("/dev/watchdog_0", 2000U, true, false);
-    auto cfg2 = makeCfg("/dev/watchdog_1", 2000U, true, true);
-    auto wdg = makeWatchdogFireMock();
-
-    ASSERT_TRUE(wdg->init(cfg1, kDefaultCycleTimeNs));
-    ASSERT_TRUE(wdg->init(cfg2, kDefaultCycleTimeNs));
-
-    expectDeviceOpens({&cfg1, &cfg2});
-    expectFullEnableIoctls(2);
-    ASSERT_TRUE(wdg->enable());
-
-    EXPECT_CALL(*ioctlMock_, ioctl(1, WDIOC_SETTIMEOUT, _)).Times(2).WillRepeatedly(Return(IoctlOk()));
-    EXPECT_CALL(*wdg, waitForever).Times(1);
-    wdg->fireWatchdogReaction();
-}
-
-TEST_F(WatchdogImplTest, WdgFireWatchdogReaction_OnlyFiresActivatedWatchdogs)
-{
-    RecordProperty("Description",
-                   "fireWatchdogReaction() only sets WDIOC_SETTIMEOUT to 0 for devices that were successfully "
-                   "activated.");
-
-    auto cfg1 = makeCfg("/dev/watchdog_0", 2000U, true, false);
-    auto cfg2 = makeCfg("/dev/watchdog_1", 2000U, true, false);
-    auto wdg = makeWatchdogFireMock();
-
-    expectFullEnable(cfg1);
-    ASSERT_TRUE(wdg->init(cfg1, kDefaultCycleTimeNs));
-
-    EXPECT_CALL(*fcntlMock_, open(StrEq(cfg2.device_file_path), _)).WillOnce(Return(OpenErr()));
-    ASSERT_TRUE(wdg->init(cfg2, kDefaultCycleTimeNs));
-
-    ASSERT_FALSE(wdg->enable());
-
-    EXPECT_CALL(*ioctlMock_, ioctl(1, WDIOC_SETTIMEOUT, _)).Times(1).WillOnce(Return(IoctlOk()));
-    EXPECT_CALL(*wdg, waitForever).Times(1);
-    wdg->fireWatchdogReaction();
-}
-
 // ═══════════════════════════════════════════════════════════
 // disable() tests
 // ═══════════════════════════════════════════════════════════
@@ -694,33 +543,6 @@ TEST_F(WatchdogImplTest, WdgDisable_DisablesOneDevice)
     ASSERT_TRUE(wdg->enable());
 
     expectDisable(cfg);
-    wdg->disable();
-}
-
-TEST_F(WatchdogImplTest, WdgDisable_DisablesEachWatchdogDevice)
-{
-    RecordProperty("Description",
-                   "disable() disables every deactivatable device, writing the magic close character only for "
-                   "devices that require it, and skips devices that cannot be deactivated.");
-
-    auto cfg1 = makeCfg("/dev/watchdog_0", 2000U, false, false);  // cannot be deactivated
-    auto cfg2 = makeCfg("/dev/watchdog_1", 2000U, true, false);   // no magic close
-    auto cfg3 = makeCfg("/dev/watchdog_2", 2000U, true, true);    // needs magic close
-
-    auto wdg = makeWatchdog();
-    ASSERT_TRUE(wdg->init(cfg1, kDefaultCycleTimeNs));
-    ASSERT_TRUE(wdg->init(cfg2, kDefaultCycleTimeNs));
-    ASSERT_TRUE(wdg->init(cfg3, kDefaultCycleTimeNs));
-
-    expectDeviceOpens({&cfg1, &cfg2, &cfg3});
-    expectFullEnableIoctls(3);
-    ASSERT_TRUE(wdg->enable());
-
-    // cfg1 cannot be deactivated, so only cfg2 and cfg3 go through the disable sequence.
-    EXPECT_CALL(*ioctlMock_, ioctl(1, WDIOC_SETOPTIONS, _)).Times(2).WillRepeatedly(Return(IoctlOk()));
-    EXPECT_CALL(*unistdMock_, write(1, _, _)).Times(1).WillOnce(Return(WriteOk(2)));
-    EXPECT_CALL(*unistdMock_, close(1)).Times(2).WillRepeatedly(Return(CloseOk()));
-
     wdg->disable();
 }
 

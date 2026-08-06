@@ -64,14 +64,15 @@ class IWatchdogIf
     virtual ~IWatchdogIf() noexcept = default;
 
     /// @brief Initialize the watchdog library
-    /// @details Checks if the provided configuration is valid. 
-    /// A configuration is only taken over if the library is in the state "idle".
-    /// A valid configuration means: The file name of the device file is unique and device file is accessible,
-    /// timeout values are in the allowed range [kTimeoutMinMillis, kTimeoutMaxMillis] and min timeout value <= max
-    /// timeout value.
+    /// @details Checks if the provided configuration is valid.
+    /// A configuration is only taken over if the library is in the state "idle" and no watchdog device has been
+    /// configured yet.
+    /// A valid configuration means: The device file is accessible, timeout values are in the allowed range
+    /// [kTimeoutMinMillis, kTimeoutMaxMillis] and min timeout value <= max timeout value.
     /// @note Method is not reentrant safe.
     /// @note Only simple watchdogs are supported as of now, no windows watchdog (i.e. the min timeout value is always
     /// assumed 0).
+    /// @note Only a single watchdog device is supported. Calling this method more than once always fails.
     /// @param[in] watchdog_config The configuration for the watchdog
     /// @param[in] cycle_time_ns The period in nanoseconds at which serviceWatchdog() is called; used to validate
     ///            that the configured watchdog timeout is long enough to be serviced in time.
@@ -81,31 +82,29 @@ class IWatchdogIf
         const score::mw::launch_manager::configuration::WatchdogConfig& watchdog_config,
         std::int64_t cycle_time_ns) noexcept = 0;
 
-    /// @brief Activate the watchdogs.
-    /// @details Initialize and activate all watchdogs which are configured for use by the Watchdog Interface library.
-    /// If the processing of the watchdog control requests is done by a dedicated thread this method is creating and
-    /// starting the thread. After successfully activation of at least one watchdog the library state is set to
-    /// "activated". If no watchdog can be activated successfully the possibly created thread is stopped and joined and
-    /// library state remains "idle".
+    /// @brief Activate the watchdog.
+    /// @details Initialize and activate the watchdog device which is configured for use by the Watchdog Interface
+    /// library. After successful activation of the watchdog the library state is set to
+    /// "activated". If the watchdog cannot be activated successfully library state remains "idle".
     /// @note Method is not reentrant safe.
-    /// @return Status of activating the watchdogs. True if all configured watchdogs have been successfully activated
+    /// @return Status of activating the watchdog. True if the configured watchdog has been successfully activated
     /// and thread is up and running, false otherwise.
     virtual bool enable(void) noexcept = 0;
 
-    /// @brief Deactivate the watchdogs.
-    /// @details Deactivate all watchdogs which are configured for use by the Watchdog Interface library. Any watchdog
-    /// which cannot be deactivated once it has been activated is silently ignored. If the library state is not
+    /// @brief Deactivate the watchdog.
+    /// @details Deactivate the watchdog device which is configured for use by the Watchdog Interface library. If the
+    /// watchdog cannot be deactivated once it has been activated it is silently ignored. If the library state is not
     /// "activated" nothing is done.
     /// If the processing of the watchdog control requests is done by a dedicated thread this method is
     /// stopping and joining the thread.
     /// @note Method is not reentrant safe.
     virtual void disable(void) noexcept = 0;
 
-    /// @brief Services the watchdogs. Aka as pinging, triggering or kicking the watchdog.
+    /// @brief Services the watchdog. Aka as pinging, triggering or kicking the watchdog.
     /// @note Method is not reentrant safe.
     virtual void serviceWatchdog(void) noexcept = 0;
 
-    /// @brief Timeout watchdogs as fast as possible.
+    /// @brief Timeout the watchdog as fast as possible.
     /// @note Before this interface is called the callee should protocol the
     /// reason for the call to ease the analyze.
     /// @note Method is not reentrant safe.

@@ -50,7 +50,7 @@ T secToMs(const T f_timeout)
  * ref",true_no_defect) */
 /* RULECHECKER_comment(0:0,9:0, check_min_instructions, "Constructor with empty body is valid", true_no_defect) */
 WatchdogImpl::WatchdogImpl(score::os::Ioctl& ioctl, score::os::Fcntl& fcntl, score::os::Unistd& unistd) noexcept
-    : IWatchdogIf(), watchdogDevices_(), state_(ELibState::idle), ioctl_(ioctl), fcntl_(fcntl), unistd_(unistd)
+    : IWatchdogIf(), watchdogDevice_(), state_(ELibState::idle), ioctl_(ioctl), fcntl_(fcntl), unistd_(unistd)
 {
 }
 
@@ -86,7 +86,7 @@ bool WatchdogImpl::init(
     catch (const std::exception& e)
     {
         isSuccess = false;
-        watchdogDevices_.clear();
+        watchdogDevice_.reset();
         LM_LOG_ERROR() << "Watchdog: Watchdog initialization failed:" << std::string(e.what());
     }
     return isSuccess;
@@ -104,9 +104,7 @@ bool WatchdogImpl::configureDevice(const DeviceConfig& f_config_r, std::int64_t 
         return false;
     }
 
-    WatchdogDevice watchdogdevice{f_config_r};
-    // Space was reserved during init(), will not throw
-    watchdogDevices_.push_back(watchdogdevice);
+    watchdogDevice_ = WatchdogDevice{f_config_r};
     return true;
 }
 
@@ -117,17 +115,17 @@ bool WatchdogImpl::enable() noexcept
         return false;
     }
 
-    bool result{true};
-    for (auto& watchdogDevice : watchdogDevices_)
+    if (!watchdogDevice_.has_value())
     {
-        const auto wasEnabled{enableDevice(watchdogDevice)};
-        if (wasEnabled)
-        {
-            state_ = ELibState::activated;
-        }
-        result = result && wasEnabled;
+        return true;
     }
-    return result;
+
+    const auto wasEnabled{enableDevice(*watchdogDevice_)};
+    if (wasEnabled)
+    {
+        state_ = ELibState::activated;
+    }
+    return wasEnabled;
 }
 
 void WatchdogImpl::disable() noexcept
@@ -136,13 +134,8 @@ void WatchdogImpl::disable() noexcept
     {
         return;
     }
-    bool allDisabled{true};
-    for (auto& watchdogDevice : watchdogDevices_)
-    {
-        const bool wasDisabled{disableDevice(watchdogDevice)};
-        allDisabled = allDisabled && wasDisabled;
-    }
-    if (allDisabled)
+
+    if (disableDevice(*watchdogDevice_))
     {
         state_ = ELibState::idle;
     }
@@ -155,22 +148,19 @@ void WatchdogImpl::serviceWatchdog() noexcept
         return;
     }
 
-    for (auto& watchdogDevice : watchdogDevices_)
+    if (watchdogDevice_->fileDescriptor >= 0)
     {
-        if (watchdogDevice.fileDescriptor >= 0)
-        {
-            // save to ignore return value here. If keepalive does not work, watchdog will eventually fire
-            /* RULECHECKER_comment(1:0,5:0, check_bitop_recast, "Linux-only constant from external interface",
-             * true_no_defect) */
-            /* RULECHECKER_comment(1:0,4:0, check_bitop_type, "Linux-only constant from external interface",
-             * true_no_defect) */
-            /* RULECHECKER_comment(1:0,3:0, check_plain_char_operator, "Linux-only constant from external interface",
-             * true_no_defect) */
-            /* RULECHECKER_comment(1:0,2:0, check_underlying_signedness_conversion, "Linux-only constant from external
-             * interface", true_no_defect) */
-            static_cast<void>(
-                ioctl_.ioctl(watchdogDevice.fileDescriptor, static_cast<std::int32_t>(WDIOC_KEEPALIVE), nullptr));
-        }
+        // save to ignore return value here. If keepalive does not work, watchdog will eventually fire
+        /* RULECHECKER_comment(1:0,5:0, check_bitop_recast, "Linux-only constant from external interface",
+         * true_no_defect) */
+        /* RULECHECKER_comment(1:0,4:0, check_bitop_type, "Linux-only constant from external interface",
+         * true_no_defect) */
+        /* RULECHECKER_comment(1:0,3:0, check_plain_char_operator, "Linux-only constant from external interface",
+         * true_no_defect) */
+        /* RULECHECKER_comment(1:0,2:0, check_underlying_signedness_conversion, "Linux-only constant from external
+         * interface", true_no_defect) */
+        static_cast<void>(
+            ioctl_.ioctl(watchdogDevice_->fileDescriptor, static_cast<std::int32_t>(WDIOC_KEEPALIVE), nullptr));
     }
 }
 
@@ -182,17 +172,14 @@ void WatchdogImpl::fireWatchdogReaction() noexcept
     }
 
     state_ = ELibState::react;
-    for (auto& watchdogDevice : watchdogDevices_)
+    if (watchdogDevice_->fileDescriptor >= 0)
     {
-        if (watchdogDevice.fileDescriptor >= 0)
-        {
-            // This log message is introduced as a result of FMEA
-            LM_LOG_FATAL() << "Watchdog: Trigger RESET for watchdog" << watchdogDevice.config.fileName;
+        // This log message is introduced as a result of FMEA
+        LM_LOG_FATAL() << "Watchdog: Trigger RESET for watchdog" << watchdogDevice_->config.fileName;
 
-            std::uint16_t timeout{0U};
-            // Save to ignore return value here. If setting timeout does not work, watchdog will eventually fire
-            static_cast<void>(setTimeout(watchdogDevice.fileDescriptor, timeout));
-        }
+        std::uint16_t timeout{0U};
+        // Save to ignore return value here. If setting timeout does not work, watchdog will eventually fire
+        static_cast<void>(setTimeout(watchdogDevice_->fileDescriptor, timeout));
     }
 
     waitForever();
@@ -413,21 +400,14 @@ bool WatchdogImpl::hasValidTimeout(const DeviceConfig& f_config_r) noexcept
     return validRange && validResolution;
 }
 
-bool WatchdogImpl::deviceAlreadyConfigured(const DeviceConfig& f_config_r) const noexcept
+bool WatchdogImpl::deviceAlreadyConfigured() const noexcept
 {
-    for (const auto& device : watchdogDevices_)
-    {
-        if (device.config.fileName == f_config_r.fileName)
-        {
-            return true;
-        }
-    }
-    return false;
+    return watchdogDevice_.has_value();
 }
 
 bool WatchdogImpl::isValidDeviceConfig(const DeviceConfig& f_config_r, std::int64_t f_cycleTimeInNs) const noexcept
 {
-    if (deviceAlreadyConfigured(f_config_r))
+    if (deviceAlreadyConfigured())
     {
         return false;
     }

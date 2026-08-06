@@ -20,6 +20,7 @@
 #include "score/os/fcntl.h"
 #include "score/os/ioctl.h"
 #include "score/os/unistd.h"
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -131,10 +132,10 @@ class WatchdogImpl : public IWatchdogIf
         int fileDescriptor{-1};
     };
 
-    /// @brief Registers a new watchdog device for usage if the DeviceConfig is valid
+    /// @brief Registers the watchdog device for usage if the DeviceConfig is valid
     /// @param[in] f_config_r The DeviceConfig to register
     /// @param[in] f_cycleTimeInNs The CycleTime in ns that will be used to notify aliveness
-    /// @throws std::length_error in case of insufficient memory to allocate watchdog device
+    /// @throws std::bad_alloc in case of insufficient memory to store the device configuration
     /// @return True if the given DeviceConfig is valid and has been registered else false
     bool configureDevice(const DeviceConfig& f_config_r, std::int64_t f_cycleTimeInNs) noexcept(false);
 
@@ -197,14 +198,13 @@ class WatchdogImpl : public IWatchdogIf
     /// @return True if the timeout is in a valid range and has valid resolution, else false
     static bool hasValidTimeout(const DeviceConfig& f_config_r) noexcept;
 
-    /// @brief Checks if the given DeviceConfig is already configured
-    /// @param[in] f_config_r The DeviceConfig to check against the configured configs
-    /// @return True if the given DeviceConfig has already been configured, else false
-    bool deviceAlreadyConfigured(const DeviceConfig& f_config_r) const noexcept;
+    /// @brief Checks if a watchdog device has already been configured
+    /// @return True if a watchdog device has already been configured, else false
+    bool deviceAlreadyConfigured() const noexcept;
 
     /// @brief Validates the given DeviceConfig
     /// @details Validation includes the following checks:
-    /// * Checking if the DeviceConfig is already configured
+    /// * Checking if a watchdog device has already been configured
     /// * Checking if the timeout of the DeviceConfig is valid
     /// * Checking if the device file exists
     /// * Checking if the device file is accessible
@@ -222,8 +222,8 @@ class WatchdogImpl : public IWatchdogIf
     /// @return True if cycleTime <= timeout_max, else false
     static bool validateTimeoutWithCycleTime(std::int64_t f_cycleTimeInNs, const DeviceConfig& f_config_r) noexcept;
 
-    /// @brief Keeps track of the state of each configured watchdog device
-    std::vector<WatchdogDevice> watchdogDevices_;
+    /// @brief Keeps track of the state of the configured watchdog device, if any.
+    std::optional<WatchdogDevice> watchdogDevice_;
     /// @brief The internal state of this class
     ELibState state_;
     /// @brief Interface used to issue ioctl calls on watchdog device files.
