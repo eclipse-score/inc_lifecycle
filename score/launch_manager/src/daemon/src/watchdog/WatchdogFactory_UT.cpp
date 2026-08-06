@@ -52,4 +52,3 @@ TEST_F(WatchdogFactoryTest, CreateWatchdogReturnsIndependentInstancesEachCall)
     ASSERT_NE(watchdog2, nullptr);
     EXPECT_NE(watchdog1.get(), watchdog2.get());
 }
-

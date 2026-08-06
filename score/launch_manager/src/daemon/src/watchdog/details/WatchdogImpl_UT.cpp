@@ -408,8 +408,7 @@ struct EnableFailureCase
     EnableStep failingStep;
 };
 
-class WatchdogImpl_UT_EnableFailure : public WatchdogImplTest,
-                                      public ::testing::WithParamInterface<EnableFailureCase>
+class WatchdogImpl_UT_EnableFailure : public WatchdogImplTest, public ::testing::WithParamInterface<EnableFailureCase>
 {
 };
 
@@ -432,7 +431,9 @@ INSTANTIATE_TEST_SUITE_P(
     WatchdogImpl_UT_EnableFailure,
     ::testing::Values(
         EnableFailureCase{
-            "OpenFails", "enable() fails when opening the configured device file fails.", EnableStep::kOpen},
+            "OpenFails",
+            "enable() fails when opening the configured device file fails.",
+            EnableStep::kOpen},
         EnableFailureCase{
             "GetTimeoutFails",
             "enable() fails and skips the remaining ioctls when WDIOC_GETTIMEOUT fails.",
@@ -446,8 +447,12 @@ INSTANTIATE_TEST_SUITE_P(
             "enable() fails and skips WDIOC_SETOPTIONS when WDIOC_SETTIMEOUT fails.",
             EnableStep::kSetTimeout},
         EnableFailureCase{
-            "EnablecardFails", "enable() fails when the WDIOS_ENABLECARD ioctl fails.", EnableStep::kSetOptions}),
-    [](const ::testing::TestParamInfo<EnableFailureCase>& info) { return info.param.name; });
+            "EnablecardFails",
+            "enable() fails when the WDIOS_ENABLECARD ioctl fails.",
+            EnableStep::kSetOptions}),
+    [](const ::testing::TestParamInfo<EnableFailureCase>& info) {
+        return info.param.name;
+    });
 
 TEST_F(WatchdogImplTest, WdgEnable_FailsIfTimeoutValueIsAltered)
 {
