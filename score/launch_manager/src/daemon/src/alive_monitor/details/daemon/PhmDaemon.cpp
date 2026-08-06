@@ -64,11 +64,7 @@ void PhmDaemon::performCyclicTriggers(void)
     }
 }
 
-#ifdef USE_NEW_CONFIGURATION
 bool PhmDaemon::construct(const Config& config, const SupervisionBufferConfig& f_bufferConfig_r) noexcept(false)
-#else
-bool PhmDaemon::construct(const SupervisionBufferConfig& f_bufferConfig_r) noexcept(false)
-#endif
 {
     bool isSuccess{true};
 
@@ -92,11 +88,7 @@ bool PhmDaemon::construct(const SupervisionBufferConfig& f_bufferConfig_r) noexc
         for (auto strSwClusterName : listSwClustersPhm.value())
         {
             swClusterHandlers.emplace_back(strSwClusterName);
-#ifdef USE_NEW_CONFIGURATION
             isSuccess = swClusterHandlers.back().constructWorkers(config, recoveryClient, processStateReader, f_bufferConfig_r);
-#else
-            isSuccess = swClusterHandlers.back().constructWorkers(recoveryClient, processStateReader, f_bufferConfig_r);
-#endif
             if (!isSuccess)
             {
                 LM_LOG_ERROR() << "Phm Daemon: failed to create worker objects for swclusterhandler:"

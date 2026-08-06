@@ -21,8 +21,9 @@
 #include "score/mw/launch_manager/process_group_manager/details/os_handler.hpp"
 
 #include "score/mw/launch_manager/common/constants.hpp"
+#include "score/mw/launch_manager/process_group_manager/details/mock_component_controller.hpp"
+#include "score/mw/launch_manager/process_group_manager/details/mock_component.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/safe_process_map.hpp"
-#include "score/mw/launch_manager/process_group_manager/details/mock_termination_callback.hpp"
 #include "score/os/mocklib/sys_wait_mock.h"
 
 using namespace testing;
@@ -42,23 +43,25 @@ class OsHandlerTest : public ::testing::Test
 
     static constexpr uint32_t kCapacity = 32U;
 
-    SafeProcessMap process_map_{kCapacity};
+    MockComponentController ccontroller_;
+    MockComponent component_;
+    SafeProcessMap process_map_{kCapacity, ccontroller_};
     score::os::MockGuard<score::os::SysWaitMock> sys_wait_mock_;
     std::unique_ptr<OsHandler> sut_;
 };
 
 TEST_F(OsHandlerTest, WaitReturnsProcessId_FindTerminatedIsCalled)
 {
-    RecordProperty("Description",
-                   "When sys_wait returns a valid pid, OsHandler calls findTerminated and the termination callback "
-                   "is invoked.");
+    RecordProperty(
+        "Description",
+        "When sys_wait returns a valid pid, OsHandler calls findTerminated and the termination callback "
+        "is invoked.");
 
     // given — insert a callback for pid 1000
-    NiceMock<MockTerminationCallback> callback;
-    process_map_.insertIfNotTerminated(1000, &callback);
+    process_map_.insertIfNotTerminated(1000, &component_);
 
     constexpr int32_t kExitStatus = 42;
-    EXPECT_CALL(callback, terminated(kExitStatus)).Times(AtLeast(1));
+    EXPECT_CALL(ccontroller_, terminated(_, kExitStatus)).Times(AtLeast(1));
 
     // sys_wait returns pid 1000 once, then blocks with error
     EXPECT_CALL(*sys_wait_mock_, wait(_))
@@ -79,8 +82,7 @@ TEST_F(OsHandlerTest, WaitReturnsError_OsHandlerSleepsAndDoesNotCallFindTerminat
     RecordProperty("Description", "When sys_wait returns an error, OsHandler sleeps and does not call findTerminated.");
 
     // given — insert a callback that should NOT be invoked
-    StrictMock<MockTerminationCallback> callback;
-    process_map_.insertIfNotTerminated(2000, &callback);
+    process_map_.insertIfNotTerminated(2000, &component_);
 
     EXPECT_CALL(*sys_wait_mock_, wait(_))
         .WillRepeatedly(Return(score::cpp::unexpected(score::os::Error::createFromErrno(ECHILD))));
@@ -98,7 +100,7 @@ TEST_F(OsHandlerTest, WaitReturnsZeroPid_OsHandlerSleepsAndDoesNotCallFindTermin
     RecordProperty("Description", "When sys_wait returns pid 0, OsHandler sleeps and does not call findTerminated.");
 
     // given
-    StrictMock<MockTerminationCallback> callback;
+    StrictMock<MockComponent> callback;
     process_map_.insertIfNotTerminated(3000, &callback);
 
     EXPECT_CALL(*sys_wait_mock_, wait(_)).WillRepeatedly(Return(score::cpp::expected<pid_t, score::os::Error>{0}));
@@ -113,10 +115,11 @@ TEST_F(OsHandlerTest, WaitReturnsZeroPid_OsHandlerSleepsAndDoesNotCallFindTermin
 
 TEST_F(OsHandlerTest, WaitReturnsProcessIdBeforeRegistration_LaterRegistrationReceivesStoredTermination)
 {
-    RecordProperty("Description",
-                   "Covers the race where a child terminates before the process has been registered in "
-                   "SafeProcessMap. OsHandler sees the pid first, stores the terminated state, and a later "
-                   "insertIfNotTerminated call must immediately deliver the stored exit status to the callback.");
+    RecordProperty(
+        "Description",
+        "Covers the race where a child terminates before the process has been registered in "
+        "SafeProcessMap. OsHandler sees the pid first, stores the terminated state, and a later "
+        "insertIfNotTerminated call must immediately deliver the stored exit status to the callback.");
 
     // given
     // Simulate the OS reporting that pid 4000 has already exited.
@@ -147,26 +150,28 @@ TEST_F(OsHandlerTest, WaitReturnsProcessIdBeforeRegistration_LaterRegistrationRe
     // Register the process after the termination has already been observed.
     // insertIfNotTerminated must detect the previously stored termination, return 1, and invoke the
     // callback immediately with the saved exit status instead of creating a new live entry.
-    StrictMock<MockTerminationCallback> callback;
-    EXPECT_CALL(callback, terminated(99)).Times(1);
-    EXPECT_EQ(process_map_.insertIfNotTerminated(4000, &callback),
-              score::lcm::internal::SafeProcessMap::SafeProcessMapReturnType::kYield);
+    EXPECT_CALL(ccontroller_, terminated(_, 99)).Times(1);
+    EXPECT_EQ(
+        process_map_.insertIfNotTerminated(4000, &component_),
+        score::lcm::internal::SafeProcessMapReturnType::kYield);
 
     sut_.reset();
 }
 
 TEST_F(OsHandlerTest, WaitReturnsUnknownPidWhenMapIsFull_OutOfResourcesPathDoesNotNotifyCallbacks)
 {
-    RecordProperty("Description",
-                   "When sys_wait reports an unknown pid and the map is full, OsHandler takes the out-of-resources "
-                   "path without notifying tracked callbacks.");
+    RecordProperty(
+        "Description",
+        "When sys_wait reports an unknown pid and the map is full, OsHandler takes the out-of-resources "
+        "path without notifying tracked callbacks.");
 
     // given
-    StrictMock<MockTerminationCallback> callbacks[kCapacity];
+    StrictMock<MockComponent> callbacks[kCapacity];
     for (uint32_t i = 0; i < kCapacity; ++i)
     {
-        ASSERT_EQ(process_map_.insertIfNotTerminated(static_cast<int32_t>(i + 1U), &callbacks[i]),
-                  score::lcm::internal::SafeProcessMap::SafeProcessMapReturnType::kOk);
+        ASSERT_EQ(
+            process_map_.insertIfNotTerminated(static_cast<int32_t>(i + 1U), &callbacks[i]),
+            score::lcm::internal::SafeProcessMapReturnType::kOk);
     }
 
     EXPECT_CALL(*sys_wait_mock_, wait(_))
@@ -186,15 +191,15 @@ TEST_F(OsHandlerTest, WaitReturnsUnknownPidWhenMapIsFull_OutOfResourcesPathDoesN
 
 TEST_F(OsHandlerTest, WaitReturnsErrorThenProcessId_HandlerRecoversAndInvokesCallback)
 {
-    RecordProperty("Description",
-                   "When sys_wait first returns an error and then a valid pid, OsHandler resumes processing and "
-                   "invokes the callback.");
+    RecordProperty(
+        "Description",
+        "When sys_wait first returns an error and then a valid pid, OsHandler resumes processing and "
+        "invokes the callback.");
 
     // given
-    NiceMock<MockTerminationCallback> callback;
-    process_map_.insertIfNotTerminated(5000, &callback);
+    process_map_.insertIfNotTerminated(5000, &component_);
 
-    EXPECT_CALL(callback, terminated(7)).Times(AtLeast(1));
+    EXPECT_CALL(ccontroller_, terminated(_, 7)).Times(AtLeast(1));
 
     EXPECT_CALL(*sys_wait_mock_, wait(_))
         .WillOnce(Return(score::cpp::unexpected(score::os::Error::createFromErrno(ECHILD))))

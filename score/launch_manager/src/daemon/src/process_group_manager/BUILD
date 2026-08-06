@@ -25,6 +25,19 @@ cc_library(
 )
 
 cc_library(
+    name = "mock_iprocess",
+    testonly = True,
+    hdrs = ["mock_iprocess.hpp"],
+    include_prefix = "score/mw/launch_manager/process_group_manager",
+    strip_include_prefix = "/score/launch_manager/src/daemon/src/process_group_manager",
+    visibility = ["//score:__subpackages__"],
+    deps = [
+        ":iprocess",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "ialive_monitor_thread",
     hdrs = ["ialive_monitor_thread.hpp"],
     include_prefix = "score/mw/launch_manager/process_group_manager",
@@ -50,10 +63,6 @@ cc_library(
 cc_library(
     name = "process_group_manager_hdrs",
     hdrs = ["process_group_manager.hpp"],
-    defines = select({
-        "//config:lm_use_new_configuration": ["USE_NEW_CONFIGURATION"],
-        "//conditions:default": [],
-    }),
     include_prefix = "score/mw/launch_manager/process_group_manager",
     strip_include_prefix = "/score/launch_manager/src/daemon/src/process_group_manager",
     visibility = ["//score/launch_manager/src/daemon/src/process_group_manager/details:__pkg__"],
@@ -63,25 +72,21 @@ cc_library(
         "//score/launch_manager/src/daemon/src/common:identifier_hash",
         "//score/launch_manager/src/daemon/src/common/concurrency:mpmc_concurrent_queue",
         "//score/launch_manager/src/daemon/src/common/concurrency:workerthread",
+        "//score/launch_manager/src/daemon/src/configuration:config",
+        "//score/launch_manager/src/daemon/src/configuration:configuration_adapter",
         "//score/launch_manager/src/daemon/src/control:control_client_channel",
         "//score/launch_manager/src/daemon/src/osal:ipc_comms",
         "//score/launch_manager/src/daemon/src/process_group_manager/details:graph",
+        "//score/launch_manager/src/daemon/src/process_group_manager/details:itransition_result_publisher",
         "//score/launch_manager/src/daemon/src/process_group_manager/details:os_handler",
         "//score/launch_manager/src/daemon/src/process_group_manager/details:process_info_node",
+        "//score/launch_manager/src/daemon/src/process_group_manager/details:process_launcher",
         "//score/launch_manager/src/daemon/src/process_group_manager/details:safe_process_map",
         "//score/launch_manager/src/daemon/src/process_state_client:iprocess_state_notifier",
         "//score/launch_manager/src/daemon/src/recovery_client",
         "//score/launch_manager/src/daemon/src/watchdog:i_watchdog_if",
         "@score_baselibs//score/language/futurecpp",
-    ] + select({
-        "//config:lm_use_new_configuration": [
-            "//score/launch_manager/src/daemon/src/configuration:config",
-            "//score/launch_manager/src/daemon/src/configuration:configuration_adapter",
-        ],
-        "//conditions:default": [
-            "//score/launch_manager/src/daemon/src/configuration:configuration_manager",
-        ],
-    }),
+    ],
 )
 
 cc_library(

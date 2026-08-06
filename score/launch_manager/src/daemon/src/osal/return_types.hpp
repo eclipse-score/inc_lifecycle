@@ -42,7 +42,6 @@ enum class CommsType : std::uint_least8_t {
     kNoComms = 0,      // Do not create any communications channel
     kReporting = 1,    // Create an osal::Comms object only
     kControlClient = 2,  // Create an osal::Comms object and reserve space for a ControlClientChannel
-    kLaunchManager = 3   // Do not create any comms chanel because this is us
 };
 
 ///@brief This enum class likely represents the return status or outcome of an operating system abstraction layer (OSAL)

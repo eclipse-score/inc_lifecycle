@@ -11,6 +11,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 load("@rules_cc//cc:defs.bzl", "cc_library")
+load("//tests/utils/bazel:unit_test.bzl", "lm_cc_test")
 
 cc_library(
     name = "os_clock_interface",
@@ -45,6 +46,15 @@ alias(
     name = "time_conversion",
     actual = ":timers_os_clock",
     visibility = ["//score/launch_manager/src/daemon/src/alive_monitor:__subpackages__"],
+)
+
+lm_cc_test(
+    name = "TimeConversion_UT",
+    srcs = ["TimeConversion_UT.cpp"],
+    deps = [
+        ":timers_os_clock",
+        "@googletest//:gtest_main",
+    ],
 )
 
 cc_library(

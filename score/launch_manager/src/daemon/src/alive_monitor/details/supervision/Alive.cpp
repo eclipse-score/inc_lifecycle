@@ -82,6 +82,7 @@ void Alive::updateData(const ifexm::ProcessState& f_observable_r) noexcept(true)
 
     const bool isRelevant = (state == ifexm::ProcessState::EProcState::running) ||
                             (state == ifexm::ProcessState::EProcState::sigterm) ||
+                            (state == ifexm::ProcessState::EProcState::failed) ||
                             (state == ifexm::ProcessState::EProcState::off);
 
     if (isRelevant)
@@ -279,7 +280,8 @@ Alive::EUpdateEventType Alive::getAliveEventType(bool f_isEvaluationEvent,
             return EUpdateEventType::kActivation;
         }
         if (snapshot.eProcState == ifexm::ProcessState::EProcState::sigterm ||
-            snapshot.eProcState == ifexm::ProcessState::EProcState::off)
+            snapshot.eProcState == ifexm::ProcessState::EProcState::off ||
+            snapshot.eProcState == ifexm::ProcessState::EProcState::failed)
         {
             return EUpdateEventType::kDeactivation;
         }

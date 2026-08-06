@@ -16,7 +16,7 @@
 #include "score/mw/launch_manager/configuration/config.hpp"
 #include "score/mw/launch_manager/configuration/config_loader.hpp"
 
-#include "score/launch_manager/src/daemon/src/configuration/details/new_lm_flatcfg_generated.h"
+#include "score/launch_manager/src/daemon/src/configuration/details/lm_flatcfg_generated.h"
 
 #include "score/mw/launch_manager/common/log.hpp"
 

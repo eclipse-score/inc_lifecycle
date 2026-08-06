@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # *******************************************************************************
 # Copyright (c) 2026 Contributors to the Eclipse Foundation
 #
@@ -14,6 +13,8 @@
 
 import subprocess
 import shutil
+import sys
+import os
 from pathlib import Path
 import filecmp
 from scripts.config_mapping.lifecycle_config import (
@@ -56,7 +57,7 @@ def run(
 
     # Execute lifecycle_config.py
     cmd = [
-        "python3",
+        sys.executable,
         str(lifecycle_script),
         str(input_file),
         "-o",
@@ -65,8 +66,15 @@ def run(
         str(schema_file),
     ]
 
+    # Pass the parent process's sys.path so the subprocess can find packages
+    # installed in the bazel virtualenv (e.g. jsonschema).
+    env = os.environ.copy()
+    env["PYTHONPATH"] = os.pathsep.join(sys.path)
+
     try:
-        result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+        result = subprocess.run(
+            cmd, check=True, capture_output=True, text=True, env=env
+        )
         print(f"Command executed successfully: {' '.join(cmd)}")
         print(f"Output: {result.stdout}")
     except subprocess.CalledProcessError as e:
@@ -123,68 +131,45 @@ def compare_files(dir1: Path, dir2: Path, files: list) -> bool:
     return True
 
 
-def test_basic(schema_file):
+def test_smoke_test(schema_file):
     """
     Basic Smoketest for generating both launch manager and health monitoring configuration
     """
 
-    test_name = "basic_test"
+    test_name = "smoke_test"
     input_file = tests_dir / test_name / "input" / "lm_config.json"
 
     run(input_file, test_name, schema_file)
 
 
-def test_health_config_mapping(schema_file):
+def test_minimal_config(schema_file):
     """
-    Test generation of the health monitoring configuration with
-    * Different application types
-    * Different alive supervision parameters
-    * Different Uid
+    Test generation of launch manager configuration
+    with only minimal required fields (no defaults section, minimal components).
     """
-    test_name = "health_config_test"
+    test_name = "minimal_config_test"
     input_file = tests_dir / test_name / "input" / "lm_config.json"
 
-    run(input_file, test_name, schema_file, exclude_files=["lm_demo.json"])
+    run(input_file, test_name, schema_file)
 
 
-def test_empty_health_config_mapping(schema_file):
+def test_full_config(schema_file):
     """
-    Test generation of the health monitoring configuration with no supervised processes
+    Test generation of launch manager configuration
+    with all parameters specified at every level (defaults, components, run targets,
+    alive supervision, watchdog, sandbox, etc.).
     """
-    test_name = "empty_health_config_test"
+    test_name = "full_config_test"
     input_file = tests_dir / test_name / "input" / "lm_config.json"
 
-    run(input_file, test_name, schema_file, exclude_files=["lm_demo.json"])
-
-
-def test_launch_config_mapping(schema_file):
-    """
-    Test generation of the launch manager configuration with
-    * Different application types
-    * Different dependency configurations
-    * Different ready conditions
-    """
-    test_name = "lm_config_test"
-    input_file = tests_dir / test_name / "input" / "lm_config.json"
-
-    run(input_file, test_name, schema_file, compare_files_only=["lm_demo.json"])
-
-
-def test_empty_launch_config_mapping(schema_file):
-    """
-    Test generation of the launch manager configuration with no processes defined
-    """
-    test_name = "empty_lm_config_test"
-    input_file = tests_dir / test_name / "input" / "lm_config.json"
-
-    run(input_file, test_name, schema_file, compare_files_only=["lm_demo.json"])
+    run(input_file, test_name, schema_file)
 
 
 def test_custom_validation_failures(schema_file):
     """
     Test that custom validation checks implemented in lifecycle_config.py are correctly identifying invalid configurations.
     The input configuration contains the following issues:
-    * The run target "Minimal" has a recovery action that switches to a run target "Full" instead of "fallback_run_target"
+    * The run target "Minimal" has a recovery action that switches to a run target "Fallback" instead of "fallback_run_target"
     * The mandatory "fallback_run_target" is missing from the configuration
     * Reserved name "fallback_run_target" is used for a RunTarget name which is not allowed
     * Initial RunTarget is not configured to "Startup"
@@ -224,7 +209,7 @@ def test_schema_validation_failures(schema_file):
     """
     Test that schema validation errors are correctly raised when the input configuration does not conform to the defined JSON schema.
     The input configuration contains the following issues:
-    * Missing required fields
+    * Missing required field "initial_run_target"
     """
     test_name = "schema_validation_failure_test"
     input_file = tests_dir / test_name / "input" / "lm_config.json"

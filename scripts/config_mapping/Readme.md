@@ -1,40 +1,27 @@
 # Motivation
 
-We are introducing a new, simpler configuration file for the launch_manager.
-To make use of the new configuration as early as possible, we are introducing a script to map the new configuration to the old configuration.
-Once the source code of the launch_manager has been adapted to read in the new configuration file, the mapping script will become obsolete.
+A translation script was introduced to map a new json configuration onto a legacy configuration format.
+In the meantime the legacy configuration format is fully removed.
+However, the translation script is still in place for the following reasons:
+
+* The new json configuration has some complicated handling of defaults, which is better done in python than in C++ code
+* Due to the specific json structure, the json configuration cannot be compiled directly to flattbuffer
+* The translation script is a natural place for configuration validation, which is better done before runtime
 
 # Usage
 
-Providing a json file using the new configuration format as input, the script will first validate the configuration against its schema. Then it will map the content to the old configuration file format and generate those files into the specified output_dir.
-
-## Bazel
-
-The bazel function `launch_manager_config` handles the translation of the new configuration format into the old configuration format and also does the subsequent compilation to flatbuffer files.
-
-```python
-load("@score_lifecycle_health//:defs.bzl", "launch_manager_config")
-
-# This is your launch manager configuration in the new format
-exports_files(["lm_config.json"])
-
-# Afterwards, you can refer to the generated flatbuffer files with :example_config_gen
-launch_manager_config(
-    name ="example_config_gen",
-    config="//scripts/config_mapping:lm_config.json"
-)
-```
+See `score/launch_manager/docs/user_guide/integration.rst`.
 
 ## Python
 
 ```
-python3 lifecycle_config.py <new_configuration.json> -o <output_dir> --schema <path/to/schema>
+python3 lifecycle_config.py <configuration.json> -o <output_dir> --schema <path/to/schema>
 ```
 
 If you want to **only** validate the configuration against its schema without generating any output:
 
 ```
-python3 lifecycle_config.py <new_configuration.json> --schema <path/to/schema> --validate
+python3 lifecycle_config.py <configuration.json> --schema <path/to/schema> --validate
 ```
 
 # Running Tests
@@ -44,6 +31,9 @@ bazel test //scripts/config_mapping/tests:lifecycle_config_tests
 ```
 
 # Mapping Details
+
+While the legacy configuration format is already removed, the following mapping still exists in the code.
+See `score/launch_manager/src/daemon/src/configuration/configuration_adapter.hpp` for details.
 
 ## Mapping of RunTargets to ProcessGroups
 

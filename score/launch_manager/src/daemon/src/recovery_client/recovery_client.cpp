@@ -10,34 +10,30 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
-#include <optional>
 #include "score/mw/launch_manager/recovery_client/recovery_client.hpp"
 
-namespace score {
-namespace lcm {
+#include <utility>
 
-RecoveryClient::RecoveryClient() noexcept : ringBuffer_{} {
-    ringBuffer_.initialize();
+namespace score
+{
+namespace lcm
+{
+
+void RecoveryClient::setRecoveryRequestCallback(RecoveryRequestCallback callback) noexcept
+{
+    std::lock_guard<std::mutex> lock(callback_mutex_);
+    callback_ = std::move(callback);
 }
 
-bool RecoveryClient::sendRecoveryRequest(const score::lcm::IdentifierHash& process_identifier) noexcept {
-    if (!ringBuffer_.tryEnqueue(process_identifier)) {
-        overflow_flag_ = true;
+bool RecoveryClient::sendRecoveryRequest(const score::lcm::IdentifierHash& process_identifier) noexcept
+{
+    std::lock_guard<std::mutex> lock(callback_mutex_);
+    if (!callback_)
+    {
         return false;
     }
+    callback_(process_identifier);
     return true;
 }
-
-bool RecoveryClient::hasOverflow() const noexcept {
-    return overflow_flag_.load();
-}
-
-std::optional<score::lcm::IdentifierHash> RecoveryClient::getNextRequest() noexcept {
-    score::lcm::IdentifierHash req;
-    if(ringBuffer_.tryDequeue(req)) {
-        return req;
-    }
-    return std::nullopt;
-}
-}
-}
+}  // namespace lcm
+}  // namespace score

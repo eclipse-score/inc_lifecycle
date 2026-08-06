@@ -20,5 +20,6 @@ User Guide
    concepts.rst
    ready_state.rst
    configuration.rst
+   integration.rst
    examples.rst
    implementation.rst

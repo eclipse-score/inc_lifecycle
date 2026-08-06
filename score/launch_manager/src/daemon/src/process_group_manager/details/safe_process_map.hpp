@@ -14,9 +14,10 @@
 #ifndef SAFE_PROCESS_MAP_HPP_INCLUDED
 #define SAFE_PROCESS_MAP_HPP_INCLUDED
 
-#include "score/mw/launch_manager/process_group_manager/iprocess.hpp"
 #include <atomic>
 #include <cstdint>
+#include "score/mw/launch_manager/process_group_manager/details/icomponent_controller.hpp"
+#include "score/mw/launch_manager/process_group_manager/iprocess.hpp"
 
 namespace score
 {
@@ -27,32 +28,13 @@ namespace lcm
 namespace internal
 {
 
-/// @brief Callback interface for process termination notification.
-///
-/// Decouples SafeProcessMap from concrete node types. Any object that needs to
-/// be notified when a tracked process terminates implements this interface.
-class ITerminationCallback
-{
-  public:
-    virtual ~ITerminationCallback() = default;
-
-    /// @brief Called when the associated process has terminated.
-    /// @param process_status The exit status reported by the operating system.
-    virtual void terminated(int32_t process_status) = 0;
-
-  protected:
-    ITerminationCallback() = default;
-    ITerminationCallback(const ITerminationCallback&) = default;
-    ITerminationCallback& operator=(const ITerminationCallback&) = default;
-    ITerminationCallback(ITerminationCallback&&) = default;
-    ITerminationCallback& operator=(ITerminationCallback&&) = default;
-};
+using namespace score::mw::lifecycle::internal;
 
 /// @brief Struct representing data in a map item
 struct ProcessInfoData
 {
     int32_t status_ = -1;                  ///< Exit status for process
-    ITerminationCallback* pin_ = nullptr;  ///< Pointer to the termination callback associated with this item.
+    IComponent* pin_ = nullptr;  ///< Pointer to the termination callback associated with this item.
 };
 /// @brief Struct representing an item in the map.
 struct ProcessTreeNode
@@ -63,34 +45,55 @@ struct ProcessTreeNode
     ProcessInfoData data_;
 };
 
+/// @brief Enum type used for public methods retrun value.
+enum class SafeProcessMapReturnType : std::int32_t
+{
+    /// @brief Method successfully executed.
+    kOk = 0,
+
+    /// @brief Clash due to PID re-use, method yields until the situation is resolved.
+    kYield = 1,
+
+    /// @brief An error occurred during insertion (e.g., out of memory).
+    kInsertionError = -1,
+
+    /// @brief The provided process ID (`key`) is not valid ( < 0).
+    kInvalidIdError = -2,
+
+    /// @brief The state is not defined.
+    kUndefined = 2,
+};
+
+/// @brief Interface for inserting a process into a process map if it has not already terminated.
+class SafeProcessMapInserter
+{
+  public:
+    virtual ~SafeProcessMapInserter() = default;
+
+    /// @brief Inserts a process into the map if it has not already terminated.
+    /// This method is called by a worker thread after starting a process. It attempts to insert the given process ID
+    /// (key) and its associated ITerminationCallback pointer into the map, ensuring that the process is not already
+    /// marked as terminated. In the case of a clash due to PID re-use, this method yields until the situation is
+    /// resolved.
+    /// @param key The process ID to insert into the map.
+    /// @param object A pointer to the ITerminationCallback associated with the process.
+    /// @return kOk if the key (Process ID) was not found and a new entry was made,
+    ///         kYield if the key was found (indicating the process has terminated), and updated with the provided
+    ///         object, kInsertionError if an error occurred during insertion (e.g., out of memory), or kInvalidIdError
+    ///         if the provided process ID (`key`) is not valid ( < 0).
+    virtual SafeProcessMapReturnType insertIfNotTerminated(osal::ProcessID key, IComponent* object) = 0;
+};
+
 /// @brief The SafeProcessMap class provides a thread-safe mapping of unique process IDs (ProcessID) to
 /// ITerminationCallback pointers. It ensures safe concurrent access and modification of the mapping, using atomic
 /// operations.
-class SafeProcessMap final
+class SafeProcessMap final : public SafeProcessMapInserter
 {
   public:
-    /// @brief Enum type used for public methods retrun value.
-    enum class SafeProcessMapReturnType : std::int32_t
-    {
-        /// @brief Method successfully executed.
-        kOk = 0,
-
-        /// @brief Clash due to PID re-use, method yields until the situation is resolved.
-        kYield = 1,
-
-        /// @brief An error occurred during insertion (e.g., out of memory).
-        kInsertionError = -1,
-
-        /// @brief The provided process ID (`key`) is not valid ( < 0).
-        kInvalidIdError = -2,
-
-        /// @brief The state is not defined.
-        kUndefined = 2,
-    };
-    /// @brief Constructs a SafeProcessMap with a specified capacity.
-    /// This constructor initializes the SafeProcessMap with the given capacity.
-    /// @param capacity The maximum number of entries that the SafeProcessMap can hold.
-    explicit SafeProcessMap(uint32_t capacity);
+    /// @brief Constructs a SafeProcessMap.
+    /// @param capacity The maximum number of entries the map can hold.
+    /// @param termination_handler Called when a terminated process is matched with its component.
+    SafeProcessMap(uint32_t capacity, IComponentController& termination_handler);
 
     /// @brief Destructor to clean up resources used by the SafeProcessMap object.
     ~SafeProcessMap() = default;
@@ -108,17 +111,8 @@ class SafeProcessMap final
     SafeProcessMapReturnType findTerminated(osal::ProcessID key, int32_t status);
 
     /// @brief Inserts a process into the map if it has not already terminated.
-    /// This method is called by a worker thread after starting a process. It attempts to insert the given process ID
-    /// (key) and its associated ITerminationCallback pointer into the map, ensuring that the process is not already
-    /// marked as terminated. In the case of a clash due to PID re-use, this method yields until the situation is
-    /// resolved.
-    /// @param key The process ID to insert into the map.
-    /// @param object A pointer to the ITerminationCallback associated with the process.
-    /// @return kOk if the key (Process ID) was not found and a new entry was made,
-    ///         kYield if the key was found (indicating the process has terminated), and updated with the provided
-    ///         object, kInsertionError if an error occurred during insertion (e.g., out of memory), or kInvalidIdError
-    ///         if the provided process ID (`key`) is not valid ( < 0).
-    SafeProcessMapReturnType insertIfNotTerminated(osal::ProcessID key, ITerminationCallback* object);
+    /// @see SafeProcessMapInserter::insertIfNotTerminated() for details
+    SafeProcessMapReturnType insertIfNotTerminated(osal::ProcessID key, IComponent* object) override;
 
   private:
     /// @brief Searches for a process with the given process ID (key) in the map.
@@ -224,6 +218,8 @@ class SafeProcessMap final
     /// This variable represents the current index used for traversal within the SafeProcessMap.
     /// It initially starts with LINK_NO_VALUE, indicating no valid position.
     uint32_t rover_{LINK_NO_VALUE};
+
+    IComponentController& termination_handler_;
 };
 
 }  // namespace internal

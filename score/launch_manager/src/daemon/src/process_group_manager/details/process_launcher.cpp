@@ -24,6 +24,7 @@
 
 #include "score/mw/launch_manager/common/log.hpp"
 #include "score/mw/launch_manager/common/signal_safe_log.hpp"
+#include "score/mw/launch_manager/process_group_manager/details/process_launcher.hpp"
 #include "score/mw/launch_manager/control/control_client_channel.hpp"
 #include "score/mw/launch_manager/osal/ipc_comms.hpp"
 #include "score/mw/launch_manager/osal/security_policy.hpp"
@@ -85,7 +86,6 @@ void handleComms(score::lcm::internal::osal::ChildProcessConfig& param)
     // kNoComms !fd3 & !fd4
     // kReporting  fd3 & !fd4
     // kControlClient  fd3 & fd4
-    // kLaunchManager  does not matter
     if (!param.shared_block)
     {
         // kNoComms, fds are CLOEXEC
@@ -122,9 +122,6 @@ void handleComms(score::lcm::internal::osal::ChildProcessConfig& param)
                 static_cast<void>(signal_safe_log_errno(errno, "fcntl at line ", __LINE__, " failed"));
                 sysexit(EXIT_FAILURE);
             }
-            break;
-        case CommsType::kLaunchManager:
-            // nothing to do here
             break;
         default:
             static_cast<void>(signal_safe_log(
@@ -191,7 +188,7 @@ namespace internal
 namespace osal
 {
 
-OsalReturnType IProcess::startProcess(ProcessID* pid, IpcCommsP* block, const OsalConfig* config)
+OsalReturnType ProcessLauncher::startProcess(ProcessID* pid, IpcCommsP* block, const OsalConfig* config)
 {
     OsalReturnType result = OsalReturnType::kFail;
 
@@ -263,7 +260,7 @@ OsalReturnType IProcess::startProcess(ProcessID* pid, IpcCommsP* block, const Os
     return result;
 }
 
-inline bool IProcess::setupComms(IpcCommsP& block, int& fd, const OsalConfig& config)
+inline bool ProcessLauncher::setupComms(IpcCommsP& block, int& fd, const OsalConfig& config)
 {
     bool comms_result = true;
     char shm_name[static_cast<uint32_t>(score::lcm::internal::ProcessLimits::maxLocalBuffSize)];
@@ -327,7 +324,7 @@ inline bool IProcess::setupComms(IpcCommsP& block, int& fd, const OsalConfig& co
     return comms_result;
 }
 
-inline IpcCommsP IProcess::initializeControlClient(int& fd, const OsalConfig& config)
+inline IpcCommsP ProcessLauncher::initializeControlClient(int& fd, const OsalConfig& config)
 {
     LM_LOG_DEBUG() << "Initialize the control client for" << config.short_name_ << " process";
     /* Initialise the control client communications */
@@ -343,7 +340,7 @@ inline IpcCommsP IProcess::initializeControlClient(int& fd, const OsalConfig& co
     return shared_block;
 }
 
-inline bool IProcess::initializeSemaphores(IpcCommsP shared_block)
+inline bool ProcessLauncher::initializeSemaphores(IpcCommsP shared_block)
 {
     bool result = true;
 
@@ -358,13 +355,12 @@ inline bool IProcess::initializeSemaphores(IpcCommsP shared_block)
 }
 
 /// @details The implementation should be async signal safe.
-OsalReturnType IProcess::setSchedulingAndSecurity(const OsalConfig& config)
+OsalReturnType ProcessLauncher::setSchedulingAndSecurity(const OsalConfig& config)
 {
     OsalReturnType retval = OsalReturnType::kSuccess;
 
     // Set process group id to be equal to the pid
-    // setpgid will fail if called by a session lader (which LCMd is), so skip
-    if (config.comms_type_ != osal::CommsType::kLaunchManager && 0 != setpgid(0, getpid()))
+    if (0 != setpgid(0, getpid()))
     {
         static_cast<void>(signal_safe_log_errno(errno, "setpgid() failed"));
         retval = OsalReturnType::kFail;
@@ -437,7 +433,7 @@ OsalReturnType IProcess::setSchedulingAndSecurity(const OsalConfig& config)
 }
 
 /// @details The implementation should be async signal safe.
-inline void IProcess::handleChildProcess(ChildProcessConfig& param)
+inline void ProcessLauncher::handleChildProcess(ChildProcessConfig& param)
 {
     handleComms(param);
 
@@ -462,7 +458,7 @@ inline void IProcess::handleChildProcess(ChildProcessConfig& param)
     }
 }
 
-OsalReturnType IProcess::requestTermination(ProcessID pid)
+OsalReturnType ProcessLauncher::requestTermination(ProcessID pid)
 {
     LM_LOG_DEBUG() << "Request termination received for" << pid;
 
@@ -488,7 +484,7 @@ OsalReturnType IProcess::requestTermination(ProcessID pid)
     return result;
 }
 
-OsalReturnType IProcess::forceTermination(ProcessID pid)
+OsalReturnType ProcessLauncher::forceTermination(ProcessID pid)
 {
     LM_LOG_DEBUG() << "Forced termination received for pid" << pid;
 
@@ -517,7 +513,7 @@ OsalReturnType IProcess::forceTermination(ProcessID pid)
     return result;
 }
 
-OsalReturnType IProcess::waitForTermination(osal::ProcessID& pid, int32_t& status)
+OsalReturnType ProcessLauncher::waitForTermination(osal::ProcessID& pid, int32_t& status)
 {
     int32_t wait_status;
     osal::OsalReturnType result = osal::OsalReturnType::kFail;
@@ -540,7 +536,7 @@ OsalReturnType IProcess::waitForTermination(osal::ProcessID& pid, int32_t& statu
     return result;
 }
 
-OsalReturnType IProcess::waitForkRunning(IpcCommsP sync, std::chrono::milliseconds timeout)
+OsalReturnType ProcessLauncher::waitForkRunning(IpcCommsP sync, std::chrono::milliseconds timeout)
 {
     OsalReturnType result = OsalReturnType::kSuccess;
 

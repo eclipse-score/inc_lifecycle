@@ -28,7 +28,6 @@ namespace saf
 namespace daemon
 {
 
-#ifdef USE_NEW_CONFIGURATION
 AliveMonitorImpl::AliveMonitorImpl(SptrIRecoveryClient recovery_client,
                                    UptrIProcessStateReceiver process_state_receiver,
                                    const Config& config)
@@ -37,14 +36,6 @@ AliveMonitorImpl::AliveMonitorImpl(SptrIRecoveryClient recovery_client,
       m_config(config)
 {
 }
-#else
-AliveMonitorImpl::AliveMonitorImpl(SptrIRecoveryClient recovery_client,
-                                   UptrIProcessStateReceiver process_state_receiver)
-    : m_recovery_client(recovery_client),
-      m_process_state_receiver{std::move(process_state_receiver)}
-{
-}
-#endif
 
 EInitCode AliveMonitorImpl::init() noexcept
 {
@@ -54,11 +45,7 @@ EInitCode AliveMonitorImpl::init() noexcept
         m_osClock.startMeasurement();
 
         m_daemon = std::make_unique<PhmDaemon>(m_osClock, std::move(m_process_state_receiver));
-    #ifdef USE_NEW_CONFIGURATION
         initResult = m_daemon->init(m_recovery_client, m_config);
-    #else
-        initResult = m_daemon->init(m_recovery_client);
-    #endif
 
         if (initResult == EInitCode::kNoError)
         {

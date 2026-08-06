@@ -33,7 +33,7 @@ jobs:
           - bazel-config: unit-tests-arm64-qnx
             bazel-test-target: //examples/... //score/... //tests/...
             extra-bazel-test-flags: "--test_timeout=120,600,1800,7200" # Increase test timeout due to QEMU emulation
-    uses: eclipse-score/cicd-workflows/.github/workflows/qnx-build.yml@473c10b74361afb7506a5d35ea554030753d5594
+    uses: eclipse-score/cicd-workflows/.github/workflows/qnx-build.yml@d5dfe332bab87edb629ae691dd4c83923712ec3d
     permissions:
       contents: read
       pull-requests: read

@@ -32,17 +32,14 @@ def test_complex_monitoring(target, setup_test, assert_test_results, remote_test
     Expected Behaviour: Health monitor detects the missed heartbeats and triggers a recovery action, activating the fallback run target.
     """
 
-    # launch manager will simply ignore the arguments if run with --//config:use_new_configuration=False.
-    # the old configuration will be used, which is the default behavior.
-    # The new configuration will be used if run with --//config:use_new_configuration=True
-    new_config_path = str(remote_test_dir / "etc/complex_monitoring.bin")
+    config_path = str(remote_test_dir / "etc/complex_monitoring.bin")
 
     run_until_file_deployed(
         target=target,
         binary_path=str(remote_test_dir / "launch_manager"),
         file_path=remote_test_dir.parent / "test_end",
         cwd=str(remote_test_dir),
-        args=["-c", new_config_path],
+        args=["-c", config_path],
         timeout_s=4.0,
     )
 

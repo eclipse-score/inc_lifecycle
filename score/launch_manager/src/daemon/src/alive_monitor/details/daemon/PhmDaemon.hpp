@@ -26,11 +26,7 @@
 #include "score/mw/launch_manager/alive_monitor/details/timers/CycleTimeValidator.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/CycleTimer.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/TimeConversion.hpp"
-#ifdef USE_NEW_CONFIGURATION
 #include "score/mw/launch_manager/configuration/config.hpp"
-#else
-#include "score/mw/launch_manager/alive_monitor/details/factory/MachineConfigFactory.hpp"
-#endif
 namespace score
 {
 namespace lcm
@@ -47,8 +43,6 @@ enum class EInitCode : std::int8_t
     kNotInitialized,                   ///< Init was not performed
     kCycleTimeInitFailed,              ///< Cyclic Timer initialization failed
     kConstructFlatCfgFactoryFailed,    ///< FlatCfgFactory failed loading SWCL configurations
-    kMachineConfigInitFailed,          ///< MachineConfigFactory failed loading the machine configuration
-    kSignalHandlerRegistrationFailed,  ///< Failed to register signal handler for termination signals
     kGeneralError                      ///< General error
 };
 
@@ -61,17 +55,12 @@ class PhmDaemon
     using OsClock = score::lcm::saf::timers::OsClockInterface;
     using ProcessStateReceiver = score::lcm::IProcessStateReceiver;
     using RecoveryClient = score::lcm::IRecoveryClient;
-#ifndef USE_NEW_CONFIGURATION
-    using MachineConfigFactory = factory::MachineConfigFactory;
-#endif
     using SupervisionBufferConfig = factory::SupervisionBufferConfig;
     using CycleTimer = score::lcm::saf::timers::CycleTimer;
     using CycleTimeValidator = score::lcm::saf::timers::CycleTimeValidator;
     using NanoSecondType = score::lcm::saf::timers::NanoSecondType;
     using ProcessStateReader = score::lcm::saf::ifexm::ProcessStateReader;
-#ifdef USE_NEW_CONFIGURATION
     using Config = score::mw::launch_manager::configuration::Config;
-#endif
 
     /* RULECHECKER_comment(0, 4, check_expensive_to_copy_in_parameter, "f_supervisionErrorInfo name is passed by value\
      as same as generated function", true_no_defect) */
@@ -101,7 +90,6 @@ class PhmDaemon
     /// (Constructing the workers, adjusting the cycle time, initialization of fixed step timer)
     /// @param[in] recovery_client Shared pointer to recovery client
     /// @return See EInitCode definition
-#ifdef USE_NEW_CONFIGURATION
     EInitCode init(std::shared_ptr<RecoveryClient> recovery_client, const Config& config) noexcept(false)
     {
         recoveryClient = recovery_client;
@@ -113,24 +101,7 @@ class PhmDaemon
 
         int64_t cycleTimeModified{static_cast<std::int64_t>(
             timers::TimeConversion::convertMilliSecToNanoSec(config.aliveSupervision().evaluation_cycle_ms))};
-#else
-    EInitCode init(std::shared_ptr<RecoveryClient> recovery_client) noexcept(false)
-    {
-        recoveryClient = recovery_client;
 
-        MachineConfigFactory machineConfig{};
-        if (!machineConfig.init())
-        {
-            return EInitCode::kMachineConfigInitFailed;
-        }
-
-        if (!construct(factory::StaticConfig::kDefaultSupervisionBufferConfig))
-        {
-            return EInitCode::kConstructFlatCfgFactoryFailed;
-        }
-
-        int64_t cycleTimeModified{static_cast<std::int64_t>(machineConfig.getCycleTimeInNs())};
-#endif
         cycleTimeModified = CycleTimeValidator::adjustCycleTimeOnClockAccuracy(cycleTimeModified, osClock);
 
         const int64_t timerInit{cycleTimer.init(cycleTimeModified)};
@@ -227,11 +198,7 @@ class PhmDaemon
     /// @details Create the SwclusterHandler objects and the workers for the SwclusterHandler
     /// @param[in] f_bufferConfig_r The buffer configuration used for worker construction
     /// @return bool true if workers creation succeeded, false otherwise
-#ifdef USE_NEW_CONFIGURATION
     bool construct(const Config& config, const SupervisionBufferConfig& f_bufferConfig_r) noexcept(false);
-#else
-    bool construct(const SupervisionBufferConfig& f_bufferConfig_r) noexcept(false);
-#endif
 
     /// @brief Perform cyclic execution of Phm daemon
     /// @details Perform cyclic execution of Phm daemon functionalities, for e.g., evaluation of supervisions.

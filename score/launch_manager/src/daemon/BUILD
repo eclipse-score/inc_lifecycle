@@ -15,10 +15,6 @@ load("@rules_cc//cc:defs.bzl", "cc_binary")
 cc_binary(
     name = "launch_manager",
     srcs = ["src/main.cpp"],
-    defines = select({
-        "//config:lm_use_new_configuration": ["USE_NEW_CONFIGURATION"],
-        "//conditions:default": [],
-    }),
     linkopts = select({
         "@platforms//os:qnx": ["-lsecpol"],
         "@platforms//os:linux": ["-lpthread"],
@@ -28,6 +24,7 @@ cc_binary(
         "//score/launch_manager/src/daemon/src/alive_monitor",
         "//score/launch_manager/src/daemon/src/common:assertion_handler",
         "//score/launch_manager/src/daemon/src/common:log",
+        "//score/launch_manager/src/daemon/src/configuration:flatbuffer_config_loader",
         "//score/launch_manager/src/daemon/src/osal:ipc_comms",
         "//score/launch_manager/src/daemon/src/process_group_manager",
         "//score/launch_manager/src/daemon/src/process_group_manager:alive_monitor_thread",
@@ -35,10 +32,5 @@ cc_binary(
         "//score/launch_manager/src/daemon/src/recovery_client",
         "//score/launch_manager/src/daemon/src/watchdog:watchdog_factory",
         "@score_baselibs//score/language/futurecpp",
-    ] + select({
-        "//config:lm_use_new_configuration": [
-            "//score/launch_manager/src/daemon/src/configuration:flatbuffer_config_loader",
-        ],
-        "//conditions:default": [],
-    }),
+    ],
 )

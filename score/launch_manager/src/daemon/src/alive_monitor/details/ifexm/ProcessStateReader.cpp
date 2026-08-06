@@ -149,6 +149,9 @@ constexpr ProcessState::EProcState ProcessStateReader::translateProcessState(
     static_assert(static_cast<uint8_t>(ProcessState::EProcState::off) ==
                       static_cast<uint8_t>(score::lcm::ProcessState::kTerminated),
                   "Lcm State Enum and ProcessState::EProcState Enum do not match.");
+    static_assert(static_cast<uint8_t>(ProcessState::EProcState::failed) ==
+                      static_cast<uint8_t>(score::lcm::ProcessState::kFailed),
+                  "Lcm State Enum and ProcessState::EProcState Enum do not match.");
     return static_cast<ProcessState::EProcState>(f_processStateLcm);
 }
 

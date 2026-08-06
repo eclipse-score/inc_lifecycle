@@ -12,6 +12,8 @@
    # SPDX-License-Identifier: Apache-2.0
    # *******************************************************************************
 
+.. _lm_config_examples:
+
 Configuration Examples
 ======================
 

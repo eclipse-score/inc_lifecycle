@@ -23,6 +23,7 @@ cc_library(
         ":mpmc_concurrent_queue",
         "//score/launch_manager/src/daemon/src/common:constants",
         "//score/launch_manager/src/daemon/src/common:log",
+        "//score/launch_manager/src/daemon/src/process_group_manager/details:icomponent_controller",
     ],
 )
 

@@ -31,17 +31,14 @@ def test_process_crash_monitoring(
     Expected Behaviour: Launch manager detects the crash and activates the fallback run target.
     """
 
-    # launch manager will simply ignore the arguments if run with --//config:use_new_configuration=False.
-    # the old configuration will be used, which is the default behavior.
-    # The new configuration will be used if run with --//config:use_new_configuration=True
-    new_config_path = str(remote_test_dir / "etc/process_crash_monitoring.bin")
+    config_path = str(remote_test_dir / "etc/process_crash_monitoring.bin")
 
     run_until_file_deployed(
         target=target,
         binary_path=str(remote_test_dir / "launch_manager"),
         file_path=remote_test_dir.parent / "test_end",
         cwd=str(remote_test_dir),
-        args=["-c", new_config_path],
+        args=["-c", config_path],
         timeout_s=10.0,
     )
 

@@ -14,219 +14,164 @@
 #ifndef _INCLUDED_PROCESSINFONODE_
 #define _INCLUDED_PROCESSINFONODE_
 
-#include <atomic>
-#include "score/mw/launch_manager/process_state_client/posix_process.hpp"
-#ifdef USE_NEW_CONFIGURATION
 #include "score/mw/launch_manager/configuration/configuration_adapter.hpp"
-#else
-#include "score/mw/launch_manager/configuration/configuration_manager.hpp"
-#endif
-#include "score/mw/launch_manager/process_group_manager/details/safe_process_map.hpp"
 #include "score/mw/launch_manager/control/control_client_channel.hpp"
+#include "score/mw/launch_manager/process_group_manager/details/icomponent.hpp"
+#include "score/mw/launch_manager/process_group_manager/details/safe_process_map.hpp"
+#include <score/stop_token.hpp>
+#include <atomic>
 
-namespace score {
+namespace score
+{
 
-namespace lcm {
+namespace lcm
+{
 
-namespace internal {
+namespace internal
+{
 
-/// @brief Forward declaration of the ProcessInfoNode class.
-class ProcessInfoNode;
+using namespace score::mw::lifecycle::internal;
 
-/// @brief Forward declaration of the Graph class.
-class Graph;
+using ReportStateFn = std::function<bool(IdentifierHash, ProcessState, timespec)>;
 
-/// @brief Type alias for a vector of shared pointers to ProcessInfoNode objects.
-/// Used to maintain a list of successor nodes in a directed graph of process dependencies.
-using SuccessorList = std::vector<std::shared_ptr<ProcessInfoNode>>;
+/// @brief Represents both a process and a component in the graph.
+/// @details A ProcessInfoNode is a node in the dependency graph that represents an OS process and its associated
+/// component. It manages the lifecycle of the process, including activation, deactivation, and state reporting. The
+/// node tracks the process's PID, status, and state, and provides methods to activate or deactivate the process, as
+/// well as to report its completion or error state. At the same time it implements the IComponent interface, allowing
+/// it to be treated as a component in the graph's transition engine.
+/// @note A Component and a Process have distinct state machines. The component may be in kActive state while the
+/// process is in kTerminated state, for example, if the process self-terminates after reaching its ready condition.
+///       In the future, this class shall be split up to properly separate Component and Process lifecycle.
+class ProcessInfoNode final : public IComponent
+{
+  public:
+    /// @brief The criteria for when a process is considered "ready"
+    enum class ReadyCondition : uint8_t
+    {
+        kRunning,     // Running reported in the case of a reporting process, process launched if non-reporting
+        kTerminated,  // Process has terminated with status 0
+    };
 
-/// @brief  ProcessInfoNode holds the current state of the process and is responsible for performing the actions required to start and stop processes
-/// During initialisation it calculates the reverse dependencies of a process
-/// At the start of a state transition it evaluates if a process should be included in the operation, and how
-/// During state transition it queues new jobs in response to events so that each node participates in a directed graph with
-/// the events kRunning received or expected process termination forming connecting edges.
-/// Unexpected termination of a process or reception of a timeout result in the failure of this graph.
-/// The ProcessInfoNode thus represents an adaptive process with specific startup configuration and dependencies
-class ProcessInfoNode final : public ITerminationCallback {
-   public:
-    /// Constructor for Process Infonode
-    ProcessInfoNode()
+    /// @brief Constructs a ProcessInfoNode.
+    /// @param config Configuration for the OS process.
+    /// @param index The process index within its process group.
+    /// @param ready_condition Whether this process is considered ready when running or when terminated.
+    /// @param report_function Callback used to report state changes to the platform health manager.
+    /// @param process_interface The OS process interface used to start and stop the process.
+    /// @param process_map The shared process map used to track process pids.
+    ProcessInfoNode(
+        const OsProcess* config,
+        uint32_t index,
+        ReadyCondition ready_condition,
+        ReportStateFn report_function,
+        osal::IProcess* process_interface,
+        std::shared_ptr<SafeProcessMapInserter> process_map);
+
+    /// @brief Explicit move constructor required due to atomics. PIN must be moveable to exist in the graph
+    ProcessInfoNode(ProcessInfoNode&& other) noexcept
         : terminator_(),
-          has_semaphore_(false),
-          process_index_(0),
-          pid_(0),
-          status_(0),
-          process_state_(score::lcm::ProcessState::kIdle),
-          dependencies_(0),
-          start_dependencies_(0),
-          stop_dependencies_(0),
-          dependent_on_running_(),
-          dependent_on_terminating_(),
-          graph_(nullptr),
-          in_requested_state_(false),
-          is_included_(false),
-          is_head_node_(false),
-          config_(nullptr),
-          dependency_list_(nullptr){};
-    /// @brief Initialise this node.
-    /// The member variables are initialised. The configuration manager is called to retrieve the configuration details and
-    /// dependencies for the process given by pg, idx.
-    /// The successor lists (dependent_on_running_, dependent_on_termination_) are initialised ready for the graph object to add items.
-    /// @param graph Pointer to the graph of which this node is part
-    /// @param index The process index in the process group
-    void initNode(Graph* graph, uint32_t index);
+          has_semaphore_(other.has_semaphore_.load()),
+          process_index_(other.process_index_),
+          pid_(other.pid_),
+          status_(other.status_.load()),
+          process_state_(other.process_state_.load()),
+          reached_ready_(other.reached_ready_.load()),
+          ready_condition_(other.ready_condition_),
+          config_(other.config_),
+          control_client_channel_(std::move(other.control_client_channel_)),
+          sync_(std::move(other.sync_)),
+          process_interface_(other.process_interface_),
+          process_map_(std::move(other.process_map_))
+    {
+    }
 
-    /// @brief Notify the ProcessInfoNode that the associated adaptive application has terminated
-    /// The process enters the kTerminated state, and if the termination was expected, any successor nodes
-    /// defined for this function state transition are queued on the job queue
-    /// An unexpected termination will result in graph failure and an undefined process group state
-    /// The process status is saved in the ProcessInfoNode
-    /// This method will be called by the OsHander.
-    /// @param process_status - the value returned by the OS for the process termination status
-    void terminated(int32_t process_status) override;
+    ProcessInfoNode(ProcessInfoNode& other) = delete;
+    ProcessInfoNode& operator=(const ProcessInfoNode& other) = delete;
+    ProcessInfoNode& operator=(ProcessInfoNode&& other) = delete;
+    ~ProcessInfoNode() = default;
 
-    /// @brief Called by a worker thread to perform the expected action for this node
-    /// The action will either be to start the process, if graph_->isStarting() returns true,
-    /// or otherwise to stop the process. The action will result in process termination, kRunning received,
-    /// or a timeout.
-    void doWork();
+    uint32_t getIndex() const override;
 
-    /// @brief Get the operating system process identifier (pid) last stored for this process
-    /// @return A non-zero positive integer, or zero if the process has never run.
+    RequestResult activate(score::cpp::stop_token stop_token) override;
+
+    RequestResult deactivate(score::cpp::stop_token stop_token) override;
+
+    RequestResult tryHandleTermination(int32_t process_status) override;
+
+    bool active() const override;
+
+    /// @return The OS process ID, or zero if the process has never been started.
     osal::ProcessID getPid() const;
 
-    /// @brief Get the current state of the process recorded in the ProcessInfoNode
-    /// @return a value from the ProcessState enumeration
+    /// @return The current state of this process.
     score::lcm::ProcessState getState() const;
 
-    /// @brief Participate in graph initialisation
-    /// If starting== false, the graph is in the first (stopping) stage, and the number of dependencies for the starting phase
-    /// are counted in preparation. The number of termination dependencies is constant and was calculated during initialisation.
-    /// In this phase, a node should be included in the graph if the process state is not kIdle, and the process is not in the
-    /// requested state.
-    /// If starting == true, the graph is in the second (process starting) phase, and the a node should be included if the process is in
-    /// the requested state and it's not running.
-    ///
-    /// Initialise dependencies_ appropriately (start_dependencies in start phase, stop_dependencies_ in stop phase).
-    /// Record whether or not this node will be a head node for the current graph. A head node is one that is included in the graph, and has no
-    /// dependencies.
-    /// @param starting False is the graph is in the first phase (process stopping). True if the graph is in the second phase (process starting)
-    /// @return True if the node should be included in the graph, false otherwise.
-    bool constructGraphNode(bool starting);
+    /// @return The ControlClientChannel for this process, or nullptr if none exists.
+    ControlClientChannelP getControlClientChannel() const;
 
-    /// @brief Mark the node as being included or not included in the requested state
-    /// @param requested true for inclusion, false otherwise
-    void markRequested(bool requested);
-
-    /// @brief Return true if the node is a head node in the current graph
-    /// @return true for head node, false otherwise
-    bool isHeadNode() const;
-
-    /// @brief Add a successor item. The ProcessState parameter determines which list the successor is added to
-    /// @param successor_node The ProcessInfoNode to succeed this one
-    /// @param dependency The dependency relation (kRunning or kTerminated)
-    void addSuccessorNode(std::shared_ptr<ProcessInfoNode>& successor_node, score::lcm::ProcessState dependency);
-
-    /// @brief Return the index of this process in the process group. This method is used by the Graph object during
-    /// calculation of the successor lists.
-    /// @return  index of process in process group as set by initNode()
-    uint32_t getNodeIndex() const;
-
-    /// @brief get the ControlClientChannel pointer for this process
-    /// @return the value (including possibly nullptr) of the ControlClientChannel for this process
-    ControlClientChannelP getControlClientChannel();
-
-    /// @brief Return a pointer to the next active state manager in this process group
-    /// This assumes that this process was an active state manager; Any ControlClientChannel pointer retrieved
-    /// for the node must still be checked for validity. To get the first state manager, simply check the first
-    /// node in the vector, if this does not have a control_client_channel_, call getNextStateManager().
-    /// @note this method will remove inactive (not running) state managers "on the fly". We do this rather than
-    /// removing them when a process exits as it is simpler and more efficient.
-    /// @return Pointer to the node that's next in the list as a state manager, or nullptr if there isn't one
-    std::shared_ptr<ProcessInfoNode> getNextStateManager();
-
-   private:
-    /// @brief Indivisibly set the state of the process and report. Only valid transitions are allowed
-    /// @details If a valid process state transition was made the process state change is also reported
-    ///         to the platform health manager using the process state notifier mechanism, but only if the
-    ///         process is marked as a reporting process. If no PHM is running, then the shared buffer will
-    ///         simply overrun. This design means that PHM is able to see buffered state changes for processes
-    ///         that were started before PHM was started.
-    /// @param new_state
-    /// @return true if the state was set to the provided value, false otherwise
+  private:
+    /// @brief Atomically transitions to new_state if the transition is valid. For reporting
+    /// processes, also notifies the platform health manager of the state change.
+    /// @param new_state The desired process state.
+    /// @return True if the state was changed, false if the transition was not valid.
     bool setState(score::lcm::ProcessState new_state);
 
-    /// @brief Request process termination
-    /// Set the process state to terminating, and if this was successful, start the timeout and request termination of
-    /// the process.
-    /// If the state could not be set, then the process must have terminated, so process the termination by notifying the
-    /// graph that a node executed and queuing any successor nodes
-    void terminateProcess();
+    /// @brief Helper method to post on the semaphore waiting for kRunning if it exists
+    void unblockSync();
 
-    /// @brief handle the case of unexpected termination
-    void unexpectedTermination();
+    /// @brief Get the request result corresponding to the new state reached. For example, if the ready state is
+    /// terminated, the function will only return kSuccess if the new state is kTerminated.
+    /// @return Success if the ready condition is satisfied and completion is not already reported, an error if the
+    /// state is unrecoverable, waiting otherwise.
+    RequestResult tryReportCompletion(score::lcm::ProcessState new_state);
 
-    /// @brief Start the process
-    /// Set the process state to kStarting and attempt to start the process using the startProcess method of the process interface.
-    /// If this was successful, if the process is a state manager add it to the list of state managers then wait for kRunning using
-    /// the kRunningReceived() method, and then for a self-terminating process that has successors in this process group state, wait
-    /// for up to kMaxTerminationDelay for the process to end.
-    /// If waiting for kRunning failed, call the timeoutReceived() method.
-    /// If starting the process failed, call graph_->abort(error_code, kSetStateFailed) where error_code if the configured error code
-    /// for this process.
-    void startProcess();
+    /// @return The provided error if the result has not been reported yet. A waiting result otherwise.
+    RequestResult tryReportError(ComponentError error);
 
-    /// @brief Handle actions when the process has started successfully.
-    /// This method is called when the process has started successfully. It performs necessary actions such as synchronization
-    /// with external components.
-    inline void handleProcessStarted(uint32_t execution_error_code);
+    /// @return Success state if success has not been returned yet, waiting result otherwise.
+    RequestResult tryReportSuccess();
 
-    /// @brief Handle actions when process is still starting
-    /// called when SafeProcessMap::insertIfNotTerminated returns 0
-    inline void handleProcessStillStarting(uint32_t execution_error_code);
+    /// @brief Requests the OS to terminate this process and waits for it to exit.
+    /// This operation cannot fail. If the process does not terminate, the function does not return.
+    void terminateProcess(const score::cpp::stop_token& stop_token);
 
-    /// @brief Handle actions when a process has already terminated
-    /// called when SafeProcessMap::insertIfNotTerminated returns 1
-    inline void handleProcessAlreadyTerminated(uint32_t execution_error_code);
+    /// @brief Starts the OS process, retrying up to the configured restart count on failure.
+    /// @return A success if the process reached its ready conditon, an error if startup failed, waiting otherwise.
+    RequestResult startProcess(score::cpp::stop_token stop_token);
 
-    /// @brief Handle actions when the process is in the running state.
-    /// This method is called when the process is running. It may perform ongoing monitoring or state-dependent actions.
-    inline void handleProcessRunning(uint32_t execution_error_code);
+    /// @brief Handles the result of inserting the process into the process map after the OS
+    /// process has been created. Routes to the appropriate handler based on whether the
+    /// process is still running or has already terminated.
+    /// @returns An error if the process map error is unrecoverable, the result from the relevant handler otherwise.
+    inline score::cpp::expected<score::cpp::expected_blank<ComponentError>, ComponentError> handleProcessStarted(
+        const score::cpp::stop_token& stop_token);
 
-    /// @brief Handle actions when the process terminates.
-    /// This method is called when the process has terminated. It performs cleanup tasks or initiates further actions based on
-    /// the termination status.
-    inline void handleTerminationProcess();
+    /// @brief Waits for the process to report kRunning, terminating the process if it times out.
+    /// @post Process state is either running or terminated.
+    /// @returns an error if the startup times out.
+    inline score::cpp::expected_blank<ComponentError> handleProcessStillStarting(
+        const score::cpp::stop_token& stop_token);
 
-    /// @brief Handle actions when the process needs to be forcibly terminated.
-    /// This method is called when there is a need to forcibly terminate the process. It ensures that the process is forcefully
-    /// stopped and any associated resources are properly released.
-    inline void handleForcedTermination();
+    /// @brief Handles the case where the process exited before the map insertion completed.
+    /// @returns success only for self-terminating, non-reporting processes with exit status 0.
+    inline score::cpp::expected_blank<ComponentError> handleProcessAlreadyTerminated();
 
-    /// @brief Queue the nodes that follow this one.
-    /// For a starting graph, for all the nodes in dependent_on_terminating_ that are included in the graph and have a positive dependency
-    /// count, decrement that count and if zero add the node to the job queue.
-    /// For a stop graph, perform a similar operation for all the process upon which we have a termination dependency.
-    inline void queueTerminationSuccessorJobs();
+    /// @brief Logs that the process has reached the running state.
+    inline void handleProcessRunning();
 
-    /// @brief Initialize and configure the Control Client communication channel.
-    /// This method sets up the communication channel used by the Control Client to synchronize with other processes.
-    /// It maps the shared memory region for the Control Client communication and ensures proper initialization of semaphores
-    /// used for synchronization between processes. If any part of the setup fails, appropriate fallback actions are taken.
+    /// @brief Sends SIGTERM to the process and waits up to the configured timeout for it to exit. If the timeout is
+    /// reached, force the termination.
+    inline void handleTerminationProcess(const score::cpp::stop_token& stop_token);
+
+    /// @brief Sends SIGKILL repeatedly until the process exits or the stop token is triggered.
+    inline void handleForcedTermination(const score::cpp::stop_token& stop_token);
+
+    /// @brief Creates the ControlClientChannel from the process's IPC comms handle.
     inline void setupControlClientChannel();
 
-    /// @brief Process the Sucessor nodes
-    /// This method is called when there is a need to process the sucessor nodes
-    /// calls the checkForEmptyDependencies method to check if the dependencies are empty.
-    void processSuccessorNodes();
-
-    /// @brief check for the empty dependencies
-    /// This method is called when there is a need to check the empty dependencies and add successor nodes  to graph
-    /// successor node attached to the graph.
-    void checkForEmptyDependencies(std::shared_ptr<ProcessInfoNode>& successor_node);
-
     /// @brief semaphore used to check termination with timeout
-    osal::Semaphore terminator_;
+    osal::Semaphore terminator_{};
 
     /// @brief True if semaphore is being used
     std::atomic_bool has_semaphore_{false};
@@ -243,55 +188,38 @@ class ProcessInfoNode final : public ITerminationCallback {
     /// @brief The current state of the OS process
     std::atomic<score::lcm::ProcessState> process_state_{score::lcm::ProcessState::kIdle};
 
-    /// @brief Number of nodes still to process before this one can be processed
-    std::atomic_uint32_t dependencies_{0};
+    /// @brief Flag indicating whether the Ready Condition has been satisfied.
+    /// The flag is reset when deactivate() is called.
+    std::atomic_bool reached_ready_{false};
 
-    /// @brief initial dependencies for a start graph
-    uint32_t start_dependencies_ = 0;
-
-    /// @brief initial dependencies for a stop graph
-    uint32_t stop_dependencies_ = 0;
-
-    /// @brief List of nodes dependent upon kRunning reported for pid
-    SuccessorList dependent_on_running_;
-
-    /// @brief List of nodes dependent upon termination received for pid
-    SuccessorList dependent_on_terminating_;
-
-    /// @brief Graph to which this node belongs
-    Graph* graph_{nullptr};
-
-    /// @brief True during transition if this process runs in the requested state
-    bool in_requested_state_ = false;
-
-    /// @brief true if this node is included in the graph
-    bool is_included_ = false;
-
-    /// @brief True if this is a head node in a graph
-    std::atomic_bool is_head_node_{false};
+    /// @brief Enum representing the criteria for this process to be considered "ready"
+    ReadyCondition ready_condition_;
 
     /// @brief Pointer to config for this process
     const OsProcess* config_{nullptr};
 
-    /// @brief Pointer to the list of dependencies for this process
-    const DependencyList* dependency_list_{nullptr};
-
     /// @brief Pointer to the ControlClientChannel object if it exists
     ControlClientChannelP control_client_channel_{nullptr};
-
-    /// @brief Pointer to the next node that is a state manager
-    std::shared_ptr<ProcessInfoNode> next_state_manager_{nullptr};
 
     /// @brief Pointer to the comms for this process
     osal::IpcCommsP sync_{nullptr};
 
-    /// @brief Restart counter; determines how errors are handled
-    uint32_t restart_counter_ = 0;
+    /// @brief Callback for reporting process state to health monitor
+    ReportStateFn report_state_;
+
+    /// @brief True if we have returned a success or failure for the current activation/deactivation
+    std::atomic_flag success_returned_{false};
+
+    /// @brief Handle to manage the underlying posix process
+    osal::IProcess* process_interface_{nullptr};
+
+    /// @brief Map this node will be stored in
+    std::shared_ptr<SafeProcessMapInserter> process_map_;
 };
 
-}  // namespace lcm
-
 }  // namespace internal
+
+}  // namespace lcm
 
 }  // namespace score
 

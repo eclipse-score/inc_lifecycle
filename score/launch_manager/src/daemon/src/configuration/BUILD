@@ -15,15 +15,15 @@ load("@score_baselibs//score/flatbuffers/bazel:codegen.bzl", "generate_cpp")
 load("//tests/utils/bazel:unit_test.bzl", "lm_cc_test")
 
 filegroup(
-    name = "new_lm_flatcfg_fbs",
-    srcs = ["details/new_lm_flatcfg.fbs"],
+    name = "lm_flatcfg_fbs",
+    srcs = ["details/lm_flatcfg.fbs"],
     visibility = ["//visibility:public"],
 )
 
 generate_cpp(
-    name = "new_lm_flatcfg_generated",
-    output = "details/new_lm_flatcfg_generated.h",
-    schema = "details/new_lm_flatcfg.fbs",
+    name = "lm_flatcfg_generated",
+    output = "details/lm_flatcfg_generated.h",
+    schema = "details/lm_flatcfg.fbs",
 )
 
 cc_library(
@@ -63,7 +63,7 @@ cc_library(
     name = "flatbuffer_type_converters",
     srcs = [
         "details/flatbuffer_type_converters.cpp",
-        ":new_lm_flatcfg_generated",
+        ":lm_flatcfg_generated",
     ],
     hdrs = ["details/flatbuffer_type_converters.hpp"],
     visibility = ["//score:__subpackages__"],
@@ -79,7 +79,7 @@ cc_library(
     name = "flatbuffer_config_loader",
     srcs = [
         "details/flatbuffer_config_loader.cpp",
-        ":new_lm_flatcfg_generated",
+        ":lm_flatcfg_generated",
     ],
     hdrs = ["flatbuffer_config_loader.hpp"],
     include_prefix = "score/mw/launch_manager/configuration",
@@ -113,27 +113,6 @@ lm_cc_test(
     deps = [
         ":flatbuffer_config_loader",
         "@googletest//:gtest_main",
-        "@score_baselibs//score/flatbuffers:flatbufferscpp",
-    ],
-)
-
-cc_library(
-    name = "configuration_manager",
-    srcs = ["configuration_manager.cpp"],
-    hdrs = ["configuration_manager.hpp"],
-    include_prefix = "score/mw/launch_manager/configuration",
-    strip_include_prefix = "/score/launch_manager/src/daemon/src/configuration",
-    visibility = ["//score:__subpackages__"],
-    deps = [
-        "//score/launch_manager:error",
-        "//score/launch_manager/src/daemon/src/common:constants",
-        "//score/launch_manager/src/daemon/src/common:identifier_hash",
-        "//score/launch_manager/src/daemon/src/common:log",
-        "//score/launch_manager/src/daemon/src/common:process_group_state_id",
-        "//score/launch_manager/src/daemon/src/configuration/config_schema",
-        "//score/launch_manager/src/daemon/src/osal:num_cores",
-        "//score/launch_manager/src/daemon/src/process_group_manager:iprocess",
-        "//score/launch_manager/src/daemon/src/process_state_client:posix_process",
         "@score_baselibs//score/flatbuffers:flatbufferscpp",
     ],
 )

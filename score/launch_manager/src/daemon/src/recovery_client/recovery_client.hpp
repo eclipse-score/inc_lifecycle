@@ -13,37 +13,33 @@
 #ifndef SCORE_LCM_RECOVERYCLIENT_H_
 #define SCORE_LCM_RECOVERYCLIENT_H_
 
-#include <atomic>
-#include <cstddef>
+#include <mutex>
 
-#include "ipc_dropin/ringbuffer.hpp"
 #include "score/mw/launch_manager/recovery_client/irecovery_client.h"
 
-namespace score {
-namespace lcm {
+namespace score
+{
+namespace lcm
+{
 
-class RecoveryClient final : public IRecoveryClient {
-public:
-    /// @brief Number of requests that can be stored before overflow occurs
-    static constexpr std::size_t kBufferCapacity = 128;
-
-    RecoveryClient() noexcept;
+class RecoveryClient final : public IRecoveryClient
+{
+  public:
+    RecoveryClient() noexcept = default;
     ~RecoveryClient() noexcept = default;
     RecoveryClient(const RecoveryClient&) = delete;
     RecoveryClient& operator=(const RecoveryClient&) = delete;
     RecoveryClient(RecoveryClient&&) = delete;
     RecoveryClient& operator=(RecoveryClient&&) = delete;
 
+    void setRecoveryRequestCallback(RecoveryRequestCallback callback) noexcept override;
     bool sendRecoveryRequest(const score::lcm::IdentifierHash& process_identifier) noexcept override;
-    std::optional<score::lcm::IdentifierHash> getNextRequest() noexcept override;
-    bool hasOverflow() const noexcept override;
 
-private:
-    static const std::size_t element_size_ = sizeof(score::lcm::IdentifierHash);
-    ipc_dropin::RingBuffer<RecoveryClient::kBufferCapacity, RecoveryClient::element_size_> ringBuffer_;  ///< Ring buffer to store recovery requests
-    std::atomic_bool overflow_flag_{false};
+  private:
+    mutable std::mutex callback_mutex_;
+    RecoveryRequestCallback callback_;
 };
-} // namespace lcm
-} // namespace score
+}  // namespace lcm
+}  // namespace score
 
 #endif
