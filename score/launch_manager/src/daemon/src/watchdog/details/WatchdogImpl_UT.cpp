@@ -16,6 +16,7 @@
 
 #include <cerrno>
 #include <cstdint>
+#include <limits>
 #include <memory>
 #include <string>
 
@@ -105,9 +106,10 @@ auto AlterOutParamBy(std::int32_t delta)
 class WatchdogImpl_FireWatchdogMock : public WatchdogImpl
 {
   public:
-    explicit WatchdogImpl_FireWatchdogMock(score::os::Ioctl& ioctl,
-                                           score::os::Fcntl& fcntl,
-                                           score::os::Unistd& unistd) noexcept
+    explicit WatchdogImpl_FireWatchdogMock(
+        score::os::Ioctl& ioctl,
+        score::os::Fcntl& fcntl,
+        score::os::Unistd& unistd) noexcept
         : WatchdogImpl{ioctl, fcntl, unistd}
     {
     }
@@ -125,10 +127,11 @@ class WatchdogImplTest : public ::testing::Test
     }
 
     /// @brief Creates a WatchdogConfig instance with the given parameters.
-    static WatchdogConfig makeCfg(std::string fileName,
-                                  std::uint32_t maxTimeoutMs,
-                                  bool canBeDeactivated = true,
-                                  bool needsMagicClose = false)
+    static WatchdogConfig makeCfg(
+        std::string fileName,
+        std::uint32_t maxTimeoutMs,
+        bool canBeDeactivated = true,
+        bool needsMagicClose = false)
     {
         WatchdogConfig cfg{};
         cfg.device_file_path = std::move(fileName);
@@ -187,36 +190,57 @@ TEST_F(WatchdogImplTest, WdgInit_FailsIfNotInIdleState)
 {
     RecordProperty("Description", "init() fails when the watchdog is already in the activated state.");
 
-    auto cfg = makeCfg("/dev/watchdog", 2000U, true, false);
+    auto cfg = makeCfg("/dev/watchdog", 2000U, true /*canBeDeactivated*/, false /*needsMagicClose*/);
     auto wdg = makeWatchdog();
     expectFullEnable(cfg);
     ASSERT_TRUE(wdg->init(cfg, kDefaultCycleTimeNs));
     ASSERT_TRUE(wdg->enable());
 
-    auto cfg2 = makeCfg("/dev/watchdog_2", 2000U, true, false);
+    auto cfg2 = makeCfg("/dev/watchdog_2", 2000U, true /*canBeDeactivated*/, false /*needsMagicClose*/);
     EXPECT_FALSE(wdg->init(cfg2, kDefaultCycleTimeNs));
 }
 
 TEST_F(WatchdogImplTest, WdgInit_FailsWatchdogTimeoutSmallerThenCycleTime)
 {
-    RecordProperty("Description",
-                   "init() fails when the configured cycle time is larger than the device's max timeout, since "
-                   "serviceWatchdog() could not be called in time to prevent a reset.");
+    RecordProperty(
+        "Description",
+        "init() fails when the configured cycle time is larger than the device's max timeout, since "
+        "serviceWatchdog() could not be called in time to prevent a reset.");
 
     constexpr std::uint32_t timeoutMs{2000U};
-    constexpr std::uint32_t nanosecPerMillisec =  1'000'000;
+    constexpr std::uint32_t nanosecPerMillisec = 1'000'000;
     const std::int64_t cycleTimeNs{static_cast<std::int64_t>(timeoutMs + 1U) * nanosecPerMillisec};
-    auto cfg = makeCfg("/dev/watchdog", timeoutMs, true, false);
+    auto cfg = makeCfg("/dev/watchdog", timeoutMs, true /*canBeDeactivated*/, false /*needsMagicClose*/);
     auto wdg = makeWatchdog();
 
     EXPECT_FALSE(wdg->init(cfg, cycleTimeNs));
+}
+
+TEST_F(WatchdogImplTest, WdgInit_FailsIfTimeoutExceedsUint16Max)
+{
+    RecordProperty(
+        "Description",
+        "init() fails when the configured max timeout does not fit into uint16_t, before the "
+        "kTimeoutMaxMillis range check is even applied.");
+
+    constexpr std::uint32_t timeoutExceedingUint16Max{
+        static_cast<std::uint32_t>(std::numeric_limits<std::uint16_t>::max()) + 1U};
+    auto cfg =
+        makeCfg("/dev/watchdog", timeoutExceedingUint16Max, true /*canBeDeactivated*/, false /*needsMagicClose*/);
+    auto wdg = makeWatchdog();
+
+    EXPECT_FALSE(wdg->init(cfg, kDefaultCycleTimeNs));
 }
 
 TEST_F(WatchdogImplTest, WdgInit_FailsIfTimeoutIsTooLarge)
 {
     RecordProperty("Description", "init() fails when the configured timeout exceeds kTimeoutMaxMillis.");
 
-    auto cfg = makeCfg("/dev/watchdog", static_cast<std::uint32_t>(IWatchdogIf::kTimeoutMaxMillis) + 1U, true, false);
+    auto cfg = makeCfg(
+        "/dev/watchdog",
+        static_cast<std::uint32_t>(IWatchdogIf::kTimeoutMaxMillis) + 1U,
+        true /*canBeDeactivated*/,
+        false /*needsMagicClose*/);
     auto wdg = makeWatchdog();
     EXPECT_FALSE(wdg->init(cfg, kDefaultCycleTimeNs));
 }
@@ -225,7 +249,11 @@ TEST_F(WatchdogImplTest, WdgInit_FailsIfTimeoutIsTooSmall)
 {
     RecordProperty("Description", "init() fails when the configured timeout is below kTimeoutMinMillis.");
 
-    auto cfg = makeCfg("/dev/watchdog", static_cast<std::uint32_t>(IWatchdogIf::kTimeoutMinMillis) - 1U, true, false);
+    auto cfg = makeCfg(
+        "/dev/watchdog",
+        static_cast<std::uint32_t>(IWatchdogIf::kTimeoutMinMillis) - 1U,
+        true /*canBeDeactivated*/,
+        false /*needsMagicClose*/);
     auto wdg = makeWatchdog();
     EXPECT_FALSE(wdg->init(cfg, kDefaultCycleTimeNs));
 }
@@ -233,11 +261,12 @@ TEST_F(WatchdogImplTest, WdgInit_FailsIfTimeoutIsTooSmall)
 #ifndef __QNXNTO__
 TEST_F(WatchdogImplTest, WdgInit_FailsIfTimeoutResolutionIsWrong)
 {
-    RecordProperty("Description",
-                   "init() fails on Linux when the configured timeout is not a multiple of the 1 second "
-                   "resolution.");
+    RecordProperty(
+        "Description",
+        "init() fails on Linux when the configured timeout is not a multiple of the 1 second "
+        "resolution.");
 
-    auto cfg = makeCfg("/dev/watchdog", 2123U, true, false);
+    auto cfg = makeCfg("/dev/watchdog", 2123U, true /*canBeDeactivated*/, false /*needsMagicClose*/);
     auto wdg = makeWatchdog();
 
     EXPECT_FALSE(wdg->init(cfg, kDefaultCycleTimeNs));
@@ -246,15 +275,16 @@ TEST_F(WatchdogImplTest, WdgInit_FailsIfTimeoutResolutionIsWrong)
 
 TEST_F(WatchdogImplTest, WdgInit_FailsIfDeviceAlreadyConfigured)
 {
-    RecordProperty("Description",
-                   "init() fails when called a second time, since only a single watchdog device is supported.");
+    RecordProperty(
+        "Description", "init() fails when called a second time, since only a single watchdog device is supported.");
 
-    auto cfg = makeCfg("/dev/watchdog", 2000U, true, false);
+    auto cfg = makeCfg("/dev/watchdog", 2000U, true /*canBeDeactivated*/, false /*needsMagicClose*/);
     auto wdg = makeWatchdog();
     ASSERT_TRUE(wdg->init(cfg, kDefaultCycleTimeNs));
 
     EXPECT_FALSE(wdg->init(cfg, kDefaultCycleTimeNs));
-    EXPECT_FALSE(wdg->init(makeCfg("/dev/watchdog_2", 2000U, true, false), kDefaultCycleTimeNs));
+    EXPECT_FALSE(wdg->init(
+        makeCfg("/dev/watchdog_2", 2000U, true /*canBeDeactivated*/, false /*needsMagicClose*/), kDefaultCycleTimeNs));
 }
 
 class WatchdogImpl_UT_paramConfigName : public WatchdogImplTest, public ::testing::WithParamInterface<std::uint32_t>
@@ -266,16 +296,18 @@ TEST_P(WatchdogImpl_UT_paramConfigName, WdgInit_SucceedsWithValidDeviceConfigura
     RecordProperty("Description", "init() succeeds for boundary timeout values (min, mid, max).");
 
     const std::uint32_t timeoutMs{GetParam()};
-    auto cfg = makeCfg("/dev/watchdog", timeoutMs, true, false);
+    auto cfg = makeCfg("/dev/watchdog", timeoutMs, true /*canBeDeactivated*/, false /*needsMagicClose*/);
     auto wdg = makeWatchdog();
     EXPECT_TRUE(wdg->init(cfg, kDefaultCycleTimeNs)) << "Expected init() to succeed for timeout=" << timeoutMs << "ms";
 }
 
-INSTANTIATE_TEST_SUITE_P(Boundary,
-                         WatchdogImpl_UT_paramConfigName,
-                         ::testing::Values(static_cast<std::uint32_t>(IWatchdogIf::kTimeoutMinMillis),
-                                            static_cast<std::uint32_t>(2000U),
-                                            static_cast<std::uint32_t>(IWatchdogIf::kTimeoutMaxMillis)));
+INSTANTIATE_TEST_SUITE_P(
+    Boundary,
+    WatchdogImpl_UT_paramConfigName,
+    ::testing::Values(
+        static_cast<std::uint32_t>(IWatchdogIf::kTimeoutMinMillis),
+        static_cast<std::uint32_t>(2000U),
+        static_cast<std::uint32_t>(IWatchdogIf::kTimeoutMaxMillis)));
 
 // ═══════════════════════════════════════════════════════════
 // enable() tests
@@ -291,10 +323,9 @@ TEST_F(WatchdogImplTest, WdgEnable_SucceedsIfNoDeviceConfigured)
 
 TEST_F(WatchdogImplTest, WdgEnable_FailsIfNotInIdleState)
 {
-    RecordProperty("Description",
-                   "enable() fails when called a second time after the watchdog is already activated.");
+    RecordProperty("Description", "enable() fails when called a second time after the watchdog is already activated.");
 
-    auto cfg = makeCfg("/dev/watchdog", 2000U, true, false);
+    auto cfg = makeCfg("/dev/watchdog", 2000U, true /*canBeDeactivated*/, false /*needsMagicClose*/);
     auto wdg = makeWatchdog();
     expectFullEnable(cfg);
     ASSERT_TRUE(wdg->init(cfg, kDefaultCycleTimeNs));
@@ -307,7 +338,7 @@ TEST_F(WatchdogImplTest, WdgEnable_FailsIfOpenFails)
 {
     RecordProperty("Description", "enable() fails when opening the configured device file fails.");
 
-    auto cfg = makeCfg("/dev/watchdog", 2000U, true, false);
+    auto cfg = makeCfg("/dev/watchdog", 2000U, true /*canBeDeactivated*/, false /*needsMagicClose*/);
     auto wdg = makeWatchdog();
     ASSERT_TRUE(wdg->init(cfg, kDefaultCycleTimeNs));
 
@@ -319,11 +350,12 @@ TEST_F(WatchdogImplTest, WdgEnable_FailsIfOpenFails)
 
 TEST_F(WatchdogImplTest, WdgEnable_DoesNotSetConfiguredTimeoutValue_WhenTimeoutAlreadyCorrect)
 {
-    RecordProperty("Description",
-                   "enable() skips WDIOC_GETTIMELEFT and WDIOC_SETTIMEOUT when the device already reports the "
-                   "desired timeout.");
+    RecordProperty(
+        "Description",
+        "enable() skips WDIOC_GETTIMELEFT and WDIOC_SETTIMEOUT when the device already reports the "
+        "desired timeout.");
 
-    auto cfg = makeCfg("/dev/watchdog", 2000U, true, false);
+    auto cfg = makeCfg("/dev/watchdog", 2000U, true /*canBeDeactivated*/, false /*needsMagicClose*/);
     auto wdg = makeWatchdog();
     ASSERT_TRUE(wdg->init(cfg, kDefaultCycleTimeNs));
 
@@ -331,7 +363,7 @@ TEST_F(WatchdogImplTest, WdgEnable_DoesNotSetConfiguredTimeoutValue_WhenTimeoutA
     constexpr std::int32_t kMillisPerSecond = 1000U;
     const std::int32_t currentTimeoutRaw{static_cast<std::int32_t>(cfg.max_timeout_ms / kMillisPerSecond)};
 #else
-    constexpr std::int32_t currentTimeoutRaw{static_cast<std::int32_t>(cfg.max_timeout_ms)};
+    const std::int32_t currentTimeoutRaw{static_cast<std::int32_t>(cfg.max_timeout_ms)};
 #endif
 
     EXPECT_CALL(*fcntlMock_, open(StrEq(cfg.device_file_path), _)).WillOnce(Return(OpenOk(1)));
@@ -345,10 +377,9 @@ TEST_F(WatchdogImplTest, WdgEnable_DoesNotSetConfiguredTimeoutValue_WhenTimeoutA
 
 TEST_F(WatchdogImplTest, WdgEnable_FailsIfGetTimeoutFails)
 {
-    RecordProperty("Description",
-                   "enable() fails and skips the remaining ioctls when WDIOC_GETTIMEOUT fails.");
+    RecordProperty("Description", "enable() fails and skips the remaining ioctls when WDIOC_GETTIMEOUT fails.");
 
-    auto cfg = makeCfg("/dev/watchdog", 2000U, true, false);
+    auto cfg = makeCfg("/dev/watchdog", 2000U, true /*canBeDeactivated*/, false /*needsMagicClose*/);
     auto wdg = makeWatchdog();
     ASSERT_TRUE(wdg->init(cfg, kDefaultCycleTimeNs));
 
@@ -363,10 +394,10 @@ TEST_F(WatchdogImplTest, WdgEnable_FailsIfGetTimeoutFails)
 
 TEST_F(WatchdogImplTest, WdgEnable_FailsIfGetRemainingTimeLeftFails)
 {
-    RecordProperty("Description",
-                   "enable() fails and skips WDIOC_SETTIMEOUT/WDIOC_SETOPTIONS when WDIOC_GETTIMELEFT fails.");
+    RecordProperty(
+        "Description", "enable() fails and skips WDIOC_SETTIMEOUT/WDIOC_SETOPTIONS when WDIOC_GETTIMELEFT fails.");
 
-    auto cfg = makeCfg("/dev/watchdog", 2000U, true, false);
+    auto cfg = makeCfg("/dev/watchdog", 2000U, true /*canBeDeactivated*/, false /*needsMagicClose*/);
     auto wdg = makeWatchdog();
     ASSERT_TRUE(wdg->init(cfg, kDefaultCycleTimeNs));
 
@@ -383,7 +414,7 @@ TEST_F(WatchdogImplTest, WdgEnable_FailsIfSetTimeoutFails)
 {
     RecordProperty("Description", "enable() fails and skips WDIOC_SETOPTIONS when WDIOC_SETTIMEOUT fails.");
 
-    auto cfg = makeCfg("/dev/watchdog", 2000U, true, false);
+    auto cfg = makeCfg("/dev/watchdog", 2000U, true /*canBeDeactivated*/, false /*needsMagicClose*/);
     auto wdg = makeWatchdog();
     ASSERT_TRUE(wdg->init(cfg, kDefaultCycleTimeNs));
 
@@ -398,10 +429,9 @@ TEST_F(WatchdogImplTest, WdgEnable_FailsIfSetTimeoutFails)
 
 TEST_F(WatchdogImplTest, WdgEnable_FailsIfTimeoutValueIsAltered)
 {
-    RecordProperty("Description",
-                   "enable() fails when the device alters the requested timeout to a different value.");
+    RecordProperty("Description", "enable() fails when the device alters the requested timeout to a different value.");
 
-    auto cfg = makeCfg("/dev/watchdog", 30'000U, true, false);
+    auto cfg = makeCfg("/dev/watchdog", 30'000U, true /*canBeDeactivated*/, false /*needsMagicClose*/);
     auto wdg = makeWatchdog();
     ASSERT_TRUE(wdg->init(cfg, kDefaultCycleTimeNs));
 
@@ -419,7 +449,7 @@ TEST_F(WatchdogImplTest, WdgEnable_FailsIfEnablecardFails)
 {
     RecordProperty("Description", "enable() fails when the WDIOS_ENABLECARD ioctl fails.");
 
-    auto cfg = makeCfg("/dev/watchdog", 2000U, true, false);
+    auto cfg = makeCfg("/dev/watchdog", 2000U, true /*canBeDeactivated*/, false /*needsMagicClose*/);
     auto wdg = makeWatchdog();
     ASSERT_TRUE(wdg->init(cfg, kDefaultCycleTimeNs));
 
@@ -440,7 +470,7 @@ TEST_F(WatchdogImplTest, WdgServiceWatchdog_NotInActivatedState)
 {
     RecordProperty("Description", "serviceWatchdog() is a no-op when the watchdog has not been enabled.");
 
-    auto cfg = makeCfg("/dev/watchdog", 2000U, true, false);
+    auto cfg = makeCfg("/dev/watchdog", 2000U, true /*canBeDeactivated*/, false /*needsMagicClose*/);
     auto wdg = makeWatchdog();
     ASSERT_TRUE(wdg->init(cfg, kDefaultCycleTimeNs));
 
@@ -463,7 +493,7 @@ TEST_F(WatchdogImplTest, WdgServiceWatchdog_OneDevice)
 {
     RecordProperty("Description", "serviceWatchdog() issues a single WDIOC_KEEPALIVE for one activated device.");
 
-    auto cfg = makeCfg("/dev/watchdog", 2000U, true, false);
+    auto cfg = makeCfg("/dev/watchdog", 2000U, true /*canBeDeactivated*/, false /*needsMagicClose*/);
     auto wdg = makeWatchdog();
 
     expectFullEnable(cfg);
@@ -480,11 +510,12 @@ TEST_F(WatchdogImplTest, WdgServiceWatchdog_OneDevice)
 
 TEST_F(WatchdogImplTest, WdgFireWatchdogReaction_FailsIfNotInActivatedState)
 {
-    RecordProperty("Description",
-                   "fireWatchdogReaction() is a no-op and does not call waitForever() when the watchdog has not "
-                   "been enabled.");
+    RecordProperty(
+        "Description",
+        "fireWatchdogReaction() is a no-op and does not call waitForever() when the watchdog has not "
+        "been enabled.");
 
-    auto cfg = makeCfg("/dev/watchdog", 2000U, true, false);
+    auto cfg = makeCfg("/dev/watchdog", 2000U, true /*canBeDeactivated*/, false /*needsMagicClose*/);
     auto wdg = makeWatchdogFireMock();
     ASSERT_TRUE(wdg->init(cfg, kDefaultCycleTimeNs));
 
@@ -495,11 +526,12 @@ TEST_F(WatchdogImplTest, WdgFireWatchdogReaction_FailsIfNotInActivatedState)
 
 TEST_F(WatchdogImplTest, WdgFireWatchdogReaction_OneDevice)
 {
-    RecordProperty("Description",
-                   "fireWatchdogReaction() sets WDIOC_SETTIMEOUT to 0 and calls waitForever() for one activated "
-                   "device.");
+    RecordProperty(
+        "Description",
+        "fireWatchdogReaction() sets WDIOC_SETTIMEOUT to 0 and calls waitForever() for one activated "
+        "device.");
 
-    auto cfg = makeCfg("/dev/watchdog", 2000U, true, false);
+    auto cfg = makeCfg("/dev/watchdog", 2000U, true /*canBeDeactivated*/, false /*needsMagicClose*/);
     auto wdg = makeWatchdogFireMock();
 
     expectFullEnable(cfg);
@@ -519,7 +551,7 @@ TEST_F(WatchdogImplTest, WdgDisable_FailsIfNotInActivatedState)
 {
     RecordProperty("Description", "disable() is a no-op when the watchdog has not been enabled.");
 
-    auto cfg = makeCfg("/dev/watchdog", 2000U, true, false);
+    auto cfg = makeCfg("/dev/watchdog", 2000U, true /*canBeDeactivated*/, false /*needsMagicClose*/);
     auto wdg = makeWatchdog();
     ASSERT_TRUE(wdg->init(cfg, kDefaultCycleTimeNs));
 
@@ -532,10 +564,28 @@ TEST_F(WatchdogImplTest, WdgDisable_FailsIfNotInActivatedState)
 
 TEST_F(WatchdogImplTest, WdgDisable_DisablesOneDevice)
 {
-    RecordProperty("Description",
-                   "disable() issues WDIOS_DISABLECARD and closes the device file for a single activated device.");
+    RecordProperty(
+        "Description", "disable() issues WDIOS_DISABLECARD and closes the device file for a single activated device.");
 
-    auto cfg = makeCfg("/dev/watchdog", 2000U, true, false);
+    auto cfg = makeCfg("/dev/watchdog", 2000U, true /*canBeDeactivated*/, false /*needsMagicClose*/);
+    auto wdg = makeWatchdog();
+
+    expectFullEnable(cfg);
+    ASSERT_TRUE(wdg->init(cfg, kDefaultCycleTimeNs));
+    ASSERT_TRUE(wdg->enable());
+
+    expectDisable(cfg);
+    wdg->disable();
+}
+
+TEST_F(WatchdogImplTest, WdgDisable_WritesMagicCloseCharacterWhenRequired)
+{
+    RecordProperty(
+        "Description",
+        "disable() writes the magic close character before issuing WDIOS_DISABLECARD for a device that "
+        "requires it.");
+
+    auto cfg = makeCfg("/dev/watchdog", 2000U, true /*canBeDeactivated*/, true /*needsMagicClose*/);
     auto wdg = makeWatchdog();
 
     expectFullEnable(cfg);
@@ -548,10 +598,10 @@ TEST_F(WatchdogImplTest, WdgDisable_DisablesOneDevice)
 
 TEST_F(WatchdogImplTest, WdgDisable_IgnoresDevicesThatCannotBeDisabled)
 {
-    RecordProperty("Description",
-                   "disable() performs no ioctl/write/close calls for a device configured as non-deactivatable.");
+    RecordProperty(
+        "Description", "disable() performs no ioctl/write/close calls for a device configured as non-deactivatable.");
 
-    auto cfg = makeCfg("/dev/watchdog", 2000U, false, true);
+    auto cfg = makeCfg("/dev/watchdog", 2000U, false /*canBeDeactivated*/, true /*needsMagicClose*/);
     auto wdg = makeWatchdog();
 
     expectFullEnable(cfg);

@@ -44,7 +44,6 @@ cc_library(
 lm_cc_test(
     name = "watchdog_impl_UT",
     srcs = ["WatchdogImpl_UT.cpp"],
-    copts = ["-D_GNU_SOURCE"],
     deps = [
         ":watchdog",
         ":watchdog_impl",

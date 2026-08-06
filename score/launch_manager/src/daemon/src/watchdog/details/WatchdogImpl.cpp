@@ -148,20 +148,20 @@ void WatchdogImpl::serviceWatchdog() noexcept
         return;
     }
 
-    if (watchdogDevice_->fileDescriptor >= 0)
-    {
-        // save to ignore return value here. If keepalive does not work, watchdog will eventually fire
-        /* RULECHECKER_comment(1:0,5:0, check_bitop_recast, "Linux-only constant from external interface",
-         * true_no_defect) */
-        /* RULECHECKER_comment(1:0,4:0, check_bitop_type, "Linux-only constant from external interface",
-         * true_no_defect) */
-        /* RULECHECKER_comment(1:0,3:0, check_plain_char_operator, "Linux-only constant from external interface",
-         * true_no_defect) */
-        /* RULECHECKER_comment(1:0,2:0, check_underlying_signedness_conversion, "Linux-only constant from external
-         * interface", true_no_defect) */
-        static_cast<void>(
-            ioctl_.ioctl(watchdogDevice_->fileDescriptor, static_cast<std::int32_t>(WDIOC_KEEPALIVE), nullptr));
-    }
+    // Cannot be invalid when state_ == ELibState::activated
+    SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(watchdogDevice_->fileDescriptor >= 0, "Watchdog file descriptor is not valid");
+    
+    // save to ignore return value here. If keepalive does not work, watchdog will eventually fire
+    /* RULECHECKER_comment(1:0,5:0, check_bitop_recast, "Linux-only constant from external interface",
+        * true_no_defect) */
+    /* RULECHECKER_comment(1:0,4:0, check_bitop_type, "Linux-only constant from external interface",
+        * true_no_defect) */
+    /* RULECHECKER_comment(1:0,3:0, check_plain_char_operator, "Linux-only constant from external interface",
+        * true_no_defect) */
+    /* RULECHECKER_comment(1:0,2:0, check_underlying_signedness_conversion, "Linux-only constant from external
+        * interface", true_no_defect) */
+    static_cast<void>(
+        ioctl_.ioctl(watchdogDevice_->fileDescriptor, static_cast<std::int32_t>(WDIOC_KEEPALIVE), nullptr));
 }
 
 void WatchdogImpl::fireWatchdogReaction() noexcept
@@ -172,15 +172,16 @@ void WatchdogImpl::fireWatchdogReaction() noexcept
     }
 
     state_ = ELibState::react;
-    if (watchdogDevice_->fileDescriptor >= 0)
-    {
-        // This log message is introduced as a result of FMEA
-        LM_LOG_FATAL() << "Watchdog: Trigger RESET for watchdog" << watchdogDevice_->config.fileName;
 
-        std::uint16_t timeout{0U};
-        // Save to ignore return value here. If setting timeout does not work, watchdog will eventually fire
-        static_cast<void>(setTimeout(watchdogDevice_->fileDescriptor, timeout));
-    }
+    // Cannot be invalid when state_ was ELibState::activated
+    SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(watchdogDevice_->fileDescriptor >= 0, "Watchdog file descriptor is not valid");
+    
+    // This log message is introduced as a result of FMEA
+    LM_LOG_FATAL() << "Watchdog: Trigger RESET for watchdog" << watchdogDevice_->config.fileName;
+
+    std::uint16_t timeout{0U};
+    // Save to ignore return value here. If setting timeout does not work, watchdog will eventually fire
+    static_cast<void>(setTimeout(watchdogDevice_->fileDescriptor, timeout));
 
     waitForever();
 }
@@ -367,7 +368,10 @@ bool WatchdogImpl::updateTimeout(WatchdogDevice& f_state_r, std::int32_t f_confi
 
 bool WatchdogImpl::disableDevice(WatchdogDevice& f_watchdogDevice_r) const noexcept
 {
-    if ((f_watchdogDevice_r.fileDescriptor < 0) || (!f_watchdogDevice_r.config.canBeDeactivated))
+    // Cannot be invalid as this is only called when in state ELibState::activated
+    SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(watchdogDevice_->fileDescriptor >= 0, "Watchdog file descriptor is not valid");
+
+    if (!f_watchdogDevice_r.config.canBeDeactivated)
     {
         return false;
     }
