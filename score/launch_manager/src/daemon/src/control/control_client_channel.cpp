@@ -20,6 +20,7 @@
 #include "control_client_channel.hpp"
 #include "score/mw/launch_manager/common/constants.hpp"
 #include "score/mw/launch_manager/common/log.hpp"
+#include "score/mw/launch_manager/common/signal_safe_log.hpp"
 
 namespace score
 {
@@ -29,6 +30,28 @@ namespace lcm
 
 namespace internal
 {
+
+bool ControlClientChannel::loadControlNudge()
+{
+    if (nudgeControlClientHandler_ != nullptr)
+    {
+        LM_LOG_ERROR() << "Semaphore was already mapped!";
+        return false;
+    }
+
+    void* nudgeBuf = mmap(
+        NULL, sizeof(osal::Semaphore), PROT_WRITE, MAP_SHARED, osal::IpcCommsSync::control_client_handler_nudge_fd, 0);
+
+    if (nudgeBuf == MAP_FAILED)
+    {
+        LM_LOG_ERROR() << "mmap of nudge semaphore failed in initializeControlClientChannel:"
+                       << std::string_view{std::strerror(errno)};
+        return false;
+    }
+
+    nudgeControlClientHandler_ = static_cast<osal::Semaphore*>(nudgeBuf);
+    return true;
+}
 
 void ControlClientChannel::initialize()
 {
@@ -81,6 +104,8 @@ bool ControlClientChannel::getResponse(ControlClientMessage& msg)
         LM_LOG_DEBUG() << "Response retrieved.";
     }
 
+    nudgeControlClientHandler();
+
     return result;
 }
 
@@ -89,25 +114,7 @@ void ControlClientChannel::sendRequest(ControlClientMessage& msg)
     request_.msg_ = msg;
     request_.empty_ = false;
 
-    // now map the semaphore and post on it
-    // Attempt to map the semaphore
-    auto* nudgeLM = mmap(
-        NULL, sizeof(osal::Semaphore), PROT_WRITE, MAP_SHARED, osal::IpcCommsSync::control_client_handler_nudge_fd, 0);
-
-    // RULECHECKER_comment(1, 1, check_c_style_cast, "This is the definition provided by the OS and does a C-style
-    // cast.", true)
-    if (nudgeLM != MAP_FAILED)
-    {
-        LM_LOG_DEBUG() << "Request sent. Waiting for acknowledgment...";
-        auto* semaphore = static_cast<osal::Semaphore*>(nudgeLM);
-
-        // coverity[cert_mem52_cpp_violation:FALSE] The allocated memory is checked by the containing if statement.
-        const auto result = semaphore->post();
-        SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(
-            result == osal::OsalReturnType::kSuccess, "ControlClientChannel semaphore post failed");
-
-        munmap(nudgeLM, sizeof(osal::Semaphore));  // Unmap the semaphore
-    }
+    nudgeControlClientHandler();
 
     const auto result = nudge_LM_Handler_.wait();
     SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(
@@ -197,6 +204,9 @@ ControlClientChannelP ControlClientChannel::initializeControlClientChannel(int f
         lock.unlock();
         init_cv_.notify_all();
     }
+
+    loadControlNudge();
+
     return result;
 }
 
@@ -240,14 +250,16 @@ ControlClientChannelP ControlClientChannel::getControlClientChannel(osal::IpcCom
 
 void ControlClientChannel::nudgeControlClientHandler()
 {
-    if (nudgeControlClientHandler_)
+    if (nudgeControlClientHandler_ != nullptr)
     {
-        const auto result = nudgeControlClientHandler_->post();
-        SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(
-            result == osal::OsalReturnType::kSuccess, "ControlClientChannel semaphore post failed");
-
-        LM_LOG_DEBUG() << "Control Client handler nudged";
+        if (nudgeControlClientHandler_->post() != osal::OsalReturnType::kSuccess)
+        {
+            static_cast<void>(signal_safe_log("ControlClientChannel semaphore post failed"));
+            exit(EXIT_FAILURE);
+        }
     }
+
+    LM_LOG_DEBUG() << "Control Client handler nudged";
 }
 
 void ControlClientChannel::nudgeLMHandler()

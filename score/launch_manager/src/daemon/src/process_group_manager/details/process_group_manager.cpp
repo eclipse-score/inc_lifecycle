@@ -164,60 +164,56 @@ void ProcessGroupManager::deinitialize()
 
 inline bool ProcessGroupManager::initializeControlClientHandler()
 {
-    bool result = false;
-
     // Create shared memory for the nudge semaphore, using the specific
     // file descriptor osal::Comms::control_client_handler_nudge_fd, and a random name.
     // The name is removed from the file system after creation, memory
     // is mapped and a pointer stored, the FD is kept open.
     ControlClientChannel::nudgeControlClientHandler_ = nullptr;
-    char shm_name[static_cast<uint32_t>(score::lcm::internal::ProcessLimits::maxLocalBuffSize)];
+    constexpr static std::string_view shm_name{"/_nudge~._.~me_"};
 
-    static_cast<void>(snprintf(
-        shm_name,
-        static_cast<uint32_t>(score::lcm::internal::ProcessLimits::maxLocalBuffSize),
-        "/_nudge~._.~me_"));  // random name
-    int fd = shm_open(shm_name, O_CREAT | O_EXCL | O_RDWR, 0U);
-
-    if (fd >= 0)
+    int fd = shm_open(shm_name.begin(), O_CREAT | O_EXCL | O_RDWR, 0U);
+    if (fd <= 0)
     {
-        shm_unlink(shm_name);
+        return false;
+    }
+    shm_unlink(shm_name.begin());
 
-        if (0 == ftruncate(fd, static_cast<off_t>(sizeof(osal::Semaphore))))
-        {
-            int fd2 =
-                dup2(fd, osal::IpcCommsSync::control_client_handler_nudge_fd);  // always make sure we are using fd=4
-            close(fd);
-
-            // dup2 clears the O_CLOEXEC flag so this needs to be set again
-            if (fcntl(fd2, F_SETFD, FD_CLOEXEC) != 0)
-            {
-                ::close(fd2);
-                return false;
-            }
-
-            if (osal::IpcCommsSync::control_client_handler_nudge_fd == fd2)
-            {
-                void* buf = mmap(NULL, sizeof(osal::Semaphore), PROT_WRITE, MAP_SHARED, fd2, 0);
-
-                // RULECHECKER_comment(1, 1, check_c_style_cast, "This is the definition provided by the OS and does a
-                // C-style cast.", true)
-                if (MAP_FAILED != buf)
-                {
-                    ControlClientChannel::nudgeControlClientHandler_ = static_cast<osal::Semaphore*>(buf);
-                    // coverity[cert_mem52_cpp_violation:FALSE] The allocated memory is checked by the containing if
-                    // statement.
-                    const auto osal_result = ControlClientChannel::nudgeControlClientHandler_->init(0U, true);
-                    SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(
-                        osal_result == OsalReturnType::kSuccess, "ControlClientChannel semaphore init failed");
-
-                    result = true;
-                }
-            }
-        }
+    if (0 != ftruncate(fd, static_cast<off_t>(sizeof(osal::Semaphore))))
+    {
+        ::close(fd);
+        return false;
     }
 
-    return result;
+    int fd2 = dup2(fd, osal::IpcCommsSync::control_client_handler_nudge_fd);  // always make sure we are using fd=4
+    ::close(fd);
+
+    // dup2 clears the O_CLOEXEC flag so this needs to be set again
+    if (fcntl(fd2, F_SETFD, FD_CLOEXEC) != 0)
+    {
+        ::close(fd2);
+        return false;
+    }
+
+    if (osal::IpcCommsSync::control_client_handler_nudge_fd != fd2)
+    {
+        ::close(fd2);
+        return false;
+    }
+
+    void* buf = mmap(NULL, sizeof(osal::Semaphore), PROT_WRITE, MAP_SHARED, fd2, 0);
+
+    if (MAP_FAILED == buf)
+    {
+        ::close(fd2);
+        return false;
+    }
+
+    ControlClientChannel::nudgeControlClientHandler_ = static_cast<osal::Semaphore*>(buf);
+    const auto osal_result = ControlClientChannel::nudgeControlClientHandler_->init(0U, true);
+    SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(
+        osal_result == OsalReturnType::kSuccess, "ControlClientChannel semaphore init failed");
+
+    return true;
 }
 
 inline bool ProcessGroupManager::initializeProcessGroups()

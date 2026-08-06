@@ -171,6 +171,9 @@ class ControlClientChannel final
     /// @brief Desctructor, deleted. We cannot create or delete objects of this type in the normal ways.
     ~ControlClientChannel() = delete;
 
+    /// @brief loads the control channel's nudge semaphore.
+    static bool loadControlNudge();
+
     /// @brief Initialise the comms channels
     /// called when the shared memory is initially created by Launch Manager
     void initialize();
