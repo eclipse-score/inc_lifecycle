@@ -11,7 +11,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-load("@rules_pkg//pkg:mappings.bzl", "pkg_files")
 load("@score_baselibs//score/flatbuffers/bazel:tools.bzl", "serialize_buffer")
 
 def _lm_config_generator_impl(ctx):

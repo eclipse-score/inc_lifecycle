@@ -10,8 +10,6 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-load("@rules_cc//cc:defs.bzl", "cc_library")
-load("@score_baselibs//score/flatbuffers/bazel:codegen.bzl", "generate_cpp")
 
 exports_files(
     [
