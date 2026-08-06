@@ -43,8 +43,6 @@ enum class EInitCode : std::int8_t
     kNotInitialized,                   ///< Init was not performed
     kCycleTimeInitFailed,              ///< Cyclic Timer initialization failed
     kConstructFlatCfgFactoryFailed,    ///< FlatCfgFactory failed loading SWCL configurations
-    kMachineConfigInitFailed,          ///< MachineConfigFactory failed loading the machine configuration
-    kSignalHandlerRegistrationFailed,  ///< Failed to register signal handler for termination signals
     kGeneralError                      ///< General error
 };
 

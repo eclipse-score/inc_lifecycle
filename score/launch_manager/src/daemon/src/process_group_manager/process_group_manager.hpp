@@ -73,8 +73,7 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     /// @param recovery_client A shared pointer to an IRecoveryClient instance for handling recovery operations.
     /// @param process_state_notifier A unique pointer to an IProcessStateNotifier instance for notifying the Alive
     /// Monitor thread of process state changes.
-    /// @param watchdog A unique pointer to an IWatchdogIf instance serviced during the main loop. May be nullptr in
-    /// legacy configuration where no watchdog is wired.
+    /// @param watchdog A unique pointer to an IWatchdogIf instance serviced during the main loop. Must not be nullptr.
     ProcessGroupManager(
         std::unique_ptr<IAliveMonitorThread> alive_monitor_thread,
         std::shared_ptr<IRecoveryClient> recovery_client,

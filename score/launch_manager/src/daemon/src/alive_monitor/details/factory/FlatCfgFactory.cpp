@@ -17,6 +17,8 @@
 #include <cmath>
 #include <cstring>
 
+#include <score/assert.hpp>
+
 #include "score/launch_manager/src/daemon/src/common/log.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/factory/IPhmFactory.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/factory/StaticConfig.hpp"
@@ -266,7 +268,7 @@ bool FlatCfgFactory::createAliveSupervisions(
       const auto *comp = supervised_components_[idx];
       const auto &alive_sup =
           comp->component_properties.application_profile.alive_supervision;
-      assert(alive_sup.has_value() &&
+      SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(alive_sup.has_value(),
              "Supervised component must have alive_supervision configured");
 
       alive_cfg_names_.emplace_back(comp->name + "_alive_supervision");
