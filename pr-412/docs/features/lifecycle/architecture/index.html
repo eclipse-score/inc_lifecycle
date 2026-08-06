@@ -73,8 +73,8 @@
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
-    <link rel="next" title="Architecture Inspection Checklist" href="chklst_arc_inspection.html" />
-    <link rel="prev" title="[Your Feature Name]" href="../index.html" />
+    <link rel="next" title="Launch manager" href="launch_manager.html" />
+    <link rel="prev" title="Lifecycle" href="../index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.1" />
@@ -457,8 +457,14 @@
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="../index.html">[Your Feature Name]</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">Feature Architecture</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../index.html">Lifecycle</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 current active has-children"><a class="current reference internal" href="#">Feature Architecture</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="launch_manager.html">Launch manager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="launch_manager_configuration.html">Launch Manager Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="health_monitor.html">Health Monitor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="external_monitoring.html">External Monitoring</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2"><a class="reference internal" href="chklst_arc_inspection.html">Architecture Inspection Checklist</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../safety_analysis/fmea.html">FMEA (Failure Modes and Effects Analysis)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../safety_analysis/dfa.html">DFA (Dependent Failure Analysis)</a></li>
@@ -466,6 +472,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../safety_analysis/aou_requirements.html">AoU Feature Requirements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../safety_planning/index.html">Feature Safety Work Products List</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../security_planning/index.html">Feature Security Work Products List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../glossary.html">Glossary</a></li>
 </ul>
 </details></li>
 </ul>
@@ -512,7 +519,7 @@
     <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Features</a></li>
     
     
-    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">[Your Feature Name]</a></li>
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Lifecycle</a></li>
     
     <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Feature Architecture</span></li>
   </ul>
@@ -533,16 +540,16 @@
                   
   <section id="feature-architecture">
 <h1>Feature Architecture<a class="headerlink" href="#feature-architecture" title="Link to this heading">#</a></h1>
-<div class="need_container docutils container" id="SNCB-3bfae465">
-<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_document table" id="doc__lifecycle_architecture_feature">
+<div class="need_container docutils container" id="SNCB-26c4c035">
+<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_document table" id="doc__lifecycle_module_architecture">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
-<div class="line"><span><span class="needs_title"><span class="needs_data">Lifecycle Architecture</span></span></span></div>
+<div class="line"><span><span class="needs_title"><span class="needs_data">Lifecycle Module Architecture</span></span></span></div>
 </div>
 </td>
 <td class="head_center" colspan="2"><div class="needs_head line-block">
-<div class="line"><span><span class="needs_status"><span class="needs_label">status: </span><span class="needs_data">draft</span></span></span></div>
-<div class="line"><span><span class="needs_security"><span class="needs_label">security: </span><span class="needs_data">NO</span></span></span></div>
+<div class="line"><span><span class="needs_status"><span class="needs_label">status: </span><span class="needs_data">valid</span></span></span></div>
+<div class="line"><span><span class="needs_security"><span class="needs_label">security: </span><span class="needs_data">YES</span></span></span></div>
 <div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">ASIL_B</span></span></span></div>
 </div>
 </td>
@@ -563,7 +570,7 @@
 <tr class="content row-odd"><td class="content" colspan="6"></td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
-<div class="line"><span><span class="needs-id"><a class="reference internal" href="#doc__lifecycle_architecture_feature" title="doc__lifecycle_architecture_feature">doc__lifecycle_architecture_feature</a></span></span></div>
+<div class="line"><span><span class="needs-id"><a class="reference internal" href="#doc__lifecycle_module_architecture" title="doc__lifecycle_module_architecture">doc__lifecycle_module_architecture</a></span></span></div>
 </div>
 </td>
 <td class="footer" colspan="2"><div class="needs_footer line-block">
@@ -578,17 +585,23 @@
 </div>
 <section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">#</a></h2>
-<p>&lt;Brief summary&gt;</p>
+<p>A brief overview of Lifecycle is described <a class="external_link reference external" href="https://eclipse-score.github.io/score/main/features/lifecycle/index.html#doc__lifecycle">doc__lifecycle</a>.</p>
 </section>
 <section id="description">
 <h2>Description<a class="headerlink" href="#description" title="Link to this heading">#</a></h2>
-<p>&lt;General Description&gt;</p>
+<p>The concept is based on 2 major components:</p>
+<ul class="simple">
+<li><p><strong>Launch Manager</strong>: Responsible for starting and stopping components based on
+the defined Run States and alive supervision of the started components</p></li>
+<li><p><strong>Health Monitor</strong>: Provides process local monitoring functionalities such as
+deadline monitoring and logical program flow monitoring</p></li>
+</ul>
 <p>&lt;Design Decisions - For the documentation of the decision the <a class="external_link reference external" href="https://eclipse-score.github.io/process_description//main/process_areas/change_management/guidance/change_management_decision_record_template.html#gd_temp__change_decision_record">gd_temp__change_decision_record</a> can be used.&gt;</p>
 <p>&lt;Design Constraints&gt;</p>
 </section>
 <section id="requirements">
 <h2>Requirements<a class="headerlink" href="#requirements" title="Link to this heading">#</a></h2>
-<p>The requirements for the feature architecture are defined in the <cite>requirements</cite> section of the feature documentation in the project repository.</p>
+<p>The requirements for the feature architecture are defined in the <cite>requirements</cite> section of the feature documentation in the project repository: <a class="external_link reference external" href="https://eclipse-score.github.io/score/main/features/lifecycle/requirements/index.html#doc__lifecycle_requirements">doc__lifecycle_requirements</a></p>
 <section id="rationale-behind-architecture-decomposition">
 <h3>Rationale Behind Architecture Decomposition<a class="headerlink" href="#rationale-behind-architecture-decomposition" title="Link to this heading">#</a></h3>
 <p>Mandatory: A motivation for the decomposition</p>
@@ -600,23 +613,52 @@
 </section>
 <section id="static-architecture">
 <h2>Static Architecture<a class="headerlink" href="#static-architecture" title="Link to this heading">#</a></h2>
-<p>The live feature architecture template snippets are maintained in the
-<a class="reference external" href="https://eclipse-score.github.io/module_template/main/">module template documentation</a>.</p>
-<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">feat_arc_sta</span><span class="p">::</span> Feature Static View
-   <span class="nc">:id:</span> feat_arc_sta__feature_name__static_view
-   <span class="nc">:security:</span> YES
-   <span class="nc">:safety:</span> ASIL_B
-   <span class="nc">:status:</span> invalid
-   <span class="nc">:fulfils:</span> feat_req__feature_name__some_title
-   <span class="nc">:includes:</span> logic_arc_int__feature_name__interface_name1
-   <span class="nc">:belongs_to:</span> feat__feature_name
-
-<span class="p">   ..</span> <span class="ow">needarch</span><span class="p">::</span>
-      <span class="nc">:scale:</span> 50
-      <span class="nc">:align:</span> center
-
-      {{ draw_feature(need(), needs) }}
-</pre></div>
+<div class="need_container docutils container" id="SNCB-72d7d1dc">
+<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_feat_arc_sta table" id="feat_arc_sta__lifecycle__static_view_arch">
+<tbody>
+<tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
+<div class="line"><span><span class="needs_title"><span class="needs_data">Lifecycle Static View</span></span></span></div>
+</div>
+</td>
+<td class="head_center" colspan="2"><div class="needs_head line-block">
+<div class="line"><span><span class="needs_status"><span class="needs_label">status: </span><span class="needs_data">valid</span></span></span></div>
+<div class="line"><span><span class="needs_security"><span class="needs_label">security: </span><span class="needs_data">YES</span></span></span></div>
+<div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">ASIL_B</span></span></span></div>
+</div>
+</td>
+<td class="head_right" colspan="2"><div class="needs_head_right line-block">
+<div class="line"><span><span class="needs needs_collapse" id="target__show__meta"><span class="needs collapsed"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-down-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="8 12 12 16 16 12"></polyline><line x1="12" y1="8" x2="12" y2="16"></line></svg></span><span class="needs visible collapse_is_hidden"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg></span></span></span></div>
+</div>
+</td>
+</tr>
+<tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
+<div class="line"><span><span><div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
+</span></span></div>
+<div class="line"><span><div class="line">belongs to: <span class="belongs_to"><span><a class="external_link reference external" href="https://eclipse-score.github.io/score/main/features/lifecycle/architecture/index.html#feat__lifecycle">feat__lifecycle</a></span></span></div>
+<div class="line">fulfils: <span class="fulfils"><span><a class="external_link reference external" href="https://eclipse-score.github.io/score/main/features/lifecycle/requirements/index.html#feat_req__lifecycle__launch_support">feat_req__lifecycle__launch_support</a></span></span></div>
+<div class="line">includes: <span class="includes"><span><a class="external_link reference external" href="https://eclipse-score.github.io/score/main/features/lifecycle/architecture/index.html#logic_arc_int__lifecycle__lifecycle_if">logic_arc_int__lifecycle__lifecycle_if</a>, <a class="external_link reference external" href="https://eclipse-score.github.io/score/main/features/lifecycle/architecture/index.html#logic_arc_int__lifecycle__alive_if">logic_arc_int__lifecycle__alive_if</a>, <a class="external_link reference external" href="https://eclipse-score.github.io/score/main/features/lifecycle/architecture/index.html#logic_arc_int__lifecycle__controlif">logic_arc_int__lifecycle__controlif</a>, <a class="external_link reference external" href="https://eclipse-score.github.io/score/main/features/lifecycle/architecture/index.html#logic_arc_int__lifecycle__deadline_monitor_if">logic_arc_int__lifecycle__deadline_monitor_if</a>, <a class="external_link reference external" href="https://eclipse-score.github.io/score/main/features/lifecycle/architecture/index.html#logic_arc_int__lifecycle__logical_monitor_if">logic_arc_int__lifecycle__logical_monitor_if</a></span></span></div>
+</span></div>
+</div>
+</td>
+<td class="meta" colspan="3"></td>
+</tr>
+<tr class="content row-odd"><td class="content" colspan="6"><p class="plantuml" id="needarch-docs/features/lifecycle/architecture/index-0">
+<object data="../../../../_images/plantuml-ed4cd3682933233cdcae17301ded24af5078c797.svg" type="image/svg+xml" style="width:1306px;height:322px;background:#FFFFFF;"></object></p>
+</td>
+</tr>
+<tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
+<div class="line"><span><span class="needs-id"><a class="reference internal" href="#feat_arc_sta__lifecycle__static_view_arch" title="feat_arc_sta__lifecycle__static_view_arch">feat_arc_sta__lifecycle__static_view_arch</a></span></span></div>
+</div>
+</td>
+<td class="footer" colspan="2"><div class="needs_footer line-block">
+<div class="line"><span><span class="needs_type_name"><span class="needs_data">Feature &amp; Feature Package Diagram</span></span></span></div>
+</div>
+</td>
+<td class="footer_right" colspan="2"></td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 </section>
 <section id="dynamic-architecture">
@@ -635,55 +677,64 @@
 </section>
 <section id="logical-interfaces">
 <h2>Logical Interfaces<a class="headerlink" href="#logical-interfaces" title="Link to this heading">#</a></h2>
-<p>The logical interfaces of the feature are defined in the <cite>logical interfaces</cite> section of the feature documentation in the project repository.</p>
+<p>The logical interfaces of the feature are defined in the <cite>interfaces</cite> section of the feature documentation in the project repository: <a class="external_link reference external" href="https://eclipse-score.github.io/score/main/features/lifecycle/architecture/index.html#doc__lifecycle_architecture">doc__lifecycle_architecture</a></p>
 </section>
 <section id="module-viewpoint">
 <h2>Module Viewpoint<a class="headerlink" href="#module-viewpoint" title="Link to this heading">#</a></h2>
-<p>The following modules are needed to be defined to be able to draw the static feature view.
-They will be replaced by linking the proper module definitions in the used module’s repositories as soon as those exist.</p>
-<p>The rendered module and used-component examples are maintained in the
-<a class="reference external" href="https://eclipse-score.github.io/module_template/main/">module template documentation</a>.</p>
-<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">mod</span><span class="p">::</span> Module Name
-   <span class="nc">:id:</span> mod__module_name
-   <span class="nc">:includes:</span> comp__component_name_template
-
-
-<span class="p">..</span> <span class="ow">mod_view_sta</span><span class="p">::</span> Module Name Static View
-   <span class="nc">:id:</span> mod_view_sta__feature_name__module_name
-   <span class="nc">:includes:</span> comp__component_name_template
-
-<span class="p">   ..</span> <span class="ow">needarch</span><span class="p">::</span>
-      <span class="nc">:scale:</span> 50
-      <span class="nc">:align:</span> center
-
-      {{ draw_module(need(), needs) }}
-</pre></div>
+<div class="need_container docutils container" id="SNCB-110929e4">
+<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_mod_view_sta table" id="mod_view_sta__lifecycle__all">
+<tbody>
+<tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
+<div class="line"><span><span class="needs_title"><span class="needs_data">Module architecture</span></span></span></div>
+</div>
+</td>
+<td class="head_center" colspan="2"><div class="needs_head line-block">
+<div class="line"><span></span></div>
+<div class="line"><span></span></div>
+<div class="line"><span></span></div>
+</div>
+</td>
+<td class="head_right" colspan="2"><div class="needs_head_right line-block">
+<div class="line"><span><span class="needs needs_collapse" id="target__show__meta"><span class="needs collapsed"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-down-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="8 12 12 16 16 12"></polyline><line x1="12" y1="8" x2="12" y2="16"></line></svg></span><span class="needs visible collapse_is_hidden"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg></span></span></span></div>
+</div>
+</td>
+</tr>
+<tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
+<div class="line"><span><span><div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
+</span></span></div>
+<div class="line"><span><div class="line">includes: <span class="includes"><span><a class="reference internal" href="../../../../score/launch_manager/docs/architecture/component_architecture.html#comp__lifecycle_launch_manager" title="mod_view_sta__lifecycle__all">comp__lifecycle_launch_manager</a>, <a class="reference internal" href="../../../../score/health_monitor/docs/architecture/index.html#comp__health_monitor" title="mod_view_sta__lifecycle__all">comp__health_monitor</a></span></span></div>
+</span></div>
+</div>
+</td>
+<td class="meta" colspan="3"></td>
+</tr>
+<tr class="content row-odd"><td class="content" colspan="6"><p class="plantuml" id="needarch-docs/features/lifecycle/architecture/index-1">
+<object data="../../../../_images/plantuml-63a9731756aaadfa15ca47b8bc55cb1f9c8852ec.svg" type="image/svg+xml" style="width:1154px;height:774px;background:#FFFFFF;"></object></p>
+</td>
+</tr>
+<tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
+<div class="line"><span><span class="needs-id"><a class="reference internal" href="#mod_view_sta__lifecycle__all" title="mod_view_sta__lifecycle__all">mod_view_sta__lifecycle__all</a></span></span></div>
+</div>
+</td>
+<td class="footer" colspan="2"><div class="needs_footer line-block">
+<div class="line"><span><span class="needs_type_name"><span class="needs_data">Module Architecture Static View</span></span></span></div>
+</div>
+</td>
+<td class="footer_right" colspan="2"></td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 </section>
-<section id="used-components">
-<h2>Used Components<a class="headerlink" href="#used-components" title="Link to this heading">#</a></h2>
-<p>The following components are needed to be defined to be able to draw the static feature view.
-They will be replaced by linking the proper SW component definitions in the used module’s repositories as soon as those exist.</p>
-<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">comp</span><span class="p">::</span> Component Name
-   <span class="nc">:id:</span> comp__component_name_template
-   <span class="nc">:safety:</span> ASIL_B
-   <span class="nc">:security:</span> YES
-   <span class="nc">:status:</span> invalid
-   <span class="nc">:implements:</span> logic_arc_int__feature_name__interface_name1
-</pre></div>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Architecture can be split into multiple files, it is an high level architecture design
-which can be shown without actual c++/rust interfaces and data types
-and there will be link to internal architecture till code to get actual api descriptions.</p>
-</div>
-<div class="admonition attention">
-<p class="admonition-title">Attention</p>
-<p>The above directives must be updated according to your feature architecture.</p>
-<ul class="simple">
-<li><p>Replace the example content by the real content (according to <a class="external_link reference external" href="https://eclipse-score.github.io/process_description//main/process_areas/architecture_design/guidance/architecture_guideline.html#gd_guidl__arch_design">gd_guidl__arch_design</a>)</p></li>
-<li><p>Set the status to valid and start the review/merge process</p></li>
+<section id="components-details">
+<h2>Components Details<a class="headerlink" href="#components-details" title="Link to this heading">#</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="launch_manager.html">Launch manager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="launch_manager_configuration.html">Launch Manager Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="health_monitor.html">Health Monitor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="external_monitoring.html">External Monitoring</a></li>
 </ul>
 </div>
 </section>
@@ -705,15 +756,15 @@ and there will be link to internal architecture till code to get actual api desc
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">[Your Feature Name]</p>
+        <p class="prev-next-title">Lifecycle</p>
       </div>
     </a>
     <a class="right-next"
-       href="chklst_arc_inspection.html"
+       href="launch_manager.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Architecture Inspection Checklist</p>
+        <p class="prev-next-title">Launch manager</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -746,7 +797,7 @@ and there will be link to internal architecture till code to get actual api desc
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dynamic-architecture">Dynamic Architecture</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#logical-interfaces">Logical Interfaces</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-viewpoint">Module Viewpoint</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#used-components">Used Components</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#components-details">Components Details</a></li>
 </ul>
   </nav></div>
 
