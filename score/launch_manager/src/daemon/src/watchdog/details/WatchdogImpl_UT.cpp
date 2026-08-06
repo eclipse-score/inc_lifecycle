@@ -489,7 +489,7 @@ TEST_F(WatchdogImplTest, WdgServiceWatchdog_NoDevice)
     wdg->serviceWatchdog();
 }
 
-TEST_F(WatchdogImplTest, WdgServiceWatchdog_OneDevice)
+TEST_F(WatchdogImplTest, WdgServiceWatchdog_WithConfiguredDevice)
 {
     RecordProperty("Description", "serviceWatchdog() issues a single WDIOC_KEEPALIVE for one activated device.");
 
@@ -524,7 +524,7 @@ TEST_F(WatchdogImplTest, WdgFireWatchdogReaction_FailsIfNotInActivatedState)
     wdg->fireWatchdogReaction();
 }
 
-TEST_F(WatchdogImplTest, WdgFireWatchdogReaction_OneDevice)
+TEST_F(WatchdogImplTest, WdgFireWatchdogReaction_WithConfiguredDevice)
 {
     RecordProperty(
         "Description",

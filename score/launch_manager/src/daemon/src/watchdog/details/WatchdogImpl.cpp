@@ -115,8 +115,9 @@ bool WatchdogImpl::enable() noexcept
         return false;
     }
 
-    if (!watchdogDevice_.has_value())
+    if (!deviceAlreadyConfigured())
     {
+        // noop if no device is configured
         return true;
     }
 
