@@ -64,7 +64,8 @@ void PhmDaemon::performCyclicTriggers(void)
     }
 }
 
-bool PhmDaemon::construct(const Config& config, const SupervisionBufferConfig& f_bufferConfig_r) noexcept(false)
+bool PhmDaemon::construct(const AliveMonitorConfig& config, const SupervisionBufferConfig& f_bufferConfig_r) noexcept(
+    false)
 {
     bool isSuccess{true};
 

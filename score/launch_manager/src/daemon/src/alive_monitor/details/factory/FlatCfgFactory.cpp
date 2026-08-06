@@ -42,41 +42,17 @@ namespace factory
 {
 
 using BufferConfig = SupervisionBufferConfig;
-using Config = score::mw::launch_manager::configuration::Config;
-using ComponentConfig = score::mw::launch_manager::configuration::ComponentConfig;
-using ApplicationType = score::mw::launch_manager::configuration::ApplicationType;
 using RecoveryClient = score::lcm::IRecoveryClient;
 using NanoSecondType = saf::timers::NanoSecondType;
 using IdentifierHash = score::lcm::IdentifierHash;
 
-namespace
-{
-
-bool isSupervisedType(ApplicationType app_type)
-{
-    return app_type == ApplicationType::ReportingAndSupervised || app_type == ApplicationType::StateManager;
-}
-
-}  // namespace
-
-FlatCfgFactory::FlatCfgFactory(const BufferConfig& f_bufferConfig_r)
-    : IPhmFactory(), bufferConfig_r(f_bufferConfig_r), config_(nullptr)
+FlatCfgFactory::FlatCfgFactory(const BufferConfig& f_bufferConfig_r) : IPhmFactory(), bufferConfig_r(f_bufferConfig_r)
 {
 }
 
-bool FlatCfgFactory::init(const Config& config)
+bool FlatCfgFactory::init(const std::vector<SupervisedComponentConfig>& supervised)
 {
-    config_ = &config;
-
-    supervised_components_.clear();
-    for (const auto& comp : config_->components())
-    {
-        if (isSupervisedType(comp.component_properties.application_profile.application_type))
-        {
-            supervised_components_.push_back(&comp);
-        }
-    }
-
+    supervised_components_ = supervised;
     return true;
 }
 
@@ -89,10 +65,10 @@ bool FlatCfgFactory::createProcessStates(
     try
     {
         f_processStates_r.reserve(supervised_components_.size());
-        for (const auto* comp : supervised_components_)
+        for (const auto& comp : supervised_components_)
         {
             ifexm::ProcessCfg processCfg{};
-            processCfg.processShortName = std::string_view(comp->name);
+            processCfg.processShortName = std::string_view(comp.name);
 
             const auto processId = getProcessId(comp);
             processCfg.processId = processId.data();
@@ -104,7 +80,7 @@ bool FlatCfgFactory::createProcessStates(
                 break;
             }
 
-            LM_LOG_DEBUG() << "Successfully created Process States:" << comp->name;
+            LM_LOG_DEBUG() << "Successfully created Process States:" << comp.name;
         }
     }
     catch (const std::exception& f_exception_r)
@@ -158,11 +134,11 @@ bool FlatCfgFactory::createAliveIfIpcs(std::vector<ifappl::CheckpointIpcServer>&
     {
         f_interfaceIpcs_r.reserve(supervised_components_.size());
 
-        for (const auto* comp : supervised_components_)
+        for (const auto& comp : supervised_components_)
         {
-            const std::string pathInterface = score::lcm::internal::aliveInterfacePath(comp->name);
+            const std::string pathInterface = score::lcm::internal::aliveInterfacePath(comp.name);
             f_interfaceIpcs_r.emplace_back();
-            const std::int32_t configuredUid = static_cast<std::int32_t>(comp->deployment_config.sandbox.uid);
+            const std::int32_t configuredUid = static_cast<std::int32_t>(comp.uid);
             isSuccess = initIpcServerWithUidBasedAccess(f_interfaceIpcs_r.back(), pathInterface, configuredUid);
 
             if (isSuccess)
@@ -241,8 +217,8 @@ bool FlatCfgFactory::createSupervisionCheckpoints(
 
         for (size_t idx = 0; idx < supervised_components_.size(); ++idx)
         {
-            const auto* comp = supervised_components_[idx];
-            const std::string checkpointCfgName = comp->name + "_checkpoint";
+            const auto& comp = supervised_components_[idx];
+            const std::string checkpointCfgName = comp.name + "_checkpoint";
             const uint32_t checkpointId = StaticConfig::k_DefaultCheckpointId;
 
             const ifexm::ProcessState* process_p{&f_processStates_r.at(idx)};
@@ -289,12 +265,12 @@ bool FlatCfgFactory::createAliveSupervisions(
 
         for (size_t idx = 0; idx < supervised_components_.size(); ++idx)
         {
-            const auto* comp = supervised_components_[idx];
-            const auto& alive_sup = comp->component_properties.application_profile.alive_supervision;
+            const auto& comp = supervised_components_[idx];
+            const auto& alive_sup = comp.alive_supervision;
             SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(
                 alive_sup.has_value(), "Supervised component must have alive_supervision configured");
 
-            alive_cfg_names_.emplace_back(comp->name + "_alive_supervision");
+            alive_cfg_names_.emplace_back(comp.name + "_alive_supervision");
             NanoSecondType aliveReferenceCycleCfg{
                 timers::TimeConversion::convertMilliSecToNanoSec(static_cast<double>(alive_sup->reporting_cycle_ms))};
             uint32_t minAliveIndicationsCfg = alive_sup->min_indications.value_or(0U);
@@ -346,9 +322,9 @@ bool FlatCfgFactory::createAliveSupervisions(
     return isSuccess;
 }
 
-IdentifierHash FlatCfgFactory::getProcessId(const ComponentConfig* comp) noexcept(true)
+IdentifierHash FlatCfgFactory::getProcessId(const SupervisedComponentConfig& comp) noexcept(true)
 {
-    return IdentifierHash{comp->name};
+    return IdentifierHash{comp.name};
 }
 
 }  // namespace factory

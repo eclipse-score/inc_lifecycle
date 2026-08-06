@@ -44,6 +44,7 @@ cc_library(
     visibility = ["//score/launch_manager/src/daemon/src/alive_monitor:__subpackages__"],
     deps = [
         ":i_phm_factory",
+        "//score/launch_manager/src/daemon/src/alive_monitor/details/common:alive_monitor_config",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/common:types",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/factory:static_config",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/ifappl:checkpoint",
@@ -57,7 +58,6 @@ cc_library(
         "//score/launch_manager/src/daemon/src/common:alive_interface_path",
         "//score/launch_manager/src/daemon/src/common:identifier_hash",
         "//score/launch_manager/src/daemon/src/common:log",
-        "//score/launch_manager/src/daemon/src/configuration:config",
         "@score_baselibs//score/language/futurecpp",
     ] + select({
         "@platforms//os:qnx": [],

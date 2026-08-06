@@ -16,11 +16,10 @@
 
 #include <memory>
 
-#include "score/mw/launch_manager/alive_monitor/details/common/Types.hpp"
+#include "score/mw/launch_manager/alive_monitor/details/common/AliveMonitorConfig.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/factory/IPhmFactory.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/factory/StaticConfig.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ProcessStateReader.hpp"
-#include "score/mw/launch_manager/configuration/config.hpp"
 #include <string>
 #include <vector>
 
@@ -67,10 +66,9 @@ class FlatCfgFactory : public IPhmFactory
     FlatCfgFactory& operator=(FlatCfgFactory&&) = delete;
 
     /// @brief Initialize SW cluster
-    /// @param [inout] f_flatCfgPhm_r   FlatCfg configuration for PHM
-    /// @param [in] f_nameSwCluster_r   Software Cluster name which for which workers shall be constructed
-    /// @return                         Initialization is successful (true), otherwise failure (false)
-    bool init(const score::mw::launch_manager::configuration::Config& config);
+    /// @param [in] supervised  Vector of supervised component configurations
+    /// @return                 Initialization is successful (true), otherwise failure (false)
+    bool init(const std::vector<SupervisedComponentConfig>& supervised);
 
     /// @brief Refer to the description of the base class (IPhmFactory)
     bool createProcessStates(
@@ -101,10 +99,9 @@ class FlatCfgFactory : public IPhmFactory
 
   private:
     /// @brief Get process id based on ASR path of process
-    /// @param[in] comp  Pointer to component configuration
+    /// @param[in] comp  Reference to component configuration
     /// @return          process id
-    static score::lcm::IdentifierHash getProcessId(
-        const score::mw::launch_manager::configuration::ComponentConfig* comp) noexcept(true);
+    static score::lcm::IdentifierHash getProcessId(const SupervisedComponentConfig& comp) noexcept(true);
 
     /// @brief Create IPC Channel with uid-based access permission
     /// @details Only the given uid will ge granted r/w access, no group will be granted access
@@ -120,8 +117,7 @@ class FlatCfgFactory : public IPhmFactory
     /// @brief The buffer configuration for constructing supervision objects
     const factory::SupervisionBufferConfig& bufferConfig_r;
 
-    const score::mw::launch_manager::configuration::Config* config_;
-    std::vector<const score::mw::launch_manager::configuration::ComponentConfig*> supervised_components_;
+    std::vector<SupervisedComponentConfig> supervised_components_;
     std::vector<std::string> alive_cfg_names_;
 };
 

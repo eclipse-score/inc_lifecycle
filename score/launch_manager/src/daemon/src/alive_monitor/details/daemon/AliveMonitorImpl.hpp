@@ -16,6 +16,7 @@
 #include <atomic>
 #include <memory>
 
+#include "score/mw/launch_manager/alive_monitor/details/common/AliveMonitorConfig.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/daemon/IAliveMonitor.hpp"
 #include "score/mw/launch_manager/configuration/config.hpp"
 
@@ -55,7 +56,7 @@ class AliveMonitorImpl : public IAliveMonitor
     UptrPhmDaemon m_daemon{nullptr};
     OsClock m_osClock{};
     UptrIProcessStateReceiver m_process_state_receiver;
-    const Config& m_config;
+    AliveMonitorConfig m_config;
 };
 
 }  // namespace daemon
