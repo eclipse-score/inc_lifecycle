@@ -37,7 +37,7 @@ using RunTargetName = FixedString<kMaxRunTargetNameLength>;
 ///
 /// Callers obtain an instance via ILmControl::Create() and interact with the
 /// Launch Manager exclusively through this interface. The concrete implementation
-/// is an internal detail — it is not visible in this header.
+/// is an internal detail - it is not visible in this header.
 ///
 /// @par Usage
 /// ```cpp
@@ -61,12 +61,20 @@ class ILmControl
     /// The subscriber sees every settling.
     ///
     /// @param[in] activationSource   What caused the activation to occur.
-    /// @param[in] activatedRunTarget The Run Target that was activated — may
+    /// @param[in] activatedRunTarget The Run Target that was activated - may
     ///                               differ from the one originally requested.
     using ActivationCallback =
         std::function<void(RunTargetActivationSource activationSource, RunTargetName activatedRunTarget)>;
 
-    /// @brief Factory method — create a connected ILmControl instance.
+    /// @brief Factory method - create a connected ILmControl instance.
+    ///
+    /// @warning **Work in progress  API shape not yet finalised.**
+    ///          The signature and behaviour of this method may change. Open
+    ///          questions include how much of the mw::com initialisation and
+    ///          configuration is the caller's responsibility versus handled
+    ///          internally, and whether the instance specifier is the right
+    ///          abstraction to expose at this level. Do not treat this interface
+    ///          as stable until these decisions are resolved.
     ///
     /// Establishes the mw::com connection to the Launch Manager.
     ///

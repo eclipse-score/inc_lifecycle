@@ -35,7 +35,7 @@ namespace score::mw::lifecycle
 /// @par Invariant
 /// The stored string is always null-terminated. Every constructor and assignment path
 /// enforces this. Characters beyond the null terminator are indeterminate and must
-/// not be read directly — use `as_string_view()` or `data()` instead.
+/// not be read directly - use `as_string_view()` or `data()` instead.
 ///
 /// @par Copying and moving
 /// Copy and move are compiler-generated (rule of zero). The `std::array` storage
@@ -53,17 +53,42 @@ struct FixedString
     /// @brief Construct an empty string (equivalent to "").
     ///
     /// Only `storage_[0]` is set to `'\0'`; the rest of the array is indeterminate.
-    /// This is intentional — zeroing `MaxLength + 1` bytes on every default
+    /// This is intentional - zeroing `MaxLength + 1` bytes on every default
     /// construction would be wasteful when the value is immediately overwritten.
     constexpr FixedString() noexcept
     {
         storage_[0] = '\0';
     }
 
+    /// @brief Construct from a string literal or compile-time char array.
+    ///
+    /// Accepts only string literals and `const char[N]` arrays - not runtime
+    /// `const char*` pointers. This prevents null pointer and dangling pointer
+    /// bugs that a `const char*` constructor would allow implicitly.
+    ///
+    /// If the literal is longer than `MaxLength` characters (excluding the null
+    /// terminator), the build fails with a `static_assert` - no silent truncation.
+    ///
+    /// @tparam N Size of the char array, including the null terminator.
+    ///           For a string literal `"foo"`, N == 4.
+    /// @param s  Source char array. Must be null-terminated (guaranteed for literals).
+    template <std::size_t N>
+    constexpr FixedString(const char (&s)[N]) noexcept
+    {
+        static_assert(
+            N - 1U <= MaxLength,
+            "String literal exceeds FixedString capacity - use a shorter literal or increase MaxLength");
+        for (std::size_t i = 0U; i < N - 1U; ++i)
+        {
+            storage_[i] = s[i];
+        }
+        storage_[N - 1U] = '\0';
+    }
+
     /// @brief Construct from a string_view, truncating if necessary.
     ///
     /// If `s.size() > MaxLength`, only the first `MaxLength` characters are stored.
-    /// No error is raised at this level — detection and logging of over-length
+    /// No error is raised at this level - detection and logging of over-length
     /// strings must happen at the user side where the source and context are
     /// available.
     ///
@@ -196,15 +221,12 @@ struct FixedString
     ///         otherwise, false.
     bool operator==(const FixedString& other) const noexcept
     {
-        // strcmp does a single optimised pass — avoids the two strlen calls
+        // strcmp does a single optimised pass - avoids the two strlen calls
         // that constructing string_views would require.
         return std::strcmp(storage_.data(), other.storage_.data()) == 0;
     }
 
     /// @brief Equality comparison with a string_view.
-    ///
-    /// Allows comparisons such as `fs == "Running"` without constructing
-    /// a temporary FixedString.
     ///
     /// @param other The string value to compare against.
     ///
@@ -212,13 +234,32 @@ struct FixedString
     ///         @p other; otherwise, false.
     bool operator==(std::string_view other) const noexcept
     {
-        // other.size() is already known — use it as a length guard and for
-        // memcmp, avoiding strlen on our storage.
+        // other.size() is already known - use it as a length guard and for
+        // strncmp, avoiding strlen on our storage.
         if (other.size() > MaxLength)
         {
             return false;
         }
         return std::strncmp(storage_.data(), other.data(), other.size()) == 0 && storage_[other.size()] == '\0';
+    }
+
+    /// @brief Equality comparison with a string literal or compile-time char array.
+    ///
+    /// This overload is an exact match for string literals, resolving the
+    /// ambiguity that would otherwise arise between operator==(const FixedString&)
+    /// and operator==(std::string_view) when both require one implicit conversion
+    /// from a char array. An exact-match template is always preferred.
+    ///
+    /// @tparam N Size of the char array including the null terminator.
+    /// @return true if this FixedString represents the same string; otherwise false.
+    template <std::size_t N>
+    bool operator==(const char (&other)[N]) const noexcept
+    {
+        if (N - 1U > MaxLength)
+        {
+            return false;
+        }
+        return std::strncmp(storage_.data(), other, N - 1U) == 0 && storage_[N - 1U] == '\0';
     }
 
     /// @brief Inequality comparison with another FixedString of the same capacity.
@@ -245,6 +286,19 @@ struct FixedString
     /// @return true if this FixedString represents a different string
     ///         than @p other; otherwise, false.
     bool operator!=(std::string_view other) const noexcept
+    {
+        return !(*this == other);
+    }
+
+    /// @brief Inequality comparison with a string literal or compile-time char array.
+    ///
+    /// Exact-match overload that mirrors operator==(const char(&)[N]) to avoid
+    /// ambiguity when comparing against string literals.
+    ///
+    /// @tparam N Size of the char array including the null terminator.
+    /// @return true if this FixedString represents a different string; otherwise false.
+    template <std::size_t N>
+    bool operator!=(const char (&other)[N]) const noexcept
     {
         return !(*this == other);
     }
