@@ -28,12 +28,11 @@ namespace saf
 namespace daemon
 {
 
-AliveMonitorImpl::AliveMonitorImpl(SptrIRecoveryClient recovery_client,
-                                   UptrIProcessStateReceiver process_state_receiver,
-                                   const Config& config)
-    : m_recovery_client(recovery_client),
-      m_process_state_receiver{std::move(process_state_receiver)},
-      m_config(config)
+AliveMonitorImpl::AliveMonitorImpl(
+    SptrIRecoveryClient recovery_client,
+    UptrIProcessStateReceiver process_state_receiver,
+    const Config& config)
+    : m_recovery_client(recovery_client), m_process_state_receiver{std::move(process_state_receiver)}, m_config(config)
 {
 }
 
@@ -73,8 +72,8 @@ EInitCode AliveMonitorImpl::init() noexcept
 
 bool AliveMonitorImpl::run(std::atomic_bool& cancel_thread) noexcept
 {
-    SCORE_LANGUAGE_FUTURECPP_PRECONDITION_PRD_MESSAGE(m_daemon != nullptr,
-                                                      "HealthMonitor: Instance is not initialized!");
+    SCORE_LANGUAGE_FUTURECPP_PRECONDITION_PRD_MESSAGE(
+        m_daemon != nullptr, "HealthMonitor: Instance is not initialized!");
     return m_daemon->startCyclicExec(cancel_thread);
 }
 

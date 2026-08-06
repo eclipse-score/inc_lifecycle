@@ -38,7 +38,7 @@ namespace ifappl
 /// attached supervisions.
 class Checkpoint : public saf::common::Observable<Checkpoint>
 {
-public:
+  public:
     /// @brief No Default Constructor.
     Checkpoint() = delete;
 
@@ -54,8 +54,10 @@ public:
     /// @param [in] f_checkpointId              ID of checkpoint
     /// @param [in] f_processState_p            The process that is reporting this checkpoint
     /// @throws std::bad_alloc in case of insufficient memory for string allocation
-    Checkpoint(const char* const f_checkpointCfgName_p, const uint32_t f_checkpointId,
-               const ifexm::ProcessState* f_processState_p) noexcept(false);
+    Checkpoint(
+        const char* const f_checkpointCfgName_p,
+        const uint32_t f_checkpointId,
+        const ifexm::ProcessState* f_processState_p) noexcept(false);
 
     /// @brief Default Move Constructor
     /// Cannot be noexcept, since the base class move constructor is not noexcept
@@ -100,7 +102,7 @@ public:
     /// @return process state
     const ifexm::ProcessState* getProcess(void) const noexcept(true);
 
-private:
+  private:
     /// @brief Name of the corresponding configured SupervisionCheckpoint
     const std::string k_configName;
 

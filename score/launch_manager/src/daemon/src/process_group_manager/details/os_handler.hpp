@@ -11,21 +11,23 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-
 #ifndef OS_HANDLER_HPP_INCLUDED
 #define OS_HANDLER_HPP_INCLUDED
 
 #include <chrono>
 #include <thread>
 
-#include "score/os/sys_wait.h"
 #include "score/mw/launch_manager/process_group_manager/details/safe_process_map.hpp"
+#include "score/os/sys_wait.h"
 
-namespace score {
+namespace score
+{
 
-namespace lcm {
+namespace lcm
+{
 
-namespace internal {
+namespace internal
+{
 
 /// @brief Delay duration between successive iterations of the OsHandler's main loop when no processes are terminating.
 /// This constant prevents the OsHandler from consuming excessive CPU resources by sleeping for a specified duration
@@ -37,20 +39,24 @@ constexpr std::chrono::milliseconds OS_HANDLER_LOOP_DELAY{100};  // TODO - Defin
 /// The ProcessInfoNode object is responsible for handling process termination.
 /// The OsHandler runs as a separate thread, usually initiated by the process group manager.
 /// There will only be one instance of OsHandler during the Launch Manager's lifetime.
-class OsHandler final {
-   public:
+class OsHandler final
+{
+  public:
     /// @brief Constructs an OsHandler with safe process map and SysWait interface.
-    /// This constructor initializes the OsHandler, starts its execution thread, and prepares it to handle process terminations.
+    /// This constructor initializes the OsHandler, starts its execution thread, and prepares it to handle process
+    /// terminations.
     /// @param map A reference to a SafeProcessMap that stores the mapping of processes to be managed.
     /// @param sys_wait A reference to a score::os::SysWait instance used to wait for child process termination.
     ///        Defaults to the production singleton. A mock can be injected for testing.
     OsHandler(SafeProcessMap& map, score::os::SysWait& sys_wait = score::os::SysWait::instance())
-        : safe_process_map_(map), sys_wait_(sys_wait) {
+        : safe_process_map_(map), sys_wait_(sys_wait)
+    {
     }
 
     /// @brief Stops and and destroy the execution of the OsHandler's thread by setting the is_running_ flag to false,
     /// allowing the thread to exit its main loop and then joining the thread to ensure proper termination.
-    ~OsHandler() {
+    ~OsHandler()
+    {
         is_running_ = false;
         os_handler_.join();
     }
@@ -68,12 +74,12 @@ class OsHandler final {
     /// @brief No move assignment operator needed.
     OsHandler& operator=(OsHandler&&) = delete;
 
-   private:
+  private:
     /// @brief Main run function for the os handler's thread.
     /// This method continuously checks for terminated processes using the OSAL waitForProcessTermination method
-    /// If a terminated process is found, it locates the corresponding ProcessInfoNode by calling the findTerminated method of SafeProcessMap,
-    /// and then notifies the ProcessInfoNode by calling its terminated method.
-    /// If no processes are terminating, it sleeps for a short duration to prevent CPU hogging.
+    /// If a terminated process is found, it locates the corresponding ProcessInfoNode by calling the findTerminated
+    /// method of SafeProcessMap, and then notifies the ProcessInfoNode by calling its terminated method. If no
+    /// processes are terminating, it sleeps for a short duration to prevent CPU hogging.
     void run();
 
     /// @brief A reference to a SafeProcessMap that stores the mapping of processes to be managed.
@@ -89,9 +95,9 @@ class OsHandler final {
     std::thread os_handler_{&score::lcm::internal::OsHandler::run, this};
 };
 
-}  // namespace lcm
-
 }  // namespace internal
+
+}  // namespace lcm
 
 }  // namespace score
 

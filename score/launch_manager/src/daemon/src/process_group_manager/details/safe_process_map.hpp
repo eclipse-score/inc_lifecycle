@@ -14,10 +14,10 @@
 #ifndef SAFE_PROCESS_MAP_HPP_INCLUDED
 #define SAFE_PROCESS_MAP_HPP_INCLUDED
 
-#include <atomic>
-#include <cstdint>
 #include "score/mw/launch_manager/process_group_manager/details/icomponent_controller.hpp"
 #include "score/mw/launch_manager/process_group_manager/iprocess.hpp"
+#include <atomic>
+#include <cstdint>
 
 namespace score
 {
@@ -33,7 +33,7 @@ using namespace score::mw::lifecycle::internal;
 /// @brief Struct representing data in a map item
 struct ProcessInfoData
 {
-    int32_t status_ = -1;                  ///< Exit status for process
+    int32_t status_ = -1;        ///< Exit status for process
     IComponent* pin_ = nullptr;  ///< Pointer to the termination callback associated with this item.
 };
 /// @brief Struct representing an item in the map.

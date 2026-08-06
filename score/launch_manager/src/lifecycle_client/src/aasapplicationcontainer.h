@@ -40,9 +40,10 @@ class AasApplicationContainer : public Application
      * @param argv The command line arguments.
      * @param count_expected_applications The expected number of applications.
      */
-    AasApplicationContainer(const std::int32_t argc,
-                            const char* const argv[],
-                            const std::size_t count_expected_applications) noexcept;
+    AasApplicationContainer(
+        const std::int32_t argc,
+        const char* const argv[],
+        const std::size_t count_expected_applications) noexcept;
 
     AasApplicationContainer(const AasApplicationContainer&) = delete;
     AasApplicationContainer& operator=(const AasApplicationContainer&) = delete;
@@ -68,8 +69,8 @@ class AasApplicationContainer : public Application
     template <typename App, typename... Args>
     AasApplicationContainer& With(Args&&... args)
     {
-        SCORE_LANGUAGE_FUTURECPP_ASSERT_PRD_MESSAGE(applications_.size() + 1 <= count_expected_applications_,
-                                                    "Passed more Applications than expected");
+        SCORE_LANGUAGE_FUTURECPP_ASSERT_PRD_MESSAGE(
+            applications_.size() + 1 <= count_expected_applications_, "Passed more Applications than expected");
         applications_.push_back(std::make_unique<App>(std::forward<Args>(args)...));
         return *this;
     }

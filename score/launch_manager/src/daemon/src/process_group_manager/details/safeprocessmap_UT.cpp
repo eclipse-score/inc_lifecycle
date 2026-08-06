@@ -129,8 +129,7 @@ TEST_F(SafeProcessMapTest, InsertIntoEmptyTreeReturnsZero)
     RecordProperty("Description", "insertIfNotTerminated returns kOk (0) when inserting into an empty tree.");
 
     // when
-    score::lcm::internal::SafeProcessMapReturnType result =
-        sut_.insertIfNotTerminated(2000, &callback_);
+    score::lcm::internal::SafeProcessMapReturnType result = sut_.insertIfNotTerminated(2000, &callback_);
 
     // then
     EXPECT_EQ(result, score::lcm::internal::SafeProcessMapReturnType::kOk);
@@ -148,8 +147,7 @@ TEST_F(SafeProcessMapTest, InsertMatchesExistingFindTerminatedEntry)
     EXPECT_CALL(controller, terminated(Ref(callback_), 0));
 
     // when
-    score::lcm::internal::SafeProcessMapReturnType result =
-        sut_.insertIfNotTerminated(1000, &callback_);
+    score::lcm::internal::SafeProcessMapReturnType result = sut_.insertIfNotTerminated(1000, &callback_);
 
     // then
     EXPECT_EQ(result, score::lcm::internal::SafeProcessMapReturnType::kYield);
@@ -170,9 +168,7 @@ TEST_F(SafeProcessMapTest, InsertMultipleNodesThenFindTerminatedRemovesAll)
     // when / then
     for (uint32_t j = 1; j <= kCapacity; ++j)
     {
-        EXPECT_EQ(
-            sut_.findTerminated(static_cast<int32_t>(j), 0),
-            score::lcm::internal::SafeProcessMapReturnType::kOk);
+        EXPECT_EQ(sut_.findTerminated(static_cast<int32_t>(j), 0), score::lcm::internal::SafeProcessMapReturnType::kOk);
     }
 }
 
@@ -209,10 +205,8 @@ TEST_F(SafeProcessMapTest, InsertSamePidTwiceYieldsUntilFindTerminatedResolves)
 
     // given
     std::atomic_bool first_done{false};
-    score::lcm::internal::SafeProcessMapReturnType ret1 =
-        score::lcm::internal::SafeProcessMapReturnType::kUndefined;
-    score::lcm::internal::SafeProcessMapReturnType ret2 =
-        score::lcm::internal::SafeProcessMapReturnType::kUndefined;
+    score::lcm::internal::SafeProcessMapReturnType ret1 = score::lcm::internal::SafeProcessMapReturnType::kUndefined;
+    score::lcm::internal::SafeProcessMapReturnType ret2 = score::lcm::internal::SafeProcessMapReturnType::kUndefined;
 
     NiceMock<MockComponent> cb;
 
@@ -248,10 +242,8 @@ TEST_F(SafeProcessMapTest, FindTerminatedSamePidTwiceYieldsUntilInsertResolves)
 
     // given
     std::atomic_bool first_done{false};
-    score::lcm::internal::SafeProcessMapReturnType ret1 =
-        score::lcm::internal::SafeProcessMapReturnType::kUndefined;
-    score::lcm::internal::SafeProcessMapReturnType ret2 =
-        score::lcm::internal::SafeProcessMapReturnType::kUndefined;
+    score::lcm::internal::SafeProcessMapReturnType ret1 = score::lcm::internal::SafeProcessMapReturnType::kUndefined;
+    score::lcm::internal::SafeProcessMapReturnType ret2 = score::lcm::internal::SafeProcessMapReturnType::kUndefined;
 
     NiceMock<MockComponent> cb;
 
@@ -271,8 +263,7 @@ TEST_F(SafeProcessMapTest, FindTerminatedSamePidTwiceYieldsUntilInsertResolves)
     EXPECT_EQ(ret2, score::lcm::internal::SafeProcessMapReturnType::kUndefined);
 
     // when — resolve the anomaly
-    EXPECT_EQ(
-        sut_.insertIfNotTerminated(42, &cb), score::lcm::internal::SafeProcessMapReturnType::kYield);
+    EXPECT_EQ(sut_.insertIfNotTerminated(42, &cb), score::lcm::internal::SafeProcessMapReturnType::kYield);
     finder.join();
 
     // then
@@ -286,74 +277,40 @@ TEST_F(SafeProcessMapTest, FindTerminatedWorksAtMaxTreeDepth)
     RecordProperty("Description", "The binary tree handles maximum depth correctly.");
 
     // given — build a deep tree using bit patterns that always branch one way
-    EXPECT_EQ(
-        sut_.findTerminated(0x00000000, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
-    EXPECT_EQ(
-        sut_.findTerminated(0x00000001, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
-    EXPECT_EQ(
-        sut_.findTerminated(0x00000002, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
-    EXPECT_EQ(
-        sut_.findTerminated(0x00000003, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
-    EXPECT_EQ(
-        sut_.findTerminated(0x00000007, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
-    EXPECT_EQ(
-        sut_.findTerminated(0x0000000F, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
-    EXPECT_EQ(
-        sut_.findTerminated(0x0000001F, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
-    EXPECT_EQ(
-        sut_.findTerminated(0x0000003F, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
-    EXPECT_EQ(
-        sut_.findTerminated(0x0000007F, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
-    EXPECT_EQ(
-        sut_.findTerminated(0x000000FF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
-    EXPECT_EQ(
-        sut_.findTerminated(0x000001FF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
-    EXPECT_EQ(
-        sut_.findTerminated(0x000003FF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
-    EXPECT_EQ(
-        sut_.findTerminated(0x000007FF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
-    EXPECT_EQ(
-        sut_.findTerminated(0x00000FFF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
-    EXPECT_EQ(
-        sut_.findTerminated(0x00001FFF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
-    EXPECT_EQ(
-        sut_.findTerminated(0x00003FFF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
-    EXPECT_EQ(
-        sut_.findTerminated(0x00007FFF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
-    EXPECT_EQ(
-        sut_.findTerminated(0x0000FFFF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
-    EXPECT_EQ(
-        sut_.findTerminated(0x0000FFFE, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
-    EXPECT_EQ(
-        sut_.findTerminated(0x0001FFFF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
-    EXPECT_EQ(
-        sut_.findTerminated(0x0003FFFF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
-    EXPECT_EQ(
-        sut_.findTerminated(0x0007FFFF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
-    EXPECT_EQ(
-        sut_.findTerminated(0x000FFFFF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
-    EXPECT_EQ(
-        sut_.findTerminated(0x001FFFFF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
-    EXPECT_EQ(
-        sut_.findTerminated(0x003FFFFF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
-    EXPECT_EQ(
-        sut_.findTerminated(0x007FFFFF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
-    EXPECT_EQ(
-        sut_.findTerminated(0x00FFFFFF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
-    EXPECT_EQ(
-        sut_.findTerminated(0x01FFFFFF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
-    EXPECT_EQ(
-        sut_.findTerminated(0x03FFFFFF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
-    EXPECT_EQ(
-        sut_.findTerminated(0x07FFFFFF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
-    EXPECT_EQ(
-        sut_.findTerminated(0x0FFFFFFF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
-    EXPECT_EQ(
-        sut_.findTerminated(0x1FFFFFFF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
-    EXPECT_EQ(
-        sut_.findTerminated(0x3FFFFFFF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
-    EXPECT_EQ(
-        sut_.findTerminated(0x7FFFFFFF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
+    EXPECT_EQ(sut_.findTerminated(0x00000000, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
+    EXPECT_EQ(sut_.findTerminated(0x00000001, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
+    EXPECT_EQ(sut_.findTerminated(0x00000002, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
+    EXPECT_EQ(sut_.findTerminated(0x00000003, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
+    EXPECT_EQ(sut_.findTerminated(0x00000007, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
+    EXPECT_EQ(sut_.findTerminated(0x0000000F, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
+    EXPECT_EQ(sut_.findTerminated(0x0000001F, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
+    EXPECT_EQ(sut_.findTerminated(0x0000003F, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
+    EXPECT_EQ(sut_.findTerminated(0x0000007F, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
+    EXPECT_EQ(sut_.findTerminated(0x000000FF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
+    EXPECT_EQ(sut_.findTerminated(0x000001FF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
+    EXPECT_EQ(sut_.findTerminated(0x000003FF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
+    EXPECT_EQ(sut_.findTerminated(0x000007FF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
+    EXPECT_EQ(sut_.findTerminated(0x00000FFF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
+    EXPECT_EQ(sut_.findTerminated(0x00001FFF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
+    EXPECT_EQ(sut_.findTerminated(0x00003FFF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
+    EXPECT_EQ(sut_.findTerminated(0x00007FFF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
+    EXPECT_EQ(sut_.findTerminated(0x0000FFFF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
+    EXPECT_EQ(sut_.findTerminated(0x0000FFFE, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
+    EXPECT_EQ(sut_.findTerminated(0x0001FFFF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
+    EXPECT_EQ(sut_.findTerminated(0x0003FFFF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
+    EXPECT_EQ(sut_.findTerminated(0x0007FFFF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
+    EXPECT_EQ(sut_.findTerminated(0x000FFFFF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
+    EXPECT_EQ(sut_.findTerminated(0x001FFFFF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
+    EXPECT_EQ(sut_.findTerminated(0x003FFFFF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
+    EXPECT_EQ(sut_.findTerminated(0x007FFFFF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
+    EXPECT_EQ(sut_.findTerminated(0x00FFFFFF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
+    EXPECT_EQ(sut_.findTerminated(0x01FFFFFF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
+    EXPECT_EQ(sut_.findTerminated(0x03FFFFFF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
+    EXPECT_EQ(sut_.findTerminated(0x07FFFFFF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
+    EXPECT_EQ(sut_.findTerminated(0x0FFFFFFF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
+    EXPECT_EQ(sut_.findTerminated(0x1FFFFFFF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
+    EXPECT_EQ(sut_.findTerminated(0x3FFFFFFF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
+    EXPECT_EQ(sut_.findTerminated(0x7FFFFFFF, 0), score::lcm::internal::SafeProcessMapReturnType::kYield);
 
     // when / then — boundary values
     EXPECT_EQ(
@@ -365,18 +322,10 @@ TEST_F(SafeProcessMapTest, FindTerminatedWorksAtMaxTreeDepth)
 
     // when / then — retrieve entries using insertIfNotTerminated
     NiceMock<MockComponent> cb;
-    EXPECT_EQ(
-        sut_.insertIfNotTerminated(0x0000FFFE, &cb),
-        score::lcm::internal::SafeProcessMapReturnType::kYield);
-    EXPECT_EQ(
-        sut_.insertIfNotTerminated(0x00010000, &cb),
-        score::lcm::internal::SafeProcessMapReturnType::kOk);
-    EXPECT_EQ(
-        sut_.insertIfNotTerminated(0x0001FFFF, &cb),
-        score::lcm::internal::SafeProcessMapReturnType::kYield);
-    EXPECT_EQ(
-        sut_.insertIfNotTerminated(0x00000002, &cb),
-        score::lcm::internal::SafeProcessMapReturnType::kYield);
+    EXPECT_EQ(sut_.insertIfNotTerminated(0x0000FFFE, &cb), score::lcm::internal::SafeProcessMapReturnType::kYield);
+    EXPECT_EQ(sut_.insertIfNotTerminated(0x00010000, &cb), score::lcm::internal::SafeProcessMapReturnType::kOk);
+    EXPECT_EQ(sut_.insertIfNotTerminated(0x0001FFFF, &cb), score::lcm::internal::SafeProcessMapReturnType::kYield);
+    EXPECT_EQ(sut_.insertIfNotTerminated(0x00000002, &cb), score::lcm::internal::SafeProcessMapReturnType::kYield);
 }
 
 // --- Multi-threaded stress tests ---

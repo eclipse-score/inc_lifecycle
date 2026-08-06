@@ -69,8 +69,8 @@ TEST_F(MPMCConcurrentQueueTest_Basic, LvaluePushCopiesItem)
 
 TEST_F(MPMCConcurrentQueueTest_Basic, RvaluePushWorksWithMoveOnlyType)
 {
-    RecordProperty("Description",
-                   "Verify that rvalue push works with a move-only type and moves the item into the queue.");
+    RecordProperty(
+        "Description", "Verify that rvalue push works with a move-only type and moves the item into the queue.");
     MPMCConcurrentQueue<std::unique_ptr<int>, 4> queue;
     auto item = std::make_unique<int>(99);
     ASSERT_TRUE(queue.push(std::move(item)));
@@ -83,14 +83,16 @@ TEST_F(MPMCConcurrentQueueTest_Basic, RvaluePushWorksWithMoveOnlyType)
 
 TEST_F(MPMCConcurrentQueueTest_Basic, PopReturnsNulloptOnSemaphoreWaitFailure)
 {
-    RecordProperty("Description",
-                   "Verify that pop returns nullopt when the internal semaphore wait is "
-                   "interrupted by a signal (sem_wait returns EINTR, triggering the kFail path).");
+    RecordProperty(
+        "Description",
+        "Verify that pop returns nullopt when the internal semaphore wait is "
+        "interrupted by a signal (sem_wait returns EINTR, triggering the kFail path).");
 
     // Install a no-op handler without SA_RESTART so sem_wait is NOT restarted
     // after signal delivery and returns -1 with EINTR instead.
     struct sigaction sa{};
-    sa.sa_handler = [](int) {};
+    sa.sa_handler = [](int) {
+    };
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = 0;
     sigaction(SIGUSR1, &sa, nullptr);
@@ -280,9 +282,10 @@ class MPMCConcurrentQueueTest_MPMC : public ::testing::Test
 
 TEST_F(MPMCConcurrentQueueTest_MPMC, AllItemsDelivered)
 {
-    RecordProperty("Description",
-                   "Verify that all items pushed by multiple concurrent producers are received "
-                   "by multiple concurrent consumers without loss or duplication.");
+    RecordProperty(
+        "Description",
+        "Verify that all items pushed by multiple concurrent producers are received "
+        "by multiple concurrent consumers without loss or duplication.");
     std::atomic<int> received_count{0};
 
     auto producer_fn = [this](int value) {

@@ -18,8 +18,7 @@
 
 // Macros for consistent, constexpr names of marker files across test processes
 
-#define PROC_FILES(x)                                               \
-    constexpr std::string_view x##_terminating = "proc_" #x "_terminating";
+#define PROC_FILES(x) constexpr std::string_view x##_terminating = "proc_" #x "_terminating";
 
 PROC_FILES(native)
 PROC_FILES(reporting)

@@ -16,26 +16,34 @@
 
 #include <functional>
 
-namespace {
+namespace
+{
 
-auto &GetReportRunningCallback() noexcept {
-  static std::function<void()> report_running_callback = nullptr;
-  return report_running_callback;
+auto& GetReportRunningCallback() noexcept
+{
+    static std::function<void()> report_running_callback = nullptr;
+    return report_running_callback;
 }
 
-} // namespace
+}  // namespace
 
-score::mw::lifecycle::ReportRunningMock::ReportRunningMock() {
-  GetReportRunningCallback() = [this] { report_running(); };
+score::mw::lifecycle::ReportRunningMock::ReportRunningMock()
+{
+    GetReportRunningCallback() = [this] {
+        report_running();
+    };
 }
 
-score::mw::lifecycle::ReportRunningMock::~ReportRunningMock() {
-  GetReportRunningCallback() = nullptr;
+score::mw::lifecycle::ReportRunningMock::~ReportRunningMock()
+{
+    GetReportRunningCallback() = nullptr;
 }
 
-void score::mw::lifecycle::report_running() noexcept {
-  auto &report_running_callback = GetReportRunningCallback();
-  if (report_running_callback) {
-    report_running_callback();
-  }
+void score::mw::lifecycle::report_running() noexcept
+{
+    auto& report_running_callback = GetReportRunningCallback();
+    if (report_running_callback)
+    {
+        report_running_callback();
+    }
 }

@@ -13,12 +13,14 @@
 #ifndef IPROCESSSTATE_NOTIFIER_HPP_INCLUDED
 #define IPROCESSSTATE_NOTIFIER_HPP_INCLUDED
 
-#include "score/mw/launch_manager/process_state_client/posix_process.hpp"
 #include "score/mw/launch_manager/process_state_client/iprocess_state_receiver.hpp"
+#include "score/mw/launch_manager/process_state_client/posix_process.hpp"
 
-namespace score {
+namespace score
+{
 
-namespace lcm {
+namespace lcm
+{
 
 ///
 /// @brief IProcessStateNotifier interface for handling the information about each Process current state.
@@ -27,9 +29,9 @@ namespace lcm {
 ///        Each posix process state change is stored by Launch Manager (LCM) and can be read by HM.
 ///
 
-class IProcessStateNotifier {
-   public:
-
+class IProcessStateNotifier
+{
+  public:
     /// @brief Destructor.
     virtual ~IProcessStateNotifier() noexcept = default;
 

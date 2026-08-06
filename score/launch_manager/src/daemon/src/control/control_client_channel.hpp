@@ -11,23 +11,25 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-
 #ifndef CONTROL_CLIENT_CHANNEL_HPP_INCLUDED
 #define CONTROL_CLIENT_CHANNEL_HPP_INCLUDED
 
 #include <atomic>
-#include <string_view>
 #include <condition_variable>
 #include <mutex>
+#include <string_view>
 
 #include "score/mw/launch_manager/common/process_group_state_id.hpp"
 #include "score/mw/launch_manager/osal/ipc_comms.hpp"
 
-namespace score {
+namespace score
+{
 
-namespace lcm {
+namespace lcm
+{
 
-namespace internal {
+namespace internal
+{
 
 /// @brief This is initially some ID provided by the Control Client library. When received
 /// by Control Client handler additional information is added - the state manager
@@ -35,11 +37,13 @@ namespace internal {
 /// group index and process index.
 /// When the Control Client library receives a response, it must be able to extract
 /// the client ID, ignoring the state manager process identification.
-struct ControlClientID final {
+struct ControlClientID final
+{
     uint16_t process_group_index_;  ///< Process group containing the state manager process
-    uint16_t process_index_;         ///< The process within the process group
-    uint32_t future_id_;             ///< ID to match request and response
-    ControlClientID() : process_group_index_(0), process_index_(0), future_id_(0) {
+    uint16_t process_index_;        ///< The process within the process group
+    uint32_t future_id_;            ///< ID to match request and response
+    ControlClientID() : process_group_index_(0), process_index_(0), future_id_(0)
+    {
     }  ///< For use by Control Client
 };
 
@@ -66,10 +70,11 @@ enum class ControlClientCode  // Both request and response codes are given. Mapp
     kFailedUnexpectedTermination = 24,  ///< Response: termination of a process when not in transition
 
     // getInitialMachineState functionality
-    kGetInitialMachineStateRequest      = 32, ///< Request the initial machine state result
-    kInitialMachineStateNotSet          = 33, ///< Internal value used before first state transition or there is no machine PG
-    kInitialMachineStateFailed          = 34, ///<  Response: The transition to the initial machine state failed (or was cancelled)
-    kInitialMachineStateSuccess         = 35, ///< Response: The initial machine state transition was successful
+    kGetInitialMachineStateRequest = 32,  ///< Request the initial machine state result
+    kInitialMachineStateNotSet = 33,  ///< Internal value used before first state transition or there is no machine PG
+    kInitialMachineStateFailed =
+        34,  ///<  Response: The transition to the initial machine state failed (or was cancelled)
+    kInitialMachineStateSuccess = 35,  ///< Response: The initial machine state transition was successful
 
     // getExecutionError functionality
     kGetExecutionErrorRequest = 48,        ///< Request the execution error for a process group
@@ -85,34 +90,40 @@ enum class ControlClientCode  // Both request and response codes are given. Mapp
 };
 
 /// @brief A message that can be a request, and acknowledgement or a response
-struct ControlClientMessage final {
+struct ControlClientMessage final
+{
     ControlClientID originating_control_client_;  ///< ID of the individual Control Client and state manager process
-    ControlClientCode request_or_response_;     ///< Request code (SM -> LM) or acknowledgement/response code (LM -> SM)
+    ControlClientCode request_or_response_;    ///< Request code (SM -> LM) or acknowledgement/response code (LM -> SM)
     ProcessGroupStateID process_group_state_;  ///< Payload for most requests & responses
-    uint32_t
-        execution_error_code_;  ///< Additional payload for `kExecutionErrorRequestSuccess` and `kFailedUnexpectedTermination`
+    uint32_t execution_error_code_;            ///< Additional payload for `kExecutionErrorRequestSuccess` and
+                                               ///< `kFailedUnexpectedTermination`
     // Constructor to initialize all data members
     ControlClientMessage()
         : originating_control_client_(),
           request_or_response_(ControlClientCode::kNotSet),
           process_group_state_(),
-          execution_error_code_(0) {
+          execution_error_code_(0)
+    {
     }
 };
 
 /// @brief Represents a mapping between a ControlClientCode and its corresponding description string.
-// RULECHECKER_comment(1, 1, check_incomplete_data_member_construction, "wi 45913 - This struct is POD, which doesn't have user-declared constructor. The rule doesn’t apply.", false)
-struct ControlClientCodeMapping {
+// RULECHECKER_comment(1, 1, check_incomplete_data_member_construction, "wi 45913 - This struct is POD, which doesn't
+// have user-declared constructor. The rule doesn’t apply.", false)
+struct ControlClientCodeMapping
+{
     ControlClientCode code;
     const char* description;
 };
 
 /// @brief Communications channel used for requests and responses
-struct ControlClientComms final {
-    std::atomic_bool empty_;  ///< true when a message can be placed, false when one may be read
+struct ControlClientComms final
+{
+    std::atomic_bool empty_;    ///< true when a message can be placed, false when one may be read
     ControlClientMessage msg_;  ///< The message to be sent
     // Constructor to initialize all data members
-    ControlClientComms() : empty_(true), msg_() {
+    ControlClientComms() : empty_(true), msg_()
+    {
     }
 };
 
@@ -139,8 +150,9 @@ using ControlClientChannelP = std::shared_ptr<ControlClientChannel>;
 /// undefined state of the process group) will be routed to the correct process
 /// and state by copying the information stored in the graph.
 ///
-class ControlClientChannel final {
-   public:
+class ControlClientChannel final
+{
+  public:
     /// @brief Constructor, deleted. We cannot create or delete objects of this type in the normal ways.
     ControlClientChannel() = delete;
 
@@ -211,7 +223,9 @@ class ControlClientChannel final {
     /// @return pointer to the corresponding ControlClientChannel, or nullptr if it does not exist
     /// @note This method is for use by the Launch Manager and the Control Client, the Control Client always uses
     /// the default parameter.
-    static ControlClientChannelP initializeControlClientChannel(int fd = osal::IpcCommsSync::sync_fd, osal::IpcCommsP* mem_ptr = nullptr);
+    static ControlClientChannelP initializeControlClientChannel(
+        int fd = osal::IpcCommsSync::sync_fd,
+        osal::IpcCommsP* mem_ptr = nullptr);
 
     /// @brief This static method returns a pointer to a ControlClientChannel object
     /// @param sync a Shared pointer to an existing Comms object
@@ -251,8 +265,7 @@ class ControlClientChannel final {
     /// @return A string representing the code
     std::string_view toString(ControlClientCode code);
 
-   private:
-
+  private:
     /// @brief Ensure that the ControlClientChannel was setup properly before
     /// accessing it
     static bool is_initialized_;
@@ -295,10 +308,10 @@ constexpr ControlClientCodeMapping stateArray[] = {
     {ControlClientCode::kValidateProcessGroupStateFailed, "kValidateProcessGroupStateFailed"},
     {ControlClientCode::kValidateProcessGroupStateSuccess, "kValidateProcessGroupStateSuccess"}};
 
-}  // namespace lcm
-
 }  // namespace internal
+
+}  // namespace lcm
 
 }  // namespace score
 
-#endif  //CONTROL_CLIENT_CHANNEL_HPP_INCLUDED
+#endif  // CONTROL_CLIENT_CHANNEL_HPP_INCLUDED

@@ -52,8 +52,9 @@ void AliveMonitorThread::stop()
     }
 }
 
-void AliveMonitorThread::notifyInitializationComplete(score::lcm::saf::daemon::EInitCode& f_init_status_r,
-                                                      const score::lcm::saf::daemon::EInitCode f_init_result)
+void AliveMonitorThread::notifyInitializationComplete(
+    score::lcm::saf::daemon::EInitCode& f_init_status_r,
+    const score::lcm::saf::daemon::EInitCode f_init_result)
 {
     {
         std::lock_guard lk(m_initialization_mutex);

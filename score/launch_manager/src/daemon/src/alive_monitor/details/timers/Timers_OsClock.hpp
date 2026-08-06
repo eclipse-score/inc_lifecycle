@@ -35,7 +35,7 @@ using NanoSecondType = uint64_t;
 /// specific clock interfaces.
 class OsClock
 {
-public:
+  public:
     /// Constructor
     OsClock() = default;
     /// Copy and Move operations on the class objects are

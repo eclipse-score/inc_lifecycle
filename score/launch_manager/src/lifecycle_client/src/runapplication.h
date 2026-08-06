@@ -14,8 +14,8 @@
 #ifndef SCORE_MW_LIFECYCLE_RUNAPPLICATION_H
 #define SCORE_MW_LIFECYCLE_RUNAPPLICATION_H
 
-#include "score/mw/lifecycle/lifecyclemanager.h"
 #include "score/mw/lifecycle/applicationcontext.h"
+#include "score/mw/lifecycle/lifecyclemanager.h"
 
 #include <cstdint>
 
@@ -46,8 +46,8 @@ class Run final
 
   private:
     template <typename... Args>
-    std::int32_t InstantiateAndRunApplication(score::mw::lifecycle::LifeCycleManager& lifecycle_manager,
-                                              Args&&... args) const
+    std::int32_t InstantiateAndRunApplication(score::mw::lifecycle::LifeCycleManager& lifecycle_manager, Args&&... args)
+        const
     {
         /* KW_SUPPRESS_START:MISRA.VAR.NEEDS.CONST:False positive:app is passed as const reference to run(). */
         ApplicationType app{std::forward<Args>(args)...};

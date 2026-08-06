@@ -14,11 +14,11 @@
 #ifndef PROCESSSTATE_HPP_INCLUDED
 #define PROCESSSTATE_HPP_INCLUDED
 
-#include <string>
 #include "score/mw/launch_manager/alive_monitor/details/common/Observer.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/common/Types.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ProcessCfg.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
+#include <string>
 
 #include "score/mw/launch_manager/process_state_client/posix_process.hpp"
 
@@ -35,7 +35,7 @@ namespace ifexm
 /// @details The Process State class dispatches process state changes to the attached observers.
 class ProcessState : public saf::common::Observable<ProcessState>
 {
-public:
+  public:
     /// @brief No Default Constructor.
     ProcessState() = delete;
 
@@ -73,12 +73,15 @@ public:
     common::ProcessId getProcessId(void) const noexcept;
 
     /// @brief Enumeration of process states
-    enum class EProcState : uint8_t{idle = static_cast<uint8_t>(score::lcm::ProcessState::kIdle),
-                                    starting = static_cast<uint8_t>(score::lcm::ProcessState::kStarting),
-                                    running = static_cast<uint8_t>(score::lcm::ProcessState::kRunning),
-                                    sigterm = static_cast<uint8_t>(score::lcm::ProcessState::kTerminating),
-                                    off = static_cast<uint8_t>(score::lcm::ProcessState::kTerminated),
-                                    failed = static_cast<uint8_t>(score::lcm::ProcessState::kFailed)};
+    enum class EProcState : uint8_t
+    {
+        idle = static_cast<uint8_t>(score::lcm::ProcessState::kIdle),
+        starting = static_cast<uint8_t>(score::lcm::ProcessState::kStarting),
+        running = static_cast<uint8_t>(score::lcm::ProcessState::kRunning),
+        sigterm = static_cast<uint8_t>(score::lcm::ProcessState::kTerminating),
+        off = static_cast<uint8_t>(score::lcm::ProcessState::kTerminated),
+        failed = static_cast<uint8_t>(score::lcm::ProcessState::kFailed)
+    };
 
     /// @brief Get Process State
     /// @return     Returns Process State
@@ -100,7 +103,7 @@ public:
     /// @details Push process state related information, which shall be distribute to observers.
     void pushData(void) noexcept;
 
-private:
+  private:
     /// @brief Process short name
     const std::string k_processShortName;
 

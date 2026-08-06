@@ -14,21 +14,29 @@
 
 #include "score/mw/launch_manager/osal/security_policy.hpp"
 #include <cerrno>
-namespace score {
+namespace score
+{
 
-namespace lcm {
+namespace lcm
+{
 
-namespace internal {
+namespace internal
+{
 
-namespace osal {
+namespace osal
+{
 
-int setSecurityPolicy(const char* policy) {
+int setSecurityPolicy(const char* policy)
+{
     int res = secpol_transition_type(nullptr, policy, 1U);
 
-    if (res == 0 || (res == -1 && errno == ENOTSUP)) {
+    if (res == 0 || (res == -1 && errno == ENOTSUP))
+    {
         // If no security policy is in effect continue without error
         return 0;
-    } else {
+    }
+    else
+    {
         // If the policy transition failed for any other reason, return the error code
         return res;
     }
@@ -36,8 +44,8 @@ int setSecurityPolicy(const char* policy) {
 
 }  // namespace osal
 
-}  // namespace lcm
-
 }  // namespace internal
+
+}  // namespace lcm
 
 }  // namespace score

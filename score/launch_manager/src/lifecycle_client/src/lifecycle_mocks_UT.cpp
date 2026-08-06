@@ -84,10 +84,10 @@ class LifecycleMockUsageTest : public ::testing::Test
 {
   protected:
     score::mw::lifecycle::ApplicationContextMock context_mock_;
-    score::mw::lifecycle::LifeCycleManagerMock   lifecycle_mock_;
+    score::mw::lifecycle::LifeCycleManagerMock lifecycle_mock_;
 
-    static constexpr int kArgc     = 1;
-    const char*          kArgv[1]  = {"test_app"};
+    static constexpr int kArgc = 1;
+    const char* kArgv[1] = {"test_app"};
 
     void SetUp() override
     {
@@ -107,8 +107,7 @@ class LifecycleMockUsageTest : public ::testing::Test
 /// is propagated through AsPosixProcess() — basic mock wiring smoke test.
 TEST_F(LifecycleMockUsageTest, MockRunReturnValueIsForwardedToCaller)
 {
-    RecordProperty("Description",
-                   "LifeCycleManagerMock::run() return value reaches AsPosixProcess().");
+    RecordProperty("Description", "LifeCycleManagerMock::run() return value reaches AsPosixProcess().");
 
     EXPECT_CALL(lifecycle_mock_, run(_, _)).WillOnce(Return(EXIT_SUCCESS));
 
@@ -120,8 +119,7 @@ TEST_F(LifecycleMockUsageTest, MockRunReturnValueIsForwardedToCaller)
 /// matching the behaviour that external callers (e.g. config_management) rely on.
 TEST_F(LifecycleMockUsageTest, MockRunNonZeroReturnValueIsForwarded)
 {
-    RecordProperty("Description",
-                   "A non-zero return from LifeCycleManagerMock::run() is forwarded unchanged.");
+    RecordProperty("Description", "A non-zero return from LifeCycleManagerMock::run() is forwarded unchanged.");
 
     EXPECT_CALL(lifecycle_mock_, run(_, _)).WillOnce(Return(EXIT_FAILURE));
 
@@ -135,16 +133,13 @@ TEST_F(LifecycleMockUsageTest, MockRunNonZeroReturnValueIsForwarded)
 /// command-line arguments without spawning a real process.
 TEST_F(LifecycleMockUsageTest, ApplicationReceivesArgumentFromContextMock)
 {
-    RecordProperty("Description",
-                   "ApplicationContextMock::get_argument() result is visible inside Initialize().");
+    RecordProperty("Description", "ApplicationContextMock::get_argument() result is visible inside Initialize().");
 
     const std::string expected_config{"--config=/etc/app.cfg"};
 
     EXPECT_CALL(lifecycle_mock_, run(_, _))
-        .WillOnce([&](score::mw::lifecycle::Application& app,
-                      const score::mw::lifecycle::ApplicationContext& ctx) {
-            EXPECT_CALL(context_mock_, get_argument(std::string_view{"--config"}))
-                .WillOnce(Return(expected_config));
+        .WillOnce([&](score::mw::lifecycle::Application& app, const score::mw::lifecycle::ApplicationContext& ctx) {
+            EXPECT_CALL(context_mock_, get_argument(std::string_view{"--config"})).WillOnce(Return(expected_config));
             return app.Initialize(ctx);
         });
 
@@ -156,8 +151,7 @@ TEST_F(LifecycleMockUsageTest, ApplicationReceivesArgumentFromContextMock)
 /// argument list — mirroring how config_management passes a simulated argv.
 TEST_F(LifecycleMockUsageTest, ContextMockProvidesArgumentList)
 {
-    RecordProperty("Description",
-                   "ApplicationContextMock::get_arguments() returns the configured argument list.");
+    RecordProperty("Description", "ApplicationContextMock::get_arguments() returns the configured argument list.");
 
     const std::vector<std::string> expected_args{"my_app", "--verbose", "--config=/tmp/cfg"};
 
@@ -171,8 +165,7 @@ TEST_F(LifecycleMockUsageTest, ContextMockProvidesArgumentList)
 /// AsPosixProcess() call — important for callers that own RAII resources.
 TEST_F(LifecycleMockUsageTest, ExactlyOneLifecycleManagerLifetimePerRun)
 {
-    RecordProperty("Description",
-                   "Exactly one ctor/dtor pair of LifeCycleManager occurs per AsPosixProcess().");
+    RecordProperty("Description", "Exactly one ctor/dtor pair of LifeCycleManager occurs per AsPosixProcess().");
 
     EXPECT_CALL(lifecycle_mock_, ctor()).Times(1);
     EXPECT_CALL(lifecycle_mock_, dtor()).Times(1);
@@ -199,10 +192,10 @@ class MwLifecycleMockTest : public ::testing::Test
     // registered before lifecycle_mock_ intercepts LifeCycleManager::run().
     score::mw::lifecycle::MwLifeCycleManagerMock mw_mock_;
     score::mw::lifecycle::ApplicationContextMock context_mock_;
-    score::mw::lifecycle::LifeCycleManagerMock   lifecycle_mock_;
+    score::mw::lifecycle::LifeCycleManagerMock lifecycle_mock_;
 
-    static constexpr int kArgc    = 1;
-    const char*          kArgv[1] = {"test_app"};
+    static constexpr int kArgc = 1;
+    const char* kArgv[1] = {"test_app"};
 
     void SetUp() override
     {
@@ -218,8 +211,8 @@ class MwLifecycleMockTest : public ::testing::Test
 /// run callback is used (i.e. the mock run() is not overridden).
 TEST_F(MwLifecycleMockTest, ReportRunningIsCalledOncePerRun)
 {
-    RecordProperty("Description",
-                   "MwLifeCycleManagerMock::report_running() is invoked once per LifeCycleManager::run().");
+    RecordProperty(
+        "Description", "MwLifeCycleManagerMock::report_running() is invoked once per LifeCycleManager::run().");
 
     EXPECT_CALL(mw_mock_, report_running()).Times(1);
     EXPECT_CALL(mw_mock_, report_shutdown()).Times(1);
@@ -233,8 +226,8 @@ TEST_F(MwLifecycleMockTest, ReportRunningIsCalledOncePerRun)
 /// of the application exit code.
 TEST_F(MwLifecycleMockTest, ReportShutdownIsCalledOncePerRun)
 {
-    RecordProperty("Description",
-                   "MwLifeCycleManagerMock::report_shutdown() is invoked once per LifeCycleManager::run().");
+    RecordProperty(
+        "Description", "MwLifeCycleManagerMock::report_shutdown() is invoked once per LifeCycleManager::run().");
 
     EXPECT_CALL(mw_mock_, report_running()).Times(1);
     EXPECT_CALL(mw_mock_, report_shutdown()).Times(1);

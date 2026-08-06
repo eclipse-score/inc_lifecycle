@@ -27,9 +27,8 @@ FFICode scheduler_policy_priority_min(SchedulerPolicy scheduler_policy, int32_t*
 FFICode scheduler_policy_priority_max(SchedulerPolicy scheduler_policy, int32_t* priority_out);
 FFICode thread_parameters_create(FFIHandle* thread_parameters_handle_out);
 FFICode thread_parameters_destroy(FFIHandle thread_parameters_handle);
-FFICode thread_parameters_scheduler_parameters(FFIHandle thread_parameters_handle,
-                                               SchedulerPolicy policy,
-                                               int32_t priority);
+FFICode
+thread_parameters_scheduler_parameters(FFIHandle thread_parameters_handle, SchedulerPolicy policy, int32_t priority);
 FFICode thread_parameters_affinity(FFIHandle thread_parameters_handle, const size_t* affinity, size_t num_affinity);
 FFICode thread_parameters_stack_size(FFIHandle thread_parameters_handle, size_t stack_size);
 }

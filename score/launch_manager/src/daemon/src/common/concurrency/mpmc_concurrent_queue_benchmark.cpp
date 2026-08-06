@@ -102,14 +102,14 @@ static void BM_MPMC(benchmark::State& state)
 }
 
 // use a variary of consumers and producers
-#define REGISTER_MPMC_BENCH(CAP)                                   \
-    BENCHMARK_TEMPLATE(BM_MPMC, CAP)                               \
-        ->ArgNames({"producers", "consumers"})                     \
-        ->Args({1, 1})                                             \
-        ->Args({2, 2})                                             \
-        ->Args({4, 4})                                             \
-        ->Args({4, 1})                                             \
-        ->Args({1, 4})                                             \
+#define REGISTER_MPMC_BENCH(CAP)               \
+    BENCHMARK_TEMPLATE(BM_MPMC, CAP)           \
+        ->ArgNames({"producers", "consumers"}) \
+        ->Args({1, 1})                         \
+        ->Args({2, 2})                         \
+        ->Args({4, 4})                         \
+        ->Args({4, 1})                         \
+        ->Args({1, 4})                         \
         ->UseRealTime()
 
 REGISTER_MPMC_BENCH(16);

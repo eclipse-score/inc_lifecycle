@@ -289,8 +289,8 @@ inline std::string_view errno_message(const int err) noexcept(true)
 // wrapper macros for Launch Manager
 #define LM_LOG_FATAL() (score::lcm::internal::_getLmLogger().LogFatal())
 #define LM_LOG_ERROR() (score::lcm::internal::_getLmLogger().LogError())
-#define LM_LOG_WARN() (score::lcm::internal::_getLmLogger().LogWarn())
-#define LM_LOG_INFO() (score::lcm::internal::_getLmLogger().LogInfo())
+#define LM_LOG_WARN()  (score::lcm::internal::_getLmLogger().LogWarn())
+#define LM_LOG_INFO()  (score::lcm::internal::_getLmLogger().LogInfo())
 #define LM_LOG_DEBUG() (score::lcm::internal::_getLmLogger().LogDebug())
 
 #endif  // LCM_LOG_HPP_INCLUDED

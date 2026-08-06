@@ -11,9 +11,9 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include "score/mw/lifecycle/runapplication.h"
 #include "score/mw/lifecycle/applicationcontextmock.h"
 #include "score/mw/lifecycle/lifecyclemanagermock.h"
+#include "score/mw/lifecycle/runapplication.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -29,16 +29,30 @@ namespace
 class DummyApplication : public score::mw::lifecycle::Application
 {
   public:
-    std::int32_t Initialize(const score::mw::lifecycle::ApplicationContext&) override { return 0; }
-    std::int32_t Run(const score::cpp::stop_token&) override { return 0; }
+    std::int32_t Initialize(const score::mw::lifecycle::ApplicationContext&) override
+    {
+        return 0;
+    }
+    std::int32_t Run(const score::cpp::stop_token&) override
+    {
+        return 0;
+    }
 };
 
 class DummyApplicationWithIntArg : public score::mw::lifecycle::Application
 {
   public:
-    explicit DummyApplicationWithIntArg(int value) : value_{value} {}
-    std::int32_t Initialize(const score::mw::lifecycle::ApplicationContext&) override { return 0; }
-    std::int32_t Run(const score::cpp::stop_token&) override { return 0; }
+    explicit DummyApplicationWithIntArg(int value) : value_{value}
+    {
+    }
+    std::int32_t Initialize(const score::mw::lifecycle::ApplicationContext&) override
+    {
+        return 0;
+    }
+    std::int32_t Run(const score::cpp::stop_token&) override
+    {
+        return 0;
+    }
     int value_;
 };
 
@@ -89,8 +103,8 @@ TEST_F(RunTest, AsPosixProcessForwardsNonZeroExitCode)
 
 TEST_F(RunTest, AsPosixProcessCreatesAndDestroysLifeCycleManager)
 {
-    RecordProperty("Description",
-                   "AsPosixProcess() constructs exactly one LifeCycleManager and destroys it before returning.");
+    RecordProperty(
+        "Description", "AsPosixProcess() constructs exactly one LifeCycleManager and destroys it before returning.");
 
     EXPECT_CALL(lifecycle_mock_, ctor()).Times(1);
     EXPECT_CALL(lifecycle_mock_, dtor()).Times(1);
@@ -102,9 +116,10 @@ TEST_F(RunTest, AsPosixProcessCreatesAndDestroysLifeCycleManager)
 
 TEST_F(RunTest, AsPosixProcessPassesCorrectApplicationTypeToRun)
 {
-    RecordProperty("Description",
-                   "The Application instance passed to LifeCycleManager::run() is of the type given as "
-                   "the Run template argument.");
+    RecordProperty(
+        "Description",
+        "The Application instance passed to LifeCycleManager::run() is of the type given as "
+        "the Run template argument.");
 
     EXPECT_CALL(lifecycle_mock_, run(_, _))
         .WillOnce([](score::mw::lifecycle::Application& app, const score::mw::lifecycle::ApplicationContext&) {
@@ -118,8 +133,8 @@ TEST_F(RunTest, AsPosixProcessPassesCorrectApplicationTypeToRun)
 
 TEST_F(RunTest, AsPosixProcessForwardsConstructorArgsToApplication)
 {
-    RecordProperty("Description",
-                   "Extra arguments passed to AsPosixProcess() are forwarded to the ApplicationType constructor.");
+    RecordProperty(
+        "Description", "Extra arguments passed to AsPosixProcess() are forwarded to the ApplicationType constructor.");
 
     EXPECT_CALL(lifecycle_mock_, run(_, _))
         .WillOnce([](score::mw::lifecycle::Application& app, const score::mw::lifecycle::ApplicationContext&) {
@@ -138,9 +153,10 @@ TEST_F(RunTest, AsPosixProcessForwardsConstructorArgsToApplication)
 
 TEST_F(RunTest, RunApplicationFreeFunctionDelegatesToAsPosixProcess)
 {
-    RecordProperty("Description",
-                   "The run_application<>() free function delegates to Run<>::AsPosixProcess() and returns "
-                   "the same exit code.");
+    RecordProperty(
+        "Description",
+        "The run_application<>() free function delegates to Run<>::AsPosixProcess() and returns "
+        "the same exit code.");
 
     EXPECT_CALL(lifecycle_mock_, run(_, _)).WillOnce(Return(7));
 
@@ -150,8 +166,7 @@ TEST_F(RunTest, RunApplicationFreeFunctionDelegatesToAsPosixProcess)
 
 TEST_F(RunTest, RunConstructorPassesArgcArgvToApplicationContext)
 {
-    RecordProperty("Description",
-                   "The Run constructor forwards argc and argv to the ApplicationContext constructor.");
+    RecordProperty("Description", "The Run constructor forwards argc and argv to the ApplicationContext constructor.");
 
     EXPECT_CALL(context_mock_, ctor(Eq(kArgc), Eq(static_cast<const char* const*>(kArgv)))).Times(1);
     EXPECT_CALL(lifecycle_mock_, run(_, _)).WillOnce(Return(0));

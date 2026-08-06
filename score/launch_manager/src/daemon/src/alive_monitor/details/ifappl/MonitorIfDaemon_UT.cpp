@@ -183,9 +183,10 @@ TEST_F(MonitorIfDaemonTest, GetInterfaceName_ReturnsNameGivenAtConstruction)
 
 TEST_F(MonitorIfDaemonTest, InitiallyInactive_CheckForNewData_DoesNotNotifyCheckpoint)
 {
-    RecordProperty("Description",
-                   "Before any process-state update the monitor is kInactive; "
-                   "checkForNewData must not forward any data.");
+    RecordProperty(
+        "Description",
+        "Before any process-state update the monitor is kInactive; "
+        "checkForNewData must not forward any data.");
 
     MonitorIfDaemonFixture fix;
     EXPECT_CALL(fix.checkpointMock, updateData).Times(Exactly(0));
@@ -194,9 +195,10 @@ TEST_F(MonitorIfDaemonTest, InitiallyInactive_CheckForNewData_DoesNotNotifyCheck
 
 TEST_F(MonitorIfDaemonTest, ProcessOffBeforeActivation_RemainsInactive)
 {
-    RecordProperty("Description",
-                   "A process-off event before the monitor has been activated "
-                   "must not cause checkForNewData to read IPC data.");
+    RecordProperty(
+        "Description",
+        "A process-off event before the monitor has been activated "
+        "must not cause checkForNewData to read IPC data.");
 
     MonitorIfDaemonFixture fix;
     EXPECT_CALL(fix.checkpointMock, updateData).Times(Exactly(0));
@@ -210,9 +212,10 @@ TEST_F(MonitorIfDaemonTest, ProcessOffBeforeActivation_RemainsInactive)
 
 TEST_F(MonitorIfDaemonTest, ProcessRunning_ActivatesMonitorOnNextCheckForNewData)
 {
-    RecordProperty("Description",
-                   "A running process-state update must set isActivateRequest so that "
-                   "the next checkForNewData transitions the monitor to kActive.");
+    RecordProperty(
+        "Description",
+        "A running process-state update must set isActivateRequest so that "
+        "the next checkForNewData transitions the monitor to kActive.");
 
     MonitorIfDaemonFixture fix;
     EXPECT_CALL(fix.checkpointMock, updateData).Times(1);
@@ -227,9 +230,10 @@ TEST_F(MonitorIfDaemonTest, ProcessRunning_ActivatesMonitorOnNextCheckForNewData
 
 TEST_F(MonitorIfDaemonTest, ProcessStarting_AlsoActivatesMonitor)
 {
-    RecordProperty("Description",
-                   "EProcState::starting must be treated as an activation trigger, "
-                   "identical to running.");
+    RecordProperty(
+        "Description",
+        "EProcState::starting must be treated as an activation trigger, "
+        "identical to running.");
 
     MonitorIfDaemonFixture fix;
     EXPECT_CALL(fix.checkpointMock, updateData).Times(1);
@@ -244,10 +248,11 @@ TEST_F(MonitorIfDaemonTest, ProcessStarting_AlsoActivatesMonitor)
 
 TEST_F(MonitorIfDaemonTest, ProcessOff_DeactivatesMonitor_NoFurtherDataForwarded)
 {
-    RecordProperty("Description",
-                   "After a process-off event checkForNewData drains the IPC for the "
-                   "current cycle, then transitions to kInactive.  Subsequent cycles "
-                   "must not forward data even when the IPC buffer is non-empty.");
+    RecordProperty(
+        "Description",
+        "After a process-off event checkForNewData drains the IPC for the "
+        "current cycle, then transitions to kInactive.  Subsequent cycles "
+        "must not forward data even when the IPC buffer is non-empty.");
 
     MonitorIfDaemonFixture fix;
     EXPECT_CALL(fix.checkpointMock, updateData).Times(Exactly(0));
@@ -265,9 +270,10 @@ TEST_F(MonitorIfDaemonTest, ProcessOff_DeactivatesMonitor_NoFurtherDataForwarded
 
 TEST_F(MonitorIfDaemonTest, Active_CheckpointDataForwarded)
 {
-    RecordProperty("Description",
-                   "When active, an IPC element whose timestamp is within the current "
-                   "sync window must be forwarded to the matching checkpoint observer.");
+    RecordProperty(
+        "Description",
+        "When active, an IPC element whose timestamp is within the current "
+        "sync window must be forwarded to the matching checkpoint observer.");
 
     MonitorIfDaemonFixture fix;
     EXPECT_CALL(fix.checkpointMock, updateData).Times(1);
@@ -282,9 +288,10 @@ TEST_F(MonitorIfDaemonTest, Active_CheckpointDataForwarded)
 
 TEST_F(MonitorIfDaemonTest, Active_FutureTimestamp_NotForwardedInCurrentCycle)
 {
-    RecordProperty("Description",
-                   "An IPC element whose timestamp exceeds the syncTimestamp must be "
-                   "left in the buffer and not forwarded during that cycle.");
+    RecordProperty(
+        "Description",
+        "An IPC element whose timestamp exceeds the syncTimestamp must be "
+        "left in the buffer and not forwarded during that cycle.");
     MonitorIfDaemonFixture fix;
     EXPECT_CALL(fix.checkpointMock, updateData).Times(Exactly(0));
     fix.initIpc();
@@ -295,9 +302,10 @@ TEST_F(MonitorIfDaemonTest, Active_FutureTimestamp_NotForwardedInCurrentCycle)
 
 TEST_F(MonitorIfDaemonTest, Active_FutureTimestampCheckpoint_ConsumedInLaterCycle)
 {
-    RecordProperty("Description",
-                   "An element held back because its timestamp was in the future must "
-                   "be consumed and forwarded when the sync window catches up.");
+    RecordProperty(
+        "Description",
+        "An element held back because its timestamp was in the future must "
+        "be consumed and forwarded when the sync window catches up.");
 
     MonitorIfDaemonFixture fix;
     EXPECT_CALL(fix.checkpointMock, updateData).Times(1);
@@ -307,15 +315,16 @@ TEST_F(MonitorIfDaemonTest, Active_FutureTimestampCheckpoint_ConsumedInLaterCycl
     fix.sendCheckpoint(MonitorIfDaemonFixture::kCheckpointId, future_time);
     fix.monitor.checkForNewData(mockClock());  // not consumed yet
     mockClockSkip(2);
-    fix.monitor.checkForNewData( mockClock());  // now within window -> consumed
+    fix.monitor.checkForNewData(mockClock());  // now within window -> consumed
     EXPECT_EQ(fix.checkpoint.getTimestamp(), future_time);
 }
 
 TEST_F(MonitorIfDaemonTest, Active_NonMatchingCheckpointId_NotForwarded)
 {
-    RecordProperty("Description",
-                   "An IPC element whose checkpointId does not match any attached "
-                   "Checkpoint must be silently discarded.");
+    RecordProperty(
+        "Description",
+        "An IPC element whose checkpointId does not match any attached "
+        "Checkpoint must be silently discarded.");
 
     constexpr uint32_t kNonMatchingId = 99U;
 
@@ -329,9 +338,10 @@ TEST_F(MonitorIfDaemonTest, Active_NonMatchingCheckpointId_NotForwarded)
 
 TEST_F(MonitorIfDaemonTest, Active_MultipleCheckpointsInOneCycle_AllForwarded)
 {
-    RecordProperty("Description",
-                   "All IPC elements whose timestamps fall within the sync window must "
-                   "be forwarded in a single checkForNewData call.");
+    RecordProperty(
+        "Description",
+        "All IPC elements whose timestamps fall within the sync window must "
+        "be forwarded in a single checkForNewData call.");
 
     MonitorIfDaemonFixture fix;
     EXPECT_CALL(fix.checkpointMock, updateData).Times(3);
@@ -345,9 +355,10 @@ TEST_F(MonitorIfDaemonTest, Active_MultipleCheckpointsInOneCycle_AllForwarded)
 
 TEST_F(MonitorIfDaemonTest, Active_TwoAttachedCheckpoints_RoutedByCheckpointId)
 {
-    RecordProperty("Description",
-                   "When two Checkpoints with different IDs are attached, each IPC "
-                   "element must be forwarded only to the Checkpoint whose ID matches.");
+    RecordProperty(
+        "Description",
+        "When two Checkpoints with different IDs are attached, each IPC "
+        "element must be forwarded only to the Checkpoint whose ID matches.");
 
     constexpr uint32_t kCheckpointId2 = 2U;
 
@@ -370,10 +381,11 @@ TEST_F(MonitorIfDaemonTest, Active_TwoAttachedCheckpoints_RoutedByCheckpointId)
 
 TEST_F(MonitorIfDaemonTest, Active_OverflowDetected_TransitionsToInactiveOverflow)
 {
-    RecordProperty("Description",
-                   "When hasOverflow() is true while in kActive, handleOverflow must be "
-                   "called: the checkpoint observer is notified with a data-loss event "
-                   "and the monitor transitions to kInactiveOverflow.");
+    RecordProperty(
+        "Description",
+        "When hasOverflow() is true while in kActive, handleOverflow must be "
+        "called: the checkpoint observer is notified with a data-loss event "
+        "and the monitor transitions to kInactiveOverflow.");
 
     MonitorIfDaemonFixture fix;
     EXPECT_CALL(fix.checkpointMock, updateData).Times(1);  // one overflow notification
@@ -389,9 +401,10 @@ TEST_F(MonitorIfDaemonTest, Active_OverflowDetected_TransitionsToInactiveOverflo
 
 TEST_F(MonitorIfDaemonTest, InactiveOverflow_NoProcessRestart_DoesNotRepeatNotification)
 {
-    RecordProperty("Description",
-                   "While in kInactiveOverflow, repeated checkForNewData calls without "
-                   "a process restart must not push additional overflow notifications.");
+    RecordProperty(
+        "Description",
+        "While in kInactiveOverflow, repeated checkForNewData calls without "
+        "a process restart must not push additional overflow notifications.");
 
     MonitorIfDaemonFixture fix;
     EXPECT_CALL(fix.checkpointMock, updateData).Times(Exactly(1));
@@ -406,10 +419,11 @@ TEST_F(MonitorIfDaemonTest, InactiveOverflow_NoProcessRestart_DoesNotRepeatNotif
 
 TEST_F(MonitorIfDaemonTest, InactiveOverflow_ProcessRestarts_PushesOverflowNotificationAgain)
 {
-    RecordProperty("Description",
-                   "When the supervised process restarts while the monitor is in "
-                   "kInactiveOverflow, the observers must be notified again so that "
-                   "supervisions remain aware the shared memory is still corrupted.");
+    RecordProperty(
+        "Description",
+        "When the supervised process restarts while the monitor is in "
+        "kInactiveOverflow, the observers must be notified again so that "
+        "supervisions remain aware the shared memory is still corrupted.");
 
     MonitorIfDaemonFixture fix;
     EXPECT_CALL(fix.checkpointMock, updateData).Times(Exactly(2));
@@ -427,10 +441,11 @@ TEST_F(MonitorIfDaemonTest, InactiveOverflow_ProcessRestarts_PushesOverflowNotif
 
 TEST_F(MonitorIfDaemonTest, InactiveOverflow_ProcessRestartFlag_ClearedAfterNotification)
 {
-    RecordProperty("Description",
-                   "isProcessRestarted must be cleared after the overflow notification "
-                   "is re-sent, so that a further checkForNewData without a new restart "
-                   "does not produce another notification.");
+    RecordProperty(
+        "Description",
+        "isProcessRestarted must be cleared after the overflow notification "
+        "is re-sent, so that a further checkForNewData without a new restart "
+        "does not produce another notification.");
 
     MonitorIfDaemonFixture fix;
     EXPECT_CALL(fix.checkpointMock, updateData).Times(Exactly(2));

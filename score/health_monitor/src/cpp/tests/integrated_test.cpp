@@ -45,10 +45,10 @@ TEST_F(HealthMonitorTest, Integrated)
     const MonitorTag deadline_monitor_tag{"deadline_monitor"};
     auto deadline_monitor_builder =
         deadline::DeadlineMonitorBuilder()
-            .add_deadline(DeadlineTag("deadline_1"),
-                          TimeRange(std::chrono::milliseconds(100), std::chrono::milliseconds(200)))
-            .add_deadline(DeadlineTag("deadline_2"),
-                          TimeRange(std::chrono::milliseconds(100), std::chrono::milliseconds(200)));
+            .add_deadline(
+                DeadlineTag("deadline_1"), TimeRange(std::chrono::milliseconds(100), std::chrono::milliseconds(200)))
+            .add_deadline(
+                DeadlineTag("deadline_2"), TimeRange(std::chrono::milliseconds(100), std::chrono::milliseconds(200)));
 
     // Setup heartbeat monitor construction.
     const MonitorTag heartbeat_monitor_tag{"heartbeat_monitor"};

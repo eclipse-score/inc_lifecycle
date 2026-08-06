@@ -42,12 +42,14 @@ class HealthMonitorBuilder final
     HealthMonitorBuilder& operator=(HealthMonitorBuilder&&) = delete;
 
     /// Adds a deadline monitor to the builder to construct DeadlineMonitor instances during HealthMonitor build.
-    HealthMonitorBuilder add_deadline_monitor(const MonitorTag& monitor_tag,
-                                              deadline::DeadlineMonitorBuilder&& monitor) &&;
+    HealthMonitorBuilder add_deadline_monitor(
+        const MonitorTag& monitor_tag,
+        deadline::DeadlineMonitorBuilder&& monitor) &&;
 
     /// Adds a heartbeat monitor for a specific identifier tag.
-    HealthMonitorBuilder add_heartbeat_monitor(const MonitorTag& monitor_tag,
-                                               heartbeat::HeartbeatMonitorBuilder&& monitor) &&;
+    HealthMonitorBuilder add_heartbeat_monitor(
+        const MonitorTag& monitor_tag,
+        heartbeat::HeartbeatMonitorBuilder&& monitor) &&;
 
     /// Adds a logic monitor for a specific identifier tag.
     HealthMonitorBuilder add_logic_monitor(const MonitorTag& monitor_tag, logic::LogicMonitorBuilder&& monitor) &&;

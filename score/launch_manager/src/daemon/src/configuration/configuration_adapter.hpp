@@ -97,10 +97,11 @@ class ConfigurationAdapter final
         const score::lcm::internal::ProcessGroupStateID& process_group_state_id) const;
     std::optional<const std::vector<ProcessGroupState>*> getListOfProcessGroupStates(
         const IdentifierHash& pg_name) const;
-    std::optional<const OsProcess*> getOsProcessConfiguration(const IdentifierHash& pg_name_,
-                                                              const uint32_t index) const;
-    std::optional<const DependencyList*> getOsProcessDependencies(const IdentifierHash& process_group_name,
-                                                                  const uint32_t index) const;
+    std::optional<const OsProcess*> getOsProcessConfiguration(const IdentifierHash& pg_name_, const uint32_t index)
+        const;
+    std::optional<const DependencyList*> getOsProcessDependencies(
+        const IdentifierHash& process_group_name,
+        const uint32_t index) const;
 
   private:
     using DependsOnMap = std::map<std::string, const std::vector<std::string>*>;
@@ -108,25 +109,28 @@ class ConfigurationAdapter final
     bool buildFromConfig(const Config& config);
 
     OsProcess buildOsProcess(const ComponentConfig& comp, uint32_t process_index) const;
-    void fillStartupConfigFromDeployment(const ComponentConfig& comp,
-                                         score::lcm::internal::osal::OsalConfig& startup) const;
+    void fillStartupConfigFromDeployment(const ComponentConfig& comp, score::lcm::internal::osal::OsalConfig& startup)
+        const;
     void fillStartupArguments(const ComponentProperties& props, score::lcm::internal::osal::OsalConfig& startup) const;
-    size_t fillStartupEnvironment(const DeploymentConfig& deploy,
-                                  score::lcm::internal::osal::OsalConfig& startup) const;
-    void appendAliveInterfaceEnvironment(const ComponentConfig& comp,
-                                         size_t& env_index,
-                                         score::lcm::internal::osal::OsalConfig& startup) const;
+    size_t fillStartupEnvironment(const DeploymentConfig& deploy, score::lcm::internal::osal::OsalConfig& startup)
+        const;
+    void appendAliveInterfaceEnvironment(
+        const ComponentConfig& comp,
+        size_t& env_index,
+        score::lcm::internal::osal::OsalConfig& startup) const;
     PgManagerConfig buildPgManagerConfig(const ComponentConfig& comp) const;
     DependencyList buildDependencyList(const ComponentProperties& props) const;
 
     std::vector<ProcessGroupState> buildProcessGroupStates(const Config& config) const;
-    ProcessGroupState buildProcessGroupState(const std::string& state_name,
-                                             const std::vector<std::string>& depends_on,
-                                             const DependsOnMap& depends_on_by_name) const;
-    void resolveDependsOnEntry(const std::string& dep_name,
-                               const DependsOnMap& depends_on_by_name,
-                               std::vector<uint32_t>& indexes,
-                               std::set<std::string>& visited) const;
+    ProcessGroupState buildProcessGroupState(
+        const std::string& state_name,
+        const std::vector<std::string>& depends_on,
+        const DependsOnMap& depends_on_by_name) const;
+    void resolveDependsOnEntry(
+        const std::string& dep_name,
+        const DependsOnMap& depends_on_by_name,
+        std::vector<uint32_t>& indexes,
+        std::set<std::string>& visited) const;
 
     static void resolveDependencyIndexes(std::vector<OsProcess>& processes);
 
@@ -134,15 +138,17 @@ class ConfigurationAdapter final
 
     ProcessGroup* getProcessGroupByID(const IdentifierHash& pg_name) const;
     ProcessGroupState* getProcessGroupStateByID(const score::lcm::internal::ProcessGroupStateID& pg_id) const;
-    std::optional<const ProcessGroup*> getProcessGroupByNameAndIndex(const IdentifierHash& pg_name,
-                                                                     const uint32_t index) const;
+    std::optional<const ProcessGroup*> getProcessGroupByNameAndIndex(
+        const IdentifierHash& pg_name,
+        const uint32_t index) const;
 
     std::map<std::string, const ComponentConfig*> component_by_name_{};
     std::map<std::string, uint32_t> component_to_process_index_{};
     std::vector<ProcessGroup> process_groups_{};
     std::vector<IdentifierHash> process_group_names_{};
-    score::lcm::internal::ProcessGroupStateID main_pg_startup_state_{static_cast<IdentifierHash>("MainPG"),
-                                                                     static_cast<IdentifierHash>("MainPG/Startup")};
+    score::lcm::internal::ProcessGroupStateID main_pg_startup_state_{
+        static_cast<IdentifierHash>("MainPG"),
+        static_cast<IdentifierHash>("MainPG/Startup")};
 };
 
 }  // namespace score::mw::launch_manager::configuration

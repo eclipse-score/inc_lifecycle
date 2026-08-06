@@ -11,18 +11,19 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-
 #ifndef IPHMFACTORY_HPP_INCLUDED
 #define IPHMFACTORY_HPP_INCLUDED
 
-#include <vector>
 #include "score/mw/launch_manager/alive_monitor/details/ifappl/DataStructures.hpp"
+#include <vector>
 
-namespace score {
-    namespace lcm {
-        class IRecoveryClient;
-    }
+namespace score
+{
+namespace lcm
+{
+class IRecoveryClient;
 }
+}  // namespace score
 
 namespace score
 {
@@ -56,7 +57,7 @@ namespace factory
 /// @details Provides methods to create worker objects
 class IPhmFactory
 {
-public:
+  public:
     /* RULECHECKER_comment(0, 10, check_min_instructions, "Default constructor and default destructor are not provided\
      a function body", true_no_defect) */
     /// @brief Constructor
@@ -78,8 +79,9 @@ public:
     /// @param [out] f_processStates_r      Vector of created Process States
     /// @param [in] f_processStateReader_r  Process state reader object for PHM daemon
     /// @return                             Object creation successful (true), otherwise failed (false)
-    virtual bool createProcessStates(std::vector<ifexm::ProcessState>& f_processStates_r,
-                                     ifexm::ProcessStateReader& f_processStateReader_r) = 0;
+    virtual bool createProcessStates(
+        std::vector<ifexm::ProcessState>& f_processStates_r,
+        ifexm::ProcessStateReader& f_processStateReader_r) = 0;
 
     /// @brief Create IPCs for Alive Interfaces
     /// @param [out] f_interfaceIpcs_r  Vector of created Alive Interface IPCs
@@ -91,9 +93,10 @@ public:
     /// @param [in] f_interfaceIpcs_r       Vector of Alive Interface IPCs required for interface creation.
     /// @param [in,out] f_processStates_r   Vector of Process States
     /// @return                             Object creation successful (true), otherwise failed (false)
-    virtual bool createAliveIf(std::vector<ifappl::MonitorIfDaemon>& f_interfaces_r,
-                                          std::vector<ifappl::CheckpointIpcServer>& f_interfaceIpcs_r,
-                                          std::vector<ifexm::ProcessState>& f_processStates_r) = 0;
+    virtual bool createAliveIf(
+        std::vector<ifappl::MonitorIfDaemon>& f_interfaces_r,
+        std::vector<ifappl::CheckpointIpcServer>& f_interfaceIpcs_r,
+        std::vector<ifexm::ProcessState>& f_processStates_r) = 0;
 
     /// @brief Create Supervision Checkpoints
     /// @param [out] f_checkpoints_r    Vector of created Supervision Checkpoints
@@ -101,9 +104,10 @@ public:
     /// @param [in] f_processStates_r   Vector of ProcessStates required for constructing the Checkpoint
     /// instances.
     /// @return                         Object creation successful (true), otherwise failed (false)
-    virtual bool createSupervisionCheckpoints(std::vector<ifappl::Checkpoint>& f_checkpoints_r,
-                                              std::vector<ifappl::MonitorIfDaemon>& f_interfaces_r,
-                                              std::vector<ifexm::ProcessState>& f_processStates_r) = 0;
+    virtual bool createSupervisionCheckpoints(
+        std::vector<ifappl::Checkpoint>& f_checkpoints_r,
+        std::vector<ifappl::MonitorIfDaemon>& f_interfaces_r,
+        std::vector<ifexm::ProcessState>& f_processStates_r) = 0;
 
     /// @brief Create alive supervision worker objects
     /// @param [out] f_alive_r              Vector of created alive supervision worker
@@ -111,11 +115,11 @@ public:
     /// @param [in,out] f_processStates_r   Vector of Process States
     /// @param [in] f_recoveryClient_r      Recovery interface invoked when a supervision expires
     /// @return                             Object creation successful (true), otherwise failed (false)
-    virtual bool createAliveSupervisions(std::vector<supervision::Alive>& f_alive_r,
-                                         std::vector<ifappl::Checkpoint>& f_checkpoints_r,
-                                         std::vector<ifexm::ProcessState>& f_processStates_r,
-                                         std::shared_ptr<score::lcm::IRecoveryClient> f_recoveryClient_r) = 0;
-
+    virtual bool createAliveSupervisions(
+        std::vector<supervision::Alive>& f_alive_r,
+        std::vector<ifappl::Checkpoint>& f_checkpoints_r,
+        std::vector<ifexm::ProcessState>& f_processStates_r,
+        std::shared_ptr<score::lcm::IRecoveryClient> f_recoveryClient_r) = 0;
 };
 
 }  // namespace factory

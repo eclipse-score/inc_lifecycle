@@ -14,7 +14,8 @@
 #include "score/mw/lifecycle/report_running.h"
 #include "score/mw/lifecycle/lifecycle_client/details/report_running_impl.hpp"
 
-void score::mw::lifecycle::report_running() noexcept {
+void score::mw::lifecycle::report_running() noexcept
+{
     static_cast<void>(score::mw::lifecycle::ReportRunningImpl{}.ReportRunningState());
 }
 
@@ -22,11 +23,14 @@ void score::mw::lifecycle::report_running() noexcept {
 extern "C" {
 #endif
 
-int8_t score_mw_lifecycle_report_running(void) {
-    // RULECHECKER_comment(1, 2, check_static_object_dynamic_initialization, "static variable is in function scope so this initialization is safe", false)
+int8_t score_mw_lifecycle_report_running(void)
+{
+    // RULECHECKER_comment(1, 2, check_static_object_dynamic_initialization, "static variable is in function scope so
+    // this initialization is safe", false)
     static score::mw::lifecycle::ReportRunningImpl g_impl{};
     const auto result = g_impl.ReportRunningState();
-    if (!result) {
+    if (!result)
+    {
         return -1;
     }
     return 0;

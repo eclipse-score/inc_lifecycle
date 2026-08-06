@@ -13,11 +13,11 @@
 
 #include "score/mw/lifecycle/lifecyclemanager.h"
 
-#include "score/os/errno.h"
-#include <cstdlib>
 #include "score/mw/lifecycle/report_running.h"
 #include "score/mw/log/logging.h"
+#include "score/os/errno.h"
 #include "score/os/stdlib_impl.h"
+#include <cstdlib>
 
 #include <score/utility.hpp>
 #include <thread>
@@ -30,7 +30,11 @@ static constexpr auto kFailedAddSigterm = "Failed to add SIGTERM to set.";
 }  // namespace
 
 score::mw::lifecycle::LifeCycleManager::LifeCycleManager(std::unique_ptr<score::os::Signal> signal_interface) noexcept
-    : m_stop_source{}, m_app{nullptr}, m_signal_set{}, m_signal_handler_thread{}, signal_(std::move(signal_interface))  // NOLINT(cppcoreguidelines-prefer-member-initializer)
+    : m_stop_source{},
+      m_app{nullptr},
+      m_signal_set{},
+      m_signal_handler_thread{},
+      signal_(std::move(signal_interface))  // NOLINT(cppcoreguidelines-prefer-member-initializer)
 {
     mw::log::LogInfo() << "Initializing LifeCycleManager";
     if (!initialize_internal())
@@ -173,4 +177,6 @@ void score::mw::lifecycle::LifeCycleManager::report_running() noexcept
     score::mw::lifecycle::report_running();
 }
 
-void score::mw::lifecycle::LifeCycleManager::report_shutdown() noexcept {}
+void score::mw::lifecycle::LifeCycleManager::report_shutdown() noexcept
+{
+}

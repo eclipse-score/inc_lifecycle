@@ -16,10 +16,10 @@
 
 #include <memory>
 
-#include "score/mw/launch_manager/recovery_client/irecovery_client.h"
 #include "score/mw/launch_manager/alive_monitor/details/common/Types.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ProcessState.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
+#include "score/mw/launch_manager/recovery_client/irecovery_client.h"
 
 namespace score
 {
@@ -78,8 +78,7 @@ class AliveSupervisionCfg final
 
     /// Alive Supervision configuration constructor
     /// @param [in] f_checkpoint_r     Reference to checkpoint object
-    explicit AliveSupervisionCfg(saf::ifappl::Checkpoint& f_checkpoint_r) :
-        checkpoint_r(f_checkpoint_r)
+    explicit AliveSupervisionCfg(saf::ifappl::Checkpoint& f_checkpoint_r) : checkpoint_r(f_checkpoint_r)
     {
     }
 

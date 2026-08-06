@@ -55,4 +55,4 @@ class IConfigLoader
 
 }  // namespace score::mw::launch_manager::configuration
 
-#endif // CONFIG_LOADER_HPP
+#endif  // CONFIG_LOADER_HPP

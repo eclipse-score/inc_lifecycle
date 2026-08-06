@@ -27,10 +27,11 @@ namespace common
 template <class Type>
 class FixedSizeVector
 {
-public:
+  public:
     // Required guarantees for move constructors and assignments to be noexcept(true)
-    static_assert(std::is_nothrow_move_assignable<std::vector<Type>>::value,
-                  "std::vector<Type> should be nothrow move assignable");
+    static_assert(
+        std::is_nothrow_move_assignable<std::vector<Type>>::value,
+        "std::vector<Type> should be nothrow move assignable");
 
     /// @brief Parameterised constructor with length of FixedSizeVector
     /// @param[in] f_length The length of the FixedSizeVector
@@ -108,7 +109,8 @@ public:
     /// noexcept(false)
     /// @param f_inputElement_r Reference to element that has to be copied to FixedSizeVector
     /// @return True if element is added successfully to the FixedSizeVector
-    /* RULECHECKER_comment(0, 10, check_cheap_to_copy_in_parameter, "Copying a value of template type could become expensive", true_no_defect) */
+    /* RULECHECKER_comment(0, 10, check_cheap_to_copy_in_parameter, "Copying a value of template type could become
+     * expensive", true_no_defect) */
     bool push_back(const Type& f_inputElement_r)
     {
         bool result = false;
@@ -232,7 +234,7 @@ public:
     /// @brief Default destructor
     virtual ~FixedSizeVector() = default;
 
-private:
+  private:
     std::vector<Type> fixedSizedVector{};
 };
 }  // namespace common

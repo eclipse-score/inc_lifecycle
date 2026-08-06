@@ -31,7 +31,8 @@ class FixedSizeQueueTest : public ::testing::Test
     }
 };
 
-TEST_F(FixedSizeQueueTest, StaticProperties) {
+TEST_F(FixedSizeQueueTest, StaticProperties)
+{
 
     RecordProperty("Description", "Verify that all special member functions are defined");
 
@@ -49,7 +50,8 @@ TEST_F(FixedSizeQueueTest, StaticProperties) {
     ASSERT_TRUE(is_de);
 }
 
-TEST_F(FixedSizeQueueTest, ZeroCapacityAllMemberFunctionsReturns) {
+TEST_F(FixedSizeQueueTest, ZeroCapacityAllMemberFunctionsReturns)
+{
 
     // clang-format off
     RecordProperty("Description", "Verify that on zero capacity "
@@ -65,7 +67,8 @@ TEST_F(FixedSizeQueueTest, ZeroCapacityAllMemberFunctionsReturns) {
     FixedSizeQueue<int> queue0{0};
     FixedSizeQueue<int> zero_cap_queues[2] = {queue_dc, queue0};
 
-    for(FixedSizeQueue<int> & q : zero_cap_queues) {
+    for (FixedSizeQueue<int>& q : zero_cap_queues)
+    {
         EXPECT_TRUE(q.full());
         EXPECT_TRUE(q.empty());
         EXPECT_EQ(q.size(), 0U);
@@ -75,7 +78,8 @@ TEST_F(FixedSizeQueueTest, ZeroCapacityAllMemberFunctionsReturns) {
     }
 }
 
-TEST_F(FixedSizeQueueTest, CapacityFunctions)  {
+TEST_F(FixedSizeQueueTest, CapacityFunctions)
+{
 
     // clang-format off
     RecordProperty("Description", "Verify that on capacity bigger zero the capacity functions"
@@ -94,7 +98,8 @@ TEST_F(FixedSizeQueueTest, CapacityFunctions)  {
     EXPECT_EQ(queue_cap_bigger_zero.capacity(), cap);
 }
 
-TEST_F(FixedSizeQueueTest, CapacityFunctionSizeRetrunsNumberOfElementsInTheQueue)  {
+TEST_F(FixedSizeQueueTest, CapacityFunctionSizeRetrunsNumberOfElementsInTheQueue)
+{
 
     // clang-format off
     RecordProperty("Description", "Verify that size() returns the number of elements in the queue, "
@@ -108,7 +113,8 @@ TEST_F(FixedSizeQueueTest, CapacityFunctionSizeRetrunsNumberOfElementsInTheQueue
 
     EXPECT_EQ(queue_cap_five.size(), no_elements);
 
-    while(!queue_cap_five.full()) {
+    while (!queue_cap_five.full())
+    {
         EXPECT_TRUE(queue_cap_five.push(1));
         ++no_elements;
         EXPECT_EQ(queue_cap_five.size(), no_elements);
@@ -118,7 +124,8 @@ TEST_F(FixedSizeQueueTest, CapacityFunctionSizeRetrunsNumberOfElementsInTheQueue
     EXPECT_EQ(cap, no_elements);
 }
 
-TEST_F(FixedSizeQueueTest, ModifierFunctionsPushAndTryPopImplementAFIFO)  {
+TEST_F(FixedSizeQueueTest, ModifierFunctionsPushAndTryPopImplementAFIFO)
+{
 
     // clang-format off
     RecordProperty("Description", "Verify that push and tryPop implement a FIFO: "
@@ -129,9 +136,10 @@ TEST_F(FixedSizeQueueTest, ModifierFunctionsPushAndTryPopImplementAFIFO)  {
 
     const std::size_t cap{5U};
     FixedSizeQueue<int> queue_cap_five{cap};
-    auto elements = {11 ,22, 33, 44, 55};
+    auto elements = {11, 22, 33, 44, 55};
 
-    for(auto & e : elements) {
+    for (auto& e : elements)
+    {
         EXPECT_TRUE(queue_cap_five.push(e));
     }
 
@@ -140,7 +148,8 @@ TEST_F(FixedSizeQueueTest, ModifierFunctionsPushAndTryPopImplementAFIFO)  {
 
     std::size_t no_elements{queue_cap_five.size()};
 
-    for(auto & e : elements) {
+    for (auto& e : elements)
+    {
         EXPECT_EQ(queue_cap_five.tryPop(), e);
         --no_elements;
         EXPECT_EQ(queue_cap_five.size(), no_elements);
@@ -150,7 +159,8 @@ TEST_F(FixedSizeQueueTest, ModifierFunctionsPushAndTryPopImplementAFIFO)  {
     EXPECT_EQ(queue_cap_five.size(), 0U);
 }
 
-TEST_F(FixedSizeQueueTest, ModifierFunctionPushReturnsFalseIfTheQueueIsFull) {
+TEST_F(FixedSizeQueueTest, ModifierFunctionPushReturnsFalseIfTheQueueIsFull)
+{
 
     RecordProperty("Description", "Verify that modifier function push returns false if the queue is full.");
 
@@ -158,7 +168,8 @@ TEST_F(FixedSizeQueueTest, ModifierFunctionPushReturnsFalseIfTheQueueIsFull) {
     FixedSizeQueue<int> queue_cap_five{cap};
     auto elements = {11, 22, 33, 44, 55};
 
-    for(auto & e : elements) {
+    for (auto& e : elements)
+    {
         EXPECT_TRUE(queue_cap_five.push(e));
     }
 
@@ -166,7 +177,8 @@ TEST_F(FixedSizeQueueTest, ModifierFunctionPushReturnsFalseIfTheQueueIsFull) {
     EXPECT_FALSE(queue_cap_five.push(66));
 }
 
-TEST_F(FixedSizeQueueTest, TailAndHeadWrap) {
+TEST_F(FixedSizeQueueTest, TailAndHeadWrap)
+{
 
     RecordProperty("Description", "Verify that tail and head wrap.");
 
@@ -174,7 +186,8 @@ TEST_F(FixedSizeQueueTest, TailAndHeadWrap) {
     FixedSizeQueue<int> queue_cap_three{cap};
 
     auto elements = {1, 2, 3};
-    for(auto & e : elements) {
+    for (auto& e : elements)
+    {
         EXPECT_TRUE(queue_cap_three.push(e));
     }
 
@@ -196,7 +209,6 @@ TEST_F(FixedSizeQueueTest, TailAndHeadWrap) {
     EXPECT_EQ(queue_cap_three.size(), 2U);
     // {4,  , 3}
     // {T,  , H}
-
 
     EXPECT_EQ(queue_cap_three.tryPop(), 3);
     EXPECT_EQ(queue_cap_three.size(), 1U);

@@ -15,9 +15,8 @@
 
 #include <score/assert.hpp>
 
-#include "score/mw/lifecycle/alive.h"
 #include "score/mw/launch_manager/alive_monitor/details/AliveImpl.h"
-
+#include "score/mw/lifecycle/alive.h"
 
 // The public API is only sending alive notification. No need to support different checkpoints.
 static constexpr std::uint32_t kDefaultCheckpointId{1U};
@@ -25,7 +24,9 @@ static constexpr std::uint32_t kDefaultCheckpointId{1U};
 namespace score::mw::lifecycle
 {
 
-Alive::Alive(const std::string_view& instance) noexcept(false) : aliveImplPtr(std::make_unique<AliveImpl>(instance)) {}
+Alive::Alive(const std::string_view& instance) noexcept(false) : aliveImplPtr(std::make_unique<AliveImpl>(instance))
+{
+}
 
 Alive::Alive(Alive&& se) noexcept = default;
 

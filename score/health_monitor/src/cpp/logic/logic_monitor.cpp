@@ -22,10 +22,11 @@ using namespace score::mw::health::logic;
 
 FFICode logic_monitor_builder_create(const StateTag* initial_state, FFIHandle* logic_monitor_builder_handle_out);
 FFICode logic_monitor_builder_destroy(FFIHandle logic_monitor_builder_handle);
-FFICode logic_monitor_builder_add_state(FFIHandle logic_monitor_builder_handle,
-                                        const StateTag* state,
-                                        const StateTag* allowed_states,
-                                        size_t num_allowed_states);
+FFICode logic_monitor_builder_add_state(
+    FFIHandle logic_monitor_builder_handle,
+    const StateTag* state,
+    const StateTag* allowed_states,
+    size_t num_allowed_states);
 FFICode logic_monitor_destroy(FFIHandle logic_monitor_handle);
 FFICode logic_monitor_transition(FFIHandle logic_monitor_handle, const StateTag* target_state);
 FFICode logic_monitor_state(FFIHandle logic_monitor_handle, StateTag* state_out);
@@ -47,8 +48,9 @@ LogicMonitorBuilder::LogicMonitorBuilder(const StateTag& initial_state)
 {
 }
 
-LogicMonitorBuilder LogicMonitorBuilder::add_state(const StateTag& state,
-                                                   const std::vector<StateTag>& allowed_states) &&
+LogicMonitorBuilder LogicMonitorBuilder::add_state(
+    const StateTag& state,
+    const std::vector<StateTag>& allowed_states) &&
 {
     auto monitor_builder_handle{monitor_builder_handle_.as_rust_handle()};
     SCORE_LANGUAGE_FUTURECPP_PRECONDITION(monitor_builder_handle.has_value());
@@ -60,7 +62,9 @@ LogicMonitorBuilder LogicMonitorBuilder::add_state(const StateTag& state,
     return std::move(*this);
 }
 
-LogicMonitor::LogicMonitor(FFIHandle monitor_handle) : monitor_handle_{monitor_handle, &logic_monitor_destroy} {}
+LogicMonitor::LogicMonitor(FFIHandle monitor_handle) : monitor_handle_{monitor_handle, &logic_monitor_destroy}
+{
+}
 
 score::cpp::expected<StateTag, Error> LogicMonitor::transition(const StateTag& state)
 {

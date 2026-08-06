@@ -29,8 +29,9 @@ ProcessStateReader::ProcessStateReader(std::unique_ptr<LcmProcessStateReceiver> 
 {
 }
 
-bool ProcessStateReader::registerProcessState(ProcessState& f_processState_r,
-                                              const common::ProcessId f_processId) noexcept(false)
+bool ProcessStateReader::registerProcessState(
+    ProcessState& f_processState_r,
+    const common::ProcessId f_processId) noexcept(false)
 {
     bool flagSuccess{false};
 
@@ -70,8 +71,7 @@ bool ProcessStateReader::distributeChanges(const timers::NanoSecondType f_syncTi
     do
     {
         score::Result<std::optional<ProcessStateReader::LcmPosixProcess>> resultChangedProcess{
-            processStateReceiverHM->getNextChangedPosixProcess()
-        };
+            processStateReceiverHM->getNextChangedPosixProcess()};
 
         if (resultChangedProcess)
         {
@@ -101,8 +101,9 @@ bool ProcessStateReader::distributeChanges(const timers::NanoSecondType f_syncTi
     return flagSuccess;
 }
 
-bool ProcessStateReader::pushUpdateTill(const ProcessStateReader::LcmPosixProcess& f_changedPosixProcess_r,
-                                        const timers::NanoSecondType f_syncTimestamp) noexcept
+bool ProcessStateReader::pushUpdateTill(
+    const ProcessStateReader::LcmPosixProcess& f_changedPosixProcess_r,
+    const timers::NanoSecondType f_syncTimestamp) noexcept
 {
     bool isSyncTimestampReached{false};
     const common::ProcessId processId{f_changedPosixProcess_r.id.data()};
@@ -134,24 +135,29 @@ constexpr ProcessState::EProcState ProcessStateReader::translateProcessState(
     const ProcessStateReader::LcmProcessState f_processStateLcm) noexcept
 {
     // Following static assertion ensures consistency of process states in EXM and PHM
-    static_assert(static_cast<uint8_t>(ProcessState::EProcState::idle) ==
-                      static_cast<uint8_t>(score::lcm::ProcessState::kIdle),
-                  "Lcm State Enum and ProcessState::EProcState Enum do not match.");
-    static_assert(static_cast<uint8_t>(ProcessState::EProcState::starting) ==
-                      static_cast<uint8_t>(score::lcm::ProcessState::kStarting),
-                  "Lcm State Enum and ProcessState::EProcState Enum do not match.");
-    static_assert(static_cast<uint8_t>(ProcessState::EProcState::running) ==
-                      static_cast<uint8_t>(score::lcm::ProcessState::kRunning),
-                  "Lcm State Enum and ProcessState::EProcState Enum do not match.");
-    static_assert(static_cast<uint8_t>(ProcessState::EProcState::sigterm) ==
-                      static_cast<uint8_t>(score::lcm::ProcessState::kTerminating),
-                  "Lcm State Enum and ProcessState::EProcState Enum do not match.");
-    static_assert(static_cast<uint8_t>(ProcessState::EProcState::off) ==
-                      static_cast<uint8_t>(score::lcm::ProcessState::kTerminated),
-                  "Lcm State Enum and ProcessState::EProcState Enum do not match.");
-    static_assert(static_cast<uint8_t>(ProcessState::EProcState::failed) ==
-                      static_cast<uint8_t>(score::lcm::ProcessState::kFailed),
-                  "Lcm State Enum and ProcessState::EProcState Enum do not match.");
+    static_assert(
+        static_cast<uint8_t>(ProcessState::EProcState::idle) == static_cast<uint8_t>(score::lcm::ProcessState::kIdle),
+        "Lcm State Enum and ProcessState::EProcState Enum do not match.");
+    static_assert(
+        static_cast<uint8_t>(ProcessState::EProcState::starting) ==
+            static_cast<uint8_t>(score::lcm::ProcessState::kStarting),
+        "Lcm State Enum and ProcessState::EProcState Enum do not match.");
+    static_assert(
+        static_cast<uint8_t>(ProcessState::EProcState::running) ==
+            static_cast<uint8_t>(score::lcm::ProcessState::kRunning),
+        "Lcm State Enum and ProcessState::EProcState Enum do not match.");
+    static_assert(
+        static_cast<uint8_t>(ProcessState::EProcState::sigterm) ==
+            static_cast<uint8_t>(score::lcm::ProcessState::kTerminating),
+        "Lcm State Enum and ProcessState::EProcState Enum do not match.");
+    static_assert(
+        static_cast<uint8_t>(ProcessState::EProcState::off) ==
+            static_cast<uint8_t>(score::lcm::ProcessState::kTerminated),
+        "Lcm State Enum and ProcessState::EProcState Enum do not match.");
+    static_assert(
+        static_cast<uint8_t>(ProcessState::EProcState::failed) ==
+            static_cast<uint8_t>(score::lcm::ProcessState::kFailed),
+        "Lcm State Enum and ProcessState::EProcState Enum do not match.");
     return static_cast<ProcessState::EProcState>(f_processStateLcm);
 }
 

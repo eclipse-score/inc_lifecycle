@@ -12,17 +12,19 @@
  ********************************************************************************/
 
 #include <gtest/gtest.h>
-#include <csignal>
 #include <unistd.h>
+#include <csignal>
 
-#include <score/mw/lifecycle/report_running.h>
 #include "tests/utils/test_helper/test_helper.hpp"
+#include <score/mw/lifecycle/report_running.h>
 
-TEST(Smoke, Process) {
+TEST(Smoke, Process)
+{
     // report running
     score::mw::lifecycle::report_running();
 }
 
-int main() {
+int main()
+{
     return TestRunner(__FILE__).RunTests();
 }

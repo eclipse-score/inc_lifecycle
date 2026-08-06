@@ -15,48 +15,57 @@
 #include "score/concurrency/future/interruptible_promise.h"
 
 #include "score/mw/launch_manager/common/identifier_hash.hpp"
-#include "score/mw/lifecycle/execution_error_event.h"
 #include "score/mw/lifecycle/control_client/details/control_client_impl.hpp"
+#include "score/mw/lifecycle/execution_error_event.h"
 
 #include "control_client.h"
 
-namespace score::mw::lifecycle {
+namespace score::mw::lifecycle
+{
 
 // coverity[exn_spec_violation:FALSE] SetError cannot raise an exception in this instance
-inline score::concurrency::InterruptibleFuture<void> GetErrorFuture(ExecErrc errType) noexcept {
+inline score::concurrency::InterruptibleFuture<void> GetErrorFuture(ExecErrc errType) noexcept
+{
     score::concurrency::InterruptiblePromise<void> tmp_{};
     tmp_.SetError(errType);
     return tmp_.GetInterruptibleFuture().value();
 }
 
-ControlClient::ControlClient() noexcept {
+ControlClient::ControlClient() noexcept
+{
     static std::function<void(const score::lcm::ExecutionErrorEvent&)> undefinedStateCallback =
-        []([[maybe_unused]] const score::lcm::ExecutionErrorEvent& event) {};
+        []([[maybe_unused]] const score::lcm::ExecutionErrorEvent& event) {
+        };
 
-    try {
+    try
+    {
         control_client_impl_ = std::make_unique<ControlClientImpl>(undefinedStateCallback);
-    } catch (...) {
+    }
+    catch (...)
+    {
         control_client_impl_ = nullptr;
     }
 }
 
-ControlClient::~ControlClient() noexcept {
+ControlClient::~ControlClient() noexcept
+{
     control_client_impl_.reset();
 }
 
-ControlClient::ControlClient(ControlClient&& rval) noexcept {
+ControlClient::ControlClient(ControlClient&& rval) noexcept
+{
     control_client_impl_ = std::move(rval.control_client_impl_);
     rval.control_client_impl_ = nullptr;
 }
 
 ControlClient& ControlClient::operator=(ControlClient&& rval) noexcept = default;
 
-
-score::concurrency::InterruptibleFuture<void> ControlClient::ActivateRunTarget(std::string_view runTargetName) const noexcept
+score::concurrency::InterruptibleFuture<void> ControlClient::ActivateRunTarget(
+    std::string_view runTargetName) const noexcept
 {
-    score::concurrency::InterruptibleFuture<void> retVal_ {};
+    score::concurrency::InterruptibleFuture<void> retVal_{};
 
-    if( control_client_impl_ != nullptr )
+    if (control_client_impl_ != nullptr)
     {
         static score::lcm::IdentifierHash pg_name{"MainPG"};
         score::lcm::IdentifierHash pg_state{"MainPG/" + std::string(runTargetName)};

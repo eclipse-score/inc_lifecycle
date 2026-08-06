@@ -19,8 +19,8 @@
 #include "score/mw/launch_manager/alive_monitor/details/common/Types.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ProcessState.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
-#include "score/mw/launch_manager/process_state_client/posix_process.hpp"
 #include "score/mw/launch_manager/process_state_client/iprocess_state_receiver.hpp"
+#include "score/mw/launch_manager/process_state_client/posix_process.hpp"
 
 namespace score
 {
@@ -36,7 +36,7 @@ namespace ifexm
 /// the information to the Process State classes.
 class ProcessStateReader
 {
-public:
+  public:
     using LcmProcessState = score::lcm::ProcessState;
     using LcmPosixProcess = score::lcm::PosixProcess;
     using LcmProcessStateReceiver = score::lcm::IProcessStateReceiver;
@@ -72,13 +72,15 @@ public:
     /// @param [in] f_syncTimestamp   Timestamp for cyclic synchronization
     /// @return     true (successful process state distribution), false (failed process state distribution)
     bool distributeChanges(const timers::NanoSecondType f_syncTimestamp) noexcept;
-private:
+
+  private:
     /// @brief Push update for changed registered process
     /// @param [in] f_changedPosixProcess_r   Posix Process for which push update is needed
     /// @param [in] f_syncTimestamp           Timestamp for cyclic synchronization
     /// @return     true (sync timestamp is reached), false (sync timestamp is not yet reached)
-    bool pushUpdateTill(const ProcessStateReader::LcmPosixProcess& f_changedPosixProcess_r,
-                        const timers::NanoSecondType f_syncTimestamp) noexcept;
+    bool pushUpdateTill(
+        const ProcessStateReader::LcmPosixProcess& f_changedPosixProcess_r,
+        const timers::NanoSecondType f_syncTimestamp) noexcept;
 
     /// @brief Translate Lcm State to ProcessState::EProcState
     /// @param [in]  f_processStateLcm   Process state from Lcm

@@ -73,8 +73,9 @@ inline ::testing::AssertionResult to_result(std::ostringstream& failures)
 /// @param[in] expected_uid Expected user id; not verified when unset.
 /// @param[in] expected_gid Expected group id; not verified when unset.
 /// @return AssertionSuccess if every set expectation matches, otherwise AssertionFailure.
-inline ::testing::AssertionResult verifyUidGid(const std::optional<uid_t> expected_uid,
-                                               const std::optional<gid_t> expected_gid)
+inline ::testing::AssertionResult verifyUidGid(
+    const std::optional<uid_t> expected_uid,
+    const std::optional<gid_t> expected_gid)
 {
     std::ostringstream failures;
 
@@ -160,9 +161,10 @@ inline ::testing::AssertionResult verifyWorkingDir(const std::string& expected_w
 /// @param[in] expected_priority Expected scheduling priority; defaults to the policy minimum when unset.
 /// @param[in] context Human readable name of the thread, used in failure messages.
 /// @return AssertionSuccess if policy and priority match, otherwise AssertionFailure.
-inline ::testing::AssertionResult verifyScheduling(const std::optional<int> expected_policy,
-                                                   const std::optional<int> expected_priority,
-                                                   const std::string& context)
+inline ::testing::AssertionResult verifyScheduling(
+    const std::optional<int> expected_policy,
+    const std::optional<int> expected_priority,
+    const std::string& context)
 {
     std::ostringstream failures;
 

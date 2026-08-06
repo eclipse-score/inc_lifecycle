@@ -11,22 +11,23 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-
 #ifndef _INCLUDED_REPORTRUNNINGIMPL_
 #define _INCLUDED_REPORTRUNNINGIMPL_
 
 #include <atomic>
 
-#include "score/result/result.h"
 #include "score/mw/launch_manager/osal/ipc_comms.hpp"
+#include "score/result/result.h"
 
-namespace score::mw::lifecycle {
+namespace score::mw::lifecycle
+{
 
 /// @brief Implementation class for report_running(), handling the actual IPC
 /// communication with the Launch Manager to signal that this process has
 /// entered its Running state.
-class ReportRunningImpl final {
-   public:
+class ReportRunningImpl final
+{
+  public:
     /// @brief Constructor
     ReportRunningImpl() noexcept;
 
@@ -38,18 +39,21 @@ class ReportRunningImpl final {
 
     /// @brief Reports the Running state to the Launch Manager.
     ///
-    /// @returns An instance of score::Result. The instance holds an ErrorCode containing either one of the specified errors or a void-value.
-    /// @error score::mw::lifecycle::ExecErrc::kCommunicationError Communication error between Application and Launch Manager, e.g. unable to report state for Non-reporting Process.
-    /// @error score::mw::lifecycle::ExecErrc::kInvalidTransition  Invalid transition request (e.g. to Running when already in Running state)
+    /// @returns An instance of score::Result. The instance holds an ErrorCode containing either one of the specified
+    /// errors or a void-value.
+    /// @error score::mw::lifecycle::ExecErrc::kCommunicationError Communication error between Application and Launch
+    /// Manager, e.g. unable to report state for Non-reporting Process.
+    /// @error score::mw::lifecycle::ExecErrc::kInvalidTransition  Invalid transition request (e.g. to Running when
+    /// already in Running state)
     score::Result<std::monostate> ReportRunningState() const noexcept;
 
-   private:
+  private:
     /// @brief Variable to remember if kRunning was already reported for the process using lifecycle_client_lib.
     /// Please note that ReportRunningState() method is declared as a const method.
-    /// Thanks to this, user can choose to declare instance of this class as a constant variable and reporting kRunning will still work.
-    /// However, this prevent us from implementing certain optimizations, after initial kRunning was reported.
-    /// To mitigate this, we can store this information outside of ReportRunningImpl class or have a mutable variable.
-    /// After short discussion, mutable variable was chosen.
+    /// Thanks to this, user can choose to declare instance of this class as a constant variable and reporting kRunning
+    /// will still work. However, this prevent us from implementing certain optimizations, after initial kRunning was
+    /// reported. To mitigate this, we can store this information outside of ReportRunningImpl class or have a mutable
+    /// variable. After short discussion, mutable variable was chosen.
     ///        True if kRunning was already reported by the process using this library.
     ///        False if kRunning was not yet reported by the process using this library.
     static std::atomic_bool reported;

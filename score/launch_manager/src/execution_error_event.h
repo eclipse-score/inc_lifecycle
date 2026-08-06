@@ -18,18 +18,22 @@
 
 #include "score/mw/launch_manager/common/identifier_hash.hpp"
 
-namespace score {
+namespace score
+{
 
-namespace lcm {
+namespace lcm
+{
 
 /// @brief Represents the execution error.
 using ExecutionError = std::uint32_t;
 
 /// @brief Represents an execution error event which happens in a Process Group.
 ///
-// RULECHECKER_comment(1, 1, check_incomplete_data_member_construction, "wi 45913 - This struct is POD, which doesn't have user-declared constructor. The rule doesn’t apply.", false)
-struct ExecutionErrorEvent final {
-   public:
+// RULECHECKER_comment(1, 1, check_incomplete_data_member_construction, "wi 45913 - This struct is POD, which doesn't
+// have user-declared constructor. The rule doesn’t apply.", false)
+struct ExecutionErrorEvent final
+{
+  public:
     /// @brief The execution error of the Process which unexpectedly terminated
     ExecutionError executionError;
 

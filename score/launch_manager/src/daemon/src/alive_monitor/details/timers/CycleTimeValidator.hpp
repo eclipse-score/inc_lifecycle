@@ -11,7 +11,6 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-
 #ifndef CYCLETIMEVALIDATOR_HPP_INCLUDED
 #define CYCLETIMEVALIDATOR_HPP_INCLUDED
 
@@ -31,11 +30,11 @@ namespace timers
 /// @brief Perform validations on the cycle time configured.
 class CycleTimeValidator
 {
-public:
+  public:
     /// @brief Get the monotonic clock accuracy in nanoseconds
     /// @param[in] f_clock_sys Interface to access the system clock functionality
     /// @return nanoseconds or -1 if receiving the clock resolution fails
-    static int64_t getMonotonicClockAccuracy(score::lcm::saf::timers::OsClockInterface const& f_clock_sys) noexcept(
+    static int64_t getMonotonicClockAccuracy(const score::lcm::saf::timers::OsClockInterface& f_clock_sys) noexcept(
         true);
 
     /// @brief Adjust a given time interval based on the clock accuracy of

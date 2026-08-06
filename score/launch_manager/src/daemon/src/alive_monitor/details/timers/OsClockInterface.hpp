@@ -11,7 +11,6 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-
 #ifndef OSCLOCKINTERFACE_HPP_INCLUDED
 #define OSCLOCKINTERFACE_HPP_INCLUDED
 
@@ -33,7 +32,7 @@ namespace timers
 /// and multiple unit tests.
 class OsClockInterface
 {
-public:
+  public:
     OsClockInterface() = default;
 
     virtual ~OsClockInterface() noexcept = default;
@@ -89,25 +88,20 @@ public:
         const long secDiff{initFinishedTime.tv_sec - startTime.tv_sec};
         // coverity[autosar_cpp14_a4_7_1_violation] monotonic clock is used, so the time difference is always positive
         const long nsDiff{initFinishedTime.tv_nsec - startTime.tv_nsec};
-        // coverity[autosar_cpp14_a4_7_1_violation] max long 2,147,483,647 ms which ~ 24.8 days which nobody will wait for
+        // coverity[autosar_cpp14_a4_7_1_violation] max long 2,147,483,647 ms which ~ 24.8 days which nobody will wait
+        // for
         const long ms{(secDiff * 1000 /*ms per sec*/) + (nsDiff / 1000000 /*ns per ms*/)};
         // LM_LOG_DEBUG() << "Phm Daemon: Initialization took " << ms << " ms";
         return ms;
     }
 
-private:
+  private:
     /// @brief Timestamp when main method starts
-    struct timespec startTime
-    {
-        0, 0
-    };
+    struct timespec startTime{0, 0};
 
     /// @brief Timestamp when initialization finishes (just before kRunning is reported)
     // coverity[autosar_cpp14_m3_4_1_violation] block scope definition is intentionally avoided for maintainability
-    struct timespec initFinishedTime
-    {
-        0, 0
-    };
+    struct timespec initFinishedTime{0, 0};
 };
 
 }  // namespace timers

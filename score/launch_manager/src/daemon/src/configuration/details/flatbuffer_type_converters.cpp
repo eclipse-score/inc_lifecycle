@@ -34,8 +34,9 @@ namespace
 {
 
 template <typename T>
-score::cpp::expected<T, IConfigLoader::Error> requireScalarValue(const ::flatbuffers::Optional<T>& field,
-                                                                 const std::string_view field_name)
+score::cpp::expected<T, IConfigLoader::Error> requireScalarValue(
+    const ::flatbuffers::Optional<T>& field,
+    const std::string_view field_name)
 {
     if (!field.has_value())
     {

@@ -22,14 +22,16 @@ namespace saf
 namespace ifappl
 {
 
-Checkpoint::Checkpoint(const char* const f_checkpointCfgName_p, const uint32_t f_checkpointId,
-                       const ifexm::ProcessState* f_processState_p) noexcept(false) :
-    Observable<Checkpoint>(),
-    k_configName(f_checkpointCfgName_p),
-    k_checkpointId(f_checkpointId),
-    processState(f_processState_p),
-    isDataLossEvent(false),
-    timestamp(0U)
+Checkpoint::Checkpoint(
+    const char* const f_checkpointCfgName_p,
+    const uint32_t f_checkpointId,
+    const ifexm::ProcessState* f_processState_p) noexcept(false)
+    : Observable<Checkpoint>(),
+      k_configName(f_checkpointCfgName_p),
+      k_checkpointId(f_checkpointId),
+      processState(f_processState_p),
+      isDataLossEvent(false),
+      timestamp(0U)
 {
     static_cast<void>(0U);
 }

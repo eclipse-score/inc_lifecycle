@@ -58,8 +58,7 @@ class ExecErrorDomainTest : public ::testing::Test
 
 TEST_F(ExecErrorDomainTest, AllKnownCodesReturnNonEmptyMessage)
 {
-    RecordProperty("Description",
-                   "Verify that every known ExecErrc value produces a non-empty message string.");
+    RecordProperty("Description", "Verify that every known ExecErrc value produces a non-empty message string.");
 
     for (auto code : kAllKnownCodes)
     {
@@ -70,8 +69,7 @@ TEST_F(ExecErrorDomainTest, AllKnownCodesReturnNonEmptyMessage)
 
 TEST_F(ExecErrorDomainTest, AllKnownCodesHaveDistinctMessages)
 {
-    RecordProperty("Description",
-                   "Verify that every known ExecErrc value maps to a unique message string.");
+    RecordProperty("Description", "Verify that every known ExecErrc value maps to a unique message string.");
 
     std::set<std::string_view> seen;
     for (auto code : kAllKnownCodes)
@@ -84,9 +82,10 @@ TEST_F(ExecErrorDomainTest, AllKnownCodesHaveDistinctMessages)
 
 TEST_F(ExecErrorDomainTest, UnknownCodeReturnsNonEmptyMessage)
 {
-    RecordProperty("Description",
-                   "Verify that an unrecognised error code falls through to the default case and still returns a "
-                   "non-empty message.");
+    RecordProperty(
+        "Description",
+        "Verify that an unrecognised error code falls through to the default case and still returns a "
+        "non-empty message.");
 
     constexpr score::result::ErrorCode kUnknownCode = 0;
     const auto msg = domain_.MessageFor(kUnknownCode);

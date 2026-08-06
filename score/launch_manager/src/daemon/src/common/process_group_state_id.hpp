@@ -11,28 +11,33 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-
 #ifndef FUNCTION_STATE_ID_HPP_
 #define FUNCTION_STATE_ID_HPP_
 
 #include "score/mw/launch_manager/common/identifier_hash.hpp"
 
-namespace score {
+namespace score
+{
 
-namespace lcm {
+namespace lcm
+{
 
-namespace internal {
+namespace internal
+{
 
-/// @brief Represents process group state in a particular process group. process group state is unique within a process group.
-// RULECHECKER_comment(1, 1, check_incomplete_data_member_construction, "wi 45913 - This struct is POD, which doesn't have user-declared constructor. The rule doesn’t apply.", false)
-struct ProcessGroupStateID final {
+/// @brief Represents process group state in a particular process group. process group state is unique within a process
+/// group.
+// RULECHECKER_comment(1, 1, check_incomplete_data_member_construction, "wi 45913 - This struct is POD, which doesn't
+// have user-declared constructor. The rule doesn’t apply.", false)
+struct ProcessGroupStateID final
+{
     score::lcm::IdentifierHash pg_name_;        ///< Name of the process group.
     score::lcm::IdentifierHash pg_state_name_;  ///< Name of the process group state.
 };
 
-}  // namespace lcm
-
 }  // namespace internal
+
+}  // namespace lcm
 
 }  // namespace score
 

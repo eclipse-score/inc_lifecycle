@@ -27,8 +27,8 @@ using namespace score::lcm::internal;
 class MpscBoundedQueueTest_Basic : public ::testing::Test
 {
   protected:
-
-    void TearDown() override {
+    void TearDown() override
+    {
         queue_.stop();
     }
 
@@ -72,13 +72,16 @@ TEST_F(MpscBoundedQueueTest_Basic, TryPopNeverBlocksOnEmptyQueue)
 
 TEST_F(MpscBoundedQueueTest_Basic, RvaluePushWorksWithMoveOnlyType)
 {
-    RecordProperty("Description",
-                   "Verify that push works with a move-only, non-default-constructible type, moving the item "
-                   "into the queue -- demonstrating the relaxed constraint vs. MPMCConcurrentQueue.");
+    RecordProperty(
+        "Description",
+        "Verify that push works with a move-only, non-default-constructible type, moving the item "
+        "into the queue -- demonstrating the relaxed constraint vs. MPMCConcurrentQueue.");
 
     struct MoveOnly
     {
-        explicit MoveOnly(std::unique_ptr<int> v) : value(std::move(v)) {}
+        explicit MoveOnly(std::unique_ptr<int> v) : value(std::move(v))
+        {
+        }
         MoveOnly(MoveOnly&&) = default;
         MoveOnly& operator=(MoveOnly&&) = default;
         MoveOnly(const MoveOnly&) = delete;
@@ -100,8 +103,8 @@ TEST_F(MpscBoundedQueueTest_Basic, RvaluePushWorksWithMoveOnlyType)
 
 TEST_F(MpscBoundedQueueTest_Basic, LvaluePushCopiesItem)
 {
-    RecordProperty("Description",
-                   "Verify that push(const T&) copies the item into the queue, leaving the original intact.");
+    RecordProperty(
+        "Description", "Verify that push(const T&) copies the item into the queue, leaving the original intact.");
     const int value = 77;
     ASSERT_TRUE(queue_.push(value).has_value());
     EXPECT_EQ(value, 77);
@@ -114,8 +117,8 @@ TEST_F(MpscBoundedQueueTest_Basic, LvaluePushCopiesItem)
 class MpscBoundedQueueTest_Capacity : public ::testing::Test
 {
   protected:
-
-    void TearDown() override {
+    void TearDown() override
+    {
         queue_.stop();
     }
 
@@ -134,9 +137,10 @@ TEST_F(MpscBoundedQueueTest_Capacity, FillsExactlyToCapacity)
 
 TEST_F(MpscBoundedQueueTest_Capacity, OneMorePushThanCapacityReturnsOverflow)
 {
-    RecordProperty("Description",
-                   "Verify that pushing one more item than `Capacity` returns overflow rather than silently "
-                   "succeeding (off-by-one boundary check).");
+    RecordProperty(
+        "Description",
+        "Verify that pushing one more item than `Capacity` returns overflow rather than silently "
+        "succeeding (off-by-one boundary check).");
     for (std::size_t i = 0U; i < kCapacity; ++i)
     {
         ASSERT_TRUE(queue_.push(static_cast<int>(i)).has_value());
@@ -149,9 +153,10 @@ TEST_F(MpscBoundedQueueTest_Capacity, OneMorePushThanCapacityReturnsOverflow)
 
 TEST_F(MpscBoundedQueueTest_Capacity, DrainingOneSlotAllowsExactlyOneMorePush)
 {
-    RecordProperty("Description",
-                   "Verify that after filling the queue and draining a single slot, exactly one more push "
-                   "succeeds and the next one overflows again -- the free-slot count is tracked precisely.");
+    RecordProperty(
+        "Description",
+        "Verify that after filling the queue and draining a single slot, exactly one more push "
+        "succeeds and the next one overflows again -- the free-slot count is tracked precisely.");
     for (std::size_t i = 0U; i < kCapacity; ++i)
     {
         ASSERT_TRUE(queue_.push(static_cast<int>(i)).has_value());
@@ -167,10 +172,11 @@ TEST_F(MpscBoundedQueueTest_Capacity, DrainingOneSlotAllowsExactlyOneMorePush)
 
 TEST_F(MpscBoundedQueueTest_Capacity, RepeatedFillDrainCyclesWrapRingBufferCorrectly)
 {
-    RecordProperty("Description",
-                   "Verify that repeated push/pop cycles well past `Capacity` total operations -- forcing the "
-                   "internal ring buffer's head/tail indices to wrap around multiple times -- still preserve "
-                   "FIFO order and never lose or duplicate an item.");
+    RecordProperty(
+        "Description",
+        "Verify that repeated push/pop cycles well past `Capacity` total operations -- forcing the "
+        "internal ring buffer's head/tail indices to wrap around multiple times -- still preserve "
+        "FIFO order and never lose or duplicate an item.");
     int next_push_value = 0;
     int next_expected_pop_value = 0;
 
@@ -196,19 +202,19 @@ TEST_F(MpscBoundedQueueTest_Capacity, RepeatedFillDrainCyclesWrapRingBufferCorre
 
 TEST(MpscBoundedQueueTest_MinimalCapacity, CapacityOfZeroIsOne)
 {
-    RecordProperty("Description",
-                   "Verify the smallest legal capacity of one is guaranteed.");
+    RecordProperty("Description", "Verify the smallest legal capacity of one is guaranteed.");
     MpscBoundedQueue<int> queue0{0U};
-    EXPECT_TRUE(queue0.push(1).has_value()) << "the smallest legal capacity of one shall be guaranteed"; 
+    EXPECT_TRUE(queue0.push(1).has_value()) << "the smallest legal capacity of one shall be guaranteed";
     EXPECT_FALSE(queue0.push(2).has_value()) << "only one element is allowed";
     queue0.stop();
 }
 
 TEST(MpscBoundedQueueTest_MinimalCapacity, CapacityOfOneAllowsSingleItemAtATime)
 {
-    RecordProperty("Description",
-                   "Verify the smallest legal capacity (1) behaves correctly: a single push succeeds, a second "
-                   "push overflows until the first item is drained, matching general boundary behavior.");
+    RecordProperty(
+        "Description",
+        "Verify the smallest legal capacity (1) behaves correctly: a single push succeeds, a second "
+        "push overflows until the first item is drained, matching general boundary behavior.");
     MpscBoundedQueue<int> queue{1U};
 
     EXPECT_TRUE(queue.push(1).has_value());
@@ -230,8 +236,8 @@ TEST(MpscBoundedQueueTest_MinimalCapacity, CapacityOfOneAllowsSingleItemAtATime)
 class MpscBoundedQueueTest_Blocking : public ::testing::Test
 {
   protected:
-
-    void TearDown() override {
+    void TearDown() override
+    {
         queue4_.stop();
         queue8_.stop();
     }
@@ -242,8 +248,8 @@ class MpscBoundedQueueTest_Blocking : public ::testing::Test
 
 TEST_F(MpscBoundedQueueTest_Blocking, WaitReturnsTimeoutWhenEmpty)
 {
-    RecordProperty("Description",
-                   "Verify wait() returns ConcurrencyErrc::kTimeout promptly when the queue stays empty.");
+    RecordProperty(
+        "Description", "Verify wait() returns ConcurrencyErrc::kTimeout promptly when the queue stays empty.");
     auto result = queue8_.wait(std::chrono::milliseconds{20});
     ASSERT_FALSE(result.has_value());
     EXPECT_EQ(result.error(), ConcurrencyErrc::kTimeout);
@@ -254,7 +260,7 @@ TEST_F(MpscBoundedQueueTest_Blocking, WaitSucceedsOnceProducerPushes)
     RecordProperty("Description", "Verify wait() unblocks and succeeds once another thread pushes an item.");
     std::atomic<bool> wait_succeeded{false};
     std::atomic<bool> wait_completed{false};
-     std::optional<int> item;
+    std::optional<int> item;
 
     std::thread consumer([&] {
         wait_succeeded.store(queue8_.wait(std::chrono::milliseconds{2000}).has_value(), std::memory_order_release);
@@ -276,8 +282,8 @@ TEST_F(MpscBoundedQueueTest_Blocking, WaitSucceedsOnceProducerPushes)
 class MpscBoundedQueueTest_Stop : public ::testing::Test
 {
   protected:
-
-    void TearDown() override {
+    void TearDown() override
+    {
         queue4_.stop();
         queue8_.stop();
     }
@@ -297,9 +303,10 @@ TEST_F(MpscBoundedQueueTest_Stop, PushReturnsStoppedAfterStop)
 
 TEST_F(MpscBoundedQueueTest_Stop, WaitReturnsStoppedAfterStopWhenEmpty)
 {
-    RecordProperty("Description",
-                   "Verify that wait() returns ConcurrencyErrc::kStopped immediately once the queue is stopped "
-                   "and empty.");
+    RecordProperty(
+        "Description",
+        "Verify that wait() returns ConcurrencyErrc::kStopped immediately once the queue is stopped "
+        "and empty.");
     queue8_.stop();
     auto result = queue8_.wait(std::chrono::milliseconds{2000});
     ASSERT_FALSE(result.has_value());
@@ -308,9 +315,10 @@ TEST_F(MpscBoundedQueueTest_Stop, WaitReturnsStoppedAfterStopWhenEmpty)
 
 TEST_F(MpscBoundedQueueTest_Stop, TryPopStillDrainsQueuedItemsAfterStop)
 {
-    RecordProperty("Description",
-                   "Verify that tryPop() still successfully drains items that were queued before stop() was "
-                   "called, so shutdown does not silently discard already-enqueued events.");
+    RecordProperty(
+        "Description",
+        "Verify that tryPop() still successfully drains items that were queued before stop() was "
+        "called, so shutdown does not silently discard already-enqueued events.");
     ASSERT_TRUE(queue8_.push(1).has_value());
     ASSERT_TRUE(queue8_.push(2).has_value());
     queue8_.stop();
@@ -328,9 +336,10 @@ TEST_F(MpscBoundedQueueTest_Stop, TryPopStillDrainsQueuedItemsAfterStop)
 
 TEST_F(MpscBoundedQueueTest_Stop, StopUnblocksBlockedConsumerPromptly)
 {
-    RecordProperty("Description",
-                   "Verify that stop() wakes a consumer blocked in wait() on an empty queue well before its "
-                   "timeout elapses.");
+    RecordProperty(
+        "Description",
+        "Verify that stop() wakes a consumer blocked in wait() on an empty queue well before its "
+        "timeout elapses.");
     std::atomic<bool> wait_succeeded{true};
     const auto start = std::chrono::steady_clock::now();
     std::thread consumer([&] {
@@ -349,8 +358,8 @@ TEST_F(MpscBoundedQueueTest_Stop, StopUnblocksBlockedConsumerPromptly)
 class MpscBoundedQueueTest_MultiProducer : public ::testing::Test
 {
   protected:
-
-    void TearDown() override {
+    void TearDown() override
+    {
         queue_.stop();
     }
 
@@ -364,9 +373,10 @@ class MpscBoundedQueueTest_MultiProducer : public ::testing::Test
 
 TEST_F(MpscBoundedQueueTest_MultiProducer, AllItemsFromConcurrentProducersDeliveredExactlyOnce)
 {
-    RecordProperty("Description",
-                   "Verify that all items pushed by several concurrent producer threads are received exactly "
-                   "once by a single consumer thread draining via wait()+tryPop(), with no loss or duplication.");
+    RecordProperty(
+        "Description",
+        "Verify that all items pushed by several concurrent producer threads are received exactly "
+        "once by a single consumer thread draining via wait()+tryPop(), with no loss or duplication.");
 
     // Encode (producer index, sequence number) into a single int so we can verify each producer's
     // full sequence was received, not just the aggregate count.
@@ -443,24 +453,26 @@ TEST_F(MpscBoundedQueueTest_MultiProducer, AllItemsFromConcurrentProducersDelive
     EXPECT_EQ(received, expected);
 }
 
-TEST(MpscBoundedQueueTest, ToCallStopBeforeDestructionIsMandatory) 
+TEST(MpscBoundedQueueTest, ToCallStopBeforeDestructionIsMandatory)
 {
     RecordProperty("Description", "Verfiy that calling stop before destruction is mandatory.");
     using IntQueue = MpscBoundedQueue<int>;
-    EXPECT_DEATH({IntQueue{4};}, "");
+    EXPECT_DEATH({ IntQueue{4}; }, "");
 }
 
-TEST(MpscBoundedQueueTest, OnlyOneConsumerThreadIsAllowed) 
+TEST(MpscBoundedQueueTest, OnlyOneConsumerThreadIsAllowed)
 {
     RecordProperty("Description", "Verfiy that only one consumer thread is allowed.");
     using IntQueue = MpscBoundedQueue<int>;
-    EXPECT_DEATH({
+    EXPECT_DEATH(
+        {
             IntQueue queue{4};
             std::thread consumer([&] {
                 static_cast<void>(queue.wait(std::chrono::milliseconds{5000}));
             });
             queue.stop();
             consumer.join();
-            static_cast<void>(queue.tryPop()); // asserts, because the tryPop call is not inside the consumer
-        }, "");
+            static_cast<void>(queue.tryPop());  // asserts, because the tryPop call is not inside the consumer
+        },
+        "");
 }

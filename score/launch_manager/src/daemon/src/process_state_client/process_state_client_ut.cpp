@@ -10,9 +10,9 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
-#include <gtest/gtest.h>
-#include "score/mw/launch_manager/process_state_client/process_state_notifier.hpp"
 #include "score/mw/launch_manager/process_state_client/details/process_state_receiver.hpp"
+#include "score/mw/launch_manager/process_state_client/process_state_notifier.hpp"
+#include <gtest/gtest.h>
 #include <memory>
 
 using namespace testing;
@@ -51,9 +51,10 @@ TEST_F(ProcessStateClient_UT, ProcessStateClient_ConstructReceiver_Succeeds)
 
 TEST_F(ProcessStateClient_UT, ProcessStateClient_QueueOneProcess_Succeeds)
 {
-    RecordProperty("Description",
-                   "This test verifies that a single PosixProcess can be successfully queued using the "
-                   "ProcessStateNotifier and retrieved using the ProcessStateReceiver.");
+    RecordProperty(
+        "Description",
+        "This test verifies that a single PosixProcess can be successfully queued using the "
+        "ProcessStateNotifier and retrieved using the ProcessStateReceiver.");
     PosixProcess process1{
         .id = score::lcm::IdentifierHash("Process1"),
         .processStateId = score::lcm::ProcessState::kRunning,

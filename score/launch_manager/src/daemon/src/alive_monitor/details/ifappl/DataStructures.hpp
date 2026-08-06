@@ -43,7 +43,7 @@ required for Vector and IPC APIs", true_no_defect) */
 struct CheckpointBufferElement final
 {
     score::lcm::saf::timers::NanoSecondType timestamp{0U};  ///< Timestamp
-    uint32_t checkpointId{0U};                               ///< Checkpoint ID
+    uint32_t checkpointId{0U};                              ///< Checkpoint ID
 
     /// @brief Default constructor needed for storage in vector
     CheckpointBufferElement() = default;
@@ -51,9 +51,8 @@ struct CheckpointBufferElement final
     /// @brief Constructor for usage with emplace
     /// @param [in] f_timestamp The checkpoint timestamp
     /// @param [in] f_checkpointId  The checkpoint id
-    CheckpointBufferElement(score::lcm::saf::timers::NanoSecondType f_timestamp,
-                            uint32_t f_checkpointId) noexcept(true) :
-        timestamp(f_timestamp), checkpointId(f_checkpointId)
+    CheckpointBufferElement(score::lcm::saf::timers::NanoSecondType f_timestamp, uint32_t f_checkpointId) noexcept(true)
+        : timestamp(f_timestamp), checkpointId(f_checkpointId)
     {
     }
 };

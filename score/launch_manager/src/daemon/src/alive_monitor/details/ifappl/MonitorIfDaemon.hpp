@@ -14,11 +14,11 @@
 #ifndef MonitorIfDaemon_HPP_INCLUDED
 #define MonitorIfDaemon_HPP_INCLUDED
 
-#include <string>
-#include <vector>
 #include "score/mw/launch_manager/alive_monitor/details/ifappl/Checkpoint.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifappl/DataStructures.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
+#include <string>
+#include <vector>
 
 namespace score
 {
@@ -44,7 +44,7 @@ namespace ifappl
 /// data exchange between PHM daemon and Application, which are only required on PHM Daemon side.
 class MonitorIfDaemon : public common::Observer<ifexm::ProcessState>
 {
-public:
+  public:
     /// @brief No Default Constructor
     MonitorIfDaemon() = delete;
 
@@ -61,8 +61,7 @@ public:
     /// @throws std::bad_alloc in case of insufficient memory for string allocation
     /// @warning Please ensure that the pointer argument passed to the constructor is always a valid
     /// pointer, as the constructor doesn't check for null pointer access!
-    explicit MonitorIfDaemon(CheckpointIpcServer& f_ipcServer_r,
-                                      const char* f_interfaceName_p) noexcept(false);
+    explicit MonitorIfDaemon(CheckpointIpcServer& f_ipcServer_r, const char* f_interfaceName_p) noexcept(false);
 
     /// @brief Default Move Constructor
     /* RULECHECKER_comment(0, 7, check_min_instructions, "Default constructor is not provided\
@@ -98,7 +97,7 @@ public:
     /// @param [in]  f_syncTimestamp    Timestamp till data shall be read, newer data will not be considered
     void checkForNewData(const score::lcm::saf::timers::NanoSecondType f_syncTimestamp) noexcept(true);
 
-private:
+  private:
     /// @brief Check if checkpoint ring buffer overflow has occurred
     /// @details The tailing read index (readIndex - 1) is always expected to be 0 (Clearing must be assured).
     /// This acts as a marker, if the marker is written with a timestamp the ring buffer was completely filled

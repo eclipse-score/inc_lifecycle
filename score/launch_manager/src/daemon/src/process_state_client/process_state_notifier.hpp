@@ -11,18 +11,20 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-
 #ifndef PROCESSSTATE_NOTIFIER_HPP_INCLUDED
 #define PROCESSSTATE_NOTIFIER_HPP_INCLUDED
 
-#include "score/mw/launch_manager/process_state_client/iprocess_state_notifier.hpp"
 #include "ipc_dropin/ringbuffer.hpp"
+#include "score/mw/launch_manager/process_state_client/iprocess_state_notifier.hpp"
 
-namespace score {
+namespace score
+{
 
-namespace lcm {
+namespace lcm
+{
 
-namespace internal {
+namespace internal
+{
 
 ///
 /// @brief ProcessStateNotifier implementation for handling the information about each Process current state.
@@ -30,14 +32,15 @@ namespace internal {
 ///        information about the current state from the posix processes running in the scope of an Adaptive Machine.
 ///        Each posix process state change is stored by Launch Manager (LCM) and can be read by PHM.
 ///
-class ProcessStateNotifier final : public IProcessStateNotifier {
-   public:
+class ProcessStateNotifier final : public IProcessStateNotifier
+{
+  public:
     /// @brief Constructor that creates the ProcessStateNotifier.
     /// @details LCM shall create an instance of this class to write the process state changes via the provided API.
     ProcessStateNotifier() noexcept;
 
     /// @brief Copy constructor that creates the ProcessStateNotifier.
-    ProcessStateNotifier(ProcessStateNotifier const&) noexcept = delete;
+    ProcessStateNotifier(const ProcessStateNotifier&) noexcept = delete;
 
     /// @brief Move constructor that creates the ProcessStateNotifier.
     ProcessStateNotifier(ProcessStateNotifier&&) noexcept = delete;
@@ -67,17 +70,17 @@ class ProcessStateNotifier final : public IProcessStateNotifier {
     /// @returns True on success, false for failure (corresponding to kCommunicationError).
     bool queuePosixProcess(const score::lcm::PosixProcess& f_posixProcess) noexcept override;
 
-   private:
-   /// @brief ipc_dropin::RingBuffer through which we retrieve process state updates from LCM
-    std::shared_ptr<ipc_dropin::RingBuffer<static_cast<size_t>(score::lcm::BufferConstants::BUFFER_QUEUE_SIZE),
-    static_cast<size_t>(score::lcm::BufferConstants::BUFFER_MAXPAYLOAD)
-                        >>
-    ring_buffer_{};
+  private:
+    /// @brief ipc_dropin::RingBuffer through which we retrieve process state updates from LCM
+    std::shared_ptr<ipc_dropin::RingBuffer<
+        static_cast<size_t>(score::lcm::BufferConstants::BUFFER_QUEUE_SIZE),
+        static_cast<size_t>(score::lcm::BufferConstants::BUFFER_MAXPAYLOAD)>>
+        ring_buffer_{};
 };
 
-}  // namespace lcm
-
 }  // namespace internal
+
+}  // namespace lcm
 
 }  // namespace score
 #endif

@@ -33,7 +33,7 @@ namespace timers
 /// Convert one unit of time value to another
 class TimeConversion
 {
-public:
+  public:
     /// Default Constructor
     TimeConversion() = default;
 

@@ -23,13 +23,15 @@ using namespace score::mw::health::deadline;
 
 FFICode deadline_monitor_builder_create(FFIHandle* deadline_monitor_builder_handle_out);
 FFICode deadline_monitor_builder_destroy(FFIHandle deadline_monitor_builder_handle);
-FFICode deadline_monitor_builder_add_deadline(FFIHandle deadline_monitor_builder_handle,
-                                              const DeadlineTag* deadline_tag,
-                                              uint32_t min_ms,
-                                              uint32_t max_ms);
-FFICode deadline_monitor_get_deadline(FFIHandle deadline_monitor_handle,
-                                      const DeadlineTag* deadline_tag,
-                                      FFIHandle* deadline_handle_out);
+FFICode deadline_monitor_builder_add_deadline(
+    FFIHandle deadline_monitor_builder_handle,
+    const DeadlineTag* deadline_tag,
+    uint32_t min_ms,
+    uint32_t max_ms);
+FFICode deadline_monitor_get_deadline(
+    FFIHandle deadline_monitor_handle,
+    const DeadlineTag* deadline_tag,
+    FFIHandle* deadline_handle_out);
 FFICode deadline_monitor_destroy(FFIHandle deadline_monitor_handle);
 FFICode deadline_destroy(FFIHandle deadline_handle);
 FFICode deadline_start(FFIHandle deadline_handle);
@@ -66,7 +68,9 @@ DeadlineMonitorBuilder DeadlineMonitorBuilder::add_deadline(const DeadlineTag& d
     return std::move(*this);
 }
 
-DeadlineMonitor::DeadlineMonitor(FFIHandle handle) : monitor_handle_(handle, &deadline_monitor_destroy) {}
+DeadlineMonitor::DeadlineMonitor(FFIHandle handle) : monitor_handle_(handle, &deadline_monitor_destroy)
+{
+}
 
 score::cpp::expected<Deadline, score::mw::health::Error> DeadlineMonitor::get_deadline(const DeadlineTag& deadline_tag)
 {
@@ -83,7 +87,9 @@ score::cpp::expected<Deadline, score::mw::health::Error> DeadlineMonitor::get_de
     return score::cpp::expected<Deadline, score::mw::health::Error>(Deadline{ret});
 }
 
-Deadline::Deadline(FFIHandle handle) : deadline_handle_(handle, &deadline_destroy), has_handle_(false) {}
+Deadline::Deadline(FFIHandle handle) : deadline_handle_(handle, &deadline_destroy), has_handle_(false)
+{
+}
 
 Deadline::~Deadline()
 {
@@ -111,7 +117,9 @@ score::cpp::expected<DeadlineHandle, score::mw::health::Error> Deadline::start()
     return score::cpp::expected<DeadlineHandle, score::mw::health::Error>(DeadlineHandle{*this});
 }
 
-DeadlineHandle::DeadlineHandle(Deadline& deadline) : was_stopped_(false), deadline_(deadline) {}
+DeadlineHandle::DeadlineHandle(Deadline& deadline) : was_stopped_(false), deadline_(deadline)
+{
+}
 
 void DeadlineHandle::stop()
 {

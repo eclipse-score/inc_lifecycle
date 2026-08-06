@@ -42,8 +42,9 @@ inline std::ostream& operator<<(std::ostream& outstream, const std::vector<std::
 ///        matches the regex.
 /// @return AssertionSuccess if at least one entry matched and was removed,
 ///         AssertionFailure (with the full FD list) if nothing matched.
-inline testing::AssertionResult filter_fd(std::vector<std::pair<std::uint32_t, std::string>>& data,
-                                          std::regex&& path_regex)
+inline testing::AssertionResult filter_fd(
+    std::vector<std::pair<std::uint32_t, std::string>>& data,
+    std::regex&& path_regex)
 {
     std::smatch m;
     bool found{false};

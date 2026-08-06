@@ -18,12 +18,12 @@
 #include "score/mw/launch_manager/common/log.hpp"
 
 #include "score/mw/launch_manager/alive_monitor/details/daemon/AliveMonitorImpl.hpp"
-#include "score/mw/launch_manager/watchdog/WatchdogFactory.hpp"
+#include "score/mw/launch_manager/configuration/flatbuffer_config_loader.hpp"
 #include "score/mw/launch_manager/process_group_manager/alive_monitor_thread.hpp"
 #include "score/mw/launch_manager/process_group_manager/process_group_manager.hpp"
 #include "score/mw/launch_manager/process_state_client/process_state_notifier.hpp"
 #include "score/mw/launch_manager/recovery_client/recovery_client.hpp"
-#include "score/mw/launch_manager/configuration/flatbuffer_config_loader.hpp"
+#include "score/mw/launch_manager/watchdog/WatchdogFactory.hpp"
 
 using namespace std;
 using namespace score::lcm::internal;
@@ -59,16 +59,16 @@ void reserveFD(int fd)
 
     if (fd_already_opened)
     {
-        std::cerr << "Failed to reserve required file descriptor (" << fd
-            << "), file descriptor already in use. " << std::strerror(errno);
+        std::cerr << "Failed to reserve required file descriptor (" << fd << "), file descriptor already in use. "
+                  << std::strerror(errno);
         std::abort();
     }
 
     int tmp_fd = open("/dev/null", O_RDWR | O_CLOEXEC);
     if (tmp_fd < 0)
     {
-        std::cerr << "Failed to reserve required file descriptor (" << fd
-            << "), failed to open temporary file. " << std::strerror(errno);
+        std::cerr << "Failed to reserve required file descriptor (" << fd << "), failed to open temporary file. "
+                  << std::strerror(errno);
         std::abort();
     }
 
@@ -79,8 +79,7 @@ void reserveFD(int fd)
             ::close(tmp_fd);
 
             std::cerr << "Failed to reserve required file descriptor (" << fd
-                      << "), couldn't duplicate fd with required number. "
-                      << std::strerror(errno);
+                      << "), couldn't duplicate fd with required number. " << std::strerror(errno);
             std::abort();
         }
 
@@ -90,8 +89,7 @@ void reserveFD(int fd)
             ::close(fd);
 
             std::cerr << "Failed to reserve required file descriptor (" << fd
-                      << ") , couldn't set flags on reserved file decriptor. "
-                      << std::strerror(errno);
+                      << ") , couldn't set flags on reserved file decriptor. " << std::strerror(errno);
             std::abort();
         }
 
@@ -111,8 +109,10 @@ int main(int argc, const char* argv[])
 {
     const char* config_path = "etc/launch_manager_config.bin";
     int opt;
-    while ((opt = getopt(argc, const_cast<char**>(argv), "c:h")) != -1) {
-        switch (opt) {
+    while ((opt = getopt(argc, const_cast<char**>(argv), "c:h")) != -1)
+    {
+        switch (opt)
+        {
             case 'c':
                 config_path = optarg;
                 break;
@@ -150,7 +150,8 @@ int main(int argc, const char* argv[])
 
         score::mw::launch_manager::configuration::FlatbufferConfigLoader config_loader;
         auto config_result = config_loader.load(config_path);
-        if (!config_result.has_value()) {
+        if (!config_result.has_value())
+        {
             LM_LOG_FATAL() << "Failed to load config from: " << std::string_view(config_path);
             return EXIT_FAILURE;
         }
@@ -158,8 +159,8 @@ int main(int argc, const char* argv[])
         std::shared_ptr<score::lcm::IRecoveryClient> recoveryClient{std::make_shared<score::lcm::RecoveryClient>()};
         auto process_state_notifier = std::make_unique<score::lcm::internal::ProcessStateNotifier>();
         std::unique_ptr<score::lcm::saf::daemon::IAliveMonitor> healthMonitor{
-        std::make_unique<score::lcm::saf::daemon::AliveMonitorImpl>(
-            recoveryClient, process_state_notifier->constructReceiver(), *config_result)};
+            std::make_unique<score::lcm::saf::daemon::AliveMonitorImpl>(
+                recoveryClient, process_state_notifier->constructReceiver(), *config_result)};
         std::unique_ptr<score::lcm::internal::IAliveMonitorThread> aliveMonitorThread{
             std::make_unique<score::lcm::internal::AliveMonitorThread>(std::move(healthMonitor))};
 

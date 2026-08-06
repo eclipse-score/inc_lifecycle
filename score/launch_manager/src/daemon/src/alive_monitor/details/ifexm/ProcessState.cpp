@@ -22,10 +22,10 @@ namespace saf
 namespace ifexm
 {
 
-ProcessState::ProcessState(const ProcessCfg& f_processCfg_r) noexcept(false) :
-    Observable<ProcessState>(),
-    k_processShortName(f_processCfg_r.processShortName),
-    k_processId(f_processCfg_r.processId)
+ProcessState::ProcessState(const ProcessCfg& f_processCfg_r) noexcept(false)
+    : Observable<ProcessState>(),
+      k_processShortName(f_processCfg_r.processShortName),
+      k_processId(f_processCfg_r.processId)
 {
     static_cast<void>(0);
 }

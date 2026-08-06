@@ -15,19 +15,27 @@
 
 #include "score/mw/launch_manager/osal/num_cores.hpp"
 
-namespace score {
-namespace lcm {
-namespace internal {
-namespace osal {
-uint32_t getNumCores() {
+namespace score
+{
+namespace lcm
+{
+namespace internal
+{
+namespace osal
+{
+uint32_t getNumCores()
+{
     long res = sysconf(_SC_NPROCESSORS_ONLN);
-    if (res < 1 || res > static_cast<long>(kDefaultNumCores)) {
+    if (res < 1 || res > static_cast<long>(kDefaultNumCores))
+    {
         return kDefaultNumCores;
-    } else {
+    }
+    else
+    {
         return static_cast<uint32_t>(res);
     }
 }
 }  // namespace osal
-}  // namespace lcm
 }  // namespace internal
+}  // namespace lcm
 }  // namespace score

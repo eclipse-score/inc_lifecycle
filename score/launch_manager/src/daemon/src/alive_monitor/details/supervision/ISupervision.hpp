@@ -16,10 +16,10 @@
 
 #include <cstdint>
 
+#include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
 #include <string>
 #include <string_view>
 #include <vector>
-#include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
 
 namespace score
 {
@@ -35,7 +35,7 @@ namespace supervision
 /// supervision types which are: alive-, deadline-, logical-
 class ISupervision
 {
-public:
+  public:
     /// @brief No default constructor
     ISupervision() = delete;
 
@@ -60,7 +60,7 @@ public:
     /// @return std::string_view   View over the name of the corresponding supervision configuration container
     std::string_view getConfigName(void) const noexcept;
 
-protected:
+  protected:
     /// @brief Default Move Constructor
     /* RULECHECKER_comment(0, 7, check_min_instructions, "Default constructor is not provided\
        a function body", true_no_defect) */
@@ -76,7 +76,7 @@ protected:
     /// @brief No Copy Assignment
     ISupervision& operator=(const ISupervision&) = delete;
 
-private:
+  private:
     /// Unique name set by configuration
     const std::string k_cfgName;
 };

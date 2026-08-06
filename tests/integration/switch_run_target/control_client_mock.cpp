@@ -17,7 +17,6 @@
 #include <score/mw/lifecycle/control_client.h>
 #include <score/mw/lifecycle/report_running.h>
 
-
 // Given a configuration with the following dependency tree:
 // - Startup - which is the initial run target - depends on component component_initial
 //     - component_initial: No dependencies
@@ -26,7 +25,7 @@
 //         - component_b: No dependencies
 //     - run_target_c: Depends on component component_d
 //         - component_d: No dependencies
-// - component_e: No dependencies, not included in any run target 
+// - component_e: No dependencies, not included in any run target
 
 // The only constraint on process startup order is that A must start after B.
 // This is because, even though run target A depends on run target C (where
@@ -36,7 +35,7 @@
 TEST(SwitchRunTarget, ControlClientMock)
 {
     score::mw::lifecycle::ControlClient client;
-    
+
     ASSERT_TRUE(check_clean({test_end_location, a_started, b_started, d_started, e_started}));
     TEST_STEP("Report running")
     {

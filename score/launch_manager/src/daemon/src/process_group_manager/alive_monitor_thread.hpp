@@ -41,8 +41,9 @@ class AliveMonitorThread final : public IAliveMonitorThread
     void stop() override;
 
   private:
-    void notifyInitializationComplete(score::lcm::saf::daemon::EInitCode& f_init_status_r,
-                                      const score::lcm::saf::daemon::EInitCode f_init_result);
+    void notifyInitializationComplete(
+        score::lcm::saf::daemon::EInitCode& f_init_status_r,
+        const score::lcm::saf::daemon::EInitCode f_init_result);
     void waitForInitializationCompleted(score::lcm::saf::daemon::EInitCode& f_init_status_r);
 
     std::unique_ptr<saf::daemon::IAliveMonitor> m_health_monitor{nullptr};

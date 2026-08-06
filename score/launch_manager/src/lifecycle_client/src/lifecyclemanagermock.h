@@ -14,10 +14,10 @@
 #ifndef SCORE_MW_LIFECYCLE_MOCKS_LIFECYCLEMANAGERMOCK_H_
 #define SCORE_MW_LIFECYCLE_MOCKS_LIFECYCLEMANAGERMOCK_H_
 
-#include "score/os/utils/mocklib/signalmock.h"
-#include "score/os/utils/signal.h"
 #include "score/mw/lifecycle/application.h"
 #include "score/mw/lifecycle/applicationcontextmock.h"
+#include "score/os/utils/mocklib/signalmock.h"
+#include "score/os/utils/signal.h"
 
 #include <gmock/gmock.h>
 
@@ -36,11 +36,16 @@ class LifeCycleManagerMock
     LifeCycleManagerMock();
     ~LifeCycleManagerMock();
 
-    void SetCallbackForRunMethod(
-        std::function<std::int32_t(score::mw::lifecycle::Application& app, const score::mw::lifecycle::ApplicationContext& context)> callback);
+    void SetCallbackForRunMethod(std::function<std::int32_t(
+                                     score::mw::lifecycle::Application& app,
+                                     const score::mw::lifecycle::ApplicationContext& context)> callback);
     void ResetCallbackForRunMethod();
 
-    MOCK_METHOD(std::int32_t, run, (score::mw::lifecycle::Application & app, const score::mw::lifecycle::ApplicationContext& context), ());
+    MOCK_METHOD(
+        std::int32_t,
+        run,
+        (score::mw::lifecycle::Application & app, const score::mw::lifecycle::ApplicationContext& context),
+        ());
     MOCK_METHOD(void, ctor, (), ());
     MOCK_METHOD(void, dtor, (), ());
 };
