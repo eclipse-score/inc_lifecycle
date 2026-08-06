@@ -31,6 +31,7 @@ static std::atomic_bool em_cancelled{false};
 static void my_signal_handler(int)
 {
     em_cancelled.store(true);
+    ControlClientChannel::nudgeControlClientHandler();
 }
 
 void ProcessGroupManager::cancel()
@@ -508,27 +509,23 @@ bool ProcessGroupManager::sendResponse(ControlClientMessage msg)
 {
     auto pin = getProcessInfoNode(
         msg.originating_control_client_.process_group_index_, msg.originating_control_client_.process_index_);
-    bool ret = true;
 
-    if (pin)
+    if (pin == nullptr)
     {
-        auto scc = pin->getControlClientChannel();
+        return false;
+    }
+    auto scc = pin->getControlClientChannel();
 
-        if (scc)
-        {
-            LM_LOG_DEBUG() << "ProcessGroupManager::ControlClientHandler: Sending"
-                           << scc->toString(msg.request_or_response_) << "("
-                           << static_cast<int>(msg.request_or_response_) << ") re state"
-                           << msg.process_group_state_.pg_state_name_ << "of PG" << msg.process_group_state_.pg_name_;
-            ret = scc->sendResponse(msg);
-            if (!ret)
-            {
-                ControlClientChannel::nudgeControlClientHandler();
-            }
-        }
+    if (scc == nullptr)
+    {
+        return false;
     }
 
-    return ret;
+    LM_LOG_DEBUG() << "ProcessGroupManager::ControlClientHandler: Sending" << scc->toString(msg.request_or_response_)
+                   << "(" << static_cast<int>(msg.request_or_response_) << ") re state"
+                   << msg.process_group_state_.pg_state_name_ << "of PG" << msg.process_group_state_.pg_name_;
+
+    return scc->sendResponse(msg);
 }
 
 inline void ProcessGroupManager::controlClientRequests(Graph& pg)
