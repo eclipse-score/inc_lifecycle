@@ -20,7 +20,7 @@ from attribute_plugin import add_test_properties
     fully_verifies=[
         "feat_req__lifecycle__request_run_target_start",
         "feat_req__lifecycle__switch_run_targets",
-        "feat_req__lifecycle__process_state_comm",
+        "comp_req__launch_man__process_state_comm",
         "feat_req__lifecycle__process_termination",
         "feat_req__lifecycle__terminationn_dependency",
     ],

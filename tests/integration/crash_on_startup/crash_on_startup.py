@@ -18,7 +18,7 @@ from attribute_plugin import add_test_properties
 
 @add_test_properties(
     fully_verifies=[
-        "feat_req__lifecycle__failure_detect",
+        "comp_req__launch_man__failure_detect",
         "feat_req__lifecycle__recov_run_target_switch",
     ],
     partially_verifies=["feat_req__lifecycle__recovery_action_support"],
