@@ -45,11 +45,7 @@ EInitCode AliveMonitorImpl::init() noexcept
         m_osClock.startMeasurement();
 
         m_daemon = std::make_unique<PhmDaemon>(m_osClock, std::move(m_process_state_receiver));
-#ifdef USE_NEW_CONFIGURATION
         initResult = m_daemon->init(m_recovery_client, m_config);
-#else
-        initResult = m_daemon->init(m_recovery_client);
-#endif
 
         if (initResult == EInitCode::kNoError)
         {

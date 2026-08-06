@@ -77,9 +77,25 @@ IComponent::RequestResult ProcessInfoNode::tryReportSuccess()
     if (!success_returned_.test_and_set())
     {
         reached_ready_.store(true);
+
+        if (auto time = getTimeForReport())
+        {
+            state_publisher_->reportActivation(config_->process_id_, time.value());
+        }
+
         return {RequestState::kSuccess};
     }
     return {IComponent::RequestState::kWaiting};
+}
+
+std::optional<timespec> ProcessInfoNode::getTimeForReport() const {
+    if (config_->startup_config_.comms_type_ == osal::CommsType::kNoComms) {
+        return std::nullopt;
+    }
+
+    timespec timestamp{};
+    static_cast<void>(clock_gettime(CLOCK_MONOTONIC, &timestamp));
+    return timestamp;
 }
 
 IComponent::RequestResult ProcessInfoNode::tryReportError(ComponentError error)
@@ -110,28 +126,6 @@ bool ProcessInfoNode::setState(score::lcm::ProcessState new_state)
     else
     {
         success = false;
-    }
-
-    if (success && config_->startup_config_.comms_type_ != osal::CommsType::kNoComms &&
-        score::lcm::ProcessState::kIdle != new_state)
-    {
-        // for a reporting process, report a process state change to PHM
-        timespec timestamp{};
-        static_cast<void>(clock_gettime(CLOCK_MONOTONIC, &timestamp));
-
-        // Note that we ignore the return value.
-        // An error would indicate that PHM is not reading values fast enough from the shared memory; the buffer
-        // over-run should be visible at the PHM side and handled there. If PHM is not responding do we need to handle
-        // this? If PHM terminates state manager will be informed in any case.
-        if (new_state == score::lcm::ProcessState::kRunning)
-        {
-            state_publisher_->reportActivation(config_->process_id_, timestamp);
-        }
-        else if (
-            new_state == score::lcm::ProcessState::kTerminating || new_state == score::lcm::ProcessState::kTerminated)
-        {
-            state_publisher_->reportDeactivation(config_->process_id_, timestamp);
-        }
     }
 
     return success;
@@ -418,6 +412,10 @@ IComponent::RequestResult ProcessInfoNode::deactivate(score::cpp::stop_token sto
 {
     success_returned_.clear();
     reached_ready_.store(false);
+    if (auto time = getTimeForReport())
+    {
+        state_publisher_->reportDeactivation(config_->process_id_, time.value());
+    }
     terminateProcess(stop_token);
     setState(ProcessState::kIdle);
     return IComponent::RequestState::kSuccess;

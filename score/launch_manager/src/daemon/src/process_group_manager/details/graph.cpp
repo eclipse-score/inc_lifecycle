@@ -35,11 +35,11 @@ namespace internal
 
 Graph::Graph(
     uint32_t max_num_nodes,
-    ConfigurationInterface* configuration,
+    ConfigurationAdapter* configuration,
     std::shared_ptr<WorkerQueue> job_queue,
     osal::IProcess* process_interface,
     std::shared_ptr<SafeProcessMapInserter> process_map,
-    ISupervisionControlNotifier* supervision_control_notifier,
+    ISupervisionEventPublisher* supervision_event_publisher,
     ITransitionResultPublisher* transition_result_receiver)
     : pg_index_(0U),
       nodes_(max_num_nodes),
@@ -50,7 +50,7 @@ Graph::Graph(
       job_queue_(job_queue),
       process_interface_(process_interface),
       process_map_(process_map),
-      supervision_control_notifier_(supervision_control_notifier),
+      supervision_event_publisher_(supervision_event_publisher),
       transition_result_receiver_(transition_result_receiver),
       last_state_manager_(),
       last_execution_error_(0U),
@@ -112,7 +112,7 @@ void Graph::createProcessInfoNodes(uint32_t num_processes)
             config,
             process_id,
             ready_condition,
-            supervision_control_notifier_,
+            supervision_event_publisher_,
             process_interface_,
             process_map_);
         static_cast<void>(index);

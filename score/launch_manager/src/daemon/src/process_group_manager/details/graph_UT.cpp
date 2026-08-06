@@ -48,7 +48,8 @@ class GraphTest : public ::testing::Test
         RecordProperty("TestType", "interface-test");
         RecordProperty("DerivationTechnique", "equivalence-classes");
 
-        ON_CALL(mock_supervision_control_notifier_, queuePosixProcess).WillByDefault(Return(true));
+        ON_CALL(mock_supervision_event_publisher_, reportActivation).WillByDefault(Return(true));
+        ON_CALL(mock_supervision_event_publisher_, reportDeactivation).WillByDefault(Return(true));
 
         auto procs = SetConfig();
 
@@ -180,7 +181,7 @@ class GraphTest : public ::testing::Test
     std::shared_ptr<WorkerQueue> job_queue_ = std::make_shared<WorkerQueue>();
     StrictMock<osal::MockIProcess> process_interface_{};
     std::shared_ptr<MockProcessMap> mock_process_map = std::make_shared<MockProcessMap>();
-    NiceMock<MockProcessStateNotifier> mock_supervision_control_notifier_{};
+    NiceMock<MockSupervisionEventPublisher> mock_supervision_event_publisher_{};
     MockTransitionResultPublisher mock_transition_result_publisher_{};
     Graph graph_{
         10U,
@@ -188,7 +189,7 @@ class GraphTest : public ::testing::Test
         job_queue_,
         &process_interface_,
         mock_process_map,
-        &mock_supervision_control_notifier_,
+        &mock_supervision_event_publisher_,
         &mock_transition_result_publisher_};
 
     static constexpr std::string_view pg_string{"MainPG"};
