@@ -64,8 +64,8 @@ class IWatchdogIf
     virtual ~IWatchdogIf() noexcept = default;
 
     /// @brief Initialize the watchdog library
-    /// @details Retrieves the configuration of watchdog devices and checks if the configurations are
-    /// valid. A configuration is only taken over if the library is in the state "idle".
+    /// @details Checks if the provided configuration is valid. 
+    /// A configuration is only taken over if the library is in the state "idle".
     /// A valid configuration means: The file name of the device file is unique and device file is accessible,
     /// timeout values are in the allowed range [kTimeoutMinMillis, kTimeoutMaxMillis] and min timeout value <= max
     /// timeout value.
@@ -75,7 +75,7 @@ class IWatchdogIf
     /// @param[in] watchdog_config The configuration for the watchdog
     /// @param[in] cycle_time_ns The period in nanoseconds at which serviceWatchdog() is called; used to validate
     ///            that the configured watchdog timeout is long enough to be serviced in time.
-    /// @return Status of configuration. True all device configurations are valid and has been successfully taken over
+    /// @return Status of configuration. True if watchdog configuration is valid and has been successfully taken over
     /// by the Watchdog Interface library, false otherwise.
     virtual bool init(
         const score::mw::launch_manager::configuration::WatchdogConfig& watchdog_config,

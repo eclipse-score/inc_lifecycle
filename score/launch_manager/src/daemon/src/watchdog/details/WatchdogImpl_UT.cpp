@@ -41,31 +41,37 @@ namespace
 /// @brief Cycle time of 50ms in nanoseconds, used as the default for tests that don't care about the exact value.
 constexpr std::int64_t kDefaultCycleTimeNs{50'000'000};
 
+// Succesful return value of ioctl operation
 score::cpp::expected_blank<score::os::Error> IoctlOk()
 {
     return score::cpp::expected_blank<score::os::Error>{};
 }
 
+// Error retun value of IoctlErr
 score::cpp::expected_blank<score::os::Error> IoctlErr(std::int32_t errnoCode = EIO)
 {
     return score::cpp::unexpected(score::os::Error::createFromErrno(errnoCode));
 }
 
+// Successful return value for open()
 score::cpp::expected<std::int32_t, score::os::Error> OpenOk(std::int32_t fd)
 {
     return fd;
 }
 
+// Error return value for open()
 score::cpp::expected<std::int32_t, score::os::Error> OpenErr()
 {
     return score::cpp::unexpected(score::os::Error::createFromErrno(ENOENT));
 }
 
+// Successful return value for close()
 score::cpp::expected_blank<score::os::Error> CloseOk()
 {
     return score::cpp::expected_blank<score::os::Error>{};
 }
 
+// Successful return value for write()
 score::cpp::expected<ssize_t, score::os::Error> WriteOk(ssize_t n)
 {
     return n;
@@ -216,9 +222,11 @@ TEST_F(WatchdogImplTest, WdgInit_FailsWatchdogTimeoutSmallerThenCycleTime)
                    "serviceWatchdog() could not be called in time to prevent a reset.");
 
     constexpr std::uint32_t timeoutMs{2000U};
-    const std::int64_t cycleTimeNs{static_cast<std::int64_t>(timeoutMs + 1U) * 1'000'000};
+    constexpr std::uint32_t nanosecPerMillisec =  1'000'000;
+    const std::int64_t cycleTimeNs{static_cast<std::int64_t>(timeoutMs + 1U) * nanosecPerMillisec};
     auto cfg = makeCfg("/dev/watchdog", timeoutMs, true, false);
     auto wdg = makeWatchdog();
+
     EXPECT_FALSE(wdg->init(cfg, cycleTimeNs));
 }
 
@@ -249,6 +257,7 @@ TEST_F(WatchdogImplTest, WdgInit_FailsIfTimeoutResolutionIsWrong)
 
     auto cfg = makeCfg("/dev/watchdog", 2123U, true, false);
     auto wdg = makeWatchdog();
+
     EXPECT_FALSE(wdg->init(cfg, kDefaultCycleTimeNs));
 }
 #endif
@@ -260,6 +269,7 @@ TEST_F(WatchdogImplTest, WdgInit_FailsIfSameDeviceAlreadyConfigured)
     auto cfg = makeCfg("/dev/watchdog", 2000U, true, false);
     auto wdg = makeWatchdog();
     ASSERT_TRUE(wdg->init(cfg, kDefaultCycleTimeNs));
+
     EXPECT_FALSE(wdg->init(cfg, kDefaultCycleTimeNs));
 }
 
@@ -316,6 +326,7 @@ TEST_F(WatchdogImplTest, WdgEnable_FailsIfNotInIdleState)
     expectFullEnable(cfg);
     ASSERT_TRUE(wdg->init(cfg, kDefaultCycleTimeNs));
     ASSERT_TRUE(wdg->enable());
+
     EXPECT_FALSE(wdg->enable());
 }
 
@@ -329,7 +340,6 @@ TEST_F(WatchdogImplTest, WdgEnable_FailsIfNotAllWatchdogsCouldBeEnabled)
     auto wdg = makeWatchdog();
     ASSERT_TRUE(wdg->init(cfg1, kDefaultCycleTimeNs));
     ASSERT_TRUE(wdg->init(cfg2, kDefaultCycleTimeNs));
-
     expectFullEnable(cfg1);
     EXPECT_CALL(*fcntlMock_, open(StrEq(cfg2.device_file_path), _)).WillOnce(Return(OpenErr()));
 
@@ -347,9 +357,10 @@ TEST_F(WatchdogImplTest, WdgEnable_DoesNotSetConfiguredTimeoutValue_WhenTimeoutA
     ASSERT_TRUE(wdg->init(cfg, kDefaultCycleTimeNs));
 
 #ifndef __QNXNTO__
-    const std::int32_t currentTimeoutRaw{static_cast<std::int32_t>(cfg.max_timeout_ms / 1000U)};
+    constexpr std::int32_t kMillisPerSecond = 1000U;
+    const std::int32_t currentTimeoutRaw{static_cast<std::int32_t>(cfg.max_timeout_ms / kMillisPerSecond)};
 #else
-    const std::int32_t currentTimeoutRaw{static_cast<std::int32_t>(cfg.max_timeout_ms)};
+    constexpr std::int32_t currentTimeoutRaw{static_cast<std::int32_t>(cfg.max_timeout_ms)};
 #endif
 
     EXPECT_CALL(*fcntlMock_, open(StrEq(cfg.device_file_path), _)).WillOnce(Return(OpenOk(1)));
