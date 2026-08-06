@@ -1,0 +1,7 @@
+version: 1
+justifications:
+  - id: hw-unreachable-on-x86
+    category: platform_specific
+    platforms: [linux]
+    reason: |
+      ARM-only error path; cannot be exercised by x86 CI.

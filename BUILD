@@ -14,8 +14,13 @@
 load("@hedron_compile_commands//:refresh_compile_commands.bzl", "refresh_compile_commands")
 load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 load("@score_docs_as_code//:docs.bzl", "docs")
-load("@score_tooling//:defs.bzl", "copyright_checker", "dash_license_checker", "rust_coverage_report", "setup_starpls", "use_format_targets")
+load("@score_tooling//:defs.bzl", "dash_license_checker", "setup_starpls")
+load("@score_tooling//coverage:defs.bzl", "score_coverage_reporter", "score_coverage_scope")
+load("@score_tooling//cr_checker:cr_checker.bzl", "copyright_checker")
+load("@score_tooling//third_party/format:macros.bzl", "use_format_targets")
 load("//:project_config.bzl", "PROJECT_CONFIG")
+load("@rules_cc//cc/toolchains:args.bzl", "cc_args")
+load("@rules_cc//cc/toolchains:feature.bzl", "cc_feature")
 
 # Generate `compile_commands.json`.
 # Required for `clangd` support.
@@ -114,23 +119,6 @@ use_format_targets(languages = [
     "yaml",
 ])
 
-# Rust coverage report generation target
-rust_coverage_report(
-    name = "rust_coverage",
-    bazel_configs = [
-        "x86_64-linux",
-        "ferrocene-coverage",
-    ],
-    query = 'kind("rust_test", //score/...) except attr("tags", "loom", //score/...)',
-    visibility = ["//visibility:public"],
-)
-
-alias(
-    name = "rust_coverage_report",
-    actual = ":rust_coverage",
-    visibility = ["//visibility:public"],
-)
-
 # Docs
 docs(
     data = [
@@ -139,4 +127,84 @@ docs(
         "@score_process//:needs_json",  # This allows linking to requirements (wp__requirements_comp, etc.) from the process_description repository.
     ],
     source_dir = ".",
+)
+
+
+# Code Coverage
+exports_files(["MODULE.bazel"])
+score_coverage_scope(
+    name = "coverage_scope",
+    testonly = True,
+    deps = [
+        "//score/launch_manager:launch_manager",
+        #"//score/health_monitor:health_monitoring_cc",
+        #"//score/health_monitor:health_monitoring_rust",
+        #"//score/launch_manager:alive_cc",
+        #"//score/launch_manager:alive_rust",
+        #"//score/launch_manager:control_cc",
+        #"//score/launch_manager:lifecycle_cc",
+        #"//score/launch_manager:lifecycle_rust",
+    ]
+)
+
+score_coverage_reporter(
+    name = "reporter_wrapper",
+    testonly = True,
+    coverage_scope = ":coverage_scope",
+    llvm_cov = "@llvm_toolchain//:llvm-cov",
+    llvm_profdata = "@llvm_toolchain//:llvm-profdata",
+    llvm_cxxfilt = "@llvm_toolchain_llvm//:bin/llvm-cxxfilt",
+)
+
+cc_args(
+    name = "clang_minimal_warnings_args",
+    actions = [
+        "@rules_cc//cc/toolchains/actions:compile_actions",
+    ],
+    args = [
+        # Suppress false positive from Clang's self-assignment overloaded check.
+        # See https://bugs.llvm.org/show_bug.cgi?id=43124
+        "-Wno-error=self-assign-overloaded",
+        "-Wno-return-type-c-linkage",
+        "-Wno-unused-command-line-argument",
+        # Clang-only: GCC has no -Wdeprecated-non-prototype (C2x non-prototype decls).
+        "-Wno-deprecated-non-prototype",
+    ],
+)
+
+cc_feature(
+    name = "clang_minimal_warnings",
+    args = [
+        ":clang_minimal_warnings_args",
+    ],
+    feature_name = "score_lifecycle_minimal_warnings",
+    implies = [":minimal_warnings"],
+    visibility = ["//visibility:public"],
+)
+
+cc_args(
+    name = "minimal_warnings_args",
+    actions = [
+        "@rules_cc//cc/toolchains/actions:compile_actions",
+    ],
+    args = [
+        "-Wall",
+        # Keep #warning visible without failing the build.
+        "-Wno-error=cpp",
+        "-Wno-error=deprecated-declarations",
+        "-Wno-unused-macros",
+        "-Wno-unused-parameter",
+        "-Wno-unused-variable",
+        "-Wunused-but-set-parameter",
+    ],
+    visibility = ["//:__subpackages__"],
+)
+
+cc_feature(
+    name = "minimal_warnings",
+    args = [
+        ":minimal_warnings_args",
+    ],
+    feature_name = "score_communication_common_minimal_warnings",
+    visibility = ["//visibility:public"],
 )
