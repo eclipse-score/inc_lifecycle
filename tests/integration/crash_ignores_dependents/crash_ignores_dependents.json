@@ -1,0 +1,96 @@
+{
+    "schema_version": 1,
+    "defaults": {
+        "deployment_config": {
+            "bin_dir": "/tmp/tests/crash_ignores_dependents",
+            "ready_timeout": 1.0,
+            "shutdown_timeout": 1.0,
+            "ready_recovery_action": {
+                "restart": {
+                    "number_of_attempts": 0
+                }
+            },
+            "recovery_action": {
+                "switch_run_target": {
+                    "run_target": "fallback_run_target"
+                }
+            },
+            "environmental_variables": {
+                "LD_LIBRARY_PATH": "/opt/lib"
+            },
+            "sandbox": {
+                "uid": 0,
+                "gid": 0,
+                "scheduling_policy": "SCHED_OTHER",
+                "scheduling_priority": 0
+            }
+        },
+        "component_properties": {
+            "application_profile": {
+                "application_type": "Reporting",
+                "is_self_terminating": false,
+                "alive_supervision": {
+                    "reporting_cycle": 0.1,
+                    "min_indications": 1,
+                    "max_indications": 3,
+                    "failed_cycles_tolerance": 1
+                }
+            },
+            "ready_condition": {
+                "process_state": "Running"
+            }
+        }
+    },
+    "components": {
+        "test_process": {
+            "component_properties": {
+                "binary_name": "test_process",
+                "application_profile": {
+                    "application_type": "Reporting",
+                    "is_self_terminating": true,
+                    "alive_supervision": {
+                        "min_indications": 0
+                    }
+                },
+                "depends_on": ["component_crashing_once"]
+            },
+            "deployment_config": {
+                "ready_timeout": 1.0,
+                "shutdown_timeout": 1.0,
+                "environmental_variables": {
+                    "PROCESSIDENTIFIER": "test_process"
+                }
+            }
+        },
+        "component_crashing_once": {
+            "component_properties": {
+                "binary_name": "process_crashing_once",
+                "application_profile": {
+                    "application_type": "Reporting",
+                    "is_self_terminating": true
+                }
+            },
+            "deployment_config": {
+                "environmental_variables": {
+                    "PROCESSIDENTIFIER": "component_crashing_once"
+                }
+            }
+        }
+    },
+    "run_targets": {
+        "Startup": {
+            "depends_on": [
+                "test_process"
+            ]
+        }
+    },
+    "initial_run_target": "Startup",
+    "alive_supervision": {
+        "evaluation_cycle": 0.05
+    },
+    "fallback_run_target": {
+        "depends_on": [
+            "test_process"
+        ]
+    }
+}

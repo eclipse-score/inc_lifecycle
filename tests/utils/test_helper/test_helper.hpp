@@ -19,7 +19,7 @@
 #include <string_view>
 
 /// @return File path to an xml adjacent to the input file path
-std::string xmlPath(const std::string_view file)
+inline std::string xmlPath(const std::string_view file)
 {
     return std::filesystem::path{file}.filename().stem().string() + ".xml";
 }

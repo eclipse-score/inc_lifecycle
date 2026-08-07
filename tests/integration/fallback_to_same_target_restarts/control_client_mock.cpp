@@ -45,7 +45,6 @@ TEST(FallbackToSameTargetRestarts, ControlClientMock)
                                         << result.error().Message();
     }
     // When the process crashes, wait for the fallback to be activated.
-    // Use polling instead of a fixed sleep so the test is robust under slow builds (e.g. TSan).
     {
         const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(10);
         while (!std::filesystem::exists(process_file) && std::chrono::steady_clock::now() < deadline)
