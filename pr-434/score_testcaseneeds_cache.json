@@ -56,6 +56,20 @@
     "FullyVerifies": null
   },
   {
+    "name": "test_shutdown_signal",
+    "file": "../_main/tests/integration/shutdown_signal/shutdown_signal.py",
+    "line": "18",
+    "result": "passed",
+    "repo_name": null,
+    "hash": null,
+    "url": null,
+    "TestType": null,
+    "DerivationTechnique": null,
+    "result_text": "",
+    "PartiallyVerifies": null,
+    "FullyVerifies": null
+  },
+  {
     "name": "test_complex_monitoring",
     "file": "../_main/tests/integration/complex_monitoring/complex_monitoring.py",
     "line": "18",
