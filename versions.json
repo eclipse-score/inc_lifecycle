@@ -16,20 +16,12 @@
     "url": "https://eclipse-score.github.io/lifecycle/pr-341/"
   },
   {
-    "version": "pr-374",
-    "url": "https://eclipse-score.github.io/lifecycle/pr-374/"
-  },
-  {
     "version": "pr-377",
     "url": "https://eclipse-score.github.io/lifecycle/pr-377/"
   },
   {
     "version": "pr-379",
     "url": "https://eclipse-score.github.io/lifecycle/pr-379/"
-  },
-  {
-    "version": "pr-383",
-    "url": "https://eclipse-score.github.io/lifecycle/pr-383/"
   },
   {
     "version": "pr-386",
@@ -44,28 +36,16 @@
     "url": "https://eclipse-score.github.io/lifecycle/pr-402/"
   },
   {
-    "version": "pr-409",
-    "url": "https://eclipse-score.github.io/lifecycle/pr-409/"
-  },
-  {
-    "version": "pr-412",
-    "url": "https://eclipse-score.github.io/lifecycle/pr-412/"
-  },
-  {
     "version": "pr-414",
     "url": "https://eclipse-score.github.io/lifecycle/pr-414/"
-  },
-  {
-    "version": "pr-415",
-    "url": "https://eclipse-score.github.io/lifecycle/pr-415/"
   },
   {
     "version": "pr-416",
     "url": "https://eclipse-score.github.io/lifecycle/pr-416/"
   },
   {
-    "version": "pr-417",
-    "url": "https://eclipse-score.github.io/lifecycle/pr-417/"
+    "version": "pr-432",
+    "url": "https://eclipse-score.github.io/lifecycle/pr-432/"
   },
   {
     "version": "v0.1.0",
@@ -78,29 +58,5 @@
   {
     "version": "v0.3.0",
     "url": "https://eclipse-score.github.io/lifecycle/v0.3.0/"
-  },
-  {
-    "version": "pr-418",
-    "url": "https://eclipse-score.github.io/lifecycle/pr-418/"
-  },
-  {
-    "version": "pr-425",
-    "url": "https://eclipse-score.github.io/lifecycle/pr-425/"
-  },
-  {
-    "version": "pr-426",
-    "url": "https://eclipse-score.github.io/lifecycle/pr-426/"
-  },
-  {
-    "version": "pr-428",
-    "url": "https://eclipse-score.github.io/lifecycle/pr-428/"
-  },
-  {
-    "version": "pr-429",
-    "url": "https://eclipse-score.github.io/lifecycle/pr-429/"
-  },
-  {
-    "version": "pr-432",
-    "url": "https://eclipse-score.github.io/lifecycle/pr-432/"
   }
 ]
