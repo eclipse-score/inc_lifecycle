@@ -36,7 +36,7 @@ TEST(FallbackToSameTargetRestarts, CrashingProcess)
             {
                 std::cout << "Failed to deploy marker file!" << std::endl;
             }
-            std::abort();
+            exit(1);
         }
 
         ASSERT_TRUE(touch_file("process_started_normally"));
