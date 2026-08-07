@@ -41,6 +41,8 @@ namespace saf
 namespace factory
 {
 
+using SupervisedComponentConfig = score::mw::lifecycle::internal::alive::SupervisedComponentConfig;
+
 /// @brief PHM Factory for FlatCfg AR21-11 format
 /// @details Provides methods to create worker objects depending on a AR21-11 based PHM FlatCfg file
 ///          and establishes required links between the worker objects automatically.

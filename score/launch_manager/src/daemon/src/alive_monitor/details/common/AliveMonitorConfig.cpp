@@ -17,11 +17,7 @@
 
 #include <score/assert.hpp>
 
-namespace score
-{
-namespace lcm
-{
-namespace saf
+namespace score::mw::lifecycle::internal::alive
 {
 
 namespace
@@ -62,6 +58,4 @@ AliveMonitorConfig aliveMonitorConfig(const score::mw::launch_manager::configura
     return result;
 }
 
-}  // namespace saf
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::alive

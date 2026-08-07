@@ -60,7 +60,7 @@ class PhmDaemon
     using CycleTimeValidator = score::lcm::saf::timers::CycleTimeValidator;
     using NanoSecondType = score::lcm::saf::timers::NanoSecondType;
     using ProcessStateReader = score::lcm::saf::ifexm::ProcessStateReader;
-    using AliveMonitorConfig = score::lcm::saf::AliveMonitorConfig;
+    using AliveMonitorConfig = score::mw::lifecycle::internal::alive::AliveMonitorConfig;
 
     /* RULECHECKER_comment(0, 4, check_expensive_to_copy_in_parameter, "f_supervisionErrorInfo name is passed by value\
      as same as generated function", true_no_defect) */

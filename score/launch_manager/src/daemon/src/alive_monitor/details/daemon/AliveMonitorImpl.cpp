@@ -33,7 +33,7 @@ AliveMonitorImpl::AliveMonitorImpl(
     const Config& config)
     : m_recovery_client(recovery_client),
       m_process_state_receiver(std::move(process_state_receiver)),
-      m_config(aliveMonitorConfig(config))
+      m_config(score::mw::lifecycle::internal::alive::aliveMonitorConfig(config))
 {
 }
 

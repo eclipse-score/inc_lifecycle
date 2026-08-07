@@ -38,6 +38,7 @@ using UptrIProcessStateReceiver = std::unique_ptr<score::lcm::IProcessStateRecei
 using UptrPhmDaemon = std::unique_ptr<score::lcm::saf::daemon::PhmDaemon>;
 using OsClock = score::lcm::saf::timers::OsClockInterface;
 using Config = score::mw::launch_manager::configuration::Config;
+using AliveMonitorConfig = score::mw::lifecycle::internal::alive::AliveMonitorConfig;
 
 class AliveMonitorImpl : public IAliveMonitor
 {

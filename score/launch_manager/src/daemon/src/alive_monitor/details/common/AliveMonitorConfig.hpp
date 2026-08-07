@@ -22,11 +22,7 @@
 
 #include "score/mw/launch_manager/configuration/config.hpp"
 
-namespace score
-{
-namespace lcm
-{
-namespace saf
+namespace score::mw::lifecycle::internal::alive
 {
 
 /// @file AliveMonitorConfig.hpp
@@ -36,15 +32,20 @@ namespace saf
 /// @brief Supervised component configuration.
 struct SupervisedComponentConfig
 {
+    /// @brief Component short name.
     std::string name;
+    /// @brief Alive-supervision parameters.
     std::optional<score::mw::launch_manager::configuration::ComponentAliveSupervision> alive_supervision;
+    /// @brief Uid the component runs as.
     uid_t uid{};
 };
 
 /// @brief AliveMonitor configuration.
 struct AliveMonitorConfig
 {
+    /// @brief Configuration for every component that is subject to alive supervision.
     std::vector<SupervisedComponentConfig> supervised_components;
+    /// @brief Global supervision evaluation cycle, in milliseconds.
     uint32_t evaluation_cycle_ms{};
 };
 
@@ -52,8 +53,6 @@ struct AliveMonitorConfig
 /// @return AliveMonitor configuration
 AliveMonitorConfig aliveMonitorConfig(const score::mw::launch_manager::configuration::Config& config);
 
-}  // namespace saf
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::alive
 
 #endif  // ALIVE_MONITOR_CONFIG_HPP_INCLUDED

@@ -18,11 +18,7 @@
 #include <utility>
 #include <vector>
 
-namespace score
-{
-namespace lcm
-{
-namespace saf
+namespace score::mw::lifecycle::internal::alive
 {
 namespace
 {
@@ -61,7 +57,7 @@ class AliveMonitorConfigTest : public ::testing::Test
     void SetUp() override
     {
         RecordProperty("TestType", "interface-test");
-        RecordProperty("DerivationTechnique", "explorative-testing");
+        RecordProperty("DerivationTechnique", "boundary-values");
     }
 };
 
@@ -123,6 +119,7 @@ TEST_F(AliveMonitorConfigTest, CopiesGlobalEvaluationCycle)
 
 TEST_F(AliveMonitorConfigTest, ZeroEvaluationCycleAllowedWithoutSupervisedComponents)
 {
+    RecordProperty("DerivationTechnique", "boundary-values");
     RecordProperty("Description", "A zero evaluation cycle is tolerated when no components are supervised.");
     // A config lacking an alive-supervision section yields evaluation_cycle_ms == 0. That is benign as long as
     // there is nothing to supervise, so it must not trip the production assertion.
@@ -133,6 +130,4 @@ TEST_F(AliveMonitorConfigTest, ZeroEvaluationCycleAllowedWithoutSupervisedCompon
 }
 
 }  // namespace
-}  // namespace saf
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::alive

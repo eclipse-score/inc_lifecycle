@@ -51,6 +51,8 @@ class Alive;
 namespace daemon
 {
 
+using AliveMonitorConfig = score::mw::lifecycle::internal::alive::AliveMonitorConfig;
+
 /// @brief Software Cluster Handler wraps the full PHM Supervision and Recovery Notification functionality for one
 ///        Software Cluster.
 /// @details This class requests construction of all required objects to do the Supervisions and Recovery Notifications
