@@ -17,7 +17,6 @@
 #include "score/mw/launch_manager/configuration/configuration_adapter.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/graph.hpp"
 #include "score/mw/launch_manager/process_group_manager/mock_iprocess.hpp"
-#include "score/mw/launch_manager/process_group_manager/process_group_manager.hpp"
 
 namespace score::lcm::internal
 {

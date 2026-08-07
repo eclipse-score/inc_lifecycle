@@ -179,6 +179,7 @@ cc_library(
 
 cc_library(
     name = "graph",
+    srcs = ["graph.cpp"],
     hdrs = ["graph.hpp"],
     include_prefix = "score/mw/launch_manager/process_group_manager/details",
     strip_include_prefix = "/score/launch_manager/src/daemon/src/process_group_manager/details",
@@ -206,7 +207,6 @@ cc_test(
     srcs = ["graph_UT.cpp"],
     deps = [
         ":graph",
-        ":process_group_manager_impl",
         "//score/launch_manager/src/daemon/src/configuration:configuration_adapter",
         "//score/launch_manager/src/daemon/src/process_group_manager:mock_iprocess",
         "@googletest//:gtest_main",
@@ -372,38 +372,6 @@ cc_test(
         ":icomponent",
         ":transition",
         "@googletest//:gtest_main",
-    ],
-)
-
-# graph.cpp, process_info_node.cpp, and process_group_manager.cpp include
-# process_group_manager.hpp which in turn includes graph.hpp and process_info_node.hpp —
-# circular at link time, so all three must share a target.
-cc_library(
-    name = "process_group_manager_impl",
-    srcs = [
-        "graph.cpp",
-        "process_group_manager.cpp",
-        "process_info_node.cpp",
-    ],
-    visibility = ["//score/launch_manager/src/daemon/src/process_group_manager:__pkg__"],
-    deps = [
-        ":component_event_queue",
-        ":graph",
-        ":os_handler",
-        ":process_info_node",
-        ":process_launcher",
-        ":process_monitor",
-        ":safe_process_map",
-        "//score/launch_manager/src/daemon/src/common:log",
-        "//score/launch_manager/src/daemon/src/common/concurrency:mpmc_concurrent_queue",
-        "//score/launch_manager/src/daemon/src/common/concurrency:workerthread",
-        "//score/launch_manager/src/daemon/src/configuration:configuration_adapter",
-        "//score/launch_manager/src/daemon/src/osal:ipc_comms",
-        "//score/launch_manager/src/daemon/src/osal:semaphore",
-        "//score/launch_manager/src/daemon/src/process_group_manager:process_group_manager_hdrs",
-        "//score/launch_manager/src/daemon/src/process_state_client",
-        "//score/launch_manager/src/daemon/src/recovery_client",
-        "@score_baselibs//score/language/futurecpp",
     ],
 )
 

@@ -58,14 +58,13 @@ cc_library(
     ],
 )
 
-# Header-only target for process_group_manager.hpp; used by details:process_group_manager_impl
-# to break the circular header dependency without creating a Bazel cycle.
 cc_library(
-    name = "process_group_manager_hdrs",
+    name = "process_group_manager",
+    srcs = ["process_group_manager.cpp"],
     hdrs = ["process_group_manager.hpp"],
     include_prefix = "score/mw/launch_manager/process_group_manager",
     strip_include_prefix = "/score/launch_manager/src/daemon/src/process_group_manager",
-    visibility = ["//score/launch_manager/src/daemon/src/process_group_manager/details:__pkg__"],
+    visibility = ["//score:__subpackages__"],
     deps = [
         ":ialive_monitor_thread",
         ":iprocess",
@@ -81,19 +80,11 @@ cc_library(
         "//score/launch_manager/src/daemon/src/process_group_manager/details:os_handler",
         "//score/launch_manager/src/daemon/src/process_group_manager/details:process_info_node",
         "//score/launch_manager/src/daemon/src/process_group_manager/details:process_launcher",
+        "//score/launch_manager/src/daemon/src/process_group_manager/details:process_monitor",
         "//score/launch_manager/src/daemon/src/process_group_manager/details:safe_process_map",
         "//score/launch_manager/src/daemon/src/process_state_client:iprocess_state_notifier",
         "//score/launch_manager/src/daemon/src/recovery_client",
         "//score/launch_manager/src/daemon/src/watchdog:i_watchdog_if",
         "@score_baselibs//score/language/futurecpp",
-    ],
-)
-
-cc_library(
-    name = "process_group_manager",
-    visibility = ["//score:__subpackages__"],
-    deps = [
-        ":process_group_manager_hdrs",
-        "//score/launch_manager/src/daemon/src/process_group_manager/details:process_group_manager_impl",
     ],
 )
