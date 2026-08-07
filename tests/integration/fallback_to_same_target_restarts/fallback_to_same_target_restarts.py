@@ -31,10 +31,7 @@ def test_fallback_to_same_target_restarts(
     Expected Behaviour: The process is relaunched and completes normally.
     """
 
-    # launch manager will simply ignore the arguments if run with --//config:use_new_configuration=False.
-    # the old configuration will be used, which is the default behavior.
-    # The new configuration will be used if run with --//config:use_new_configuration=True
-    new_config_path = str(remote_test_dir / "etc/process_crash_monitoring.bin")
+    new_config_path = str(remote_test_dir / "etc/fallback_to_same_target_restarts.bin")
 
     run_until_file_deployed(
         target=target,

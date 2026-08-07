@@ -440,10 +440,18 @@ TEST_F(GraphHandleComponentEventTest, unexpectedTerminationDuringSuccess)
 {
     RecordProperty(
         "Description",
-        "Test that an unexpected termination after a successful transition causes the graph to enter an undefined "
-        "state");
+        "Test that an unexpected termination after a successful transition causes the graph to deactivate the "
+        "component and enter an undefined state");
 
     completeTransition(state_name(run_target_name(0)));
+
+    const auto component = graph_.getProcessInfoNode(0);
+    EXPECT_CALL(process_interface_, requestTermination)
+        .WillOnce(DoAll(
+            InvokeWithoutArgs([component] {
+                static_cast<void>(component->tryHandleTermination(134));
+            }),
+            Return(osal::OsalReturnType::kSuccess)));
 
     graph_.handleComponentEvent(UnexpectedTermination{0});
 
@@ -463,6 +471,14 @@ TEST_F(GraphHandleComponentEventTest, unexpectedTerminationDuringTransition)
     executeJobSuccessfully(first_job->value());
     const auto component_index = first_job.value()->component.get().getIndex();
     graph_.handleComponentEvent(ActivationSuccessful{component_index});
+
+    const auto component = graph_.getProcessInfoNode(component_index);
+    EXPECT_CALL(process_interface_, requestTermination)
+        .WillOnce(DoAll(
+            InvokeWithoutArgs([component] {
+                static_cast<void>(component->tryHandleTermination(134));
+            }),
+            Return(osal::OsalReturnType::kSuccess)));
 
     // The active component then crashes
     graph_.handleComponentEvent(UnexpectedTermination{component_index});
