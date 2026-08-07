@@ -131,5 +131,8 @@ TEST_F(SupervisionControlClient_UT, SupervisionControlClient_QueueOneEventTooMan
 
     auto result = receiver_->getNextSupervisionEvent();
     ASSERT_FALSE(result.has_value()) << "Expected no events to be retrievable";
-    EXPECT_EQ(result.error(), score::mw::lifecycle::ExecErrc::kCommunicationError);
+
+    EXPECT_EQ(
+        static_cast<score::mw::lifecycle::ExecErrc>(*result.error()),
+        score::mw::lifecycle::ExecErrc::kCommunicationError);
 }
