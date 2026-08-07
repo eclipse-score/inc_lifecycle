@@ -2858,7 +2858,7 @@
   {
     "name": "SupervisionControlClient_UT__SupervisionControlClient_QueueMaxNumberOfEvents_Succeeds",
     "file": "score/launch_manager/src/daemon/src/supervision_control_client/supervision_control_client_ut.cpp",
-    "line": "78",
+    "line": "81",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2872,7 +2872,7 @@
   {
     "name": "SupervisionControlClient_UT__SupervisionControlClient_QueueOneEventTooMany_Fails",
     "file": "score/launch_manager/src/daemon/src/supervision_control_client/supervision_control_client_ut.cpp",
-    "line": "108",
+    "line": "111",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
