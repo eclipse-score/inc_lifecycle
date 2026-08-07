@@ -11,64 +11,49 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include <gtest/gtest.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <csignal>
 #include "common.hpp"
 #include "tests/utils/test_helper/test_helper.hpp"
+#include <fcntl.h>
+#include <gtest/gtest.h>
 #include <score/mw/lifecycle/report_running.h>
+#include <unistd.h>
+#include <csignal>
 
 namespace
 {
-/// @brief How long the process sleeps after receiving SIGTERM. This must be
-/// clearly larger than the configured shutdown_timeout so that the process does
-/// not terminate itself in time, forcing the Launch Manager to send SIGKILL.
-constexpr unsigned int kSleepAfterSigtermSeconds = 5U;
-
-/// @brief Creates an empty file using only async-signal-safe calls so it is safe
-/// to invoke from within a signal handler.
-void createFileAsyncSignalSafe(const std::string_view path)
-{
-    const int fd = open(path.data(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
-    if (fd < 0)
-    {
-        // write()/_exit() are async-signal-safe; std::cerr/std::exit are not.
-        static constexpr char prefix[] = "[FAILED] Failed to create file ";
-        static constexpr char suffix[] = " in signal handler\n";
-        static_cast<void>(write(STDERR_FILENO, prefix, sizeof(prefix) - 1));
-        static_cast<void>(write(STDERR_FILENO, path.data(), path.size()));
-        static_cast<void>(write(STDERR_FILENO, suffix, sizeof(suffix) - 1));
-        static_cast<void>(unlink(path.data()));  // leave no partial file
-        _exit(-1);
-    }
-    static_cast<void>(close(fd));
-}
-
 /// @brief SIGTERM handler installed by the process under test.
 ///
-/// It records that a SIGTERM was received (so this can be verified even after
-/// the process is gone, since no code runs after SIGKILL) and then deliberately
-/// sleeps past the configured shutdown_timeout instead of terminating. This
-/// forces the Launch Manager to escalate to SIGKILL. If the sleep ever returns
-/// (i.e. SIGKILL did not arrive), a second file is written to flag the failure.
+/// It records its PID (so the outcome can be verified even after the process is
+/// gone, since no code runs after SIGKILL) and then blocks forever instead of
+/// terminating. Because it never self-terminates, the Launch Manager must
+/// escalate to SIGKILL to shut it down; the recorded PID then lets
+/// control_daemon_mock confirm that the process is truly gone.
 void shutdownSignalHandler(int /*signum*/)
 {
-    createFileAsyncSignalSafe(sigterm_received_file);
+    // getpid()/open()/write()/pause() are all async-signal-safe, so this is safe
+    // to run from within a signal handler. The PID is written as raw bytes; no
+    // string encoding is needed. On a write failure nothing is recorded, which
+    // fails the SIGTERM assertion rather than masquerading as a graceful exit.
+    const pid_t pid = getpid();
+    const int fd = open(sigterm_received_file.data(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (fd >= 0)
+    {
+        static_cast<void>(write(fd, &pid, sizeof(pid)));
+        static_cast<void>(close(fd));
+    }
 
-    // Do NOT terminate: outlast the shutdown_timeout so SIGKILL is required.
-    static_cast<void>(sleep(kSleepAfterSigtermSeconds));
-
-    // Reaching this point means we were not SIGKILLed - record graceful exit so
-    // the assertion in control_daemon_mock can detect that SIGKILL did not work.
-    createFileAsyncSignalSafe(sigkill_not_received_file);
+    // Do NOT terminate: block until SIGKILL arrives so shutdown requires it.
+    while (true)
+    {
+        static_cast<void>(pause());
+    }
 }
 }  // namespace
 
 TEST(ShutdownSignal, Process)
 {
-    // Remove any leftover files from a previous manual run.
-    ASSERT_TRUE(check_clean({sigterm_received_file, sigkill_not_received_file}, false));
+    // Remove any leftover file from a previous manual run.
+    ASSERT_TRUE(check_clean({sigterm_received_file}, false));
 
     // Install our own SIGTERM handler. This must happen after the TestRunner
     // constructor (which registers its default handler), so that ours takes

@@ -32,34 +32,25 @@ def test_shutdown_signal(target, setup_test, assert_test_results, remote_test_di
 
     The control daemon activates the "Running" run target (starting the managed
     shutdown_signal_process), then switches back to "Startup". The shutdown_signal_process installs a
-    SIGTERM handler that records the received SIGTERM and then deliberately sleeps
-    past its shutdown_timeout instead of terminating, forcing the Launch Manager
-    to send SIGKILL. Finally the control daemon activates "Off".
+    SIGTERM handler that records its PID and then deliberately blocks instead of
+    terminating, forcing the Launch Manager to send SIGKILL. Finally the control
+    daemon activates "Off".
 
     Expected Behaviour: shutdown_signal_process receives a SIGTERM (proven by the
-    `sigterm_received` file, which is written before the sleep and therefore
-    survives SIGKILL) and is then force-terminated by SIGKILL (proven by the
-    absence of the `sigkill_not_received` file, which would only exist had the process
-    been allowed to finish sleeping). Both assertions are checked in
-    control_daemon_mock after the "Startup" transition succeeds.
+    `sigterm_received` file, which holds the PID it wrote before blocking and
+    therefore survives SIGKILL) and is then force-terminated by SIGKILL (proven by
+    that PID no longer existing, since the process never self-terminates).
     """
 
     new_config_path = str(remote_test_dir / "etc/shutdown_signal.bin")
 
-    lm_process = run_until_file_deployed(
+    run_until_file_deployed(
         target=target,
         binary_path=str(remote_test_dir / "launch_manager"),
         file_path=remote_test_dir.parent / "test_end",
         cwd=str(remote_test_dir),
         args=["-c", new_config_path],
         timeout_s=10.0,
-    )
-
-    # shutdown_signal_process prints this line on a file system failure; guard
-    # against it explicitly so a write error can never masquerade as a SIGKILL.
-    assert "[FAILED] Failed to create file" not in lm_process.get_output(), (
-        "shutdown_signal_process hit a filesystem error writing a marker file; "
-        "the sigkill_not_received assertion would be unreliable"
     )
 
     assert_test_results({"control_daemon_mock.xml", "shutdown_signal_process.xml"})
