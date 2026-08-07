@@ -44,24 +44,19 @@ void MonitorIfDaemon::attachCheckpoint(Checkpoint& f_checkpoint_r) noexcept(fals
 
 void MonitorIfDaemon::updateData(const ifexm::ProcessState& f_observable_r) noexcept(true)
 {
-    const score::lcm::SupervisionEventType eventType{f_observable_r.getEventType()};
-
-    if (eventType == score::lcm::SupervisionEventType::kActivation)
+    switch (f_observable_r.getEventType())
     {
-        if (isDeactivateRequest)
-        {
-            isProcessRestarted = true;
-        }
-        isActivateRequest = true;
-        isDeactivateRequest = false;
-    }
-    else if (eventType == score::lcm::SupervisionEventType::kDeactivation)
-    {
-        isDeactivateRequest = true;
-    }
-    else
-    {
-        // do nothing
+        case score::lcm::SupervisionEventType::kActivation:
+            if (isDeactivateRequest)
+            {
+                isProcessRestarted = true;
+            }
+            isActivateRequest = true;
+            isDeactivateRequest = false;
+            break;
+        case score::lcm::SupervisionEventType::kDeactivation:
+            isDeactivateRequest = true;
+            break;
     }
 }
 

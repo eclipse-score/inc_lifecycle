@@ -24,7 +24,7 @@ refresh_compile_commands(
     exclude_external_sources = True,
     target_compatible_with = ["@platforms//os:linux"],
     targets = {
-        "//score/...": "",
+        "//...": "",
     },
 )
 

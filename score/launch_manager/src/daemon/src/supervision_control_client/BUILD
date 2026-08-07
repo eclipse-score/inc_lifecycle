@@ -44,8 +44,8 @@ cc_library(
     visibility = ["//score:__subpackages__"],
     deps = [
         ":isupervision_control_receiver",
+        ":isupervision_event_publisher",
         ":supervision_event",
-        ":isupervision_event_publisher"
     ],
 )
 
@@ -62,8 +62,8 @@ cc_library(
 
 cc_library(
     name = "mock_supervision_event_publisher",
-    hdrs = ["mock_supervision_event_publisher.hpp"],
     testonly = True,
+    hdrs = ["mock_supervision_event_publisher.hpp"],
     include_prefix = "score/mw/launch_manager/supervision_control_client",
     strip_include_prefix = "/score/launch_manager/src/daemon/src/supervision_control_client",
     visibility = ["//score:__subpackages__"],

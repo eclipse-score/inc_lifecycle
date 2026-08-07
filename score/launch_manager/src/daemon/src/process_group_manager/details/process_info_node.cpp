@@ -88,8 +88,10 @@ IComponent::RequestResult ProcessInfoNode::tryReportSuccess()
     return {IComponent::RequestState::kWaiting};
 }
 
-std::optional<timespec> ProcessInfoNode::getTimeForReport() const {
-    if (config_->startup_config_.comms_type_ == osal::CommsType::kNoComms) {
+std::optional<timespec> ProcessInfoNode::getTimeForReport() const
+{
+    if (config_->startup_config_.comms_type_ == osal::CommsType::kNoComms)
+    {
         return std::nullopt;
     }
 
