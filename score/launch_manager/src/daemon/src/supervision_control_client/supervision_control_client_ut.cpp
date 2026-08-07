@@ -61,6 +61,8 @@ TEST_F(SupervisionControlClient_UT, SupervisionControlClient_QueueOneEvent_Succe
         .eventType = score::lcm::SupervisionEventType::kActivation,
         .systemClockTimestamp = {}};
 
+    clock_gettime(CLOCK_MONOTONIC, &event1.systemClockTimestamp);
+
     bool queued = notifier_->reportActivation(event1.id, event1.systemClockTimestamp);
     ASSERT_TRUE(queued);
 
@@ -69,6 +71,7 @@ TEST_F(SupervisionControlClient_UT, SupervisionControlClient_QueueOneEvent_Succe
     ASSERT_TRUE(result->has_value());
     EXPECT_EQ(result->value().id, event1.id);
     EXPECT_EQ(result->value().eventType, event1.eventType);
+    EXPECT_EQ(result->value().systemClockTimestamp.tv_nsec, event1.systemClockTimestamp.tv_nsec);
 
     auto no_more = receiver_->getNextSupervisionEvent();
     ASSERT_TRUE(no_more.has_value());

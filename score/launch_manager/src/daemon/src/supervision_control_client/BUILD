@@ -10,7 +10,8 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+load("@rules_cc//cc:defs.bzl", "cc_library")
+load("//tests/utils/bazel:unit_test.bzl", "lm_cc_test")
 
 cc_library(
     name = "supervision_event",
@@ -97,7 +98,7 @@ cc_library(
     ],
 )
 
-cc_test(
+lm_cc_test(
     name = "supervision_control_client_ut",
     srcs = ["supervision_control_client_ut.cpp"],
     deps = [
