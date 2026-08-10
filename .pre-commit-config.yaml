@@ -14,11 +14,6 @@
 repos:
   - repo: local
     hooks:
-      - id: copyright-fix
-        name: //:copyright-fix
-        entry: bazel run //:copyright-fix
-        language: system
-        pass_filenames: false
       - id: format-fix
         name: //:format.fix
         entry: bazel run //:format.fix
@@ -44,3 +39,8 @@ repos:
             tests/|
             score/
           )
+  - repo: https://github.com/eclipse-score/tools
+    rev: 7694bf823421b5542cd2f45239b8bdf205dbface
+    hooks:
+      - id: copyright
+        exclude: ^.github/
