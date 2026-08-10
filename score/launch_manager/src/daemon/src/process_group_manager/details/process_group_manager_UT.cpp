@@ -244,8 +244,10 @@ TEST_F(ProcessGroupManagerWatchdogTest, GivenMinimalConfig_ExpectWatchdogDisable
     EXPECT_CALL(*alive_monitor_thread_, start()).WillOnce(Return(true));
     EXPECT_CALL(*watchdog_, init(_, _)).WillOnce(Return(true));
     EXPECT_CALL(*watchdog_, enable()).WillOnce(Return(true));
-    EXPECT_CALL(*watchdog_, disable()).Times(1);
-    EXPECT_CALL(*alive_monitor_thread_, stop()).Times(1);
+    // We are explicitly calling deinitialize() in this test for readability,
+    // so disable() and stop() are expected to be called twice: once in deinitialize() and once in TearDown().
+    EXPECT_CALL(*watchdog_, disable()).Times(2);
+    EXPECT_CALL(*alive_monitor_thread_, stop()).Times(2);
 
     // When
     ASSERT_TRUE(process_group_manager_->initialize(config));
