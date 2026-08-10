@@ -83,7 +83,10 @@
         },
         "component_e": {
             "component_properties": {
-                "binary_name": "component_e"
+                "binary_name": "component_e",
+                "process_arguments": [
+                    "e"
+                ]
             },
             "deployment_config": {
                 "environmental_variables": {
@@ -93,7 +96,10 @@
         },
         "component_d": {
             "component_properties": {
-                "binary_name": "component_d"
+                "binary_name": "component_d",
+                "process_arguments": [
+                    "d"
+                ]
             },
             "deployment_config": {
                 "environmental_variables": {
