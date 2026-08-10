@@ -251,12 +251,11 @@ lm_cc_test(
     ],
 )
 
-
 docs_bundle(
     name = "docs",
-    source_dir = "docs",
     code_targets = [
         ":lifecycle_client",
     ],
+    source_dir = "docs",
     visibility = ["//visibility:public"],
 )

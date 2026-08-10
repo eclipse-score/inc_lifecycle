@@ -26,10 +26,10 @@ alias(
 
 docs_bundle(
     name = "docs",
-    source_dir = "docs",
     code_targets = [
         ":health_monitoring_cc",
         ":health_monitoring_rust",
     ],
+    source_dir = "docs",
     visibility = ["//visibility:public"],
 )
