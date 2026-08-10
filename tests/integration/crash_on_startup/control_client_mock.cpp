@@ -28,49 +28,36 @@ TEST(CrashOnStartup, ControlClientMock)
         score::mw::lifecycle::report_running();
     }
 
-    // Given a process that crashes on startup twice, but is configured to retry twice - so it succeeds
-    TEST_STEP("Launch process crashing on startup twice")
+    // Given a process that crashes on startup n times, but is configured to retry n times - so it eventually
+    // succeeds. The behaviour is identical for the different crash counts, so it is parameterized over the
+    // corresponding run targets.
+    for (const std::string_view run_target :
+         {"run_target_crash_on_startup_two_times", "run_target_crash_on_startup_three_times"})
     {
-        score::cpp::stop_token stop_token;
-        auto result = client.ActivateRunTarget("run_target_crash_on_startup_twice").Get(stop_token);
-        // Then, the LM should restart it and eventually succeed
-        EXPECT_TRUE(result.has_value()) << "Activating run_target_crash_on_startup_twice failed: "
-                                        << result.error().Message();
+        TEST_STEP(std::string{"Launch "} + std::string{run_target})
+        {
+            score::cpp::stop_token stop_token;
+            auto result = client.ActivateRunTarget(run_target).Get(stop_token);
+            // Then, the LM should restart it and eventually succeed
+            EXPECT_TRUE(result.has_value()) << "Activating " << run_target << " failed: " << result.error().Message();
+        }
+
+        TEST_STEP("Verify fallback run target was not activated, i.e. process eventually started successfully")
+        {
+            EXPECT_FALSE(std::filesystem::exists(fallback_file)) << "Fallback run target should not be activated yet";
+        }
+
+        EXPECT_TRUE(std::filesystem::remove(crash_count_file))
+            << "Count file must be removed successfully, before reused in the next run target";
     }
-
-    TEST_STEP("Verify fallback run target was not activated, i.e. process eventually started successfully")
-    {
-        EXPECT_FALSE(std::filesystem::exists(fallback_file)) << "Fallback run target should not be activated yet";
-    }
-
-    EXPECT_TRUE(std::filesystem::remove(crash_count_file))
-        << "Count file must be removed successfully, before reused in the next run target";
-
-    // Given a process that crashes on startup three times, but is configured to retry three times - so it still
-    // succeeds
-    TEST_STEP("Launch process crashing on startup three times")
-    {
-        score::cpp::stop_token stop_token;
-        auto result = client.ActivateRunTarget("run_target_crash_on_startup_three_times").Get(stop_token);
-        // Then, the LM should restart it and eventually succeed
-        EXPECT_TRUE(result.has_value()) << "Activating run_target_crash_on_startup_three_times failed: "
-                                        << result.error().Message();
-    }
-
-    TEST_STEP("Verify fallback run target was not activated, i.e. process eventually started successfully")
-    {
-        EXPECT_FALSE(std::filesystem::exists(fallback_file)) << "Fallback run target should not be activated yet";
-    }
-
-    EXPECT_TRUE(std::filesystem::remove(crash_count_file))
-        << "Count file must be removed successfully, before reused in the next run target";
 
     // Given a process that crashes on startup but is not allowed to retry (number_of_attempts=0)
     TEST_STEP("Attempt to launch process crashing on startup without retries")
     {
         score::cpp::stop_token stop_token;
-        auto result = client.ActivateRunTarget("run_target_crash_on_startup_no_retries").Get(stop_token);
-        EXPECT_FALSE(result.has_value()) << "Expected run_target_crash_on_startup_no_retries activation to fail";
+        auto result = client.ActivateRunTarget("run_target_crash_on_startup_once_but_no_retries").Get(stop_token);
+        EXPECT_FALSE(result.has_value())
+            << "Expected run_target_crash_on_startup_once_but_no_retries activation to fail";
     }
     // Limitation: we cannot wait for the transition to fallback to complete
     sleep(1);
