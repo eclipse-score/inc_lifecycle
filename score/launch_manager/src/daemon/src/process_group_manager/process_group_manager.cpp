@@ -866,11 +866,6 @@ osal::IProcess* ProcessGroupManager::getProcessInterface()
     return &process_interface_;
 }
 
-ConfigurationType* ProcessGroupManager::getConfiguration()
-{
-    return &configuration_;
-}
-
 std::shared_ptr<SafeProcessMap> ProcessGroupManager::getProcessMap()
 {
     return process_map_;

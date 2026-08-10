@@ -14,10 +14,12 @@
 #ifndef _INCLUDED_PROCESSINFONODE_
 #define _INCLUDED_PROCESSINFONODE_
 
-#include "score/mw/launch_manager/configuration/configuration_adapter.hpp"
+#include "score/launch_manager/src/daemon/src/configuration/component_config.hpp"
+#include "score/mw/launch_manager/configuration/component_config.hpp"
 #include "score/mw/launch_manager/control/control_client_channel.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/icomponent.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/safe_process_map.hpp"
+#include "score/mw/launch_manager/process_group_manager/process_state.hpp"
 #include "score/mw/launch_manager/supervision_control_client/isupervision_event_publisher.hpp"
 #include <score/stop_token.hpp>
 #include <atomic>
@@ -36,14 +38,10 @@ namespace score::mw::lifecycle::internal
 ///       In the future, this class shall be split up to properly separate Component and Process lifecycle.
 class ProcessInfoNode final : public IComponent
 {
-  public:
-    /// @brief The criteria for when a process is considered "ready"
-    enum class ReadyCondition : uint8_t
-    {
-        kRunning,     // Running reported in the case of a reporting process, process launched if non-reporting
-        kTerminated,  // Process has terminated with status 0
-    };
 
+    using ReportStateFn = std::function<bool(IdentifierHash, ProcessState, timespec)>;
+
+  public:
     /// @brief Constructs a ProcessInfoNode.
     /// @param config Configuration for the OS process.
     /// @param index The process index within its process group.
@@ -52,9 +50,8 @@ class ProcessInfoNode final : public IComponent
     /// @param process_interface The OS process interface used to start and stop the process.
     /// @param process_map The shared process map used to track process pids.
     ProcessInfoNode(
-        const OsProcess* config,
+        configuration::ComponentConfig&& config,
         uint32_t index,
-        ReadyCondition ready_condition,
         ISupervisionEventPublisher& state_publisher,
         osal::IProcess* process_interface,
         std::shared_ptr<SafeProcessMapInserter> process_map);
@@ -68,8 +65,7 @@ class ProcessInfoNode final : public IComponent
           status_(other.status_.load()),
           process_state_(other.process_state_.load()),
           reached_ready_(other.reached_ready_.load()),
-          ready_condition_(other.ready_condition_),
-          config_(other.config_),
+          config_(std::move(other.config_)),
           control_client_channel_(std::move(other.control_client_channel_)),
           sync_(std::move(other.sync_)),
           state_publisher_(other.state_publisher_),
@@ -83,7 +79,7 @@ class ProcessInfoNode final : public IComponent
     ProcessInfoNode& operator=(ProcessInfoNode&& other) = delete;
     ~ProcessInfoNode() = default;
 
-    uint32_t getIndex() const override;
+    [[nodiscard]] uint32_t getIndex() const override;
 
     RequestResult activate(score::cpp::stop_token stop_token) override;
 
@@ -91,16 +87,16 @@ class ProcessInfoNode final : public IComponent
 
     RequestResult tryHandleTermination(int32_t process_status) override;
 
-    bool active() const override;
+    [[nodiscard]] bool active() const override;
 
     /// @return The OS process ID, or zero if the process has never been started.
-    osal::ProcessID getPid() const;
+    [[nodiscard]] osal::ProcessID getPid() const;
 
     /// @return The current state of this process.
-    score::mw::lifecycle::ProcessState getState() const;
+    [[nodiscard]] score::lcm::ProcessState getState() const;
 
     /// @return The ControlClientChannel for this process, or nullptr if none exists.
-    ControlClientChannelP getControlClientChannel() const;
+    [[nodiscard]] ControlClientChannelP getControlClientChannel() const;
 
   private:
     /// @brief Atomically transitions to new_state if the transition is valid. For reporting
@@ -186,11 +182,8 @@ class ProcessInfoNode final : public IComponent
     /// The flag is reset when deactivate() is called.
     std::atomic_bool reached_ready_{false};
 
-    /// @brief Enum representing the criteria for this process to be considered "ready"
-    ReadyCondition ready_condition_;
-
     /// @brief Pointer to config for this process
-    const OsProcess* config_{nullptr};
+    configuration::ComponentConfig config_;
 
     /// @brief Pointer to the ControlClientChannel object if it exists
     ControlClientChannelP control_client_channel_{nullptr};

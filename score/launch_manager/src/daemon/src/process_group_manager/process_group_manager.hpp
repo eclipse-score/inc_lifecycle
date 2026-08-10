@@ -23,7 +23,6 @@
 #include "score/mw/launch_manager/common/constants.hpp"
 #include "score/mw/launch_manager/common/identifier_hash.hpp"
 #include "score/mw/launch_manager/configuration/config.hpp"
-#include "score/mw/launch_manager/configuration/configuration_adapter.hpp"
 #include "score/mw/launch_manager/control/control_client_channel.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/component_event_queue.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/graph.hpp"
@@ -42,8 +41,6 @@
 namespace score::mw::lifecycle::internal
 {
 
-using ConfigurationType = ConfigurationAdapter;
-using Config = score::mw::lifecycle::internal::configuration::Config;
 
 /// @brief ProcessGroupManager provides the core functionality of LCM.
 /// Software that is deployed to the machine, should be managed through Process Groups.
@@ -62,6 +59,8 @@ class ProcessGroupManager final : public ITransitionResultPublisher
 {
     using WorkerQueue =
         MPMCConcurrentQueue<std::optional<ComponentTask>, static_cast<std::size_t>(ProcessLimits::kMaxProcesses)>;
+
+    using Config = score::mw::launch_manager::configuration::Config;
 
   public:
     /// @brief Constructs a new ProcessGroupManager object.
@@ -133,10 +132,6 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     /// @brief Gets the process interface.
     /// @return Pointer to the OSAL process interface.
     osal::IProcess* getProcessInterface();
-
-    /// @brief Get the configuration object
-    /// @return a pointer to the configuration object
-    ConfigurationType* getConfiguration();
 
     /// @brief Gets the process map.
     /// @return Shared pointer to the SafeProcessMap object.

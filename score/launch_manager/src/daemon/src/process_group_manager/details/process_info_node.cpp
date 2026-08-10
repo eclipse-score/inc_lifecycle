@@ -22,9 +22,8 @@ namespace score::mw::lifecycle::internal
 {
 
 ProcessInfoNode::ProcessInfoNode(
-    const OsProcess* config,
+    configuration::ComponentConfig&& config,
     uint32_t index,
-    ReadyCondition ready_condition,
     ISupervisionEventPublisher& state_publisher,
     osal::IProcess* process_interface,
     std::shared_ptr<SafeProcessMapInserter> process_map)
@@ -45,7 +44,11 @@ ProcessInfoNode::ProcessInfoNode(
 IComponent::RequestResult ProcessInfoNode::tryReportCompletion(score::mw::lifecycle::ProcessState new_state)
 {
     ProcessState desired_state{};
-    switch (ready_condition_)
+
+    SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(config_.component_properties.ready_condition.has_value() == true, "ADS");
+    auto ready_condition = config_.component_properties.ready_condition.value();
+
+    switch (ready_condition)
     {
         case ReadyCondition::kRunning:
             desired_state = ProcessState::kRunning;
@@ -381,7 +384,7 @@ void ProcessInfoNode::handleForcedTermination(const score::cpp::stop_token& stop
 {
     static_cast<void>(stop_token);  // Not yet supported
 
-    LM_LOG_WARN() << "Process" << process_index_ << "(" << config_->startup_config_.short_name_
+    LM_LOG_WARN() << "Process" << process_index_ << "(" << config_.name
                   << ") did not respond to SIGTERM, sending SIGKILL";
 
     while ((osal::OsalReturnType::kSuccess == process_interface_->forceTermination(pid_)) &&
