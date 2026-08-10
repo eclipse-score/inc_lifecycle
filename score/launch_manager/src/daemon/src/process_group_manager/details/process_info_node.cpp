@@ -27,6 +27,8 @@ namespace lcm
 namespace internal
 {
 
+using namespace score::mw::lifecycle::internal;
+
 ProcessInfoNode::ProcessInfoNode(
     const OsProcess* config,
     uint32_t index,
