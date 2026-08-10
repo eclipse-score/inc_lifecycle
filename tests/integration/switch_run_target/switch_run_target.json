@@ -3,13 +3,6 @@
     "defaults": {
         "deployment_config": {
             "bin_dir": "/tmp/tests/switch_run_target",
-            "ready_timeout": 1.0,
-            "shutdown_timeout": 1.0,
-            "ready_recovery_action": {
-                "restart": {
-                    "number_of_attempts": 0
-                }
-            },
             "recovery_action": {
                 "switch_run_target": {
                     "run_target": "fallback_run_target"
@@ -23,21 +16,6 @@
                 "gid": 0,
                 "scheduling_policy": "SCHED_OTHER",
                 "scheduling_priority": 0
-            }
-        },
-        "component_properties": {
-            "application_profile": {
-                "application_type": "Reporting",
-                "is_self_terminating": false,
-                "alive_supervision": {
-                    "reporting_cycle": 0.1,
-                    "min_indications": 1,
-                    "max_indications": 3,
-                    "failed_cycles_tolerance": 1
-                }
-            },
-            "ready_condition": {
-                "process_state": "Running"
             }
         }
     },
@@ -131,9 +109,6 @@
         }
     },
     "initial_run_target": "Startup",
-    "alive_supervision": {
-        "evaluation_cycle": 0.05
-    },
     "fallback_run_target": {
         "depends_on": []
     }
