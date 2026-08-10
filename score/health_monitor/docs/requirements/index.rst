@@ -37,41 +37,19 @@ Requirements
 <Headlines (for the list of requirements if structuring is needed)>
 ===================================================================
 
-.. stkh_req:: Dummy Stakeholder
-   :id: stkh_req__requirements__dummy
-   :reqtype: Non-Functional
-   :safety: ASIL_B
-   :security: YES
-   :rationale: Dummy
-   :status: valid
-   :version: 1
-   :valid_from: v1.1.9999
-
-    .. note:: This is a dummy stakeholder requirement. See https://github.com/eclipse-score/lifecycle/issues/366 for more information.
-
-.. feat_req:: Dummy Feature
-   :id: feat_req__requirements__template
-   :reqtype: Non-Functional
-   :safety: ASIL_B
-   :security: YES
-   :derived_from: stkh_req__requirements__dummy
-   :status: valid
-   :version: 1
-   :valid_from: v1.1.9999
-
-    .. note:: This is a dummy feature requirement. See https://github.com/eclipse-score/lifecycle/issues/366 for more information.
-
 .. comp_req:: Dummy Component
    :id: comp_req__health_monitor__dummy
    :reqtype: Process
    :security: YES
    :safety: ASIL_B
-   :derived_from: feat_req__requirements__template
-   :belongs_to: comp__health_monitor
+   :derived_from: feat_req__lifecycle__launch_support
+   :satisfied_by: comp__health_monitor
    :status: valid
    :version: 1
 
     .. note:: This is a dummy component requirement. See https://github.com/eclipse-score/lifecycle/issues/366 for more information.
+
+    .. note:: This is linked to an arbitrary feature requirement to avoid metamodel errors. Fix link when writing down component requirements.
 
 
 .. aou_req:: Dummy AoU

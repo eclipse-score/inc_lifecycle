@@ -35,6 +35,7 @@ Launching Processes
     :derived_from: feat_req__lifecycle__custom_cond_support[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall provide support to pass the output of one or
     multiple :term:`Processes <Process>` as input arguments to another process.
@@ -47,6 +48,7 @@ Launching Processes
     :derived_from: feat_req__lifecycle__custom_cond_support[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall provide support for launching a process with a
     given set of arguments.
@@ -59,6 +61,7 @@ Launching Processes
     :derived_from: feat_req__lifecycle__custom_cond_support[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall provide support for launching process with a
     given set of debug arguments in debug mode.
@@ -71,6 +74,7 @@ Launching Processes
     :derived_from: feat_req__lifecycle__custom_cond_support[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall provide support for launching a process in a state
     waiting for a debugger connection.
@@ -84,6 +88,7 @@ Launching Processes
     :derived_from: feat_req__lifecycle__custom_cond_support[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall provide support for launching a process with a
     given :term:`UID`/:term:`GID` (user name/Group Identifier).
@@ -96,6 +101,7 @@ Launching Processes
     :derived_from: feat_req__lifecycle__custom_cond_support[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall provide support for launching a process with a
     given priority.
@@ -109,6 +115,7 @@ Launching Processes
     :derived_from: feat_req__lifecycle__custom_cond_support[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall provide support for launching a process with a
     given :term:`Working Directory`.
@@ -121,6 +128,7 @@ Launching Processes
     :derived_from: feat_req__lifecycle__custom_cond_support[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall provide support for launching a terminal or a
     session leader.
@@ -133,6 +141,7 @@ Launching Processes
     :derived_from: feat_req__lifecycle__custom_cond_support[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall provide support for stdin, stdout, stderr
     redirection.
@@ -145,6 +154,7 @@ Launching Processes
     :derived_from: feat_req__lifecycle__custom_cond_support[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall provide support to be started with security
     policy as non-root.
@@ -157,6 +167,7 @@ Launching Processes
     :derived_from: feat_req__lifecycle__custom_cond_support[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall support a configurable amount of retries in
     case error occurs during startup of a component (e.g. file not available) occurs.
@@ -169,6 +180,7 @@ Launching Processes
     :derived_from: feat_req__lifecycle__custom_cond_support[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall provide support for launching :term:`Processes <Process>`
     with configured OS-specific capabilities and privileges.
@@ -181,6 +193,7 @@ Launching Processes
     :derived_from: feat_req__lifecycle__custom_cond_support[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall provide support for launching a process with
     given :term:`File Descriptor` inheritance restrictions.
@@ -194,6 +207,7 @@ Launching Processes
     :derived_from: feat_req__lifecycle__custom_cond_support[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall provide support for launching a process with a
     given security policy.
@@ -206,6 +220,7 @@ Launching Processes
     :derived_from: feat_req__lifecycle__custom_cond_support[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall provide support for launching a process with a
     given set of supplementary groups.
@@ -218,6 +233,7 @@ Launching Processes
     :derived_from: feat_req__lifecycle__custom_cond_support[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall provide support for launching a process with
     certain scheduling policy.
@@ -230,6 +246,7 @@ Launching Processes
     :derived_from: feat_req__lifecycle__custom_cond_support[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall provide support for launching a process with a
     given runmask.
@@ -243,6 +260,7 @@ Launching Processes
     :derived_from: feat_req__lifecycle__custom_cond_support[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall provide support for launching process with
     :term:`ASLR` (Address Space Layout Randomization).
@@ -255,6 +273,7 @@ Launching Processes
     :derived_from: feat_req__lifecycle__custom_cond_support[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall provide support for launching a process with a
     given set of system resource limits (rlimit).
@@ -268,6 +287,7 @@ Launching Processes
     :derived_from: feat_req__lifecycle__custom_cond_support[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall provide support for launching a process to
     detach from parent.
@@ -283,6 +303,7 @@ Conditional Launching
     :derived_from: feat_req__lifecycle__conditional_startup[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall provide support to conditionally start a process
     or process group based on the return value of a single or multiple :term:`Processes <Process>`
@@ -296,6 +317,7 @@ Conditional Launching
     :derived_from: feat_req__lifecycle__conditional_startup[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall provide support for per condition configurable
     total wait time for launch conditions to be satisfied.
@@ -308,6 +330,7 @@ Conditional Launching
     :derived_from: feat_req__lifecycle__conditional_startup[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall provide support for per condition configurable
     :term:`Polling Interval` for launch conditions to be checked.
@@ -320,6 +343,7 @@ Conditional Launching
     :derived_from: feat_req__lifecycle__conditional_startup[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall be able to validate the pre-start conditions of the executable using the conditions.
 
@@ -331,6 +355,7 @@ Conditional Launching
     :derived_from: feat_req__lifecycle__conditional_startup[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall be able to validate the start of the executable using the conditions.
 
@@ -342,6 +367,7 @@ Conditional Launching
     :derived_from: feat_req__lifecycle__conditional_startup[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall provide a way to store the status of the launched process.
 
@@ -353,6 +379,7 @@ Conditional Launching
     :derived_from: feat_req__lifecycle__conditional_startup[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall provide a method for condition check based on process state.
 
@@ -364,6 +391,7 @@ Conditional Launching
     :derived_from: feat_req__lifecycle__conditional_startup[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall provide a way to configure actions based on condition evaluation i.e. to be able to configure SUCCESS and FAILURE case.
 
@@ -375,6 +403,7 @@ Conditional Launching
     :derived_from: feat_req__lifecycle__conditional_startup[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall provide a method for condition check for a path.
 
@@ -386,6 +415,7 @@ Conditional Launching
     :derived_from: feat_req__lifecycle__conditional_startup[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall provide a method for condition check for environment variable.
 
@@ -397,6 +427,7 @@ Conditional Launching
     :derived_from: feat_req__lifecycle__conditional_startup[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall provide a method to check if all dependencies have been executed.
 
@@ -408,6 +439,7 @@ Conditional Launching
     :derived_from: feat_req__lifecycle__conditional_startup[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall provide a method to check if at least one dependency has been executed.
 
@@ -419,6 +451,7 @@ Conditional Launching
     :derived_from: feat_req__lifecycle__conditional_startup[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall provide a way to define for each :term:`SWC` (Software Components), its dependencies.
 
@@ -434,6 +467,7 @@ Process Management
     :derived_from: feat_req__lifecycle__running_processes[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall provide support to dropping all surveillance
     and failure reaction activities of :term:`Processes <Process>`.
@@ -447,6 +481,7 @@ Process Management
     :derived_from: feat_req__lifecycle__running_processes[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall permit an executable to be launched more than once.
 
@@ -459,6 +494,7 @@ Process Management
     :derived_from: feat_req__lifecycle__running_processes[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall reject an inconsistent definition of set of executables dependencies.
 
@@ -471,6 +507,7 @@ Process Management
     :derived_from: feat_req__lifecycle__running_processes[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall be able to stop a process when all it's dependents are stopped if specified in the set of executables.
 
@@ -483,6 +520,7 @@ Process Management
     :derived_from: feat_req__lifecycle__running_processes[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall permit the stop order of non-dependent processes to be specified.
 
@@ -498,6 +536,7 @@ Run targets
     :derived_from: feat_req__lifecycle__switch_run_targets[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall have a means for the launched :term:`Processes <Process>`
     to communicate a state, which represents the launched processes' internal state,
@@ -515,6 +554,7 @@ Terminating Processes
     :derived_from: feat_req__lifecycle__switch_run_targets[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall provide support for configurable timeout
     :term:`Interval` to wait for the process to be stopped.
@@ -527,6 +567,7 @@ Terminating Processes
     :derived_from: feat_req__lifecycle__terminationn_dependency[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall offer a configuration of the time to wait before
     SIGKILL is sent. In case "0" is stated, the SIGKILL shall be sent immediately.
@@ -539,6 +580,7 @@ Terminating Processes
     :derived_from: feat_req__lifecycle__terminationn_dependency[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall support normal shutdown by terminating all
     process in the dependency order.
@@ -551,6 +593,7 @@ Terminating Processes
     :derived_from: feat_req__lifecycle__terminationn_dependency[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall support fast shutdown by terminating itself
     without considering the started :term:`Processes <Process>`.
@@ -563,6 +606,7 @@ Terminating Processes
     :derived_from: feat_req__lifecycle__terminationn_dependency[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall exit after performing shutdown operation by
     stopping all the :term:`Processes <Process>` it owns in the dependency order when requested.
@@ -575,6 +619,7 @@ Terminating Processes
     :derived_from: feat_req__lifecycle__terminationn_dependency[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall implement a shutdown by sending a SIGTERM to
     the process. In case the process does not terminate itself, a SIGKILL shall be sent.
@@ -591,6 +636,7 @@ Monitoring, Notification and Recovery
     :derived_from: feat_req__lifecycle__monitor_abnormal_term[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall provide support for external monitors to get
     notified on process life status.
@@ -603,6 +649,7 @@ Monitoring, Notification and Recovery
     :derived_from: feat_req__lifecycle__conditional_startup[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall provide support for configurable wait time
     that shall elapse before repeating :term:`Recovery Action`.
@@ -615,6 +662,7 @@ Monitoring, Notification and Recovery
     :derived_from: feat_req__lifecycle__liveliness_detection[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall provide support for monitoring adopted
     :term:`Processes <Process>`.
@@ -627,6 +675,7 @@ Monitoring, Notification and Recovery
     :derived_from: feat_req__lifecycle__switch_run_targets[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall be able to detect and react to failure of the
     process launch.
@@ -639,6 +688,7 @@ Monitoring, Notification and Recovery
     :derived_from: feat_req__lifecycle__liveliness_detection[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall be able to react to a process failure by
     optionally performing one of relaunching the process, stopping the process,
@@ -653,6 +703,7 @@ Monitoring, Notification and Recovery
     :derived_from: feat_req__lifecycle__lm_self_health_check[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall trigger a notification to an external
     :term:`Watchdog` for each successful self monitoring test execution.
@@ -665,6 +716,7 @@ Monitoring, Notification and Recovery
     :derived_from: feat_req__lifecycle__lm_self_health_check[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall not trigger an external :term:`Watchdog`
     notification if an internal health check failed.
@@ -677,6 +729,7 @@ Monitoring, Notification and Recovery
     :derived_from: feat_req__lifecycle__lm_self_health_check[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall support configuring the :term:`Interval` of
     the internal health check executions.
@@ -692,6 +745,7 @@ Logging
     :derived_from: feat_req__lifecycle__logging_support[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall support OS specific logging facilities to analyze the early
     boot sequence.
@@ -704,6 +758,7 @@ Logging
     :derived_from: feat_req__lifecycle__logging_support[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall provide support for logging process launches,
     :term:`Processes <Process>` exit/recovery, internal tasks, and interaction with external monitor.
@@ -716,6 +771,7 @@ Logging
     :derived_from: feat_req__lifecycle__logging_support[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` logs shall contain timestamp information.
 
@@ -728,6 +784,7 @@ Logging
     :derived_from: feat_req__lifecycle__logging_support[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall provide the possibility to log the :term:`DAG`
     in a human readable format, triggered via :term:`Control Interface`.
@@ -741,6 +798,7 @@ Logging
     :derived_from: feat_req__lifecycle__deps_visualization[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall have the means to log the current dependencies in a format that can be visualized when requested.
 
@@ -755,6 +813,7 @@ Configuration file
     :derived_from: feat_req__lifecycle__config_file_support[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The launch manager shall provide modular configuration file support to configure process attributes.
 
@@ -766,6 +825,7 @@ Configuration file
     :derived_from: feat_req__lifecycle__config_file_support[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The launch manager shall provide modular configuration files support for configurations coming from `OCI runtime configuration<https://github.com/opencontainers/runtime-spec/blob/v1.2.0/config.md>`.
 
@@ -778,6 +838,7 @@ Configuration file
     :derived_from: feat_req__lifecycle__component_group_config[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall be able to centrally define defaults for specific properties for the set of executables.
 
@@ -790,6 +851,7 @@ Configuration file
     :derived_from: feat_req__lifecycle__component_group_config[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall check availability of executables in the filesystem only when the executable shall required to be executed.
 
@@ -802,6 +864,7 @@ Configuration file
     :derived_from: feat_req__lifecycle__deps_visualization[version==1]
     :status: valid
     :version: 1
+    :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall have a means to validate the configuration offline.
 
