@@ -22,14 +22,6 @@
 /// @brief Default number of times the process crashes before starting up successfully.
 constexpr int kDefaultCrashesUntilSuccess = 3;
 
-TEST(CrashOnStartup, ProcessCrashingOnStartupNTimes)
-{
-    TEST_STEP("Report running")
-    {
-        score::mw::lifecycle::report_running();
-    }
-}
-
 /// @brief Reads how many times the process has crashed so far from the crash count file.
 int read_crash_count(const std::string_view file_path)
 {
@@ -47,6 +39,20 @@ void write_crash_count(const std::string_view file_path, const int count)
 {
     std::ofstream file{std::string{file_path}};
     file << count;
+}
+
+TEST(CrashOnStartup, ProcessCrashingOnStartupNTimes)
+{
+    TEST_STEP("Record number of crashes before successful startup")
+    {
+        // The crash count file holds the number of crashes that occurred before this successful startup.
+        RecordProperty("crash_count", read_crash_count(crash_count_file));
+    }
+
+    TEST_STEP("Report running")
+    {
+        score::mw::lifecycle::report_running();
+    }
 }
 
 int main(int argc, char** argv)

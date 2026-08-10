@@ -12,7 +12,7 @@
 # *******************************************************************************
 from tests.utils.testing_utils.run_until_file_deployed import run_until_file_deployed
 from tests.utils.testing_utils.setup_test import setup_test
-from tests.utils.testing_utils.test_results import assert_test_results
+from tests.utils.testing_utils.test_results import assert_test_results, get_testcase_property
 from attribute_plugin import add_test_properties
 
 
@@ -26,15 +26,19 @@ from attribute_plugin import add_test_properties
     test_type="requirements-based",
     derivation_technique="requirements-analysis",
 )
-def test_crash_on_startup(target, setup_test, assert_test_results, remote_test_dir):
+def test_crash_on_startup(
+    target, setup_test, assert_test_results, remote_test_dir, test_output_dir
+):
     """
     Objective: Verifies that the launch manager correctly handles processes that crash before reporting running.
 
-    Case 1: Process crashes before Running state but eventually starts up successfully before the configured number of restart attempts is exceeded.
-    Expected Behaviour: Process startup successful, RunTarget activation successful
+    Case 1: Process crashes before Running state but eventually starts up successfully before the configured number of restart attempts is exceeded. 
+    This is verified with two different components: One with the process crashing twice and the other three times before successfully starting up. 
+    The number of restart attempts is configured to be 2 and 3 respectively for these two components.
+    Expected Behaviour: Process startup successful, run target activation successful
 
-    Case 2: Process keeps crashing, exceeding the number of restart attempts.
-    Expected Behaviour: Process startup fails, LaunchManager executes recovery action.
+    Case 2: Component has no restart attempts configured, but crashes once.
+    Expected Behaviour: Process startup fails and therefore run target activation fails. Launch manager executes recovery action which switches to fallback run target.
     """
 
     config_path = str(remote_test_dir / "etc/crash_on_startup.bin")
@@ -51,3 +55,10 @@ def test_crash_on_startup(target, setup_test, assert_test_results, remote_test_d
     assert_test_results(
         {"control_client_mock.xml", "process_crashing_on_startup_n_times.xml"}
     )
+
+    # The number of crashes before a successful startup is recorded in the report. The last run target to
+    # start up successfully (run_target_crash_on_startup_three_times) crashes three times before succeeding.
+    crash_count = get_testcase_property(
+        test_output_dir / "process_crashing_on_startup_n_times.xml", "crash_count"
+    )
+    assert crash_count == "3", f"Expected 3 crashes before startup, got {crash_count}"

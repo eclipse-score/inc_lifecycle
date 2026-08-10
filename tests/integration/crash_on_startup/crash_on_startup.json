@@ -43,14 +43,14 @@
                 }
             }
         },
-        "process_crashing_on_startup_once": {
+        "process_crashing_on_startup_twice": {
             "component_properties": {
                 "binary_name": "process_crashing_on_startup_n_times",
                 "application_profile": {
                     "application_type": "Reporting"
                 },
                 "process_arguments": [
-                    "1"
+                    "2"
                 ]
             },
             "deployment_config": {
@@ -112,10 +112,10 @@
                 "control_client_mock"
             ]
         },
-        "run_target_crash_on_startup_once": {
+        "run_target_crash_on_startup_twice": {
             "depends_on": [
                 "control_client_mock",
-                "process_crashing_on_startup_once"
+                "process_crashing_on_startup_twice"
             ]
         },
         "run_target_crash_on_startup_three_times": {

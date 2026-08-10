@@ -68,6 +68,16 @@ def get_failing_files(path: Path):
     return all_files, failing_files
 
 
+def get_testcase_property(path: Path, name: str) -> str:
+    """Returns the value of the `name` property recorded on the first testcase of the
+    given xml result file. gtest emits properties recorded via RecordProperty as
+    `<property name=... value=.../>` elements nested in the `<testcase>`."""
+    root = ElementTree.parse(str(path)).getroot()
+    prop = root.find(f".//testcase/properties/property[@name='{name}']")
+    assert prop is not None, f"Property '{name}' not found in {path.name}"
+    return prop.get("value")
+
+
 @pytest.fixture
 def assert_test_results(target, remote_test_dir, test_output_dir):
     """Returns a callable that downloads XML results and asserts the expected

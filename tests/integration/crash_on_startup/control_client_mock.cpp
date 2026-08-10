@@ -28,13 +28,13 @@ TEST(CrashOnStartup, ControlClientMock)
         score::mw::lifecycle::report_running();
     }
 
-    // Given a process that crashes on startup once, but is configured to retry twice - so it succeeds
-    TEST_STEP("Launch process crashing on startup once")
+    // Given a process that crashes on startup twice, but is configured to retry twice - so it succeeds
+    TEST_STEP("Launch process crashing on startup twice")
     {
         score::cpp::stop_token stop_token;
-        auto result = client.ActivateRunTarget("run_target_crash_on_startup_once").Get(stop_token);
+        auto result = client.ActivateRunTarget("run_target_crash_on_startup_twice").Get(stop_token);
         // Then, the LM should restart it and eventually succeed
-        EXPECT_TRUE(result.has_value()) << "Activating run_target_crash_on_startup_once failed: "
+        EXPECT_TRUE(result.has_value()) << "Activating run_target_crash_on_startup_twice failed: "
                                         << result.error().Message();
     }
 
