@@ -21,7 +21,8 @@ TEST(CrashOnStartup, ControlClientMock)
 {
     score::mw::lifecycle::ControlClient client;
 
-    ASSERT_TRUE(check_clean({crash_count_file, test_end_location, fallback_file}));
+    ASSERT_TRUE(check_clean(
+        {crashCountPath(1), crashCountPath(2), crashCountPath(3), test_end_location, fallback_file}));
 
     TEST_STEP("Report running")
     {
@@ -30,7 +31,8 @@ TEST(CrashOnStartup, ControlClientMock)
 
     // Given a process that crashes on startup n times, but is configured to retry n times - so it eventually
     // succeeds. The behaviour is identical for the different crash counts, so it is parameterized over the
-    // corresponding run targets.
+    // corresponding run targets. Each run target's process persists its crash count in its own file, so the
+    // run targets do not interfere with each other.
     for (const std::string_view run_target :
          {"run_target_crash_on_startup_two_times", "run_target_crash_on_startup_three_times"})
     {
@@ -46,9 +48,6 @@ TEST(CrashOnStartup, ControlClientMock)
         {
             EXPECT_FALSE(std::filesystem::exists(fallback_file)) << "Fallback run target should not be activated yet";
         }
-
-        EXPECT_TRUE(std::filesystem::remove(crash_count_file))
-            << "Count file must be removed successfully, before reused in the next run target";
     }
 
     // Given a process that crashes on startup but is not allowed to retry (number_of_attempts=0)

@@ -21,6 +21,8 @@
 #include "tests/utils/test_helper/test_helper.hpp"
 #include <score/mw/lifecycle/report_running.h>
 
+namespace
+{
 /// @brief Default number of times the process crashes before starting up successfully.
 constexpr int kDefaultCrashesUntilSuccess = 3;
 
@@ -47,13 +49,18 @@ void write_crash_count(const std::string_view file_path, const int count)
 /// which case the process must not report running.
 bool g_startup_successful = false;
 
+/// @brief Path to this invocation's crash count file, set in main() from the configured crash count. Every
+/// configured crash count gets its own file, so that concurrently configured processes do not share state.
+std::string g_crash_count_path;
+}  // namespace
+
 TEST(CrashOnStartup, ProcessCrashingOnStartupNTimes)
 {
     TEST_STEP("Record number of crashes so far")
     {
         // The crash count file holds the number of crashes that occurred, including the crash simulated by
         // this invocation (if any).
-        RecordProperty("crash_count", read_crash_count(crash_count_file));
+        RecordProperty("crash_count", read_crash_count(g_crash_count_path));
     }
 
     if (!g_startup_successful)
@@ -76,9 +83,8 @@ int main(int argc, char** argv)
         std::cout << "Usage: " << argv[0] << " [crashes_until_success]\n"
                   << "Crashes on startup the given number of times (default " << kDefaultCrashesUntilSuccess
                   << ") before starting up successfully.\n"
-                  << "The crash count is persisted across restarts in '" << crash_count_file << "'.\n"
-                  << "Each configuration writes its own report, e.g. '<name>_n_equals_<crashes_until_success>.xml'."
-                  << std::endl;
+                  << "Each configuration persists its crash count and writes its own report in files suffixed "
+                  << "with '_<crashes_until_success>'." << std::endl;
         return 0;
     }
 
@@ -90,13 +96,14 @@ int main(int argc, char** argv)
     // so that the report of a process crashing n times is not overwritten by one crashing a different number of times.
     const std::string report_path =
         std::filesystem::path{__FILE__}.stem().string() + "_n_equals_" + std::to_string(crashes_until_success);
+    g_crash_count_path = crashCountPath(crashes_until_success);
 
-    const int crash_count = read_crash_count(crash_count_file);
+    const int crash_count = read_crash_count(g_crash_count_path);
     if (crash_count < crashes_until_success)
     {
         std::cout << "Process crashing on startup (" << (crash_count + 1) << "/" << crashes_until_success << ")..."
                   << std::endl;
-        write_crash_count(crash_count_file, crash_count + 1);
+        write_crash_count(g_crash_count_path, crash_count + 1);
         // Write the report before crashing, so that even a process that is never allowed to start up
         // successfully (e.g. no retries) still produces its report.
         TestRunner(report_path, TerminationBehavior::kContinue).RunTests();

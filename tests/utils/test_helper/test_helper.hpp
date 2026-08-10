@@ -46,8 +46,15 @@ inline testing::AssertionResult touch_file(const std::string_view file_path)
 /// @brief Location to store a file signalling that the fallback state has been reached.
 constexpr std::string_view fallback_file = "fallback_reached";
 
-/// @brief Location to store the number of times a process has crashed so far - used to test ready recovery action
+/// @brief Prefix of the file storing the number of times a process has crashed so far - used to test ready
+/// recovery action
 constexpr std::string_view crash_count_file = "crash_count";
+
+/// @return File path to store the crash count for a process configured to crash `crashes_until_success` times
+inline std::string crashCountPath(const int crashes_until_success)
+{
+    return std::string{crash_count_file} + "_" + std::to_string(crashes_until_success);
+}
 
 /// @brief Where to store the test_end signal file. This must be kept consistent with where the test framework
 /// searches for files.
