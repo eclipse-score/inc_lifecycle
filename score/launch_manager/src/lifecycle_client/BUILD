@@ -12,6 +12,7 @@
 # *******************************************************************************
 load("@rules_cc//cc:defs.bzl", "cc_library")
 load("@score_baselibs//score/language/safecpp:toolchain_features.bzl", "COMPILER_WARNING_FEATURES")
+load("@score_docs_as_code//:docs.bzl", "docs_bundle")
 load("//tests/utils/bazel:unit_test.bzl", "lm_cc_test")
 
 cc_library(
@@ -248,4 +249,14 @@ lm_cc_test(
         ":runapplication",
         "@googletest//:gtest_main",
     ],
+)
+
+
+docs_bundle(
+    name = "docs",
+    source_dir = "docs",
+    code_targets = [
+        ":lifecycle_client",
+    ],
+    visibility = ["//visibility:public"],
 )

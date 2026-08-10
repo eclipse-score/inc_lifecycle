@@ -10,6 +10,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
+load("@score_docs_as_code//:docs.bzl", "docs_bundle")
 
 alias(
     name = "health_monitoring_cc",
@@ -20,5 +21,15 @@ alias(
 alias(
     name = "health_monitoring_rust",
     actual = "//score/health_monitor/src/rust:health_monitoring_lib",
+    visibility = ["//visibility:public"],
+)
+
+docs_bundle(
+    name = "docs",
+    source_dir = "docs",
+    code_targets = [
+        ":health_monitoring_cc",
+        ":health_monitoring_rust",
+    ],
     visibility = ["//visibility:public"],
 )

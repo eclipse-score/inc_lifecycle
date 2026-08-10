@@ -39,4 +39,4 @@ Subcomponents
 .. toctree::
    :titlesonly:
 
-   ../src/lifecycle_client/docs/index.rst
+   subcomponents/index

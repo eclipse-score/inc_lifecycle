@@ -21,12 +21,12 @@ Module / Feature Documentation
 .. toctree::
    :maxdepth: 1
 
-   docs/features/index
-   docs/manuals/index
-   docs/safety_mgt/index
-   docs/security_mgt/index
-   docs/release/index
-   docs/verification_report/statistics
+   features/index
+   manuals/index
+   safety_mgt/index
+   security_mgt/index
+   release/index
+   verification_report/statistics
 
 Component documentation
 ------------------------
@@ -34,8 +34,7 @@ Component documentation
 .. toctree::
    :maxdepth: 1
 
-   score/launch_manager/docs/index
-   score/health_monitor/docs/index
+   components/index
 
 
 .. _quick-start-building-testing:

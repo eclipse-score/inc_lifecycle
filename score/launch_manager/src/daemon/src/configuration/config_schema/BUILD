@@ -21,5 +21,5 @@ exports_files(
 filegroup(
     name = "config_schema_files",
     srcs = glob(["**/*.json"]),
-    visibility = ["//:__pkg__"],
+    visibility = ["//visibility:public"],
 )

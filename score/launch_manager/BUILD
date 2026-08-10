@@ -12,6 +12,7 @@
 # *******************************************************************************
 load("@rules_cc//cc:defs.bzl", "cc_library")
 load("//tests/utils/bazel:unit_test.bzl", "lm_cc_test")
+load("@score_docs_as_code//:docs.bzl", "docs_bundle")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -132,3 +133,20 @@ alias(
     actual = "//score/launch_manager/src/lifecycle_client:runapplication",
 )
 # END: Fine granular targets only needed for testing purposes
+
+
+docs_bundle(
+    name = "docs",
+    data = ["//score/launch_manager/src/daemon/src/configuration/config_schema:config_schema_files"],
+    source_dir = "docs",
+    code_targets = [
+        ":launch_manager",
+    ],
+    bundles = [
+        {
+            "bundle": "//score/launch_manager/src/lifecycle_client:docs",
+            "mount_at": "subcomponents/lifecycle_client",
+        },
+    ],
+    visibility = ["//visibility:public"],
+)

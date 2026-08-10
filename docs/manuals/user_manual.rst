@@ -115,7 +115,7 @@ Integrating with Your Project
 Version History, Compatibility, and Troubleshooting
 ===================================================
 
-For comprehensive information on the following topics, refer to :doc:`/docs/release/index`:
+For comprehensive information on the following topics, refer to :ref:`release_notes`:
 
 * Version history and changes
 * Compatibility notes and upgrade instructions
