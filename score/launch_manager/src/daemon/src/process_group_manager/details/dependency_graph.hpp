@@ -23,7 +23,7 @@
 namespace score::mw::lifecycle
 {
 
-using namespace score::lcm::internal;
+
 
 /// @brief Index type used to identify nodes in the graph.
 using GraphIndex = std::size_t;
@@ -186,7 +186,7 @@ class DependencyGraph
     std::vector<GraphNode> nodes;
 
     /// @brief Presized queue reused by single-threaded traversals.
-    FixedSizeQueue<GraphIndex> traversal_queue;
+    score::lcm::internal::FixedSizeQueue<GraphIndex> traversal_queue;
     /// @brief Presized visited set reused by single-threaded traversals.
     std::vector<bool> visited;
 };

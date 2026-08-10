@@ -33,6 +33,9 @@ namespace lcm
 namespace internal
 {
 
+using namespace score::mw::lifecycle;
+using namespace score::mw::lifecycle::internal;
+
 Graph::Graph(
     uint32_t max_num_nodes,
     ConfigurationInterface* configuration,

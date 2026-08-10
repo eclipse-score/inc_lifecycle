@@ -26,6 +26,8 @@ namespace lcm
 namespace internal
 {
 
+using namespace score::mw::lifecycle::internal;
+
 SafeProcessMap::SafeProcessMap(uint32_t capacity, IComponentController& termination_handler)
     : items_(std::make_unique<ProcessTreeNode[]>(capacity)), termination_handler_(termination_handler)
 {

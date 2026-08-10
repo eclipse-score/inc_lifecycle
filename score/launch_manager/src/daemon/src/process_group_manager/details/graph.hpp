@@ -48,13 +48,13 @@ namespace lcm
 namespace internal
 {
 
-using namespace score::mw::lifecycle;
+
 
 using ConfigurationInterface = ConfigurationAdapter;
 using Config = score::mw::launch_manager::configuration::Config;
 
 using WorkerQueue =
-    MPMCConcurrentQueue<std::optional<ComponentTask>, static_cast<std::size_t>(ProcessLimits::kMaxProcesses)>;
+    MPMCConcurrentQueue<std::optional<score::mw::lifecycle::internal::ComponentTask>, static_cast<std::size_t>(ProcessLimits::kMaxProcesses)>;
 
 /// @brief GraphState - the graph/process group state.
 /// @details Enumeration representing the state of the graph.
@@ -297,12 +297,12 @@ class Graph final
 
     /// @brief Reports that a node has finished executing, enqueuing successors or updating the graph state if a
     /// transition has finished.
-    void nodeExecuted(uint32_t node, score::cpp::expected_blank<IComponent::ComponentError> error);
+    void nodeExecuted(uint32_t node, score::cpp::expected_blank<score::mw::lifecycle::internal::IComponent::ComponentError> error);
 
     /// @brief Abort the current transition due to a process error.
     /// @deprecated @param code The execution error for the process that caused the abort.
     /// @param reason The process error that triggered the abort.
-    void abort(uint32_t code, IComponent::ComponentError reason);
+    void abort(uint32_t code, score::mw::lifecycle::internal::IComponent::ComponentError reason);
 
     /// @brief Sets the current state of the graph.
     /// @param new_state The new state to set for the graph.
@@ -338,7 +338,7 @@ class Graph final
     /// @brief Executes a RunTarget's activation/deactivation in place
     /// @details Since a RunTarget is a virtual node with no work to do
     /// and reports its completion to the current transition immediately.
-    void updateRunTargetInPlace(RunTarget& run_target, ComponentTaskType task_type);
+    void updateRunTargetInPlace(score::mw::lifecycle::internal::RunTarget& run_target, score::mw::lifecycle::internal::ComponentTaskType task_type);
 
     /// @brief Common tail of a transition that finished without error: moves the graph to
     /// kSuccess, posts kSetStateSuccess, and reports initial-state-transition success if this
@@ -358,16 +358,16 @@ class Graph final
 
     /// @brief Nodes for all unique processes in this process group, plus a virtual RunTarget node
     /// per configured ProcessGroupState.
-    DependencyGraph<std::variant<ProcessInfoNode, RunTarget>> nodes_;
+    score::mw::lifecycle::DependencyGraph<std::variant<ProcessInfoNode, score::mw::lifecycle::internal::RunTarget>> nodes_;
 
     /// @brief Maps a ProcessGroupState name to the index of its RunTarget node in @c nodes_.
     std::vector<std::pair<IdentifierHash, uint32_t>> run_targets_;
 
     /// @brief Builder for creating the transition object for the current state transition.
-    TransitionBuilder<std::variant<ProcessInfoNode, RunTarget>> transition_builder_;
+    score::mw::lifecycle::TransitionBuilder<std::variant<ProcessInfoNode, score::mw::lifecycle::internal::RunTarget>> transition_builder_;
 
     /// @brief The currently active transition or nullptr before the first one starts.
-    Transition<std::variant<ProcessInfoNode, RunTarget>>* current_transition_{nullptr};
+    score::mw::lifecycle::Transition<std::variant<ProcessInfoNode, score::mw::lifecycle::internal::RunTarget>>* current_transition_{nullptr};
 
     /// @brief Current state of the graph.
     GraphState state_{GraphState::kSuccess};

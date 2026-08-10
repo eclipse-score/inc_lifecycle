@@ -23,7 +23,7 @@
 namespace score::mw::lifecycle::internal
 {
 
-using namespace score::lcm;
+
 
 /// @brief A node finished activating successfully.
 struct [[nodiscard]] ActivationSuccessful
@@ -59,7 +59,7 @@ struct [[nodiscard]] JobSkipped
 /// @brief Alive supervision has failed for the given process identifier.
 struct [[nodiscard]] SupervisionFailure
 {
-    IdentifierHash process_identifier;
+    score::lcm::IdentifierHash process_identifier;
 };
 
 /// @brief A graph-relevant state change. There is only ever a single graph, so no process-group

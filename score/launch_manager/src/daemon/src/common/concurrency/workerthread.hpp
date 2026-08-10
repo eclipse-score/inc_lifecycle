@@ -25,7 +25,7 @@
 namespace score::lcm::internal
 {
 
-using namespace score::mw::lifecycle::internal;
+
 
 /// @brief Templated worker thread pool for executing jobs from a queue.
 /// This class manages a pool of worker threads that continuously retrieve and execute jobs
@@ -42,7 +42,7 @@ class WorkerThread final
     /// @param queue The MpmcQueue from which threads will take work items.
     /// @param num_threads Number of threads in the pool.
     /// @param component_controller_ The controller to delegate work to.
-    WorkerThread(std::shared_ptr<Queue> queue, uint32_t num_threads, IComponentController& component_controller)
+    WorkerThread(std::shared_ptr<Queue> queue, uint32_t num_threads, score::mw::lifecycle::internal::IComponentController& component_controller)
         : the_job_queue_(queue), component_controller_(component_controller)
     {
         worker_threads_.reserve(num_threads);
@@ -111,7 +111,7 @@ class WorkerThread final
     /// @brief The queue from which each thread takes work.
     std::shared_ptr<Queue> the_job_queue_{};
 
-    IComponentController& component_controller_;
+    score::mw::lifecycle::internal::IComponentController& component_controller_;
 
     /// @brief Vector of worker threads.
     std::vector<std::unique_ptr<std::thread>> worker_threads_{};

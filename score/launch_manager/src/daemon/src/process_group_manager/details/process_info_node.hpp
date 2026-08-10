@@ -30,7 +30,7 @@ namespace lcm
 namespace internal
 {
 
-using namespace score::mw::lifecycle::internal;
+
 
 using ReportStateFn = std::function<bool(IdentifierHash, ProcessState, timespec)>;
 
@@ -43,7 +43,7 @@ using ReportStateFn = std::function<bool(IdentifierHash, ProcessState, timespec)
 /// @note A Component and a Process have distinct state machines. The component may be in kActive state while the
 /// process is in kTerminated state, for example, if the process self-terminates after reaching its ready condition.
 ///       In the future, this class shall be split up to properly separate Component and Process lifecycle.
-class ProcessInfoNode final : public IComponent
+class ProcessInfoNode final : public score::mw::lifecycle::internal::IComponent
 {
   public:
     /// @brief The criteria for when a process is considered "ready"

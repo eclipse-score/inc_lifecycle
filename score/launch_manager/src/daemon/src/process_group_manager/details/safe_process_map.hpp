@@ -28,13 +28,13 @@ namespace lcm
 namespace internal
 {
 
-using namespace score::mw::lifecycle::internal;
+
 
 /// @brief Struct representing data in a map item
 struct ProcessInfoData
 {
     int32_t status_ = -1;        ///< Exit status for process
-    IComponent* pin_ = nullptr;  ///< Pointer to the termination callback associated with this item.
+    score::mw::lifecycle::internal::IComponent* pin_ = nullptr;  ///< Pointer to the termination callback associated with this item.
 };
 /// @brief Struct representing an item in the map.
 struct ProcessTreeNode
@@ -81,7 +81,7 @@ class SafeProcessMapInserter
     ///         kYield if the key was found (indicating the process has terminated), and updated with the provided
     ///         object, kInsertionError if an error occurred during insertion (e.g., out of memory), or kInvalidIdError
     ///         if the provided process ID (`key`) is not valid ( < 0).
-    virtual SafeProcessMapReturnType insertIfNotTerminated(osal::ProcessID key, IComponent* object) = 0;
+    virtual SafeProcessMapReturnType insertIfNotTerminated(osal::ProcessID key, score::mw::lifecycle::internal::IComponent* object) = 0;
 };
 
 /// @brief The SafeProcessMap class provides a thread-safe mapping of unique process IDs (ProcessID) to
@@ -112,7 +112,7 @@ class SafeProcessMap final : public SafeProcessMapInserter
 
     /// @brief Inserts a process into the map if it has not already terminated.
     /// @see SafeProcessMapInserter::insertIfNotTerminated() for details
-    SafeProcessMapReturnType insertIfNotTerminated(osal::ProcessID key, IComponent* object) override;
+    SafeProcessMapReturnType insertIfNotTerminated(osal::ProcessID key, score::mw::lifecycle::internal::IComponent* object) override;
 
   private:
     /// @brief Searches for a process with the given process ID (key) in the map.
