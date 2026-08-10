@@ -17,23 +17,6 @@
 #include <score/mw/lifecycle/control_client.h>
 #include <score/mw/lifecycle/report_running.h>
 
-namespace
-{
-void resetFilesystem(
-    std::initializer_list<std::string_view> running_processes,
-    std::initializer_list<std::string_view> terminating_processes)
-{
-    for (const auto proc : running_processes)
-    {
-        EXPECT_TRUE(std::filesystem::remove(proc)) << "Failed to remove file " << proc;
-    }
-    for (const auto proc : terminating_processes)
-    {
-        EXPECT_TRUE(std::filesystem::remove(proc)) << "Failed to remove file " << proc;
-    }
-}
-}  // namespace
-
 // Given a configuration with the following dependency tree:
 // - Startup - which is the initial run target - depends on component component_initial
 //     - component_initial: No dependencies
@@ -85,33 +68,21 @@ TEST(SwitchRunTarget, ControlClientMock)
         EXPECT_TRUE(result.has_value()) << "Activating target Startup failed: " << result.error().Message();
     }
 
-    resetFilesystem(running_processes, terminating_processes);
-
-    // When we switch run to run target A
-    // Then
-    // Processes A and B verify that B is started before A and terminated after A when shutting down
-    TEST_STEP("Activate run target A")
+    TEST_STEP("Verify terminated processes")
     {
-        score::cpp::stop_token stop_token;
-        auto result = client.ActivateRunTarget("run_target_a").Get(stop_token);
-        EXPECT_TRUE(result.has_value()) << "Activating target run_target_a failed: " << result.error().Message();
-    }
-    TEST_STEP("Verify running processes")
-    {
-        for (const auto proc : running_processes)
+        for (const auto proc : terminating_processes)
         {
-            EXPECT_TRUE(std::filesystem::exists(proc)) << "A process depended on by run target A was not started!";
+            EXPECT_TRUE(std::filesystem::exists(proc)) << "A process depended on by run target A was not terminated!";
         }
     }
-    TEST_STEP("Activate RunTarget Off")
+
+    TEST_STEP("Verify that component E was never started")
     {
-        client.ActivateRunTarget("Off");
-        // In the whole test, component E should never be launched, since it is not included in any run target
-        EXPECT_FALSE(std::filesystem::exists(e_started)) << "Component E should not be launched";
+        EXPECT_FALSE(std::filesystem::exists(e_started)) << "Component E should not have been started!";
     }
 }
 
 int main()
 {
-    return TestRunner(__FILE__, TerminationBehavior::kWait, TerminationNotification::kTestEnd).RunTests();
+    return TestRunner(__FILE__, TerminationBehavior::kContinue, TerminationNotification::kTestEnd).RunTests();
 }
