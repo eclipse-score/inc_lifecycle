@@ -20,7 +20,7 @@
 #include <cstdint>
 
 #include "score/mw/launch_manager/alive_monitor/details/common/Observer.hpp"
-#include "score/mw/launch_manager/alive_monitor/details/ifexm/ProcessState.hpp"
+#include "score/mw/launch_manager/alive_monitor/details/ifexm/ObservableEvent.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
 
 namespace score
@@ -57,7 +57,7 @@ class Checkpoint : public saf::common::Observable<Checkpoint>
     Checkpoint(
         const char* const f_checkpointCfgName_p,
         const uint32_t f_checkpointId,
-        const ifexm::ProcessState* f_processState_p) noexcept(false);
+        const ifexm::ObservableEvent* f_processState_p) noexcept(false);
 
     /// @brief Default Move Constructor
     /// Cannot be noexcept, since the base class move constructor is not noexcept
@@ -99,8 +99,8 @@ class Checkpoint : public saf::common::Observable<Checkpoint>
     std::string_view getConfigName(void) const noexcept(true);
 
     /// @brief Return the process that is reporting this checkpoint
-    /// @return process state
-    const ifexm::ProcessState* getProcess(void) const noexcept(true);
+    /// @return observable event
+    const ifexm::ObservableEvent* getProcess(void) const noexcept(true);
 
   private:
     /// @brief Name of the corresponding configured SupervisionCheckpoint
@@ -110,7 +110,7 @@ class Checkpoint : public saf::common::Observable<Checkpoint>
     const uint32_t k_checkpointId;
 
     /// @brief The process that is reporting this checkpoint
-    const ifexm::ProcessState* processState;
+    const ifexm::ObservableEvent* processState;
 
     /// @brief Data loss event marker
     bool isDataLossEvent;

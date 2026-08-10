@@ -35,8 +35,8 @@ namespace saf
 // Forward declarations
 namespace ifexm
 {
-class ProcessState;
-class ProcessStateReader;
+class ObservableEvent;
+class ObservableEventReader;
 }  // namespace ifexm
 
 namespace ifappl
@@ -75,13 +75,13 @@ class IPhmFactory
     /// @brief No Move Assignment
     IPhmFactory& operator=(IPhmFactory&&) = delete;
 
-    /// @brief Create Process States
-    /// @param [out] f_processStates_r      Vector of created Process States
+    /// @brief Create Observable Events
+    /// @param [out] f_processStates_r      Vector of created Observable Events
     /// @param [in] f_processStateReader_r  Process state reader object for PHM daemon
     /// @return                             Object creation successful (true), otherwise failed (false)
-    virtual bool createProcessStates(
-        std::vector<ifexm::ProcessState>& f_processStates_r,
-        ifexm::ProcessStateReader& f_processStateReader_r) = 0;
+    virtual bool createObservableEvents(
+        std::vector<ifexm::ObservableEvent>& f_processStates_r,
+        ifexm::ObservableEventReader& f_processStateReader_r) = 0;
 
     /// @brief Create IPCs for Alive Interfaces
     /// @param [out] f_interfaceIpcs_r  Vector of created Alive Interface IPCs
@@ -91,34 +91,34 @@ class IPhmFactory
     /// @brief Create Alive Interfaces
     /// @param [out] f_interfaces_r         Vector of created Alive Interfaces
     /// @param [in] f_interfaceIpcs_r       Vector of Alive Interface IPCs required for interface creation.
-    /// @param [in,out] f_processStates_r   Vector of Process States
+    /// @param [in,out] f_processStates_r   Vector of Observable Events
     /// @return                             Object creation successful (true), otherwise failed (false)
     virtual bool createAliveIf(
         std::vector<ifappl::MonitorIfDaemon>& f_interfaces_r,
         std::vector<ifappl::CheckpointIpcServer>& f_interfaceIpcs_r,
-        std::vector<ifexm::ProcessState>& f_processStates_r) = 0;
+        std::vector<ifexm::ObservableEvent>& f_processStates_r) = 0;
 
     /// @brief Create Supervision Checkpoints
     /// @param [out] f_checkpoints_r    Vector of created Supervision Checkpoints
     /// @param [in,out] f_interfaces_r  Vector of Alive Interfaces required for attaching the checkpoints.
-    /// @param [in] f_processStates_r   Vector of ProcessStates required for constructing the Checkpoint
+    /// @param [in] f_processStates_r   Vector of ObservableEvents required for constructing the Checkpoint
     /// instances.
     /// @return                         Object creation successful (true), otherwise failed (false)
     virtual bool createSupervisionCheckpoints(
         std::vector<ifappl::Checkpoint>& f_checkpoints_r,
         std::vector<ifappl::MonitorIfDaemon>& f_interfaces_r,
-        std::vector<ifexm::ProcessState>& f_processStates_r) = 0;
+        std::vector<ifexm::ObservableEvent>& f_processStates_r) = 0;
 
     /// @brief Create alive supervision worker objects
     /// @param [out] f_alive_r              Vector of created alive supervision worker
     /// @param [in,out] f_checkpoints_r     Vector of Supervision Checkpoints
-    /// @param [in,out] f_processStates_r   Vector of Process States
+    /// @param [in,out] f_processStates_r   Vector of Observable Events
     /// @param [in] f_recoveryClient_r      Recovery interface invoked when a supervision expires
     /// @return                             Object creation successful (true), otherwise failed (false)
     virtual bool createAliveSupervisions(
         std::vector<supervision::Alive>& f_alive_r,
         std::vector<ifappl::Checkpoint>& f_checkpoints_r,
-        std::vector<ifexm::ProcessState>& f_processStates_r,
+        std::vector<ifexm::ObservableEvent>& f_processStates_r,
         std::shared_ptr<score::lcm::IRecoveryClient> f_recoveryClient_r) = 0;
 };
 

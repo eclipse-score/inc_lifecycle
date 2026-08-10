@@ -20,7 +20,7 @@
 #include "score/mw/launch_manager/alive_monitor/details/common/Observer.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/common/TimeSortingBuffer.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifappl/Checkpoint.hpp"
-#include "score/mw/launch_manager/alive_monitor/details/ifexm/ProcessState.hpp"
+#include "score/mw/launch_manager/alive_monitor/details/ifexm/ObservableEvent.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/supervision/ISupervision.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/supervision/SupervisionCfg.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
@@ -54,7 +54,7 @@ namespace supervision
 class Alive : public ISupervision,
               public saf::common::Observable<Alive>,
               public saf::common::Observer<ifappl::Checkpoint>,
-              public saf::common::Observer<ifexm::ProcessState>
+              public saf::common::Observer<ifexm::ObservableEvent>
 {
   public:
     /// @brief No Default Constructor
@@ -103,11 +103,11 @@ class Alive : public ISupervision,
     /// @param [in] f_observable_r     Checkpoint object which has sent the update
     void updateData(const ifappl::Checkpoint& f_observable_r) noexcept(true) override;
 
-    /// @brief Update data received for process states
-    /// @details Activation event or deactivation event is inserted into buffer if process state and process group
+    /// @brief Update data received for observable events
+    /// @details Activation event or deactivation event is inserted into buffer if observable event and process group
     /// state changed.
     /// @param [in] f_observable_r     Process state object which has sent the update
-    void updateData(const ifexm::ProcessState& f_observable_r) noexcept(true) override;
+    void updateData(const ifexm::ObservableEvent& f_observable_r) noexcept(true) override;
 
     /// @copydoc ISupervision::evaluate()
     void evaluate(const timers::NanoSecondType f_syncTimestamp) override;

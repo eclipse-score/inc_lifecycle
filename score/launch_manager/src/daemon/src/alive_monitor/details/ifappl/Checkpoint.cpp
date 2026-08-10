@@ -25,7 +25,7 @@ namespace ifappl
 Checkpoint::Checkpoint(
     const char* const f_checkpointCfgName_p,
     const uint32_t f_checkpointId,
-    const ifexm::ProcessState* f_processState_p) noexcept(false)
+    const ifexm::ObservableEvent* f_processState_p) noexcept(false)
     : Observable<Checkpoint>(),
       k_configName(f_checkpointCfgName_p),
       k_checkpointId(f_checkpointId),
@@ -74,7 +74,7 @@ std::string_view Checkpoint::getConfigName(void) const noexcept(true)
     return k_configName;
 }
 
-const ifexm::ProcessState* Checkpoint::getProcess(void) const noexcept(true)
+const ifexm::ObservableEvent* Checkpoint::getProcess(void) const noexcept(true)
 {
     return processState;
 }

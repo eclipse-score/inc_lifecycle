@@ -28,7 +28,7 @@ namespace saf
 {
 namespace ifexm
 {
-class ProcessState;
+class ObservableEvent;
 }
 namespace supervision
 {
@@ -42,7 +42,7 @@ namespace ifappl
 /// @brief Alive Interface for PHM Deamon
 /// @details The MonitorIfDaemon class provides methods to write/read information to the
 /// data exchange between PHM daemon and Application, which are only required on PHM Daemon side.
-class MonitorIfDaemon : public common::Observer<ifexm::ProcessState>
+class MonitorIfDaemon : public common::Observer<ifexm::ObservableEvent>
 {
   public:
     /// @brief No Default Constructor
@@ -88,9 +88,9 @@ class MonitorIfDaemon : public common::Observer<ifexm::ProcessState>
     /// @throws std::bad_alloc in case of insufficient memory for vector allocation
     void attachCheckpoint(Checkpoint& f_checkpoint_r) noexcept(false);
 
-    /// @brief Update data received from ProcessState
-    /// @param [in]  f_observable_r ProcessState object which has send the update
-    void updateData(const ifexm::ProcessState& f_observable_r) noexcept(true) override;
+    /// @brief Update data received from ObservableEvent
+    /// @param [in]  f_observable_r ObservableEvent object which has send the update
+    void updateData(const ifexm::ObservableEvent& f_observable_r) noexcept(true) override;
 
     /// @brief Check for new data
     /// @details Check Alive interface for new data from application side

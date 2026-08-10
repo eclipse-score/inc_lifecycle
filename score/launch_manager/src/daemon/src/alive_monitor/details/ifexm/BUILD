@@ -13,9 +13,9 @@
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
 cc_library(
-    name = "process_state",
-    srcs = ["ProcessState.cpp"],
-    hdrs = ["ProcessState.hpp"],
+    name = "observable_event",
+    srcs = ["ObservableEvent.cpp"],
+    hdrs = ["ObservableEvent.hpp"],
     include_prefix = "score/mw/launch_manager/alive_monitor/details/ifexm",
     strip_include_prefix = "/score/launch_manager/src/daemon/src/alive_monitor/details/ifexm",
     visibility = ["//score/launch_manager/src/daemon/src/alive_monitor:__subpackages__"],
@@ -27,14 +27,14 @@ cc_library(
 )
 
 cc_library(
-    name = "process_state_reader",
-    srcs = ["ProcessStateReader.cpp"],
-    hdrs = ["ProcessStateReader.hpp"],
+    name = "observable_event_reader",
+    srcs = ["ObservableEventReader.cpp"],
+    hdrs = ["ObservableEventReader.hpp"],
     include_prefix = "score/mw/launch_manager/alive_monitor/details/ifexm",
     strip_include_prefix = "/score/launch_manager/src/daemon/src/alive_monitor/details/ifexm",
     visibility = ["//score/launch_manager/src/daemon/src/alive_monitor:__subpackages__"],
     deps = [
-        ":process_state",
+        ":observable_event",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/timers:time_conversion",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/timers:timers_os_clock",
         "//score/launch_manager/src/daemon/src/common:log",

@@ -45,7 +45,7 @@ class AliveMonitorImpl : public IAliveMonitor
   public:
     AliveMonitorImpl(
         SptrIRecoveryClient recovery_client,
-        UptrISupervisionControlReceiver process_state_receiver,
+        UptrISupervisionControlReceiver observable_event_receiver,
         const Config& config);
 
     EInitCode init() noexcept override;
@@ -56,7 +56,7 @@ class AliveMonitorImpl : public IAliveMonitor
     SptrIRecoveryClient m_recovery_client{nullptr};
     UptrPhmDaemon m_daemon{nullptr};
     OsClock m_osClock{};
-    UptrISupervisionControlReceiver m_process_state_receiver;
+    UptrISupervisionControlReceiver m_observable_event_receiver;
     AliveMonitorConfig m_config;
 };
 

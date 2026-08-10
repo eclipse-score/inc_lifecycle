@@ -11,12 +11,12 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#ifndef PROCESSSTATEREADER_HPP_INCLUDED
-#define PROCESSSTATEREADER_HPP_INCLUDED
+#ifndef OBSERVABLEEVENTREADER_HPP_INCLUDED
+#define OBSERVABLEEVENTREADER_HPP_INCLUDED
 
 #include <map>
 
-#include "score/mw/launch_manager/alive_monitor/details/ifexm/ProcessState.hpp"
+#include "score/mw/launch_manager/alive_monitor/details/ifexm/ObservableEvent.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
 #include "score/mw/launch_manager/supervision_control_client/isupervision_control_receiver.hpp"
 #include "score/mw/launch_manager/supervision_control_client/supervision_event.hpp"
@@ -30,43 +30,43 @@ namespace saf
 namespace ifexm
 {
 
-/// @brief Process State reader
-/// @details The Process State reader fetches supervision events via the lcm library and distributes
-/// the information to the Process State classes.
-class ProcessStateReader
+/// @brief Observable Event reader
+/// @details The Observable Event reader fetches supervision events via the lcm library and distributes
+/// the information to the Observable Event classes.
+class ObservableEventReader
 {
   public:
     using LcmSupervisionEvent = score::lcm::SupervisionEvent;
     using LcmSupervisionControlReceiver = score::lcm::ISupervisionControlReceiver;
 
     /// @brief Constructor
-    /// @param [in] f_process_state_receiver   Process state receiver implementation
-    ProcessStateReader(std::unique_ptr<LcmSupervisionControlReceiver> f_process_state_receiver);
+    /// @param [in] f_observable_event_receiver   Process state receiver implementation
+    ObservableEventReader(std::unique_ptr<LcmSupervisionControlReceiver> f_observable_event_receiver);
 
     /// @brief No Copy Constructor
-    ProcessStateReader(const ProcessStateReader&) = delete;
+    ObservableEventReader(const ObservableEventReader&) = delete;
     /// @brief No Move Constructor
-    ProcessStateReader(ProcessStateReader&&) = delete;
+    ObservableEventReader(ObservableEventReader&&) = delete;
     /// @brief No Copy Assignment
-    ProcessStateReader& operator=(const ProcessStateReader&) = delete;
+    ObservableEventReader& operator=(const ObservableEventReader&) = delete;
     /// @brief No Move Assignment
-    ProcessStateReader& operator=(ProcessStateReader&&) = delete;
+    ObservableEventReader& operator=(ObservableEventReader&&) = delete;
 
     /// @brief Default Destructor
-    virtual ~ProcessStateReader() = default;
+    virtual ~ObservableEventReader() = default;
 
-    /// @brief Register process states for reader
+    /// @brief Register observable events for reader
     /// @param [in]  f_processState_r   Process state to be registered
     /// @param [in]  f_processId        Process ID
     /// @return     true (registered), false (not registered)
-    bool registerProcessState(ProcessState& f_processState_r, const IdentifierHash f_processId) noexcept(false);
+    bool registerObservableEvent(ObservableEvent& f_processState_r, const IdentifierHash f_processId) noexcept(false);
 
-    /// @brief Deregister process states from reader
+    /// @brief Deregister observable events from reader
     /// @param [in]  f_processId        Process ID to deregister the particular process
-    void deregisterProcessState(const IdentifierHash f_processId) noexcept;
+    void deregisterObservableEvent(const IdentifierHash f_processId) noexcept;
 
     /// @brief Distribute changes
-    /// @details Distribute supervision events to the registered Process State classes
+    /// @details Distribute supervision events to the registered Observable Event classes
     /// @param [in] f_syncTimestamp   Timestamp for cyclic synchronization
     /// @return     true (successful distribution), false (failed distribution)
     bool distributeChanges(const timers::NanoSecondType f_syncTimestamp) noexcept;
@@ -81,14 +81,14 @@ class ProcessStateReader
     /// @brief Process state receiver for HM thread
     std::unique_ptr<LcmSupervisionControlReceiver> processStateReceiverHM;
 
-    /// @brief Map for process id and process state object
-    std::map<IdentifierHash, ProcessState*> processStateMap{};
+    /// @brief Map for process id and observable event object
+    std::map<IdentifierHash, ObservableEvent*> processStateMap{};
 
-    /// @brief Flag for pending pushData from previous distribution of process state changes
+    /// @brief Flag for pending pushData from previous distribution of observable event changes
     bool isPushPending{false};
 
     /// @brief Pointer for last changed process for which push update is pending
-    ProcessState* lastChangedProcess_p{nullptr};
+    ObservableEvent* lastChangedProcess_p{nullptr};
 };
 
 }  // namespace ifexm

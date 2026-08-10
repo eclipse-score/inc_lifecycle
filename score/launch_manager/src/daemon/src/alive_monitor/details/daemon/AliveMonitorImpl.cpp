@@ -29,10 +29,10 @@ namespace daemon
 
 AliveMonitorImpl::AliveMonitorImpl(
     SptrIRecoveryClient recovery_client,
-    UptrISupervisionControlReceiver process_state_receiver,
+    UptrISupervisionControlReceiver observable_event_receiver,
     const Config& config)
     : m_recovery_client(recovery_client),
-      m_process_state_receiver(std::move(process_state_receiver)),
+      m_observable_event_receiver(std::move(observable_event_receiver)),
       m_config(score::mw::lifecycle::internal::alive::aliveMonitorConfig(config))
 {
 }
@@ -44,7 +44,7 @@ EInitCode AliveMonitorImpl::init() noexcept
     {
         m_osClock.startMeasurement();
 
-        m_daemon = std::make_unique<PhmDaemon>(m_osClock, std::move(m_process_state_receiver));
+        m_daemon = std::make_unique<PhmDaemon>(m_osClock, std::move(m_observable_event_receiver));
         initResult = m_daemon->init(m_recovery_client, m_config);
 
         if (initResult == EInitCode::kNoError)

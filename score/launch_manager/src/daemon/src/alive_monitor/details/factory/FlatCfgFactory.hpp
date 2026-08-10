@@ -19,7 +19,7 @@
 #include "score/mw/launch_manager/alive_monitor/details/common/AliveMonitorConfig.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/factory/IPhmFactory.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/factory/StaticConfig.hpp"
-#include "score/mw/launch_manager/alive_monitor/details/ifexm/ProcessStateReader.hpp"
+#include "score/mw/launch_manager/alive_monitor/details/ifexm/ObservableEventReader.hpp"
 #include <string>
 #include <vector>
 
@@ -73,9 +73,9 @@ class FlatCfgFactory : public IPhmFactory
     bool init(const std::vector<SupervisedComponentConfig>& supervised);
 
     /// @brief Refer to the description of the base class (IPhmFactory)
-    bool createProcessStates(
-        std::vector<ifexm::ProcessState>& f_processStates_r,
-        ifexm::ProcessStateReader& f_processStateReader_r) override;
+    bool createObservableEvents(
+        std::vector<ifexm::ObservableEvent>& f_processStates_r,
+        ifexm::ObservableEventReader& f_processStateReader_r) override;
 
     /// Refer to the description of the base class (IPhmFactory)
     bool createAliveIfIpcs(std::vector<ifappl::CheckpointIpcServer>& f_interfaceIpcs_r) override;
@@ -84,19 +84,19 @@ class FlatCfgFactory : public IPhmFactory
     bool createAliveIf(
         std::vector<ifappl::MonitorIfDaemon>& f_interfaces_r,
         std::vector<ifappl::CheckpointIpcServer>& f_interfaceIpcs_r,
-        std::vector<ifexm::ProcessState>& f_processStates_r) override;
+        std::vector<ifexm::ObservableEvent>& f_processStates_r) override;
 
     /// Refer to the description of the base class (IPhmFactory)
     bool createSupervisionCheckpoints(
         std::vector<ifappl::Checkpoint>& f_checkpoints_r,
         std::vector<ifappl::MonitorIfDaemon>& f_interfaces_r,
-        std::vector<ifexm::ProcessState>& f_processStates_r) override;
+        std::vector<ifexm::ObservableEvent>& f_processStates_r) override;
 
     /// Refer to the description of the base class (IPhmFactory)
     bool createAliveSupervisions(
         std::vector<supervision::Alive>& f_alive_r,
         std::vector<ifappl::Checkpoint>& f_checkpoints_r,
-        std::vector<ifexm::ProcessState>& f_processStates_r,
+        std::vector<ifexm::ObservableEvent>& f_processStates_r,
         std::shared_ptr<score::lcm::IRecoveryClient> f_recoveryClient_r) override;
 
   private:

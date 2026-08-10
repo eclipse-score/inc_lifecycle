@@ -11,7 +11,7 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include "score/mw/launch_manager/alive_monitor/details/ifexm/ProcessState.hpp"
+#include "score/mw/launch_manager/alive_monitor/details/ifexm/ObservableEvent.hpp"
 
 namespace score
 {
@@ -22,13 +22,12 @@ namespace saf
 namespace ifexm
 {
 
-ProcessState::ProcessState(const IdentifierHash& process_id) noexcept(false)
-    : Observable<ProcessState>()
+ObservableEvent::ObservableEvent(const IdentifierHash& process_id) noexcept(false) : Observable<ObservableEvent>()
 {
     event.id = process_id;
 }
 
-void ProcessState::pushData(void) noexcept
+void ObservableEvent::pushData(void) noexcept
 {
     pushResultToObservers();
 }

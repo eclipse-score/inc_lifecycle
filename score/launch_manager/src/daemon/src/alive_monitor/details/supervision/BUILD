@@ -20,7 +20,7 @@ cc_library(
     strip_include_prefix = "/score/launch_manager/src/daemon/src/alive_monitor/details/supervision",
     visibility = ["//score/launch_manager/src/daemon/src/alive_monitor:__subpackages__"],
     deps = [
-        "//score/launch_manager/src/daemon/src/alive_monitor/details/ifexm:process_state",
+        "//score/launch_manager/src/daemon/src/alive_monitor/details/ifexm:observable_event",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/timers:timers_os_clock",
     ],
 )
@@ -49,7 +49,7 @@ cc_library(
         ":supervision_cfg",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/common:time_sorting_buffer",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/ifappl:checkpoint",
-        "//score/launch_manager/src/daemon/src/alive_monitor/details/ifexm:process_state",
+        "//score/launch_manager/src/daemon/src/alive_monitor/details/ifexm:observable_event",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/timers:timers_os_clock",
         "//score/launch_manager/src/daemon/src/common:log",
         "//score/launch_manager/src/daemon/src/recovery_client",

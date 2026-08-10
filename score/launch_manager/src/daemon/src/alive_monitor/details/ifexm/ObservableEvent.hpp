@@ -11,8 +11,8 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#ifndef PROCESSSTATE_HPP_INCLUDED
-#define PROCESSSTATE_HPP_INCLUDED
+#ifndef OBSERVABLEEVENT_HPP_INCLUDED
+#define OBSERVABLEEVENT_HPP_INCLUDED
 
 #include "score/mw/launch_manager/alive_monitor/details/common/Observer.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
@@ -29,16 +29,16 @@ namespace saf
 namespace ifexm
 {
 
-/// @brief Process State
-/// @details The Process State class dispatches supervision events to the attached observers.
-class ProcessState : public saf::common::Observable<ProcessState>
+/// @brief Observable Event
+/// @details The Observable Event class dispatches supervision events to the attached observers.
+class ObservableEvent : public saf::common::Observable<ObservableEvent>
 {
   public:
     /// @brief No Default Constructor.
-    ProcessState() = delete;
+    ObservableEvent() = delete;
 
     /// @brief Constructor
-    explicit ProcessState(const IdentifierHash& process_id) noexcept(false);
+    explicit ObservableEvent(const IdentifierHash& process_id) noexcept(false);
 
     /// @brief Default Move Constructor
     /* RULECHECKER_comment(0, 7, check_min_instructions, "Default constructor is not provided\
@@ -47,19 +47,19 @@ class ProcessState : public saf::common::Observable<ProcessState>
        the member initializer", false) */
     /* RULECHECKER_comment(0, 3, check_copy_in_move_constructor, "The default move constructor invokes parameterised\
        constructor internally. This invokes std::string copy construction", true_no_defect) */
-    ProcessState(ProcessState&&) = default;
+    ObservableEvent(ObservableEvent&&) = default;
 
     /// @brief No Copy Constructor
-    ProcessState(const ProcessState&) = delete;
+    ObservableEvent(const ObservableEvent&) = delete;
     /// @brief No Copy Assignment
-    ProcessState& operator=(const ProcessState&) = delete;
+    ObservableEvent& operator=(const ObservableEvent&) = delete;
     /// @brief No Move Assignment
-    ProcessState& operator=(ProcessState&&) = delete;
+    ObservableEvent& operator=(ObservableEvent&&) = delete;
 
     /// @brief Default Destructor
     /* RULECHECKER_comment(0, 5, check_min_instructions, "Default destructor is not provided\
        a function body", true_no_defect) */
-    ~ProcessState() override = default;
+    ~ObservableEvent() override = default;
 
     /// @brief Event to observe
     SupervisionEvent event;

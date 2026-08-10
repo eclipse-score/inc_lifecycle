@@ -18,7 +18,7 @@
 #include <optional>
 
 #include "score/mw/launch_manager/alive_monitor/details/ifappl/Checkpoint.hpp"
-#include "score/mw/launch_manager/alive_monitor/details/ifexm/ProcessState.hpp"
+#include "score/mw/launch_manager/alive_monitor/details/ifexm/ObservableEvent.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/supervision/Alive.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/supervision/SupervisionCfg.hpp"
 #include "score/mw/launch_manager/common/identifier_hash.hpp"
@@ -50,7 +50,7 @@ class MockRecoveryClient : public score::lcm::IRecoveryClient
 /// Owns all supporting objects so they outlive the Alive.
 struct AliveFixture
 {
-    inline static const score::lcm::IdentifierHash kProcessId {"42U"};
+    inline static const score::lcm::IdentifierHash kProcessId{"42U"};
     static constexpr char kCheckpointName[] = "test_cp";
 
     struct Builder
@@ -91,13 +91,12 @@ struct AliveFixture
 
     std::shared_ptr<MockRecoveryClient> mockClient = std::make_shared<MockRecoveryClient>();
 
-    score::lcm::saf::ifexm::ProcessState processState;
+    score::lcm::saf::ifexm::ObservableEvent processState;
     score::lcm::saf::ifappl::Checkpoint checkpoint;
 
     std::unique_ptr<score::lcm::saf::supervision::Alive> alive;
 
-    explicit AliveFixture(const Builder& bld)
-        : processState(kProcessId), checkpoint(kCheckpointName, 1U, &processState)
+    explicit AliveFixture(const Builder& bld) : processState(kProcessId), checkpoint(kCheckpointName, 1U, &processState)
     {
         score::lcm::saf::supervision::AliveSupervisionCfg cfg{checkpoint};
         cfg.cfgName_p = "test_alive";

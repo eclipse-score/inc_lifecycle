@@ -16,8 +16,8 @@
 
 #include "score/mw/launch_manager/alive_monitor/details/factory/StaticConfig.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifappl/DataStructures.hpp"
-#include "score/mw/launch_manager/alive_monitor/details/ifexm/ProcessState.hpp"
-#include "score/mw/launch_manager/alive_monitor/details/ifexm/ProcessStateReader.hpp"
+#include "score/mw/launch_manager/alive_monitor/details/ifexm/ObservableEvent.hpp"
+#include "score/mw/launch_manager/alive_monitor/details/ifexm/ObservableEventReader.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
 
 #include "score/mw/launch_manager/alive_monitor/details/common/AliveMonitorConfig.hpp"
@@ -97,7 +97,7 @@ class SwClusterHandler
     bool constructWorkers(
         const AliveMonitorConfig& config,
         std::shared_ptr<score::lcm::IRecoveryClient> f_recoveryClient_r,
-        ifexm::ProcessStateReader& f_processStateReader_r,
+        ifexm::ObservableEventReader& f_processStateReader_r,
         const factory::SupervisionBufferConfig& f_bufferConfig_r) noexcept(false);
 
     /// @brief Perform cyclic execution
@@ -124,7 +124,7 @@ class SwClusterHandler
     const std::string f_swClusterName;
 
     /// Vector of Process states
-    std::vector<ifexm::ProcessState> processStates;
+    std::vector<ifexm::ObservableEvent> processStates;
 
     /// Vector of Alive Interface IPCs
     std::vector<ifappl::CheckpointIpcServer> aliveIfIpcs;

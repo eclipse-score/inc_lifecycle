@@ -17,9 +17,9 @@
 #include <string_view>
 
 #include "score/launch_manager/src/daemon/src/common/log.hpp"
-#include "score/mw/launch_manager/alive_monitor/details/ifexm/ProcessState.hpp"
-#include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
+#include "score/mw/launch_manager/alive_monitor/details/ifexm/ObservableEvent.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/TimeConversion.hpp"
+#include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
 
 namespace score
 {
@@ -76,9 +76,10 @@ void Alive::updateData(const score::lcm::saf::ifappl::Checkpoint& f_observable_r
 }
 
 // coverity[exn_spec_violation:FALSE] std::length_error is not thrown from push() which uses fixed-size-vector
-void Alive::updateData(const ifexm::ProcessState& f_observable_r) noexcept(true)
+void Alive::updateData(const ifexm::ObservableEvent& f_observable_r) noexcept(true)
 {
-    const timers::NanoSecondType timestamp{timers::TimeConversion::convertToNanoSec(f_observable_r.event.systemClockTimestamp)};
+    const timers::NanoSecondType timestamp{
+        timers::TimeConversion::convertToNanoSec(f_observable_r.event.systemClockTimestamp)};
     SupervisionEventSnapshot snapshot{timestamp, f_observable_r.event.eventType};
     if (!timeSortingUpdateEventBuffer.push(snapshot, timestamp))
     {
@@ -215,7 +216,7 @@ bool Alive::detectEvaluationEvent(
         return false;
     }
 
-    // Case 1: Evaluation event exists: If referenceCycleEnd exists before current checkpoint event or process state
+    // Case 1: Evaluation event exists: If referenceCycleEnd exists before current checkpoint event or observable event
     // event, trigger evaluation event for assessing alive checkpoints
 
     // Hint 1: If there are multiple reference cycles within single daemon cycle, referenceCycleEnd must increase
@@ -244,7 +245,7 @@ bool Alive::detectEvaluationEvent(
     }
 
     // Case 2: Evaluation event does not exist: If referenceCycleEnd exists after current checkpoint event or
-    // process state event, consider current event for activation/deactivation/counting in next steps. Do not
+    // observable event event, consider current event for activation/deactivation/counting in next steps. Do not
     // trigger evaluation event for this case.
 
     else

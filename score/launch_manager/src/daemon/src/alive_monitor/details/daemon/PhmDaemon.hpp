@@ -23,7 +23,7 @@
 #include "score/mw/launch_manager/alive_monitor/details/daemon/PhmDaemonConfig.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/daemon/SwClusterHandler.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/factory/StaticConfig.hpp"
-#include "score/mw/launch_manager/alive_monitor/details/ifexm/ProcessStateReader.hpp"
+#include "score/mw/launch_manager/alive_monitor/details/ifexm/ObservableEventReader.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/CycleTimeValidator.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/CycleTimer.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/TimeConversion.hpp"
@@ -59,18 +59,18 @@ class PhmDaemon
     using CycleTimer = score::lcm::saf::timers::CycleTimer;
     using CycleTimeValidator = score::lcm::saf::timers::CycleTimeValidator;
     using NanoSecondType = score::lcm::saf::timers::NanoSecondType;
-    using ProcessStateReader = score::lcm::saf::ifexm::ProcessStateReader;
+    using ObservableEventReader = score::lcm::saf::ifexm::ObservableEventReader;
     using AliveMonitorConfig = score::mw::lifecycle::internal::alive::AliveMonitorConfig;
 
     /* RULECHECKER_comment(0, 4, check_expensive_to_copy_in_parameter, "f_supervisionErrorInfo name is passed by value\
      as same as generated function", true_no_defect) */
     /// @brief Set the OS clock interface
     /// @param[in] f_osClock Access to the system clock (dependency injection possible in tests)
-    /// @param[in] f_process_state_receiver process state receiver implementation (dependency injection possible in
-    /// tests)
+    /// @param[in] f_observable_event_receiver observable event receiver implementation (dependency injection possible
+    /// in tests)
     /* RULECHECKER_comment(3,1, check_expensive_to_copy_in_parameter, "Move only types cannot be passed by const ref",
        true_no_defect) */
-    PhmDaemon(OsClock& f_osClock, std::unique_ptr<ISupervisionControlReceiver> f_process_state_receiver);
+    PhmDaemon(OsClock& f_osClock, std::unique_ptr<ISupervisionControlReceiver> f_observable_event_receiver);
 
     /* RULECHECKER_comment(0, 4, check_min_instructions, "Default destructor is not provided\
        a function body", true_no_defect) */
@@ -216,8 +216,8 @@ class PhmDaemon
     /// @brief Vector of SwCluster handler
     std::vector<SwClusterHandler> swClusterHandlers;
 
-    /// @brief Process State Reader for PHM daemon
-    ProcessStateReader processStateReader;
+    /// @brief Observable Event Reader for PHM daemon
+    ObservableEventReader processStateReader;
 };
 
 }  // namespace daemon

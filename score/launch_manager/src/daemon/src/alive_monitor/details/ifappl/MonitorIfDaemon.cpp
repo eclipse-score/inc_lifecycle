@@ -16,7 +16,7 @@
 #include <cstring>
 
 #include "score/launch_manager/src/daemon/src/common/log.hpp"
-#include "score/mw/launch_manager/alive_monitor/details/ifexm/ProcessState.hpp"
+#include "score/mw/launch_manager/alive_monitor/details/ifexm/ObservableEvent.hpp"
 
 namespace score
 {
@@ -28,7 +28,7 @@ namespace ifappl
 {
 
 MonitorIfDaemon::MonitorIfDaemon(CheckpointIpcServer& f_ipcServer_r, const char* f_interfaceName_p)
-    : Observer<ifexm::ProcessState>(), k_interfaceName(f_interfaceName_p), ipcserver_r(f_ipcServer_r)
+    : Observer<ifexm::ObservableEvent>(), k_interfaceName(f_interfaceName_p), ipcserver_r(f_ipcServer_r)
 {
 }
 
@@ -42,7 +42,7 @@ void MonitorIfDaemon::attachCheckpoint(Checkpoint& f_checkpoint_r) noexcept(fals
     checkpointObservers.push_back(&f_checkpoint_r);
 }
 
-void MonitorIfDaemon::updateData(const ifexm::ProcessState& f_observable_r) noexcept(true)
+void MonitorIfDaemon::updateData(const ifexm::ObservableEvent& f_observable_r) noexcept(true)
 {
     switch (f_observable_r.event.eventType)
     {

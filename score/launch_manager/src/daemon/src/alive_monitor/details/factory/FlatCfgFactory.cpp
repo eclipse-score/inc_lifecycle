@@ -24,7 +24,7 @@
 #include "score/mw/launch_manager/alive_monitor/details/factory/StaticConfig.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifappl/Checkpoint.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifappl/MonitorIfDaemon.hpp"
-#include "score/mw/launch_manager/alive_monitor/details/ifexm/ProcessState.hpp"
+#include "score/mw/launch_manager/alive_monitor/details/ifexm/ObservableEvent.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/supervision/Alive.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/supervision/SupervisionCfg.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/TimeConversion.hpp"
@@ -56,9 +56,9 @@ bool FlatCfgFactory::init(const std::vector<SupervisedComponentConfig>& supervis
     return true;
 }
 
-bool FlatCfgFactory::createProcessStates(
-    std::vector<ifexm::ProcessState>& f_processStates_r,
-    ifexm::ProcessStateReader& f_processStateReader_r)
+bool FlatCfgFactory::createObservableEvents(
+    std::vector<ifexm::ObservableEvent>& f_processStates_r,
+    ifexm::ObservableEventReader& f_processStateReader_r)
 {
     bool isSuccess{true};
 
@@ -69,33 +69,34 @@ bool FlatCfgFactory::createProcessStates(
         {
             const auto id = IdentifierHash{comp.name};
             f_processStates_r.emplace_back(id);
-            isSuccess = f_processStateReader_r.registerProcessState(f_processStates_r.back(), id);
+            isSuccess = f_processStateReader_r.registerObservableEvent(f_processStates_r.back(), id);
             if (!isSuccess)
             {
                 break;
             }
 
-            LM_LOG_DEBUG() << "Successfully created Process States:" << comp.name;
+            LM_LOG_DEBUG() << "Successfully created Observable Events:" << comp.name;
         }
     }
     catch (const std::exception& f_exception_r)
     {
         isSuccess = false;
-        LM_LOG_ERROR() << "Could not create Process States due to exception:" << std::string_view{f_exception_r.what()};
+        LM_LOG_ERROR() << "Could not create Observable Events due to exception:"
+                       << std::string_view{f_exception_r.what()};
     }
 
     if (isSuccess)
     {
-        LM_LOG_DEBUG() << "Number of constructed Process States:" << static_cast<uint64_t>(f_processStates_r.size());
+        LM_LOG_DEBUG() << "Number of constructed Observable Events:" << static_cast<uint64_t>(f_processStates_r.size());
     }
     else
     {
         for (auto& processState_r : f_processStates_r)
         {
-            f_processStateReader_r.deregisterProcessState(processState_r.event.id);
+            f_processStateReader_r.deregisterObservableEvent(processState_r.event.id);
         }
         f_processStates_r.clear();
-        LM_LOG_ERROR() << "Could not create all necessary Process States.";
+        LM_LOG_ERROR() << "Could not create all necessary Observable Events.";
     }
 
     return isSuccess;
@@ -171,7 +172,7 @@ bool FlatCfgFactory::createAliveIfIpcs(std::vector<ifappl::CheckpointIpcServer>&
 bool FlatCfgFactory::createAliveIf(
     std::vector<ifappl::MonitorIfDaemon>& f_interfaces_r,
     std::vector<ifappl::CheckpointIpcServer>& f_interfaceIpcs_r,
-    std::vector<ifexm::ProcessState>& f_processStates_r)
+    std::vector<ifexm::ObservableEvent>& f_processStates_r)
 {
     bool isSuccess{true};
     try
@@ -202,7 +203,7 @@ bool FlatCfgFactory::createAliveIf(
 bool FlatCfgFactory::createSupervisionCheckpoints(
     std::vector<ifappl::Checkpoint>& f_checkpoints_r,
     std::vector<ifappl::MonitorIfDaemon>& f_interfaces_r,
-    std::vector<ifexm::ProcessState>& f_processStates_r)
+    std::vector<ifexm::ObservableEvent>& f_processStates_r)
 {
     bool isSuccess{true};
 
@@ -216,7 +217,7 @@ bool FlatCfgFactory::createSupervisionCheckpoints(
             const std::string checkpointCfgName = comp.name + "_checkpoint";
             const uint32_t checkpointId = StaticConfig::k_DefaultCheckpointId;
 
-            const ifexm::ProcessState* process_p{&f_processStates_r.at(idx)};
+            const ifexm::ObservableEvent* process_p{&f_processStates_r.at(idx)};
             f_checkpoints_r.emplace_back(checkpointCfgName.c_str(), checkpointId, process_p);
             f_interfaces_r.at(idx).attachCheckpoint(f_checkpoints_r.back());
 
@@ -247,7 +248,7 @@ bool FlatCfgFactory::createSupervisionCheckpoints(
 bool FlatCfgFactory::createAliveSupervisions(
     std::vector<supervision::Alive>& f_alive_r,
     std::vector<ifappl::Checkpoint>& f_checkpoints_r,
-    std::vector<ifexm::ProcessState>& f_processStates_r,
+    std::vector<ifexm::ObservableEvent>& f_processStates_r,
     std::shared_ptr<RecoveryClient> f_recoveryClient_r)
 {
     bool isSuccess{true};

@@ -48,7 +48,7 @@ SwClusterHandler::~SwClusterHandler() = default;
 bool SwClusterHandler::constructWorkers(
     const AliveMonitorConfig& config,
     std::shared_ptr<score::lcm::IRecoveryClient> f_recoveryClient_r,
-    ifexm::ProcessStateReader& f_processStateReader_r,
+    ifexm::ObservableEventReader& f_processStateReader_r,
     const factory::SupervisionBufferConfig& f_bufferConfig_r) noexcept(false)
 {
     bool isSuccess{false};
@@ -58,7 +58,7 @@ bool SwClusterHandler::constructWorkers(
     if (isSuccess)
     {
         LM_LOG_DEBUG() << "Software Cluster Handler starts constructing workers:" << f_swClusterName;
-        isSuccess = flatCfgFactory.createProcessStates(processStates, f_processStateReader_r);
+        isSuccess = flatCfgFactory.createObservableEvents(processStates, f_processStateReader_r);
     }
     if (isSuccess)
     {

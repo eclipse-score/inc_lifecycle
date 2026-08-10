@@ -37,7 +37,7 @@ cc_library(
     visibility = ["//score/launch_manager/src/daemon/src/alive_monitor:__subpackages__"],
     deps = [
         "//score/launch_manager/src/daemon/src/alive_monitor/details/common:observer",
-        "//score/launch_manager/src/daemon/src/alive_monitor/details/ifexm:process_state",
+        "//score/launch_manager/src/daemon/src/alive_monitor/details/ifexm:observable_event",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/timers:timers_os_clock",
     ],
 )
@@ -52,7 +52,7 @@ cc_library(
     deps = [
         ":checkpoint",
         ":data_structures",
-        "//score/launch_manager/src/daemon/src/alive_monitor/details/ifexm:process_state",
+        "//score/launch_manager/src/daemon/src/alive_monitor/details/ifexm:observable_event",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/timers:timers_os_clock",
     ],
 )

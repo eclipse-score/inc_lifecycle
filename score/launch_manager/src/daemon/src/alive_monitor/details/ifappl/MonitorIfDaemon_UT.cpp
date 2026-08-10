@@ -20,7 +20,7 @@
 #include "score/mw/launch_manager/alive_monitor/details/ifappl/Checkpoint.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifappl/DataStructures.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifappl/MonitorIfDaemon.hpp"
-#include "score/mw/launch_manager/alive_monitor/details/ifexm/ProcessState.hpp"
+#include "score/mw/launch_manager/alive_monitor/details/ifexm/ObservableEvent.hpp"
 
 using namespace testing;
 
@@ -49,10 +49,10 @@ struct MonitorIfDaemonFixture
 {
     static constexpr std::string_view kCheckpointName = "test_cp";
     static constexpr uint32_t kCheckpointId = 1U;
-    inline static const IdentifierHash kProcessId {"test_proc"};
+    inline static const IdentifierHash kProcessId{"test_proc"};
     static constexpr std::string_view kInterfaceName = "test_interface";
 
-    ifexm::ProcessState processState;
+    ifexm::ObservableEvent processState;
     ifappl::Checkpoint checkpoint;
     ifappl::CheckpointIpcServer ipcServer;
     ifappl::MonitorIfDaemon monitor;
