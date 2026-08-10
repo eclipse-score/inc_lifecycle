@@ -53,7 +53,7 @@ class PhmDaemon
 {
   public:
     using OsClock = score::lcm::saf::timers::OsClockInterface;
-    using ProcessStateReceiver = score::lcm::ISupervisionControlReceiver;
+    using SupervisionControlReceiver = score::lcm::ISupervisionControlReceiver;
     using RecoveryClient = score::lcm::IRecoveryClient;
     using SupervisionBufferConfig = factory::SupervisionBufferConfig;
     using CycleTimer = score::lcm::saf::timers::CycleTimer;

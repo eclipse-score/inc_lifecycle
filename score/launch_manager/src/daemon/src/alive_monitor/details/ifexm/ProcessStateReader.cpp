@@ -24,7 +24,7 @@ namespace saf
 namespace ifexm
 {
 
-ProcessStateReader::ProcessStateReader(std::unique_ptr<LcmProcessStateReceiver> f_process_state_receiver)
+ProcessStateReader::ProcessStateReader(std::unique_ptr<LcmSupervisionControlReceiver> f_process_state_receiver)
     : processStateReceiverHM(std::move(f_process_state_receiver))
 {
 }

@@ -38,11 +38,11 @@ class ProcessStateReader
 {
   public:
     using LcmSupervisionEvent = score::lcm::SupervisionEvent;
-    using LcmProcessStateReceiver = score::lcm::ISupervisionControlReceiver;
+    using LcmSupervisionControlReceiver = score::lcm::ISupervisionControlReceiver;
 
     /// @brief Constructor
     /// @param [in] f_process_state_receiver   Process state receiver implementation
-    ProcessStateReader(std::unique_ptr<LcmProcessStateReceiver> f_process_state_receiver);
+    ProcessStateReader(std::unique_ptr<LcmSupervisionControlReceiver> f_process_state_receiver);
 
     /// @brief No Copy Constructor
     ProcessStateReader(const ProcessStateReader&) = delete;
@@ -80,7 +80,7 @@ class ProcessStateReader
     bool pushUpdateTill(const LcmSupervisionEvent& f_event, const timers::NanoSecondType f_syncTimestamp) noexcept;
 
     /// @brief Process state receiver for HM thread
-    std::unique_ptr<LcmProcessStateReceiver> processStateReceiverHM;
+    std::unique_ptr<LcmSupervisionControlReceiver> processStateReceiverHM;
 
     /// @brief Map for process id and process state object
     std::map<common::ProcessId, ProcessState*> processStateMap{};
