@@ -45,7 +45,6 @@ cc_library(
     deps = [
         ":i_phm_factory",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/common:alive_monitor_config",
-        "//score/launch_manager/src/daemon/src/alive_monitor/details/common:types",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/factory:static_config",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/ifappl:checkpoint",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/ifappl:monitor_if_daemon",

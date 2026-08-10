@@ -15,8 +15,6 @@
 #define PROCESSSTATE_HPP_INCLUDED
 
 #include "score/mw/launch_manager/alive_monitor/details/common/Observer.hpp"
-#include "score/mw/launch_manager/alive_monitor/details/common/Types.hpp"
-#include "score/mw/launch_manager/alive_monitor/details/ifexm/ProcessCfg.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
 #include <string>
 
@@ -40,8 +38,7 @@ class ProcessState : public saf::common::Observable<ProcessState>
     ProcessState() = delete;
 
     /// @brief Constructor
-    /// @param [in] f_processCfg_r   Process configuration structure
-    explicit ProcessState(const ProcessCfg& f_processCfg_r) noexcept(false);
+    explicit ProcessState(const IdentifierHash& process_id) noexcept(false);
 
     /// @brief Default Move Constructor
     /* RULECHECKER_comment(0, 7, check_min_instructions, "Default constructor is not provided\
@@ -64,46 +61,12 @@ class ProcessState : public saf::common::Observable<ProcessState>
        a function body", true_no_defect) */
     ~ProcessState() override = default;
 
-    /// @brief Get configured process name
-    /// @return     Returns configured process name
-    std::string_view getConfigName() const noexcept;
-
-    /// @brief Get process ID
-    /// @return     Returns process ID
-    common::ProcessId getProcessId(void) const noexcept;
-
-    /// @brief Get supervision event type
-    /// @return     Returns the current event type
-    score::lcm::SupervisionEventType getEventType() const noexcept;
-
-    /// @brief Set supervision event type
-    /// @param [in] f_eventType   Supervision event type
-    void setEventType(score::lcm::SupervisionEventType f_eventType) noexcept;
-
-    /// @brief Get Timestamp for current event
-    /// @return     Timestamp of current event
-    timers::NanoSecondType getTimestamp() const noexcept;
-
-    /// @brief Set timestamp of process state
-    /// @param [in] f_timestamp  timestamp of process state
-    void setTimestamp(timers::NanoSecondType f_timestamp) noexcept;
+    /// @brief Event to observe
+    SupervisionEvent event;
 
     /// @brief Push Data
     /// @details Push supervision event related information, which shall be distributed to observers.
     void pushData(void) noexcept;
-
-  private:
-    /// @brief Process short name
-    const std::string k_processShortName;
-
-    /// @brief Process id
-    const common::ProcessId k_processId;
-
-    /// @brief Current supervision event type
-    score::lcm::SupervisionEventType eventType_{score::lcm::SupervisionEventType::kDeactivation};
-
-    /// @brief Current timestamp of process
-    timers::NanoSecondType timestamp{UINT64_MAX};
 };
 
 }  // namespace ifexm

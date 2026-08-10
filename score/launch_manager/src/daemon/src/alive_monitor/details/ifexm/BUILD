@@ -13,18 +13,6 @@
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
 cc_library(
-    name = "process_cfg",
-    srcs = [],
-    hdrs = ["ProcessCfg.hpp"],
-    include_prefix = "score/mw/launch_manager/alive_monitor/details/ifexm",
-    strip_include_prefix = "/score/launch_manager/src/daemon/src/alive_monitor/details/ifexm",
-    visibility = ["//score/launch_manager/src/daemon/src/alive_monitor:__subpackages__"],
-    deps = [
-        "//score/launch_manager/src/daemon/src/alive_monitor/details/common:types",
-    ],
-)
-
-cc_library(
     name = "process_state",
     srcs = ["ProcessState.cpp"],
     hdrs = ["ProcessState.hpp"],
@@ -32,9 +20,7 @@ cc_library(
     strip_include_prefix = "/score/launch_manager/src/daemon/src/alive_monitor/details/ifexm",
     visibility = ["//score/launch_manager/src/daemon/src/alive_monitor:__subpackages__"],
     deps = [
-        ":process_cfg",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/common:observer",
-        "//score/launch_manager/src/daemon/src/alive_monitor/details/common:types",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/timers:timers_os_clock",
         "//score/launch_manager/src/daemon/src/supervision_control_client",
     ],
@@ -49,7 +35,6 @@ cc_library(
     visibility = ["//score/launch_manager/src/daemon/src/alive_monitor:__subpackages__"],
     deps = [
         ":process_state",
-        "//score/launch_manager/src/daemon/src/alive_monitor/details/common:types",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/timers:time_conversion",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/timers:timers_os_clock",
         "//score/launch_manager/src/daemon/src/common:log",

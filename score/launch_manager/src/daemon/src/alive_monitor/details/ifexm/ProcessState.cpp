@@ -22,42 +22,10 @@ namespace saf
 namespace ifexm
 {
 
-ProcessState::ProcessState(const ProcessCfg& f_processCfg_r) noexcept(false)
-    : Observable<ProcessState>(),
-      k_processShortName(f_processCfg_r.processShortName),
-      k_processId(f_processCfg_r.processId)
+ProcessState::ProcessState(const IdentifierHash& process_id) noexcept(false)
+    : Observable<ProcessState>()
 {
-    static_cast<void>(0);
-}
-
-std::string_view ProcessState::getConfigName() const noexcept
-{
-    return k_processShortName;
-}
-
-common::ProcessId ProcessState::getProcessId() const noexcept
-{
-    return k_processId;
-}
-
-score::lcm::SupervisionEventType ProcessState::getEventType() const noexcept
-{
-    return eventType_;
-}
-
-void ProcessState::setEventType(score::lcm::SupervisionEventType f_eventType) noexcept
-{
-    eventType_ = f_eventType;
-}
-
-timers::NanoSecondType ProcessState::getTimestamp() const noexcept
-{
-    return timestamp;
-}
-
-void ProcessState::setTimestamp(timers::NanoSecondType f_timestamp) noexcept
-{
-    timestamp = f_timestamp;
+    event.id = process_id;
 }
 
 void ProcessState::pushData(void) noexcept

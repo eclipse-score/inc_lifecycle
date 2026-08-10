@@ -20,7 +20,6 @@
 #include "score/mw/launch_manager/alive_monitor/details/ifappl/Checkpoint.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifappl/DataStructures.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifappl/MonitorIfDaemon.hpp"
-#include "score/mw/launch_manager/alive_monitor/details/ifexm/ProcessCfg.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ProcessState.hpp"
 
 using namespace testing;
@@ -48,10 +47,9 @@ class CheckpointMock : public common::Observer<ifappl::Checkpoint>
 
 struct MonitorIfDaemonFixture
 {
-    static constexpr std::string_view kProcessName = "test_proc";
     static constexpr std::string_view kCheckpointName = "test_cp";
     static constexpr uint32_t kCheckpointId = 1U;
-    static constexpr common::ProcessId kProcessId = 42U;
+    inline static const IdentifierHash kProcessId {"test_proc"};
     static constexpr std::string_view kInterfaceName = "test_interface";
 
     ifexm::ProcessState processState;
@@ -61,7 +59,7 @@ struct MonitorIfDaemonFixture
     CheckpointMock checkpointMock;
 
     MonitorIfDaemonFixture()
-        : processState(makeProcessCfg()),
+        : processState(kProcessId),
           checkpoint(kCheckpointName.data(), kCheckpointId, &processState),
           ipcServer{},
           monitor(ipcServer, kInterfaceName.data())
@@ -79,18 +77,18 @@ struct MonitorIfDaemonFixture
     }
 
     /// Send an activation event and notify observers.
-    void activateProcess(timers::NanoSecondType ts)
+    void activateProcess(long ts)
     {
-        processState.setTimestamp(ts);
-        processState.setEventType(score::lcm::SupervisionEventType::kActivation);
+        processState.event.systemClockTimestamp.tv_nsec = ts;
+        processState.event.eventType = score::lcm::SupervisionEventType::kActivation;
         processState.pushData();
     }
 
     /// Send a deactivation event and notify observers.
-    void deactivateProcess(timers::NanoSecondType ts)
+    void deactivateProcess(long ts)
     {
-        processState.setTimestamp(ts);
-        processState.setEventType(score::lcm::SupervisionEventType::kDeactivation);
+        processState.event.systemClockTimestamp.tv_nsec = ts;
+        processState.event.eventType = score::lcm::SupervisionEventType::kDeactivation;
         processState.pushData();
     }
 
@@ -109,15 +107,6 @@ struct MonitorIfDaemonFixture
             ipcServer.sendEmplace(static_cast<timers::NanoSecondType>(i), 0U);
         }
     }
-
-  private:
-    static ifexm::ProcessCfg makeProcessCfg()
-    {
-        ifexm::ProcessCfg cfg{};
-        cfg.processShortName = kProcessName;
-        cfg.processId = kProcessId;
-        return cfg;
-    }
 };
 
 }  // namespace
@@ -125,15 +114,15 @@ struct MonitorIfDaemonFixture
 class MonitorIfDaemonTest : public ::testing::Test
 {
   private:
-    timers::NanoSecondType time_ = 0U;
-    static constexpr timers::NanoSecondType kTimeStep = 100U;
+    timespec time_{};
+    static constexpr long kTimeStep = 100U;
 
   protected:
     void SetUp() override
     {
         RecordProperty("TestType", "interface-test");
         RecordProperty("DerivationTechnique", "explorative-testing");
-        time_ = 0;
+        time_.tv_nsec = 0;
     }
 
   public:
@@ -141,27 +130,27 @@ class MonitorIfDaemonTest : public ::testing::Test
     [[nodiscard]]
     timers::NanoSecondType mockClock()
     {
-        return time_ += kTimeStep;
+        return time_.tv_nsec += kTimeStep;
     }
 
     /// @brief Increase the time by @c count mockClock() calls
     timers::NanoSecondType mockClockSkip(int count)
     {
-        return time_ += (kTimeStep * count);
+        return time_.tv_nsec += (kTimeStep * count);
     }
 
     /// @brief Get the current time plus an offset smaller than the tick size
     [[nodiscard]]
     timers::NanoSecondType mockClockOffset() const
     {
-        return time_ + 50U;
+        return time_.tv_nsec + 50U;
     }
 
     /// @brief Get the time @c count mockClock() calls from now
     [[nodiscard]]
     timers::NanoSecondType mockClockFuture(int count) const
     {
-        return time_ + (kTimeStep * count);
+        return time_.tv_nsec + (kTimeStep * count);
     }
 };
 

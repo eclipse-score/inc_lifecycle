@@ -16,7 +16,6 @@
 
 #include <map>
 
-#include "score/mw/launch_manager/alive_monitor/details/common/Types.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ProcessState.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
 #include "score/mw/launch_manager/supervision_control_client/isupervision_control_receiver.hpp"
@@ -60,11 +59,11 @@ class ProcessStateReader
     /// @param [in]  f_processState_r   Process state to be registered
     /// @param [in]  f_processId        Process ID
     /// @return     true (registered), false (not registered)
-    bool registerProcessState(ProcessState& f_processState_r, const common::ProcessId f_processId) noexcept(false);
+    bool registerProcessState(ProcessState& f_processState_r, const IdentifierHash f_processId) noexcept(false);
 
     /// @brief Deregister process states from reader
     /// @param [in]  f_processId        Process ID to deregister the particular process
-    void deregisterProcessState(const common::ProcessId f_processId) noexcept;
+    void deregisterProcessState(const IdentifierHash f_processId) noexcept;
 
     /// @brief Distribute changes
     /// @details Distribute supervision events to the registered Process State classes
@@ -83,7 +82,7 @@ class ProcessStateReader
     std::unique_ptr<LcmSupervisionControlReceiver> processStateReceiverHM;
 
     /// @brief Map for process id and process state object
-    std::map<common::ProcessId, ProcessState*> processStateMap{};
+    std::map<IdentifierHash, ProcessState*> processStateMap{};
 
     /// @brief Flag for pending pushData from previous distribution of process state changes
     bool isPushPending{false};

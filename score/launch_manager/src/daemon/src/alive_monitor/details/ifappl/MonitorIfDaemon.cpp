@@ -44,7 +44,7 @@ void MonitorIfDaemon::attachCheckpoint(Checkpoint& f_checkpoint_r) noexcept(fals
 
 void MonitorIfDaemon::updateData(const ifexm::ProcessState& f_observable_r) noexcept(true)
 {
-    switch (f_observable_r.getEventType())
+    switch (f_observable_r.event.eventType)
     {
         case score::lcm::SupervisionEventType::kActivation:
             if (isDeactivateRequest)

@@ -67,14 +67,9 @@ bool FlatCfgFactory::createProcessStates(
         f_processStates_r.reserve(supervised_components_.size());
         for (const auto& comp : supervised_components_)
         {
-            ifexm::ProcessCfg processCfg{};
-            processCfg.processShortName = std::string_view(comp.name);
-
-            const auto processId = getProcessId(comp);
-            processCfg.processId = processId.data();
-
-            f_processStates_r.emplace_back(processCfg);
-            isSuccess = f_processStateReader_r.registerProcessState(f_processStates_r.back(), processCfg.processId);
+            const auto id = IdentifierHash{comp.name};
+            f_processStates_r.emplace_back(id);
+            isSuccess = f_processStateReader_r.registerProcessState(f_processStates_r.back(), id);
             if (!isSuccess)
             {
                 break;
@@ -97,7 +92,7 @@ bool FlatCfgFactory::createProcessStates(
     {
         for (auto& processState_r : f_processStates_r)
         {
-            f_processStateReader_r.deregisterProcessState(processState_r.getProcessId());
+            f_processStateReader_r.deregisterProcessState(processState_r.event.id);
         }
         f_processStates_r.clear();
         LM_LOG_ERROR() << "Could not create all necessary Process States.";

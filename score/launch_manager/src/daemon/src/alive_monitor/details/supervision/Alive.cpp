@@ -17,9 +17,9 @@
 #include <string_view>
 
 #include "score/launch_manager/src/daemon/src/common/log.hpp"
-#include "score/mw/launch_manager/alive_monitor/details/common/Types.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ProcessState.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
+#include "score/mw/launch_manager/alive_monitor/details/timers/TimeConversion.hpp"
 
 namespace score
 {
@@ -78,8 +78,8 @@ void Alive::updateData(const score::lcm::saf::ifappl::Checkpoint& f_observable_r
 // coverity[exn_spec_violation:FALSE] std::length_error is not thrown from push() which uses fixed-size-vector
 void Alive::updateData(const ifexm::ProcessState& f_observable_r) noexcept(true)
 {
-    const timers::NanoSecondType timestamp{f_observable_r.getTimestamp()};
-    SupervisionEventSnapshot snapshot{timestamp, f_observable_r.getEventType()};
+    const timers::NanoSecondType timestamp{timers::TimeConversion::convertToNanoSec(f_observable_r.event.systemClockTimestamp)};
+    SupervisionEventSnapshot snapshot{timestamp, f_observable_r.event.eventType};
     if (!timeSortingUpdateEventBuffer.push(snapshot, timestamp))
     {
         dataLossReason = EDataLossReason::kBufferFull;

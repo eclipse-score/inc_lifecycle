@@ -20,7 +20,6 @@ cc_library(
     strip_include_prefix = "/score/launch_manager/src/daemon/src/alive_monitor/details/supervision",
     visibility = ["//score/launch_manager/src/daemon/src/alive_monitor:__subpackages__"],
     deps = [
-        "//score/launch_manager/src/daemon/src/alive_monitor/details/common:types",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/ifexm:process_state",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/timers:timers_os_clock",
     ],
