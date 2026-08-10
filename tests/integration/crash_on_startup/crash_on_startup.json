@@ -112,7 +112,7 @@
                 "control_client_mock"
             ]
         },
-        "run_target_crash_on_startup_twice": {
+        "run_target_crash_on_startup_two_times": {
             "depends_on": [
                 "control_client_mock",
                 "process_crashing_on_startup_twice"
@@ -124,7 +124,7 @@
                 "process_crashing_on_startup_three_times"
             ]
         },
-        "run_target_crash_on_startup_no_retries": {
+        "run_target_crash_on_startup_once_but_no_retries": {
             "depends_on": [
                 "control_client_mock",
                 "process_crashing_on_startup_no_retries"
