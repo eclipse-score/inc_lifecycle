@@ -12,7 +12,10 @@
 # *******************************************************************************
 from tests.utils.testing_utils.run_until_file_deployed import run_until_file_deployed
 from tests.utils.testing_utils.setup_test import setup_test
-from tests.utils.testing_utils.test_results import assert_test_results, get_testcase_property
+from tests.utils.testing_utils.test_results import (
+    assert_test_results,
+    get_testcase_property,
+)
 from attribute_plugin import add_test_properties
 
 
@@ -32,8 +35,8 @@ def test_crash_on_startup(
     """
     Objective: Verifies that the launch manager correctly handles processes that crash before reporting running.
 
-    Case 1: Process crashes before Running state but eventually starts up successfully before the configured number of restart attempts is exceeded. 
-    This is verified with two different components: One with the process crashing twice and the other three times before successfully starting up. 
+    Case 1: Process crashes before Running state but eventually starts up successfully before the configured number of restart attempts is exceeded.
+    This is verified with two different components: One with the process crashing twice and the other three times before successfully starting up.
     The number of restart attempts is configured to be 2 and 3 respectively for these two components.
     Expected Behaviour: Process startup successful, run target activation successful
 
@@ -62,7 +65,9 @@ def test_crash_on_startup(
 
     # The number of crashes is recorded in each report and must match the configured crash count.
     for n, report_name in crash_report_names.items():
-        crash_count = get_testcase_property(test_output_dir / report_name, "crash_count")
+        crash_count = get_testcase_property(
+            test_output_dir / report_name, "crash_count"
+        )
         assert crash_count == str(n), (
             f"Expected {n} crashes in {report_name}, got {crash_count}"
         )

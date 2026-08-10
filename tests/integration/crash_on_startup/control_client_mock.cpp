@@ -21,8 +21,8 @@ TEST(CrashOnStartup, ControlClientMock)
 {
     score::mw::lifecycle::ControlClient client;
 
-    ASSERT_TRUE(check_clean(
-        {crashCountPath(1), crashCountPath(2), crashCountPath(3), test_end_location, fallback_file}));
+    ASSERT_TRUE(
+        check_clean({crashCountPath(1), crashCountPath(2), crashCountPath(3), test_end_location, fallback_file}));
 
     TEST_STEP("Report running")
     {
