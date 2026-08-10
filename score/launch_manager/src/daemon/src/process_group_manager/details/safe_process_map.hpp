@@ -93,7 +93,7 @@ class SafeProcessMap final : public SafeProcessMapInserter
     /// @brief Constructs a SafeProcessMap.
     /// @param capacity The maximum number of entries the map can hold.
     /// @param termination_handler Called when a terminated process is matched with its component.
-    SafeProcessMap(uint32_t capacity, IComponentController& termination_handler);
+    SafeProcessMap(uint32_t capacity, score::mw::lifecycle::internal::IComponentController& termination_handler);
 
     /// @brief Destructor to clean up resources used by the SafeProcessMap object.
     ~SafeProcessMap() = default;
@@ -219,7 +219,7 @@ class SafeProcessMap final : public SafeProcessMapInserter
     /// It initially starts with LINK_NO_VALUE, indicating no valid position.
     uint32_t rover_{LINK_NO_VALUE};
 
-    IComponentController& termination_handler_;
+    score::mw::lifecycle::internal::IComponentController& termination_handler_;
 };
 
 }  // namespace internal
