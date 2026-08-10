@@ -42,6 +42,20 @@
     "FullyVerifies": null
   },
   {
+    "name": "test_crash_ignores_dependents",
+    "file": "../_main/tests/integration/crash_ignores_dependents/crash_ignores_dependents.py",
+    "line": "18",
+    "result": "passed",
+    "repo_name": null,
+    "hash": null,
+    "url": null,
+    "TestType": null,
+    "DerivationTechnique": null,
+    "result_text": "",
+    "PartiallyVerifies": null,
+    "FullyVerifies": null
+  },
+  {
     "name": "test_incorrect_config_non_reporting",
     "file": "../_main/tests/integration/incorrect_config_non_reporting/test_incorrect_config_non_reporting.py",
     "line": "19",
@@ -72,6 +86,20 @@
   {
     "name": "test_complex_monitoring",
     "file": "../_main/tests/integration/complex_monitoring/complex_monitoring.py",
+    "line": "18",
+    "result": "passed",
+    "repo_name": null,
+    "hash": null,
+    "url": null,
+    "TestType": null,
+    "DerivationTechnique": null,
+    "result_text": "",
+    "PartiallyVerifies": null,
+    "FullyVerifies": null
+  },
+  {
+    "name": "test_fallback_to_same_target_restarts",
+    "file": "../_main/tests/integration/fallback_to_same_target_restarts/fallback_to_same_target_restarts.py",
     "line": "18",
     "result": "passed",
     "repo_name": null,
@@ -1892,7 +1920,7 @@
   {
     "name": "GraphHandleComponentEventTest__unexpectedTerminationDuringTransition",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "448",
+    "line": "456",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1906,7 +1934,7 @@
   {
     "name": "GraphCancelTest__notInTransition",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "476",
+    "line": "492",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1920,7 +1948,7 @@
   {
     "name": "GraphCancelTest__cancelsOngoingTransition",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "486",
+    "line": "502",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1934,7 +1962,7 @@
   {
     "name": "GraphUtilitiesTest__getProcessInfoNode",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "507",
+    "line": "523",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1948,7 +1976,7 @@
   {
     "name": "GraphUtilitiesTest__getConfigMethods",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "523",
+    "line": "539",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1962,7 +1990,7 @@
   {
     "name": "GraphUtilitiesTest__forceKillProcesses",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "531",
+    "line": "547",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1976,7 +2004,7 @@
   {
     "name": "GraphUtilitiesTest__toString",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "545",
+    "line": "561",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1990,7 +2018,7 @@
   {
     "name": "GraphUtilitiesTest__gettersSetters",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "559",
+    "line": "575",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
