@@ -52,13 +52,17 @@ def test_crash_on_startup(
         timeout_s=10.0,
     )
 
-    assert_test_results(
-        {"control_client_mock.xml", "process_crashing_on_startup_n_times.xml"}
-    )
+    # Each crashing process writes its own report file named after the number of times it crashes, so the
+    # reports of the different run targets no longer overwrite each other. The process crashing once is not
+    # allowed to retry, but still writes its report before crashing.
+    crash_report_names = {
+        n: f"process_crashing_on_startup_n_times_n_equals_{n}.xml" for n in (1, 2, 3)
+    }
+    assert_test_results({"control_client_mock.xml", *crash_report_names.values()})
 
-    # The number of crashes before a successful startup is recorded in the report. The last run target to
-    # start up successfully (run_target_crash_on_startup_three_times) crashes three times before succeeding.
-    crash_count = get_testcase_property(
-        test_output_dir / "process_crashing_on_startup_n_times.xml", "crash_count"
-    )
-    assert crash_count == "3", f"Expected 3 crashes before startup, got {crash_count}"
+    # The number of crashes is recorded in each report and must match the configured crash count.
+    for n, report_name in crash_report_names.items():
+        crash_count = get_testcase_property(test_output_dir / report_name, "crash_count")
+        assert crash_count == str(n), (
+            f"Expected {n} crashes in {report_name}, got {crash_count}"
+        )
