@@ -309,9 +309,6 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     /// @brief Process state notifier object used to send data to PHM
     std::unique_ptr<score::lcm::ISupervisionControlNotifier> supervision_control_notifier_;
 
-    /// @brief pointer to the configuration for Launch Manager
-    const OsProcess* launch_manager_config_{nullptr};
-
     std::unique_ptr<IAliveMonitorThread> alive_monitor_thread_;
 
     std::unique_ptr<ProcessMonitor> process_monitor_;
