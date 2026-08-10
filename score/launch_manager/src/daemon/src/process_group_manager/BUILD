@@ -88,3 +88,20 @@ cc_library(
         "@score_baselibs//score/language/futurecpp",
     ],
 )
+
+cc_library(
+    name = "process_group_manager",
+    visibility = ["//score:__subpackages__"],
+    deps = [
+        ":process_group_manager_hdrs",
+        "//score/launch_manager/src/daemon/src/process_group_manager/details:process_group_manager_impl",
+    ],
+)
+
+cc_library(
+    name = "process_state",
+    hdrs = ["process_state.hpp"],
+    include_prefix = "score/mw/launch_manager/process_group_manager",
+    strip_include_prefix = "/score/launch_manager/src/daemon/src/process_group_manager",
+    visibility = ["//score:__subpackages__"],
+)

@@ -133,7 +133,7 @@ cc_library(
         "//score/launch_manager/src/daemon/src/common:identifier_hash",
         "//score/launch_manager/src/daemon/src/common:log",
         "//score/launch_manager/src/daemon/src/common:process_group_state_id",
-        "//score/launch_manager/src/daemon/src/common:process_state",
+        "//score/launch_manager/src/daemon/src/process_group_manager:process_state",
         "//score/launch_manager/src/daemon/src/osal:num_cores",
         "//score/launch_manager/src/daemon/src/process_group_manager:iprocess",
     ],
@@ -145,7 +145,7 @@ lm_cc_test(
     visibility = ["//tests:__subpackages__"],
     deps = [
         ":configuration_adapter",
-        "//score/launch_manager/src/daemon/src/common:process_state",
+        "//score/launch_manager/src/daemon/src/process_group_manager:process_state",
         "//score/launch_manager/src/daemon/src/osal:num_cores",
         "//score/launch_manager/src/daemon/src/process_group_manager:iprocess",
         "@googletest//:gtest_main",
