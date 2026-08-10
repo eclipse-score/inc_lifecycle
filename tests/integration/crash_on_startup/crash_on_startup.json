@@ -3,8 +3,6 @@
     "defaults": {
         "deployment_config": {
             "bin_dir": "/tmp/tests/crash_on_startup",
-            "ready_timeout": 1.0,
-            "shutdown_timeout": 1.0,
             "ready_recovery_action": {
                 "restart": {
                     "number_of_attempts": 0
@@ -23,21 +21,6 @@
                 "gid": 0,
                 "scheduling_policy": "SCHED_OTHER",
                 "scheduling_priority": 0
-            }
-        },
-        "component_properties": {
-            "application_profile": {
-                "application_type": "Reporting",
-                "is_self_terminating": false,
-                "alive_supervision": {
-                    "reporting_cycle": 0.1,
-                    "min_indications": 1,
-                    "max_indications": 3,
-                    "failed_cycles_tolerance": 1
-                }
-            },
-            "ready_condition": {
-                "process_state": "Running"
             }
         }
     },
@@ -60,14 +43,14 @@
                 }
             }
         },
-        "process_crashing_on_startup_twice": {
+        "process_crashing_on_startup_once": {
             "component_properties": {
                 "binary_name": "process_crashing_on_startup_n_times",
                 "application_profile": {
                     "application_type": "Reporting"
                 },
                 "process_arguments": [
-                    "2"                                   
+                    "1"
                 ]
             },
             "deployment_config": {
@@ -75,49 +58,36 @@
                     "restart": {
                         "number_of_attempts": 2
                     }
-                },
-                "environmental_variables": {
-                    "PROCESSIDENTIFIER": "process_crashing_on_startup_n_times"
                 }
             }
         },
-        "process_crashing_on_startup_five_times": {
+        "process_crashing_on_startup_three_times": {
             "component_properties": {
                 "binary_name": "process_crashing_on_startup_n_times",
                 "application_profile": {
                     "application_type": "Reporting"
                 },
                 "process_arguments": [
-                    "5"
+                    "3"
                 ]
             },
             "deployment_config": {
                 "ready_recovery_action": {
                     "restart": {
-                        "number_of_attempts": 5
+                        "number_of_attempts": 3
                     }
-                },
-                "environmental_variables": {
-                    "PROCESSIDENTIFIER": "process_crashing_on_startup_n_times"
                 }
             }
         },
-        "process_crashing_on_startup_always": {
+        "process_crashing_on_startup_no_retries": {
             "component_properties": {
-                "binary_name": "process_crashing_on_startup_always",
+                "binary_name": "process_crashing_on_startup_n_times",
                 "application_profile": {
                     "application_type": "Reporting"
-                }
-            },
-            "deployment_config": {
-                "ready_recovery_action": {
-                    "restart": {
-                        "number_of_attempts": 2
-                    }
                 },
-                "environmental_variables": {
-                    "PROCESSIDENTIFIER": "process_crashing_on_startup_always"
-                }
+                "process_arguments": [
+                    "1"
+                ]
             }
         },
         "verification_component": {
@@ -142,22 +112,22 @@
                 "control_client_mock"
             ]
         },
-        "run_target_crash_on_startup_twice": {
+        "run_target_crash_on_startup_once": {
             "depends_on": [
                 "control_client_mock",
-                "process_crashing_on_startup_twice"
+                "process_crashing_on_startup_once"
             ]
         },
-        "run_target_crash_on_startup_five_times": {
+        "run_target_crash_on_startup_three_times": {
             "depends_on": [
                 "control_client_mock",
-                "process_crashing_on_startup_five_times"
+                "process_crashing_on_startup_three_times"
             ]
         },
-        "run_target_crash_on_startup_always": {
+        "run_target_crash_on_startup_no_retries": {
             "depends_on": [
                 "control_client_mock",
-                "process_crashing_on_startup_always"
+                "process_crashing_on_startup_no_retries"
             ],
             "recovery_action": {
                 "switch_run_target": {

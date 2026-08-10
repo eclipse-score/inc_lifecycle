@@ -28,13 +28,13 @@ TEST(CrashOnStartup, ControlClientMock)
         score::mw::lifecycle::report_running();
     }
 
-    // Given a process that crashes on startup twice
-    TEST_STEP("Launch process crashing on startup twice")
+    // Given a process that crashes on startup once, but is configured to retry twice - so it succeeds
+    TEST_STEP("Launch process crashing on startup once")
     {
         score::cpp::stop_token stop_token;
-        auto result = client.ActivateRunTarget("run_target_crash_on_startup_twice").Get(stop_token);
+        auto result = client.ActivateRunTarget("run_target_crash_on_startup_once").Get(stop_token);
         // Then, the LM should restart it and eventually succeed
-        EXPECT_TRUE(result.has_value()) << "Activating run_target_crash_on_startup_twice failed: "
+        EXPECT_TRUE(result.has_value()) << "Activating run_target_crash_on_startup_once failed: "
                                         << result.error().Message();
     }
 
@@ -43,15 +43,17 @@ TEST(CrashOnStartup, ControlClientMock)
         EXPECT_FALSE(std::filesystem::exists(fallback_file)) << "Fallback run target should not be activated yet";
     }
 
-    EXPECT_TRUE(std::filesystem::remove(crash_count_file)) << "Count file must be removed successfully, before reused in the next run target";
+    EXPECT_TRUE(std::filesystem::remove(crash_count_file))
+        << "Count file must be removed successfully, before reused in the next run target";
 
-    // Given a process that crashes on startup five times, but is configured to retry five times - so still succeeds
-    TEST_STEP("Launch process crashing on startup five times")
+    // Given a process that crashes on startup three times, but is configured to retry three times - so it still
+    // succeeds
+    TEST_STEP("Launch process crashing on startup three times")
     {
         score::cpp::stop_token stop_token;
-        auto result = client.ActivateRunTarget("run_target_crash_on_startup_five_times").Get(stop_token);
+        auto result = client.ActivateRunTarget("run_target_crash_on_startup_three_times").Get(stop_token);
         // Then, the LM should restart it and eventually succeed
-        EXPECT_TRUE(result.has_value()) << "Activating run_target_crash_on_startup_five_times failed: "
+        EXPECT_TRUE(result.has_value()) << "Activating run_target_crash_on_startup_three_times failed: "
                                         << result.error().Message();
     }
 
@@ -60,12 +62,15 @@ TEST(CrashOnStartup, ControlClientMock)
         EXPECT_FALSE(std::filesystem::exists(fallback_file)) << "Fallback run target should not be activated yet";
     }
 
-    // Given a process that crashes on startup more times than the configured restart attempts
-    TEST_STEP("Attempt to launch process crashing on startup always")
+    EXPECT_TRUE(std::filesystem::remove(crash_count_file))
+        << "Count file must be removed successfully, before reused in the next run target";
+
+    // Given a process that crashes on startup but is not allowed to retry (number_of_attempts=0)
+    TEST_STEP("Attempt to launch process crashing on startup without retries")
     {
         score::cpp::stop_token stop_token;
-        auto result = client.ActivateRunTarget("run_target_crash_on_startup_always").Get(stop_token);
-        EXPECT_FALSE(result.has_value()) << "Expected run_target_crash_on_startup_always activation to fail";
+        auto result = client.ActivateRunTarget("run_target_crash_on_startup_no_retries").Get(stop_token);
+        EXPECT_FALSE(result.has_value()) << "Expected run_target_crash_on_startup_no_retries activation to fail";
     }
     // Limitation: we cannot wait for the transition to fallback to complete
     sleep(1);

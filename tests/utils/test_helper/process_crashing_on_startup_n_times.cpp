@@ -12,7 +12,6 @@
  ********************************************************************************/
 #include <gtest/gtest.h>
 #include <cstdlib>
-#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <string_view>
@@ -23,7 +22,7 @@
 /// @brief Default number of times the process crashes before starting up successfully.
 constexpr int kDefaultCrashesUntilSuccess = 3;
 
-TEST(CrashOnStartup, ProcessCrashingOnStartupTwice)
+TEST(CrashOnStartup, ProcessCrashingOnStartupNTimes)
 {
     TEST_STEP("Report running")
     {
@@ -52,7 +51,17 @@ void write_crash_count(const std::string_view file_path, const int count)
 
 int main(int argc, char** argv)
 {
-    // The number of crashes before a successful startup is taken from the command line, defaulting to two.
+    if (argc > 1 && (std::string_view{argv[1]} == "-h" || std::string_view{argv[1]} == "--help"))
+    {
+        std::cout << "Usage: " << argv[0] << " [crashes_until_success]\n"
+                  << "Crashes on startup the given number of times (default " << kDefaultCrashesUntilSuccess
+                  << ") before starting up successfully.\n"
+                  << "The crash count is persisted across restarts in '" << crash_count_file << "'." << std::endl;
+        return 0;
+    }
+
+    // The number of crashes before a successful startup is taken from the command line, defaulting to
+    // kDefaultCrashesUntilSuccess.
     const int crashes_until_success = (argc > 1) ? std::atoi(argv[1]) : kDefaultCrashesUntilSuccess;
 
     const int crash_count = read_crash_count(crash_count_file);
