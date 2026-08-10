@@ -23,16 +23,11 @@ repos:
         name: //:format.fix
         entry: bazel run //:format.fix
         language: system
-        files: (BUILD|BUILD\.bazel|WORKSPACE|\.bazelrc|[^/]+\.(py|bzl|bazel|yaml|yml|rs))$
+        files: (BUILD|BUILD\.bazel|WORKSPACE|\.bazelrc|[^/]+\.(py|bzl|bazel|yaml|yml|rs|c|cpp|h|hpp))$
         pass_filenames: false
   - repo: https://github.com/pocc/pre-commit-hooks
     rev: v1.3.5
     hooks:
-      - id: clang-format
-        name: clang-format
-        entry: bazel run //:format.fix_C++_with_clang-format
-        language: system
-        files: '\.(c|cc|cpp|h|hpp)$'
       - id: clang-tidy
         name: clang-tidy
         # Run through a wrapper that sanitizes unsupported linker flags in
