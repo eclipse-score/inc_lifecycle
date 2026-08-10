@@ -24,7 +24,6 @@
 #include <sched.h>
 #include <cstdint>
 #include <memory>
-#include <optional>
 #include <utility>
 #include <vector>
 
@@ -134,10 +133,11 @@ class ProcessGroupManagerWatchdogTest : public Test
         auto watchdog = std::make_unique<StrictMock<MockWatchdogIf>>();
         watchdog_ = watchdog.get();
 
-        process_group_manager_ = std::make_unique<ProcessGroupManager>(std::move(alive_monitor_thread),
-                                                                       std::move(recovery_client),
-                                                                       std::move(process_state_notifier),
-                                                                       std::move(watchdog));
+        process_group_manager_ = std::make_unique<ProcessGroupManager>(
+            std::move(alive_monitor_thread),
+            std::move(recovery_client),
+            std::move(process_state_notifier),
+            std::move(watchdog));
     }
 
     void TearDown() override
@@ -202,6 +202,9 @@ TEST_F(ProcessGroupManagerWatchdogTest, GivenMinimalConfig_ExpectWatchdogFired_W
 {
     // Given
     const auto config = makeMinimalConfig();
+    // More than the component event queue can hold (capacity == number of OS processes * 3; makeMinimalConfig has a
+    // single component)
+    constexpr int kNumRecoveryRequests = 16;
 
     // Expected
     EXPECT_CALL(*alive_monitor_thread_, start()).WillOnce(Return(true));
@@ -217,12 +220,11 @@ TEST_F(ProcessGroupManagerWatchdogTest, GivenMinimalConfig_ExpectWatchdogFired_W
     // When
     ASSERT_TRUE(process_group_manager_->initialize(config));
 
-    // Deliver more recovery requests through the registered callback than the component event
-    // queue can hold (capacity == number of OS processes * 3; makeMinimalConfig has a single
-    // component), forcing the queue to drop events and latch its (sticky) overflow flag. run()
-    // observes the overflow and fires the watchdog reaction.
+    // Deliver more recovery requests than the component event queue can hold,
+    // forcing the queue to drop events and latch its sticky overflow flag.
+    // run() observes the overflow and fires the watchdog reaction.
     ASSERT_TRUE(recovery_callback_);
-    for (int i = 0; i < 16; ++i)
+    for (int i = 0; i < kNumRecoveryRequests; ++i)
     {
         recovery_callback_(score::lcm::IdentifierHash{"overflow_probe"});
     }
@@ -246,10 +248,8 @@ TEST_F(ProcessGroupManagerWatchdogTest, GivenMinimalConfig_ExpectWatchdogDisable
     EXPECT_CALL(*alive_monitor_thread_, stop()).Times(1);
 
     // When
-    auto initialize_result = process_group_manager_->initialize(config);
-
-    // Then
-    EXPECT_TRUE(initialize_result);
+    ASSERT_TRUE(process_group_manager_->initialize(config));
+    process_group_manager_->deinitialize();
 }
 
 }  // namespace

@@ -45,7 +45,7 @@ cc_library(
     ],
 )
 
-cc_test(
+lm_cc_test(
     name = "recovery_client_UT",
     srcs = ["recovery_client_UT.cpp"],
     deps = [

@@ -186,7 +186,6 @@ cc_library(
     strip_include_prefix = "/score/launch_manager/src/daemon/src/process_group_manager/details",
     visibility = [
         "//score/launch_manager/src/daemon/src/process_group_manager:__pkg__",
-        "//score/launch_manager/src/daemon/src/process_group_manager/details:__pkg__",
     ],
     deps = [
         ":component_event_queue",
@@ -326,15 +325,14 @@ lm_cc_test(
     ],
 )
 
-cc_test(
+lm_cc_test(
     name = "process_group_manager_UT",
     timeout = "long",
     srcs = ["process_group_manager_UT.cpp"],
     deps = [
-        ":process_group_manager_impl",
         "//score/launch_manager/src/daemon/src/configuration:config",
+        "//score/launch_manager/src/daemon/src/process_group_manager",
         "//score/launch_manager/src/daemon/src/process_group_manager:ialive_monitor_thread_mock",
-        "//score/launch_manager/src/daemon/src/process_group_manager:process_group_manager_hdrs",
         "//score/launch_manager/src/daemon/src/process_state_client:iprocess_state_notifier_mock",
         "//score/launch_manager/src/daemon/src/recovery_client:recovery_client_mock",
         "//score/launch_manager/src/daemon/src/watchdog:i_watchdog_if_mock",

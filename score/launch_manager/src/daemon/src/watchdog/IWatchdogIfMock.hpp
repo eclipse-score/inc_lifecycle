@@ -31,11 +31,11 @@ class MockWatchdogIf : public IWatchdogIf
   public:
     MockWatchdogIf() = default;
 
-    MOCK_METHOD(bool,
-                init,
-                (const score::mw::launch_manager::configuration::WatchdogConfig& watchdog_config,
-                 std::int64_t cycle_time_ns),
-                (noexcept, override));
+    MOCK_METHOD(
+        bool,
+        init,
+        (const score::mw::launch_manager::configuration::WatchdogConfig& watchdog_config, std::int64_t cycle_time_ns),
+        (noexcept, override));
     MOCK_METHOD(bool, enable, (), (noexcept, override));
     MOCK_METHOD(void, disable, (), (noexcept, override));
     MOCK_METHOD(void, serviceWatchdog, (), (noexcept, override));

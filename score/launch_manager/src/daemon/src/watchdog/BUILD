@@ -37,6 +37,16 @@ cc_library(
     ],
 )
 
+lm_cc_test(
+    name = "watchdog_factory_UT",
+    srcs = ["WatchdogFactory_UT.cpp"],
+    deps = [
+        ":watchdog_factory",
+        "//score/launch_manager/src/daemon/src/watchdog/details:watchdog_impl",
+        "@googletest//:gtest_main",
+    ],
+)
+
 cc_library(
     name = "i_watchdog_if_mock",
     testonly = True,
@@ -49,4 +59,3 @@ cc_library(
         "@googletest//:gtest",
     ],
 )
-
