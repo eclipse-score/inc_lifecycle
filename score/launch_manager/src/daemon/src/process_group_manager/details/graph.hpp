@@ -190,7 +190,7 @@ class Graph final
     ///     pushes this event once a process has already reached its ready condition, so it is
     ///     always a post-ready crash.
     /// @param event The event to process.
-    void handleComponentEvent(const ComponentEvent& event);
+    void handleComponentEvent(const score::mw::lifecycle::internal::ComponentEvent& event);
 
     /// @brief Cancel the current transition because a new state has been requested.
     /// Sets the graph state to kCancelled and posts a kSetStateCancelled pending event.
@@ -329,7 +329,7 @@ class Graph final
     /// @brief Pushes the given task onto the worker queue while the graph is in transition.
     /// Retries on timeout.
     /// @param task The task to enqueue.
-    void tryQueueNode(ComponentTask task);
+    void tryQueueNode(score::mw::lifecycle::internal::ComponentTask task);
 
     /// @brief Every node that is ready to execute is either executed in place (RunTarget) or queued for execution
     /// (ProcessInfoNode).
