@@ -24,7 +24,7 @@ from attribute_plugin import add_test_properties
         "feat_req__lifecycle__process_termination",
         "feat_req__lifecycle__terminationn_dependency",
         "feat_req__lifecycle__process_ordering",
-        "feat_req__lifecycle__launch_manager_shutdown",
+        "comp_req__launch_man__launch_manager_shutdown",
     ],
     test_type="requirements-based",
     derivation_technique="requirements-analysis",
