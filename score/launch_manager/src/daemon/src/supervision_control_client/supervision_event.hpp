@@ -27,12 +27,12 @@ namespace lcm
 /// @brief Type of supervision event sent from the launch manager to the alive monitor.
 enum class SupervisionEventType : std::uint8_t
 {
-    kActivation = 0,   ///< Supervision should be activated (process reached running state).
-    kDeactivation = 1  ///< Supervision should be deactivated (process terminating or terminated).
+    /// @brief Supervision should be activated (process reached running state).
+    kActivation = 0,
+    /// @brief Supervision should be deactivated (process terminating or terminated).
+    kDeactivation = 1
 };
 
-// RULECHECKER_comment(1, 1, check_incomplete_data_member_construction, "This struct is POD, which doesn't have
-// user-declared constructor. The rule doesn't apply.", false)
 struct SupervisionEvent
 {
     /// @brief Stores the Modelled Process ID as IdentifierHash.
@@ -45,11 +45,15 @@ struct SupervisionEvent
     timespec systemClockTimestamp;
 };
 
-enum class BufferConstants : size_t
+namespace BufferConstants
 {
-    BUFFER_MAXPAYLOAD = sizeof(SupervisionEvent),  ///< Ringbuffer max payload size
-    BUFFER_QUEUE_SIZE = 4096UL                     ///< Ringbuffer queue size
-};
+
+/// @brief Ringbuffer max payload size
+constexpr std::size_t BUFFER_MAXPAYLOAD = sizeof(SupervisionEvent);
+/// @brief Ringbuffer queue size
+constexpr std::size_t BUFFER_QUEUE_SIZE = 4096UL;
+
+}  // namespace BufferConstants
 
 }  // namespace lcm
 

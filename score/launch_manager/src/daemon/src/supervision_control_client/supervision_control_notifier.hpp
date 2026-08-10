@@ -55,8 +55,10 @@ class SupervisionControlNotifier final : public ISupervisionControlNotifier
     /// @return Supervision control receiver instance
     std::unique_ptr<score::lcm::ISupervisionControlReceiver> constructReceiver() override;
 
+    /// @brief Report that process with @param id has reached the active state at @param time
     bool reportActivation(IdentifierHash id, timespec time) noexcept override;
 
+    /// @brief Report that process with @param id has changed from the active state at @param time
     bool reportDeactivation(IdentifierHash id, timespec time) noexcept override;
 
   private:

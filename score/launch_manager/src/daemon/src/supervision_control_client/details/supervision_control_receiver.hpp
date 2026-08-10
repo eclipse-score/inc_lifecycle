@@ -23,14 +23,14 @@ namespace score
 namespace lcm
 {
 
-using BufferP = std::shared_ptr<ipc_dropin::RingBuffer<
-    static_cast<size_t>(score::lcm::BufferConstants::BUFFER_QUEUE_SIZE),
-    static_cast<size_t>(score::lcm::BufferConstants::BUFFER_MAXPAYLOAD)>>;
-
 /// @brief SupervisionControlReceiver implementation for receiving supervision events from the Launch Manager.
 class SupervisionControlReceiver final : public ISupervisionControlReceiver
 {
   public:
+    using BufferP = std::shared_ptr<ipc_dropin::RingBuffer<
+        static_cast<size_t>(score::lcm::BufferConstants::BUFFER_QUEUE_SIZE),
+        static_cast<size_t>(score::lcm::BufferConstants::BUFFER_MAXPAYLOAD)>>;
+
     /// @brief Constructor that creates the SupervisionControlReceiver
     /// @param ring_buffer Shared pointer to the ring buffer used to receive supervision events
     SupervisionControlReceiver(BufferP ring_buffer) noexcept;
