@@ -75,6 +75,19 @@ cc_library(
 )
 
 cc_library(
+    name = "mock_supervision_control_notifier",
+    testonly = True,
+    hdrs = ["mock_supervision_control_notifier.hpp"],
+    include_prefix = "score/mw/launch_manager/supervision_control_client",
+    strip_include_prefix = "/score/launch_manager/src/daemon/src/supervision_control_client",
+    visibility = ["//score:__subpackages__"],
+    deps = [
+        ":isupervision_control_notifier",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "supervision_control_notifier",
     srcs = ["supervision_control_notifier.cpp"],
     hdrs = ["supervision_control_notifier.hpp"],

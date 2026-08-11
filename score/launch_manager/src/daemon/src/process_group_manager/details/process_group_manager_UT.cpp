@@ -14,8 +14,8 @@
 #include "score/mw/launch_manager/process_group_manager/process_group_manager.hpp"
 
 #include "score/mw/launch_manager/process_group_manager/alive_monitor_thread_mock.hpp"
-#include "score/mw/launch_manager/process_state_client/iprocess_state_notifier_mock.hpp"
 #include "score/mw/launch_manager/recovery_client/irecovery_client_mock.h"
+#include "score/mw/launch_manager/supervision_control_client/mock_supervision_control_notifier.hpp"
 #include "score/mw/launch_manager/watchdog/IWatchdogIfMock.hpp"
 
 #include <gmock/gmock.h>
@@ -36,8 +36,8 @@ namespace score::lcm::internal
 namespace
 {
 
-using score::lcm::MockProcessStateNotifier;
 using score::lcm::MockRecoveryClient;
+using score::lcm::MockSupervisionControlNotifier;
 using score::lcm::watchdog::MockWatchdogIf;
 
 using score::mw::launch_manager::configuration::AliveSupervisionConfig;
@@ -124,11 +124,12 @@ class ProcessGroupManagerWatchdogTest : public Test
         ON_CALL(*recovery_client_, setRecoveryRequestCallback(_)).WillByDefault(SaveArg<0>(&recovery_callback_));
         ON_CALL(*recovery_client_, sendRecoveryRequest(_)).WillByDefault(Return(true));
 
-        auto process_state_notifier = std::make_unique<NiceMock<MockProcessStateNotifier>>();
-        process_state_notifier_ = process_state_notifier.get();
-        ON_CALL(*process_state_notifier_, constructReceiver())
-            .WillByDefault(Return(ByMove(std::unique_ptr<score::lcm::IProcessStateReceiver>{})));
-        ON_CALL(*process_state_notifier_, queuePosixProcess(_)).WillByDefault(Return(true));
+        auto supervision_control_notifier = std::make_unique<NiceMock<MockSupervisionControlNotifier>>();
+        supervision_control_notifier_ = supervision_control_notifier.get();
+        ON_CALL(*supervision_control_notifier_, constructReceiver())
+            .WillByDefault(Return(ByMove(std::unique_ptr<score::lcm::ISupervisionControlReceiver>{})));
+        ON_CALL(*supervision_control_notifier_, reportActivation(_, _)).WillByDefault(Return(true));
+        ON_CALL(*supervision_control_notifier_, reportDeactivation(_, _)).WillByDefault(Return(true));
 
         auto watchdog = std::make_unique<StrictMock<MockWatchdogIf>>();
         watchdog_ = watchdog.get();
@@ -136,7 +137,7 @@ class ProcessGroupManagerWatchdogTest : public Test
         process_group_manager_ = std::make_unique<ProcessGroupManager>(
             std::move(alive_monitor_thread),
             std::move(recovery_client),
-            std::move(process_state_notifier),
+            std::move(supervision_control_notifier),
             std::move(watchdog));
     }
 
@@ -148,7 +149,7 @@ class ProcessGroupManagerWatchdogTest : public Test
     MockAliveMonitorThread* alive_monitor_thread_{};
     MockRecoveryClient* recovery_client_{};
     score::lcm::IRecoveryClient::RecoveryRequestCallback recovery_callback_{};
-    MockProcessStateNotifier* process_state_notifier_{};
+    MockSupervisionControlNotifier* supervision_control_notifier_{};
     MockWatchdogIf* watchdog_{};
     std::unique_ptr<ProcessGroupManager> process_group_manager_;
 };
