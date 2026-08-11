@@ -25,13 +25,7 @@
 #include "score/mw/launch_manager/alive_monitor/details/supervision/SupervisionCfg.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
 
-namespace score
-{
-namespace lcm
-{
-namespace saf
-{
-namespace supervision
+namespace score::mw::lifecycle::saf::supervision
 {
 
 /// @brief Alive Supervision
@@ -127,7 +121,7 @@ class Alive : public ISupervision,
   private:
     /// @brief The pointer is only stored for the identification of a checkpoint observer. It can be further used for
     /// accessing const members only.
-    using CheckpointIdentifier = const score::lcm::saf::ifappl::Checkpoint*;
+    using CheckpointIdentifier = const score::mw::lifecycle::saf::ifappl::Checkpoint*;
 
     /// @brief Time sorted checkpoint snapshot
     struct CheckpointSnapshot final
@@ -287,7 +281,7 @@ class Alive : public ISupervision,
     bool setReferenceCycleTimestamps(timers::NanoSecondType f_baseValue) noexcept(true);
 
     /// @brief Alive reference cycle in [nano seconds]
-    const score::lcm::saf::timers::NanoSecondType k_aliveReferenceCycle;
+    const score::mw::lifecycle::saf::timers::NanoSecondType k_aliveReferenceCycle;
 
     /// @brief Minimum allowed alive indications
     const uint32_t k_minAliveIndications;
@@ -305,10 +299,10 @@ class Alive : public ISupervision,
     const uint32_t k_failedSupervisionCyclesTolerance;
 
     /// @brief Recovery client invoked when supervision expires (null means recovery is disabled)
-    std::shared_ptr<score::lcm::IRecoveryClient> recoveryClient_p;
+    std::shared_ptr<score::mw::lifecycle::IRecoveryClient> recoveryClient_p;
 
     /// @brief Identifier of the supervised process, sent via recovery client when supervision expires
-    const score::lcm::IdentifierHash processIdentifier_;
+    const score::mw::lifecycle::IdentifierHash processIdentifier_;
 
     /// @brief Set to true when sendRecoveryRequest fails (ring buffer full)
     bool recoveryEnqueueFailed_{false};
@@ -341,12 +335,9 @@ class Alive : public ISupervision,
 
     /// @brief Time sorting buffer for update events in alive supervision
     /// @details This buffer sorts all process events and checkpoint events in the same buffer.
-    score::lcm::saf::common::TimeSortingBuffer<TimeSortedUpdateEvent> timeSortingUpdateEventBuffer;
+    score::mw::lifecycle::saf::common::TimeSortingBuffer<TimeSortedUpdateEvent> timeSortingUpdateEventBuffer;
 };
 
-}  // namespace supervision
-}  // namespace saf
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle::saf::supervision
 
 #endif

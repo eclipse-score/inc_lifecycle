@@ -59,7 +59,7 @@ struct [[nodiscard]] JobSkipped
 /// @brief Alive supervision has failed for the given process identifier.
 struct [[nodiscard]] SupervisionFailure
 {
-    score::lcm::IdentifierHash process_identifier;
+    score::mw::lifecycle::IdentifierHash process_identifier;
 };
 
 /// @brief A graph-relevant state change. There is only ever a single graph, so no process-group

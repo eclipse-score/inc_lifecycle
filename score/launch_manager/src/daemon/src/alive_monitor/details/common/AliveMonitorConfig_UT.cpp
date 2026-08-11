@@ -23,7 +23,7 @@ namespace score::mw::lifecycle::internal::alive
 namespace
 {
 
-namespace cfg = score::mw::launch_manager::configuration;
+namespace cfg = score::mw::lifecycle::configuration;
 
 cfg::ComponentConfig makeComponent(
     const std::string& name,

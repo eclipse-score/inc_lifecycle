@@ -51,7 +51,7 @@ struct PosixProcess
     /// @brief Stores the Modelled Process ID as IdentifierHash.
     /// @details This ID is assigned by using a hash algorithm on the string of the path.
     ///
-    score::lcm::IdentifierHash id;
+    score::mw::lifecycle::IdentifierHash id;
 
     /// @brief Stores the current ProcessState of the posix process.
     /// @details This state is assigned by the Launch Manager whenever the posix process changes it current state.
@@ -60,7 +60,7 @@ struct PosixProcess
 
     /// @brief Stores the ProcessGroupState ID in which the Process is active as IdentifierHash.
     /// @details This ID is assigned by using a hash algorithm on the string of the path.
-    score::lcm::IdentifierHash processGroupStateId;
+    score::mw::lifecycle::IdentifierHash processGroupStateId;
 
     /// @brief Stores the timestamp based on the system clock when storing the new change of this posix process.
     /// @details the timestamp is stored as timespec, since it can deliver precision in nanoseconds.

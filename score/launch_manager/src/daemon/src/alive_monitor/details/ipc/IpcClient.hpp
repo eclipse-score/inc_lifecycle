@@ -20,11 +20,7 @@
 #include "score/mw/launch_manager/alive_monitor/details/ipc/IpcBase.hpp"
 #include <string>
 
-namespace score
-{
-namespace lcm
-{
-namespace saf
+namespace score::mw::lifecycle::saf
 {
 namespace ipc
 {
@@ -101,8 +97,6 @@ class IpcClient final : public IpcBase<Payload, MaxNumberElements, Socket>
 };
 
 }  // namespace ipc
-}  // namespace saf
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle::saf
 
 #endif

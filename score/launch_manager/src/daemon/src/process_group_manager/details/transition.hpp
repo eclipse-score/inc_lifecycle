@@ -284,7 +284,7 @@ class Transition
 
         /// @brief The nodes that are ready to be activated/deactivated in the current phase, in the order they were
         /// discovered.
-        score::lcm::internal::FixedSizeQueue<GraphIndex> next_nodes;
+        score::mw::lifecycle::internal::FixedSizeQueue<GraphIndex> next_nodes;
         std::size_t pending = 0;    // nodes still to reach terminal state in this phase
         Phase phase = Phase::Done;  // active vs deactivation vs finished
 
@@ -292,7 +292,7 @@ class Transition
         /// @deprecated This is a workaround for the case where two processes are started in parallel and their events
         /// processed in sequence. Both onNodeFinished() calls detect that all dependents are ready and try to enqueue
         /// successors. Detection of dependency readiness should be reworked to remove this.
-        std::bitset<static_cast<std::size_t>(score::lcm::internal::ProcessLimits::kMaxProcesses)> enqueued_set{};
+        std::bitset<static_cast<std::size_t>(score::mw::lifecycle::internal::ProcessLimits::kMaxProcesses)> enqueued_set{};
 
         State(std::size_t nodes) : next_nodes(nodes)
         {

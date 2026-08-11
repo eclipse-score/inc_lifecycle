@@ -44,7 +44,4 @@ std::int32_t setaffinity(std::uint64_t cpumask) noexcept(true)
     }
     return 0 == sched_setaffinity(0, sizeof(mask), &mask) ? 0 : -1;
 }
-}  // namespace osal
-}  // namespace internal
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::osal

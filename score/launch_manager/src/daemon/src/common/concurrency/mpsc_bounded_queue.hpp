@@ -29,7 +29,7 @@
 #include <score/assert.hpp>
 #include <score/expected.hpp>
 
-namespace score::lcm::internal
+namespace score::mw::lifecycle::internal
 {
 
 /// @brief Fixed-capacity queue for the multi-producer / single-consumer case,
@@ -176,6 +176,6 @@ class MpscBoundedQueue
     std::thread::id consumer_thread_id_{};
 };
 
-}  // namespace score::lcm::internal
+}  // namespace score::mw::lifecycle::internal
 
 #endif  // MPSC_BOUNDED_QUEUE_HPP_INCLUDED

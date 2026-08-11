@@ -21,13 +21,7 @@
 #include "score/mw/launch_manager/alive_monitor/details/timers/OsClockInterface.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
 
-namespace score
-{
-namespace lcm
-{
-namespace saf
-{
-namespace timers
+namespace score::mw::lifecycle::saf::timers
 {
 
 // coverity[autosar_cpp14_m3_4_1_violation] value is referenced in multiple files, but depending on build package.
@@ -47,7 +41,7 @@ class CycleTimer
     /// @brief Sets the interface for performing the OS clock system calls.
     /// @param[in] f_osInterface OS clock interface to access clock_nanosleep() and clock_gettime() via
     /// OsClockInterface. The pointer allows the interface exchange to enhance testability.
-    explicit CycleTimer(const score::lcm::saf::timers::OsClockInterface* f_osInterface) noexcept;
+    explicit CycleTimer(const score::mw::lifecycle::saf::timers::OsClockInterface* f_osInterface) noexcept;
 
     /// @brief Initialize the time interval object and check for internal errors, which prevent from incorrect
     /// execution.
@@ -130,7 +124,7 @@ class CycleTimer
     void handleNanoSecOverflow() noexcept;
 
     /// @brief Interface to perform system calls such as clock_nanosleep()
-    const score::lcm::saf::timers::OsClockInterface* osInterface;
+    const score::mw::lifecycle::saf::timers::OsClockInterface* osInterface;
 
     /// @brief Cycle time interval value in nanoseconds
     ///
@@ -143,9 +137,6 @@ class CycleTimer
     struct timespec deadline;
 };
 
-}  // namespace timers
-}  // namespace saf
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle::saf::timers
 
 #endif

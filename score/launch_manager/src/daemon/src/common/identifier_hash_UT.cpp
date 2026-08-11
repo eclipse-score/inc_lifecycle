@@ -20,7 +20,7 @@
 using namespace testing;
 using std::stringstream;
 
-using score::lcm::IdentifierHash;
+using score::mw::lifecycle::IdentifierHash;
 
 class IdentifierHashTest : public ::testing::Test
 {

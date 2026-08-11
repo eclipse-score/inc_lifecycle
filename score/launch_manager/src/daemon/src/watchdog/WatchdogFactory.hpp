@@ -18,9 +18,7 @@
 
 #include <memory>
 
-namespace score
-{
-namespace lcm
+namespace score::mw::lifecycle
 {
 namespace watchdog
 {
@@ -30,7 +28,6 @@ namespace watchdog
 std::unique_ptr<IWatchdogIf> createWatchdog();
 
 }  // namespace watchdog
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle
 
 #endif

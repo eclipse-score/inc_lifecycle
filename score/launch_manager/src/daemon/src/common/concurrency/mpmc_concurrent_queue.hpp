@@ -30,7 +30,7 @@
 #include "score/mw/launch_manager/osal/semaphore.hpp"
 #include <score/expected.hpp>
 
-namespace score::lcm::internal
+namespace score::mw::lifecycle::internal
 {
 // this is based on https://github.com/rigtorp/MPMCQueue
 
@@ -305,6 +305,6 @@ class MPMCConcurrentQueue
     osal::Semaphore m_spaces{};
 };
 
-}  // namespace score::lcm::internal
+}  // namespace score::mw::lifecycle::internal
 
 #endif  // MPMC_CONCURRENT_QUEUE_HPP_INCLUDED

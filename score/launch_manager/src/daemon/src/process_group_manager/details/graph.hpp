@@ -51,7 +51,7 @@ namespace internal
 
 
 using ConfigurationInterface = ConfigurationAdapter;
-using Config = score::mw::launch_manager::configuration::Config;
+using Config = score::mw::lifecycle::configuration::Config;
 
 using WorkerQueue =
     MPMCConcurrentQueue<std::optional<score::mw::lifecycle::internal::ComponentTask>, static_cast<std::size_t>(ProcessLimits::kMaxProcesses)>;

@@ -19,7 +19,7 @@
 #include <string>
 #include <string_view>
 
-namespace score::mw::launch_manager::configuration
+namespace score::mw::lifecycle::configuration
 {
 namespace
 {
@@ -257,4 +257,4 @@ TEST_F(EnvironmentTest, RangeBasedForLoopWorks)
 }
 
 }  // namespace
-}  // namespace score::mw::launch_manager::configuration
+}  // namespace score::mw::lifecycle::configuration

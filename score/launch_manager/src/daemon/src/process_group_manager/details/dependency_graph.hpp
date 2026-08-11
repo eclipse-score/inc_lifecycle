@@ -186,7 +186,7 @@ class DependencyGraph
     std::vector<GraphNode> nodes;
 
     /// @brief Presized queue reused by single-threaded traversals.
-    score::lcm::internal::FixedSizeQueue<GraphIndex> traversal_queue;
+    score::mw::lifecycle::internal::FixedSizeQueue<GraphIndex> traversal_queue;
     /// @brief Presized visited set reused by single-threaded traversals.
     std::vector<bool> visited;
 };

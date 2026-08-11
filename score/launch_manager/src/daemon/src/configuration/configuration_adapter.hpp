@@ -27,10 +27,10 @@
 #include <string>
 #include <vector>
 
-namespace score::mw::launch_manager::configuration
+namespace score::mw::lifecycle::configuration
 {
 
-using IdentifierHash = score::lcm::IdentifierHash;
+using IdentifierHash = score::mw::lifecycle::IdentifierHash;
 
 struct PgManagerConfig final
 {
@@ -43,7 +43,7 @@ struct PgManagerConfig final
 
 struct Dependency final
 {
-    score::lcm::ProcessState process_state_{};
+    score::mw::lifecycle::ProcessState process_state_{};
     IdentifierHash target_process_id_{};
     uint32_t os_process_index_{};
 };
@@ -54,7 +54,7 @@ struct OsProcess final
 {
     IdentifierHash process_id_{};
     uint32_t process_number_{};
-    score::lcm::internal::osal::OsalConfig startup_config_{};
+    score::mw::lifecycle::internal::osal::OsalConfig startup_config_{};
     PgManagerConfig pgm_config_{};
     DependencyList dependencies_{};
 };
@@ -92,9 +92,9 @@ class ConfigurationAdapter final
     std::optional<uint32_t> getNumberOfOsProcesses(const IdentifierHash& pg_name) const;
     IdentifierHash getNameOfOffState(const IdentifierHash& pg_name) const;
     IdentifierHash getNameOfRecoveryState(const IdentifierHash& pg_name) const;
-    std::optional<const score::lcm::internal::ProcessGroupStateID*> getMainPGStartupState() const;
+    std::optional<const score::mw::lifecycle::internal::ProcessGroupStateID*> getMainPGStartupState() const;
     std::optional<const std::vector<uint32_t>*> getProcessIndexesList(
-        const score::lcm::internal::ProcessGroupStateID& process_group_state_id) const;
+        const score::mw::lifecycle::internal::ProcessGroupStateID& process_group_state_id) const;
     std::optional<const std::vector<ProcessGroupState>*> getListOfProcessGroupStates(
         const IdentifierHash& pg_name) const;
     std::optional<const OsProcess*> getOsProcessConfiguration(const IdentifierHash& pg_name_, const uint32_t index)
@@ -109,15 +109,15 @@ class ConfigurationAdapter final
     bool buildFromConfig(const Config& config);
 
     OsProcess buildOsProcess(const ComponentConfig& comp, uint32_t process_index) const;
-    void fillStartupConfigFromDeployment(const ComponentConfig& comp, score::lcm::internal::osal::OsalConfig& startup)
+    void fillStartupConfigFromDeployment(const ComponentConfig& comp, score::mw::lifecycle::internal::osal::OsalConfig& startup)
         const;
-    void fillStartupArguments(const ComponentProperties& props, score::lcm::internal::osal::OsalConfig& startup) const;
-    size_t fillStartupEnvironment(const DeploymentConfig& deploy, score::lcm::internal::osal::OsalConfig& startup)
+    void fillStartupArguments(const ComponentProperties& props, score::mw::lifecycle::internal::osal::OsalConfig& startup) const;
+    size_t fillStartupEnvironment(const DeploymentConfig& deploy, score::mw::lifecycle::internal::osal::OsalConfig& startup)
         const;
     void appendAliveInterfaceEnvironment(
         const ComponentConfig& comp,
         size_t& env_index,
-        score::lcm::internal::osal::OsalConfig& startup) const;
+        score::mw::lifecycle::internal::osal::OsalConfig& startup) const;
     PgManagerConfig buildPgManagerConfig(const ComponentConfig& comp) const;
     DependencyList buildDependencyList(const ComponentProperties& props) const;
 
@@ -134,10 +134,10 @@ class ConfigurationAdapter final
 
     static void resolveDependencyIndexes(std::vector<OsProcess>& processes);
 
-    score::lcm::internal::osal::CommsType mapApplicationType(ApplicationType app_type) const;
+    score::mw::lifecycle::internal::osal::CommsType mapApplicationType(ApplicationType app_type) const;
 
     ProcessGroup* getProcessGroupByID(const IdentifierHash& pg_name) const;
-    ProcessGroupState* getProcessGroupStateByID(const score::lcm::internal::ProcessGroupStateID& pg_id) const;
+    ProcessGroupState* getProcessGroupStateByID(const score::mw::lifecycle::internal::ProcessGroupStateID& pg_id) const;
     std::optional<const ProcessGroup*> getProcessGroupByNameAndIndex(
         const IdentifierHash& pg_name,
         const uint32_t index) const;
@@ -146,23 +146,23 @@ class ConfigurationAdapter final
     std::map<std::string, uint32_t> component_to_process_index_{};
     std::vector<ProcessGroup> process_groups_{};
     std::vector<IdentifierHash> process_group_names_{};
-    score::lcm::internal::ProcessGroupStateID main_pg_startup_state_{
+    score::mw::lifecycle::internal::ProcessGroupStateID main_pg_startup_state_{
         static_cast<IdentifierHash>("MainPG"),
         static_cast<IdentifierHash>("MainPG/Startup")};
 };
 
-}  // namespace score::mw::launch_manager::configuration
+}  // namespace score::mw::lifecycle::configuration
 
-// Aliases for backward compatibility with score::lcm::internal consumers
-namespace score::lcm::internal
+// Aliases for backward compatibility with score::mw::lifecycle::internal consumers
+namespace score::mw::lifecycle::internal
 {
-using ConfigurationAdapter = score::mw::launch_manager::configuration::ConfigurationAdapter;
-using OsProcess = score::mw::launch_manager::configuration::OsProcess;
-using DependencyList = score::mw::launch_manager::configuration::DependencyList;
-using ProcessGroup = score::mw::launch_manager::configuration::ProcessGroup;
-using ProcessGroupState = score::mw::launch_manager::configuration::ProcessGroupState;
-using PgManagerConfig = score::mw::launch_manager::configuration::PgManagerConfig;
-using Dependency = score::mw::launch_manager::configuration::Dependency;
-}  // namespace score::lcm::internal
+using ConfigurationAdapter = score::mw::lifecycle::configuration::ConfigurationAdapter;
+using OsProcess = score::mw::lifecycle::configuration::OsProcess;
+using DependencyList = score::mw::lifecycle::configuration::DependencyList;
+using ProcessGroup = score::mw::lifecycle::configuration::ProcessGroup;
+using ProcessGroupState = score::mw::lifecycle::configuration::ProcessGroupState;
+using PgManagerConfig = score::mw::lifecycle::configuration::PgManagerConfig;
+using Dependency = score::mw::lifecycle::configuration::Dependency;
+}  // namespace score::mw::lifecycle::internal
 
 #endif  // CONFIGURATIONADAPTER_HPP_INCLUDED

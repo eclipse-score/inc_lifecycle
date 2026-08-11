@@ -13,19 +13,13 @@
 #include "score/mw/launch_manager/alive_monitor/details/timers/CycleTimer.hpp"
 
 #include "score/mw/launch_manager/alive_monitor/details/timers/TimeConversion.hpp"
-namespace score
-{
-namespace lcm
-{
-namespace saf
-{
-namespace timers
+namespace score::mw::lifecycle::saf::timers
 {
 /* RULECHECKER_comment(0, 3, check_static_object_zero_initialization, "As per rule definition, \
 using constexpr enforces constant initialization by the compiler", false) */
 constexpr int CycleTimer::kDeadlineAlreadyOver;
 
-CycleTimer::CycleTimer(const score::lcm::saf::timers::OsClockInterface* f_osInterface) noexcept
+CycleTimer::CycleTimer(const score::mw::lifecycle::saf::timers::OsClockInterface* f_osInterface) noexcept
     : osInterface{f_osInterface}, sleepIntervalNs{0}, deadline{}
 {
     static_cast<void>(0U);
@@ -98,7 +92,4 @@ void CycleTimer::handleNanoSecOverflow() noexcept(true)
     }
 }
 
-}  // namespace timers
-}  // namespace saf
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle::saf::timers

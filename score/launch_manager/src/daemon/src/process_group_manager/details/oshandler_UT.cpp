@@ -27,7 +27,8 @@
 #include "score/os/mocklib/sys_wait_mock.h"
 
 using namespace testing;
-using namespace score::lcm::internal;
+using namespace score::mw::lifecycle::internal;
+using namespace score::mw::lifecycle::internal;
 
 namespace
 {
@@ -152,7 +153,7 @@ TEST_F(OsHandlerTest, WaitReturnsProcessIdBeforeRegistration_LaterRegistrationRe
     // callback immediately with the saved exit status instead of creating a new live entry.
     EXPECT_CALL(ccontroller_, terminated(_, 99)).Times(1);
     EXPECT_EQ(
-        process_map_.insertIfNotTerminated(4000, &component_), score::lcm::internal::SafeProcessMapReturnType::kYield);
+        process_map_.insertIfNotTerminated(4000, &component_), score::mw::lifecycle::internal::SafeProcessMapReturnType::kYield);
 
     sut_.reset();
 }
@@ -170,7 +171,7 @@ TEST_F(OsHandlerTest, WaitReturnsUnknownPidWhenMapIsFull_OutOfResourcesPathDoesN
     {
         ASSERT_EQ(
             process_map_.insertIfNotTerminated(static_cast<int32_t>(i + 1U), &callbacks[i]),
-            score::lcm::internal::SafeProcessMapReturnType::kOk);
+            score::mw::lifecycle::internal::SafeProcessMapReturnType::kOk);
     }
 
     EXPECT_CALL(*sys_wait_mock_, wait(_))

@@ -39,11 +39,11 @@
 #include "score/mw/launch_manager/recovery_client/recovery_client.hpp"
 #include "score/mw/launch_manager/watchdog/IWatchdogIf.hpp"
 
-namespace score::lcm::internal
+namespace score::mw::lifecycle::internal
 {
 
 using ConfigurationType = ConfigurationAdapter;
-using Config = score::mw::launch_manager::configuration::Config;
+using Config = score::mw::lifecycle::configuration::Config;
 
 /// @brief ProcessGroupManager provides the core functionality of LCM.
 /// Software that is deployed to the machine, should be managed through Process Groups.
@@ -77,8 +77,8 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     ProcessGroupManager(
         std::unique_ptr<IAliveMonitorThread> alive_monitor_thread,
         std::shared_ptr<IRecoveryClient> recovery_client,
-        std::unique_ptr<score::lcm::IProcessStateNotifier> process_state_notifier,
-        std::unique_ptr<score::lcm::watchdog::IWatchdogIf> watchdog);
+        std::unique_ptr<score::mw::lifecycle::IProcessStateNotifier> process_state_notifier,
+        std::unique_ptr<score::mw::lifecycle::watchdog::IWatchdogIf> watchdog);
 
     /// @brief Initializes the process group manager.
     /// Loads the flat configuration through ConfigurationManager.
@@ -152,7 +152,7 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     ///          if no more free shared memory, the PosixProcess is not sent.
     /// @param[in]   f_posixProcess   The PosixProcess to be queued
     /// @returns True on success, false for failure (corresponding to kCommunicationError).
-    bool queuePosixProcess(const score::lcm::PosixProcess& f_posixProcess)
+    bool queuePosixProcess(const score::mw::lifecycle::PosixProcess& f_posixProcess)
     {
         return process_state_notifier_->queuePosixProcess(f_posixProcess);
     }
@@ -318,7 +318,7 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     std::shared_ptr<Graph> machine_process_group_{nullptr};
 
     /// @brief Process state notifier object used to send data to PHM
-    std::unique_ptr<score::lcm::IProcessStateNotifier> process_state_notifier_;
+    std::unique_ptr<score::mw::lifecycle::IProcessStateNotifier> process_state_notifier_;
 
     std::unique_ptr<IAliveMonitorThread> alive_monitor_thread_;
 
@@ -330,12 +330,12 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     /// on the main thread, so all Graph state mutations happen from a single thread.
     std::unique_ptr<ComponentEventQueue> event_queue_;
 
-    std::shared_ptr<score::lcm::IRecoveryClient> recovery_client_{};
+    std::shared_ptr<score::mw::lifecycle::IRecoveryClient> recovery_client_{};
 
     /// @brief The watchdog serviced during the main loop. May be nullptr in legacy configuration.
-    std::unique_ptr<score::lcm::watchdog::IWatchdogIf> watchdog_;
+    std::unique_ptr<score::mw::lifecycle::watchdog::IWatchdogIf> watchdog_;
 };
 
-}  // namespace score::lcm::internal
+}  // namespace score::mw::lifecycle::internal
 
 #endif  /// PROCESSGROUPMANAGER_HPP_INCLUDED

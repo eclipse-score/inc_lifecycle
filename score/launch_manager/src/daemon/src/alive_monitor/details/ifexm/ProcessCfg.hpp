@@ -20,13 +20,7 @@
 #include <string_view>
 #include <vector>
 
-namespace score
-{
-namespace lcm
-{
-namespace saf
-{
-namespace ifexm
+namespace score::mw::lifecycle::saf::ifexm
 {
 
 /* RULECHECKER_comment(0, 18, check_non_private_non_pod_field, "Process configuration is intended to be\
@@ -49,9 +43,6 @@ class ProcessCfg final
     }
 };
 
-}  // namespace ifexm
-}  // namespace saf
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle::saf::ifexm
 
 #endif

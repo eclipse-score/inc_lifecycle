@@ -39,8 +39,5 @@ namespace osal
 ///        thread according to any restrictions that may be imposed
 ///        elsewhere.
 [[nodiscard]] int32_t setaffinity(uint64_t cpumask) noexcept(true);
-}  // namespace osal
-}  // namespace internal
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::osal
 #endif

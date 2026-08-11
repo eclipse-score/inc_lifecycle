@@ -22,7 +22,7 @@
 #include <string_view>
 #include <unordered_map>
 
-namespace score::lcm
+namespace score::mw::lifecycle
 {
 
 /// @file identifier_hash.hpp
@@ -168,12 +168,12 @@ inline std::ostream& operator<<(std::ostream& stream, const IdentifierHash& id_h
     return stream;
 }
 
-}  // namespace score::lcm
+}  // namespace score::mw::lifecycle
 
 #ifdef LC_LOG_SCORE_MW_LOG
 #include "score/mw/log/logger.h"
 
-namespace score::lcm
+namespace score::mw::lifecycle
 {
 
 inline score::mw::log::LogStream& operator<<(score::mw::log::LogStream& stream, const IdentifierHash& id_hash) noexcept(
@@ -193,7 +193,7 @@ inline score::mw::log::LogStream& operator<<(score::mw::log::LogStream& stream, 
     return stream;
 }
 
-}  // namespace score::lcm
+}  // namespace score::mw::lifecycle
 
 #endif  // LC_LOG_SCORE_MW_LOG
 

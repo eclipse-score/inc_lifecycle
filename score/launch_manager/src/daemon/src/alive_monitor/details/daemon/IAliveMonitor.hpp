@@ -17,13 +17,7 @@
 
 #include "score/mw/launch_manager/alive_monitor/details/daemon/PhmDaemon.hpp"
 
-namespace score
-{
-namespace lcm
-{
-namespace saf
-{
-namespace daemon
+namespace score::mw::lifecycle::saf::daemon
 {
 
 /// @brief Interface for HealthMonitor functionality
@@ -41,8 +35,5 @@ class IAliveMonitor
     virtual bool run(std::atomic_bool& cancel_thread) noexcept = 0;
 };
 
-}  // namespace daemon
-}  // namespace saf
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle::saf::daemon
 #endif

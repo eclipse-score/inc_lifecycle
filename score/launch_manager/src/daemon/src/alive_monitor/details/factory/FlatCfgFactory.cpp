@@ -32,19 +32,13 @@
 #include "score/mw/launch_manager/common/alive_interface_path.hpp"
 #include "score/mw/launch_manager/common/identifier_hash.hpp"
 
-namespace score
-{
-namespace lcm
-{
-namespace saf
-{
-namespace factory
+namespace score::mw::lifecycle::saf::factory
 {
 
 using BufferConfig = SupervisionBufferConfig;
-using RecoveryClient = score::lcm::IRecoveryClient;
+using RecoveryClient = score::mw::lifecycle::IRecoveryClient;
 using NanoSecondType = saf::timers::NanoSecondType;
-using IdentifierHash = score::lcm::IdentifierHash;
+using IdentifierHash = score::mw::lifecycle::IdentifierHash;
 
 FlatCfgFactory::FlatCfgFactory(const BufferConfig& f_bufferConfig_r) : IPhmFactory(), bufferConfig_r(f_bufferConfig_r)
 {
@@ -136,7 +130,7 @@ bool FlatCfgFactory::createAliveIfIpcs(std::vector<ifappl::CheckpointIpcServer>&
 
         for (const auto& comp : supervised_components_)
         {
-            const std::string pathInterface = score::lcm::internal::aliveInterfacePath(comp.name);
+            const std::string pathInterface = score::mw::lifecycle::internal::aliveInterfacePath(comp.name);
             f_interfaceIpcs_r.emplace_back();
             const std::int32_t configuredUid = static_cast<std::int32_t>(comp.uid);
             isSuccess = initIpcServerWithUidBasedAccess(f_interfaceIpcs_r.back(), pathInterface, configuredUid);
@@ -327,7 +321,4 @@ IdentifierHash FlatCfgFactory::getProcessId(const SupervisedComponentConfig& com
     return IdentifierHash{comp.name};
 }
 
-}  // namespace factory
-}  // namespace saf
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle::saf::factory

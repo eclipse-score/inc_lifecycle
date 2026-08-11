@@ -19,11 +19,7 @@
 #include "score/mw/launch_manager/alive_monitor/details/common/FixedSizeVector.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
 
-namespace score
-{
-namespace lcm
-{
-namespace saf
+namespace score::mw::lifecycle::saf
 {
 namespace common
 {
@@ -73,7 +69,7 @@ class TimeSortingBuffer
     /// @return                     Success of push (true) sufficient space in buffer was available
     /* RULECHECKER_comment(0, 3, check_cheap_to_copy_in_parameter, "For template argument f_element_r, it is not \
     possible to classify cheap_to_copy or expensive_to_copy without referring original object.", true_no_defect) */
-    bool push(const TimeSortedElementType& f_element_r, const score::lcm::saf::timers::NanoSecondType f_timestamp)
+    bool push(const TimeSortedElementType& f_element_r, const score::mw::lifecycle::saf::timers::NanoSecondType f_timestamp)
     {
         bool isSuccess{false};
         SortChainElement newElement{nullptr, nullptr, f_element_r, f_timestamp};
@@ -138,7 +134,7 @@ class TimeSortingBuffer
             nullptr};                       // Pointer to previous element, null pointer means first element (oldest)
         SortChainElement* next_p{nullptr};  // Pointer to next element, null pointer means last element (latest)
         TimeSortedElementType element{};    // Element to be sorted
-        score::lcm::saf::timers::NanoSecondType timestamp{0U};  // Timestamp used for sorting the elements
+        score::mw::lifecycle::saf::timers::NanoSecondType timestamp{0U};  // Timestamp used for sorting the elements
     };
 
     /// Sort elements
@@ -228,8 +224,6 @@ class TimeSortingBuffer
 };
 
 }  // namespace common
-}  // namespace saf
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle::saf
 
 #endif

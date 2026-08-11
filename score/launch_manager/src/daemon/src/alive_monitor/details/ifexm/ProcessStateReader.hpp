@@ -22,13 +22,7 @@
 #include "score/mw/launch_manager/process_state_client/iprocess_state_receiver.hpp"
 #include "score/mw/launch_manager/process_state_client/posix_process.hpp"
 
-namespace score
-{
-namespace lcm
-{
-namespace saf
-{
-namespace ifexm
+namespace score::mw::lifecycle::saf::ifexm
 {
 
 /// @brief Process State reader
@@ -37,9 +31,9 @@ namespace ifexm
 class ProcessStateReader
 {
   public:
-    using LcmProcessState = score::lcm::ProcessState;
-    using LcmPosixProcess = score::lcm::PosixProcess;
-    using LcmProcessStateReceiver = score::lcm::IProcessStateReceiver;
+    using LcmProcessState = score::mw::lifecycle::ProcessState;
+    using LcmPosixProcess = score::mw::lifecycle::PosixProcess;
+    using LcmProcessStateReceiver = score::mw::lifecycle::IProcessStateReceiver;
 
     /// @brief Constructor
     /// @param [in] f_process_state_receiver   Process state receiver implementation
@@ -100,9 +94,6 @@ class ProcessStateReader
     ProcessState* lastChangedProcess_p{nullptr};
 };
 
-}  // namespace ifexm
-}  // namespace saf
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle::saf::ifexm
 
 #endif

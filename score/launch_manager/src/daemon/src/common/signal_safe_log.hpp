@@ -92,7 +92,7 @@ class signal_safe_buffer
 
 }  // namespace
 
-namespace score::lcm::internal
+namespace score::mw::lifecycle::internal
 {
 
 template <typename... T>
@@ -125,6 +125,6 @@ template <typename... T>
 #endif
 }
 
-}  // namespace score::lcm::internal
+}  // namespace score::mw::lifecycle::internal
 
 #endif

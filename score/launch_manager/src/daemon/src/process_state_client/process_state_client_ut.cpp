@@ -16,10 +16,10 @@
 #include <memory>
 
 using namespace testing;
-using namespace score::lcm;
+using namespace score::mw::lifecycle;
 
-using score::lcm::ProcessStateReceiver;
-using score::lcm::internal::ProcessStateNotifier;
+using score::mw::lifecycle::ProcessStateReceiver;
+using score::mw::lifecycle::internal::ProcessStateNotifier;
 
 class ProcessStateClient_UT : public ::testing::Test
 {
@@ -56,9 +56,9 @@ TEST_F(ProcessStateClient_UT, ProcessStateClient_QueueOneProcess_Succeeds)
         "This test verifies that a single PosixProcess can be successfully queued using the "
         "ProcessStateNotifier and retrieved using the ProcessStateReceiver.");
     PosixProcess process1{
-        .id = score::lcm::IdentifierHash("Process1"),
-        .processStateId = score::lcm::ProcessState::kRunning,
-        .processGroupStateId = score::lcm::IdentifierHash("PGState1"),
+        .id = score::mw::lifecycle::IdentifierHash("Process1"),
+        .processStateId = score::mw::lifecycle::ProcessState::kRunning,
+        .processGroupStateId = score::mw::lifecycle::IdentifierHash("PGState1"),
         .systemClockTimestamp = {},
     };
 
@@ -90,9 +90,9 @@ TEST_F(ProcessStateClient_UT, ProcessStateClient_QueueMaxNumberOfProcesses_Succe
     for (size_t i = 0; i < static_cast<size_t>(BufferConstants::BUFFER_QUEUE_SIZE); ++i)
     {
         PosixProcess process{
-            .id = score::lcm::IdentifierHash("Process" + std::to_string(i)),
-            .processStateId = score::lcm::ProcessState::kRunning,
-            .processGroupStateId = score::lcm::IdentifierHash("PGState" + std::to_string(i)),
+            .id = score::mw::lifecycle::IdentifierHash("Process" + std::to_string(i)),
+            .processStateId = score::mw::lifecycle::ProcessState::kRunning,
+            .processGroupStateId = score::mw::lifecycle::IdentifierHash("PGState" + std::to_string(i)),
             .systemClockTimestamp = {},
         };
         bool queued = notifier_->queuePosixProcess(process);
@@ -105,7 +105,7 @@ TEST_F(ProcessStateClient_UT, ProcessStateClient_QueueMaxNumberOfProcesses_Succe
         auto result = receiver_->getNextChangedPosixProcess();
         ASSERT_TRUE(result.has_value());
         ASSERT_TRUE(result->has_value());
-        EXPECT_EQ(result->value().id, score::lcm::IdentifierHash("Process" + std::to_string(i)));
+        EXPECT_EQ(result->value().id, score::mw::lifecycle::IdentifierHash("Process" + std::to_string(i)));
     }
 
     // Ensure no more processes are queued
@@ -121,9 +121,9 @@ TEST_F(ProcessStateClient_UT, ProcessStateClient_QueueOneProcessTooMany_Fails)
         "This test verifies that attempting to queue a PosixProcess when the buffer is already at maximum capacity "
         "results in a failure, and that no additional processes can be retrieved from the receiver.");
     PosixProcess process1{
-        .id = score::lcm::IdentifierHash("Process1"),
-        .processStateId = score::lcm::ProcessState::kRunning,
-        .processGroupStateId = score::lcm::IdentifierHash("PGState1"),
+        .id = score::mw::lifecycle::IdentifierHash("Process1"),
+        .processStateId = score::mw::lifecycle::ProcessState::kRunning,
+        .processGroupStateId = score::mw::lifecycle::IdentifierHash("PGState1"),
         .systemClockTimestamp = {},
     };
 
@@ -131,9 +131,9 @@ TEST_F(ProcessStateClient_UT, ProcessStateClient_QueueOneProcessTooMany_Fails)
     for (size_t i = 0; i < static_cast<size_t>(BufferConstants::BUFFER_QUEUE_SIZE); ++i)
     {
         PosixProcess proc{
-            .id = score::lcm::IdentifierHash("Process" + std::to_string(i)),
-            .processStateId = score::lcm::ProcessState::kRunning,
-            .processGroupStateId = score::lcm::IdentifierHash("PGState" + std::to_string(i)),
+            .id = score::mw::lifecycle::IdentifierHash("Process" + std::to_string(i)),
+            .processStateId = score::mw::lifecycle::ProcessState::kRunning,
+            .processGroupStateId = score::mw::lifecycle::IdentifierHash("PGState" + std::to_string(i)),
             .systemClockTimestamp = {},
         };
         bool queued = notifier_->queuePosixProcess(proc);

@@ -17,19 +17,13 @@
 #include "score/mw/launch_manager/alive_monitor/details/ifappl/DataStructures.hpp"
 #include <vector>
 
-namespace score
-{
-namespace lcm
+namespace score::mw::lifecycle
 {
 class IRecoveryClient;
 }
 }  // namespace score
 
-namespace score
-{
-namespace lcm
-{
-namespace saf
+namespace score::mw::lifecycle::saf
 {
 
 // Forward declarations
@@ -119,12 +113,9 @@ class IPhmFactory
         std::vector<supervision::Alive>& f_alive_r,
         std::vector<ifappl::Checkpoint>& f_checkpoints_r,
         std::vector<ifexm::ProcessState>& f_processStates_r,
-        std::shared_ptr<score::lcm::IRecoveryClient> f_recoveryClient_r) = 0;
+        std::shared_ptr<score::mw::lifecycle::IRecoveryClient> f_recoveryClient_r) = 0;
 };
 
-}  // namespace factory
-}  // namespace saf
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle::saf::factory
 
 #endif

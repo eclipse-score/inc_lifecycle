@@ -21,13 +21,7 @@
 #include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
 #include "score/mw/launch_manager/recovery_client/irecovery_client.h"
 
-namespace score
-{
-namespace lcm
-{
-namespace saf
-{
-namespace ifappl
+namespace score::mw::lifecycle::saf::ifappl
 {
 class Checkpoint;
 }
@@ -66,9 +60,9 @@ class AliveSupervisionCfg final
     saf::ifappl::Checkpoint& checkpoint_r;
 
     /// Recovery client to invoke when supervision expires
-    std::shared_ptr<score::lcm::IRecoveryClient> recoveryClient{};
+    std::shared_ptr<score::mw::lifecycle::IRecoveryClient> recoveryClient{};
     /// Identifier of the supervised process, sent via recovery client when supervision expires
-    score::lcm::IdentifierHash processIdentifier{};
+    score::mw::lifecycle::IdentifierHash processIdentifier{};
 
     /// Default destructor
     ~AliveSupervisionCfg() = default;
@@ -96,9 +90,6 @@ class AliveSupervisionCfg final
     AliveSupervisionCfg& operator=(AliveSupervisionCfg&&) = delete;
 };
 
-}  // namespace supervision
-}  // namespace saf
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle::saf::supervision
 
 #endif

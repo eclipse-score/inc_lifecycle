@@ -105,7 +105,7 @@ class ProcessInfoNode final : public score::mw::lifecycle::internal::IComponent
     osal::ProcessID getPid() const;
 
     /// @return The current state of this process.
-    score::lcm::ProcessState getState() const;
+    score::mw::lifecycle::ProcessState getState() const;
 
     /// @return The ControlClientChannel for this process, or nullptr if none exists.
     ControlClientChannelP getControlClientChannel() const;
@@ -115,7 +115,7 @@ class ProcessInfoNode final : public score::mw::lifecycle::internal::IComponent
     /// processes, also notifies the platform health manager of the state change.
     /// @param new_state The desired process state.
     /// @return True if the state was changed, false if the transition was not valid.
-    bool setState(score::lcm::ProcessState new_state);
+    bool setState(score::mw::lifecycle::ProcessState new_state);
 
     /// @brief Helper method to post on the semaphore waiting for kRunning if it exists
     void unblockSync();
@@ -124,7 +124,7 @@ class ProcessInfoNode final : public score::mw::lifecycle::internal::IComponent
     /// terminated, the function will only return kSuccess if the new state is kTerminated.
     /// @return Success if the ready condition is satisfied and completion is not already reported, an error if the
     /// state is unrecoverable, waiting otherwise.
-    RequestResult tryReportCompletion(score::lcm::ProcessState new_state);
+    RequestResult tryReportCompletion(score::mw::lifecycle::ProcessState new_state);
 
     /// @return The provided error if the result has not been reported yet. A waiting result otherwise.
     RequestResult tryReportError(ComponentError error);
@@ -185,7 +185,7 @@ class ProcessInfoNode final : public score::mw::lifecycle::internal::IComponent
     std::atomic<int32_t> status_{0};
 
     /// @brief The current state of the OS process
-    std::atomic<score::lcm::ProcessState> process_state_{score::lcm::ProcessState::kIdle};
+    std::atomic<score::mw::lifecycle::ProcessState> process_state_{score::mw::lifecycle::ProcessState::kIdle};
 
     /// @brief Flag indicating whether the Ready Condition has been satisfied.
     /// The flag is reset when deactivate() is called.

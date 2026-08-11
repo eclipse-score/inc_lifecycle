@@ -16,11 +16,7 @@
 
 #include <string>
 
-namespace score
-{
-namespace lcm
-{
-namespace internal
+namespace score::mw::lifecycle::internal
 {
 
 /// Returns the IPC socket path for the alive monitoring interface of a component.
@@ -29,8 +25,6 @@ inline std::string aliveInterfacePath(const std::string& component_name)
     return "/lifecycle_health_" + component_name;
 }
 
-}  // namespace internal
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal
 
 #endif  // ALIVE_INTERFACE_PATH_HPP_INCLUDED

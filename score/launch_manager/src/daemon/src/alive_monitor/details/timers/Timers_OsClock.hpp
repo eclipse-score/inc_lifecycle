@@ -16,13 +16,7 @@
 
 #include <cstdint>
 
-namespace score
-{
-namespace lcm
-{
-namespace saf
-{
-namespace timers
+namespace score::mw::lifecycle::saf::timers
 {
 
 /// Special type for storing nanoseconds.
@@ -53,9 +47,6 @@ class OsClock
     static NanoSecondType getMonotonicSystemClock(void) noexcept(true);
 };
 
-}  // namespace timers
-}  // namespace saf
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle::saf::timers
 
 #endif

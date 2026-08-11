@@ -60,7 +60,7 @@ class ProcessStateNotifier final : public IProcessStateNotifier
 
     /// @brief Construct and return the Process State Receiver instance used to receive process state changes.
     /// @return Process State Receiver instance
-    std::unique_ptr<score::lcm::IProcessStateReceiver> constructReceiver() override;
+    std::unique_ptr<score::mw::lifecycle::IProcessStateReceiver> constructReceiver() override;
 
     /// @brief Writes via IPC the latests Process State change, so that PHM can be informed about it.
     /// @details the PosixProcess structure should be complete at his moment. That means:
@@ -68,13 +68,13 @@ class ProcessStateNotifier final : public IProcessStateNotifier
     ///          if no more free shared memory, the PosixProcess is not sent.
     /// @param[in]   f_posixProcess   The PosixProcess to be queued
     /// @returns True on success, false for failure (corresponding to kCommunicationError).
-    bool queuePosixProcess(const score::lcm::PosixProcess& f_posixProcess) noexcept override;
+    bool queuePosixProcess(const score::mw::lifecycle::PosixProcess& f_posixProcess) noexcept override;
 
   private:
     /// @brief ipc_dropin::RingBuffer through which we retrieve process state updates from LCM
     std::shared_ptr<ipc_dropin::RingBuffer<
-        static_cast<size_t>(score::lcm::BufferConstants::BUFFER_QUEUE_SIZE),
-        static_cast<size_t>(score::lcm::BufferConstants::BUFFER_MAXPAYLOAD)>>
+        static_cast<size_t>(score::mw::lifecycle::BufferConstants::BUFFER_QUEUE_SIZE),
+        static_cast<size_t>(score::mw::lifecycle::BufferConstants::BUFFER_MAXPAYLOAD)>>
         ring_buffer_{};
 };
 

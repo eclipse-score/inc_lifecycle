@@ -24,8 +24,8 @@ namespace lcm
 {
 
 using BufferP = std::shared_ptr<ipc_dropin::RingBuffer<
-    static_cast<size_t>(score::lcm::BufferConstants::BUFFER_QUEUE_SIZE),
-    static_cast<size_t>(score::lcm::BufferConstants::BUFFER_MAXPAYLOAD)>>;
+    static_cast<size_t>(score::mw::lifecycle::BufferConstants::BUFFER_QUEUE_SIZE),
+    static_cast<size_t>(score::mw::lifecycle::BufferConstants::BUFFER_MAXPAYLOAD)>>;
 
 /// @brief ProcessStateReceiver implementation for handling the information about current state of each Process.
 class ProcessStateReceiver final : public IProcessStateReceiver

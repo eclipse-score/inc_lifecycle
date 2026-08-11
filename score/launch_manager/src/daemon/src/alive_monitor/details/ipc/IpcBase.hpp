@@ -19,11 +19,7 @@
 #include "ipc_dropin/socket.hpp"
 #include <string_view>
 
-namespace score
-{
-namespace lcm
-{
-namespace saf
+namespace score::mw::lifecycle::saf
 {
 namespace ipc
 {
@@ -175,8 +171,6 @@ class IpcBase
 };
 
 }  // namespace ipc
-}  // namespace saf
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle::saf
 
 #endif

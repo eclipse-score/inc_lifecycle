@@ -16,7 +16,7 @@
 #include "score/mw/launch_manager/process_group_manager/iprocess.hpp"
 #include <gmock/gmock.h>
 
-namespace score::lcm::internal::osal
+namespace score::mw::lifecycle::internal::osal
 {
 
 class MockIProcess : public IProcess
@@ -29,6 +29,6 @@ class MockIProcess : public IProcess
     MOCK_METHOD(OsalReturnType, waitForkRunning, (IpcCommsP sync, std::chrono::milliseconds timeout), (override));
 };
 
-}  // namespace score::lcm::internal::osal
+}  // namespace score::mw::lifecycle::internal::osal
 
 #endif  // MOCK_IPROCESS_HPP_INCLUDED

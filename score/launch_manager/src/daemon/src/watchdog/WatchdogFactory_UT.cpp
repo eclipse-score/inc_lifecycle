@@ -18,9 +18,9 @@
 #include "score/mw/launch_manager/watchdog/WatchdogFactory.hpp"
 #include "score/mw/launch_manager/watchdog/details/WatchdogImpl.hpp"
 
-using score::lcm::watchdog::createWatchdog;
-using score::lcm::watchdog::IWatchdogIf;
-using score::lcm::watchdog::WatchdogImpl;
+using score::mw::lifecycle::watchdog::createWatchdog;
+using score::mw::lifecycle::watchdog::IWatchdogIf;
+using score::mw::lifecycle::watchdog::WatchdogImpl;
 
 class WatchdogFactoryTest : public ::testing::Test
 {

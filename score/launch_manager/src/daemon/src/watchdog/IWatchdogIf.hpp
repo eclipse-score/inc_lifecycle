@@ -18,14 +18,12 @@
 
 #include <cstdint>
 
-namespace score::mw::launch_manager::configuration
+namespace score::mw::lifecycle::configuration
 {
 struct WatchdogConfig;
 }
 
-namespace score
-{
-namespace lcm
+namespace score::mw::lifecycle
 {
 namespace watchdog
 {
@@ -56,7 +54,7 @@ class IWatchdogIf
     /// The main loop cycle time must be strictly less than the minimum watchdog timeout to ensure that
     /// the watchdog timeout cannot expire during an unblocked run of the main loop.
     static_assert(
-        score::lcm::internal::kMainLoopCycleTimeMs < kTimeoutMinMillis,
+        score::mw::lifecycle::internal::kMainLoopCycleTimeMs < kTimeoutMinMillis,
         "Main loop cycle time must be less than the minimum watchdog timeout");
 
     /// @brief Destructor.
@@ -79,7 +77,7 @@ class IWatchdogIf
     /// @return Status of configuration. True if watchdog configuration is valid and has been successfully taken over
     /// by the Watchdog Interface library, false otherwise.
     virtual bool init(
-        const score::mw::launch_manager::configuration::WatchdogConfig& watchdog_config,
+        const score::mw::lifecycle::configuration::WatchdogConfig& watchdog_config,
         std::int64_t cycle_time_ns) noexcept = 0;
 
     /// @brief Activate the watchdog.
@@ -137,7 +135,6 @@ class IWatchdogIf
 };
 
 }  // namespace watchdog
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle
 
 #endif

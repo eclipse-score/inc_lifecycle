@@ -26,11 +26,7 @@
 #include <unistd.h>
 #include <string>
 
-namespace score
-{
-namespace lcm
-{
-namespace saf
+namespace score::mw::lifecycle::saf
 {
 namespace ipc
 {
@@ -212,8 +208,6 @@ class IpcServer final : public IpcBase<Payload, MaxNumberElements, Socket>
 };
 
 }  // namespace ipc
-}  // namespace saf
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle::saf
 
 #endif

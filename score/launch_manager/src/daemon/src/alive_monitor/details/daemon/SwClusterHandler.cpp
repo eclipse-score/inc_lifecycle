@@ -18,13 +18,7 @@
 #include "score/mw/launch_manager/alive_monitor/details/ifappl/MonitorIfDaemon.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/supervision/Alive.hpp"
 
-namespace score
-{
-namespace lcm
-{
-namespace saf
-{
-namespace daemon
+namespace score::mw::lifecycle::saf::daemon
 {
 
 SwClusterHandler::SwClusterHandler(const std::string& f_swClusterName_r)
@@ -47,7 +41,7 @@ SwClusterHandler::~SwClusterHandler() = default;
    is tolerated for this function. ", true_no_defect) */
 bool SwClusterHandler::constructWorkers(
     const AliveMonitorConfig& config,
-    std::shared_ptr<score::lcm::IRecoveryClient> f_recoveryClient_r,
+    std::shared_ptr<score::mw::lifecycle::IRecoveryClient> f_recoveryClient_r,
     ifexm::ProcessStateReader& f_processStateReader_r,
     const factory::SupervisionBufferConfig& f_bufferConfig_r) noexcept(false)
 {
@@ -118,7 +112,4 @@ void SwClusterHandler::performCyclicTriggers(const timers::NanoSecondType f_sync
     evaluateSupervisions(f_syncTimestamp);
 }
 
-}  // namespace daemon
-}  // namespace saf
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle::saf::daemon

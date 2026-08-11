@@ -30,8 +30,5 @@ namespace osal
 /// The purpose of wrapping this function is so that it may be mocked during tests.
 /// @param status The exit status to be reported to the operating system
 void sysexit(int status);
-}  // namespace osal
-}  // namespace internal
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::osal
 #endif

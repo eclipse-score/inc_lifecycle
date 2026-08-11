@@ -22,13 +22,7 @@
 
 #include "score/mw/launch_manager/process_state_client/posix_process.hpp"
 
-namespace score
-{
-namespace lcm
-{
-namespace saf
-{
-namespace ifexm
+namespace score::mw::lifecycle::saf::ifexm
 {
 
 /// @brief Process State
@@ -75,12 +69,12 @@ class ProcessState : public saf::common::Observable<ProcessState>
     /// @brief Enumeration of process states
     enum class EProcState : uint8_t
     {
-        idle = static_cast<uint8_t>(score::lcm::ProcessState::kIdle),
-        starting = static_cast<uint8_t>(score::lcm::ProcessState::kStarting),
-        running = static_cast<uint8_t>(score::lcm::ProcessState::kRunning),
-        sigterm = static_cast<uint8_t>(score::lcm::ProcessState::kTerminating),
-        off = static_cast<uint8_t>(score::lcm::ProcessState::kTerminated),
-        failed = static_cast<uint8_t>(score::lcm::ProcessState::kFailed)
+        idle = static_cast<uint8_t>(score::mw::lifecycle::ProcessState::kIdle),
+        starting = static_cast<uint8_t>(score::mw::lifecycle::ProcessState::kStarting),
+        running = static_cast<uint8_t>(score::mw::lifecycle::ProcessState::kRunning),
+        sigterm = static_cast<uint8_t>(score::mw::lifecycle::ProcessState::kTerminating),
+        off = static_cast<uint8_t>(score::mw::lifecycle::ProcessState::kTerminated),
+        failed = static_cast<uint8_t>(score::mw::lifecycle::ProcessState::kFailed)
     };
 
     /// @brief Get Process State
@@ -117,9 +111,6 @@ class ProcessState : public saf::common::Observable<ProcessState>
     timers::NanoSecondType timestamp{UINT64_MAX};
 };
 
-}  // namespace ifexm
-}  // namespace saf
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle::saf::ifexm
 
 #endif

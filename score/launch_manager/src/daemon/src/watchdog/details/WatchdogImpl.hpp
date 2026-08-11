@@ -24,9 +24,7 @@
 #include <string>
 #include <vector>
 
-namespace score
-{
-namespace lcm
+namespace score::mw::lifecycle
 {
 
 namespace watchdog
@@ -70,7 +68,7 @@ class WatchdogImpl : public IWatchdogIf
 
     /// @copydoc IWatchdogIf::init()
     bool init(
-        const score::mw::launch_manager::configuration::WatchdogConfig& watchdog_config,
+        const score::mw::lifecycle::configuration::WatchdogConfig& watchdog_config,
         std::int64_t cycle_time_ns) noexcept override;
 
     /// @copydoc IWatchdogIf::enable()
@@ -235,7 +233,6 @@ class WatchdogImpl : public IWatchdogIf
 };
 
 }  // namespace watchdog
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle
 
 #endif

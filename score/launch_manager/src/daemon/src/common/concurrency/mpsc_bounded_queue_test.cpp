@@ -22,7 +22,7 @@
 #include <thread>
 #include <vector>
 
-using namespace score::lcm::internal;
+using namespace score::mw::lifecycle::internal;
 
 class MpscBoundedQueueTest_Basic : public ::testing::Test
 {

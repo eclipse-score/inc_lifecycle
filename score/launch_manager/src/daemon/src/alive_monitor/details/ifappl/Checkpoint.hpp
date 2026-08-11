@@ -23,13 +23,7 @@
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ProcessState.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
 
-namespace score
-{
-namespace lcm
-{
-namespace saf
-{
-namespace ifappl
+namespace score::mw::lifecycle::saf::ifappl
 {
 
 /// @brief Checkpoint Observer
@@ -78,12 +72,12 @@ class Checkpoint : public saf::common::Observable<Checkpoint>
 
     /// @brief Get timestamp
     /// @return NanoSecondType  Timestamp value of the reported checkpoint in [nano seconds]
-    score::lcm::saf::timers::NanoSecondType getTimestamp(void) const noexcept(true);
+    score::mw::lifecycle::saf::timers::NanoSecondType getTimestamp(void) const noexcept(true);
 
     /// @brief Push data to checkpoint observer
     /// @details Push the checkpoint timestamp to the checkpoint observer to notify it was reported
     /// @param [in] f_timestamp     Timestamp value captured when the checkpoint was reported in [nano seconds]
-    void pushData(const score::lcm::saf::timers::NanoSecondType f_timestamp) noexcept(true);
+    void pushData(const score::mw::lifecycle::saf::timers::NanoSecondType f_timestamp) noexcept(true);
 
     /// @brief Set data loss event
     /// @details Set data loss event in the checkpoint observer
@@ -116,12 +110,9 @@ class Checkpoint : public saf::common::Observable<Checkpoint>
     bool isDataLossEvent;
 
     /// @brief Timestamp value in [nano seconds]
-    score::lcm::saf::timers::NanoSecondType timestamp;
+    score::mw::lifecycle::saf::timers::NanoSecondType timestamp;
 };
 
-}  // namespace ifappl
-}  // namespace saf
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle::saf::ifappl
 
 #endif

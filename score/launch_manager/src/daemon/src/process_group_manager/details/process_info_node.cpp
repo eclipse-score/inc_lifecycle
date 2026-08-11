@@ -41,7 +41,7 @@ ProcessInfoNode::ProcessInfoNode(
       process_index_(index),
       pid_(0),
       status_(0),
-      process_state_(score::lcm::ProcessState::kIdle),
+      process_state_(score::mw::lifecycle::ProcessState::kIdle),
       ready_condition_(ready_condition),
       config_(config),
       report_state_(std::move(report_function)),
@@ -50,7 +50,7 @@ ProcessInfoNode::ProcessInfoNode(
 {
 }
 
-IComponent::RequestResult ProcessInfoNode::tryReportCompletion(score::lcm::ProcessState new_state)
+IComponent::RequestResult ProcessInfoNode::tryReportCompletion(score::mw::lifecycle::ProcessState new_state)
 {
     ProcessState desired_state{};
     switch (ready_condition_)
@@ -94,18 +94,18 @@ IComponent::RequestResult ProcessInfoNode::tryReportError(ComponentError error)
     return {IComponent::RequestState::kWaiting};
 }
 
-bool ProcessInfoNode::setState(score::lcm::ProcessState new_state)
+bool ProcessInfoNode::setState(score::mw::lifecycle::ProcessState new_state)
 {
     bool success = true;
-    score::lcm::ProcessState old_state = getState();
+    score::mw::lifecycle::ProcessState old_state = getState();
 
     if (new_state > old_state || (new_state == old_state && new_state == ProcessState::kIdle))
     {
         success = process_state_.compare_exchange_strong(old_state, new_state);
     }
     else if (
-        new_state == score::lcm::ProcessState::kIdle &&
-        (old_state == score::lcm::ProcessState::kTerminated || old_state == ProcessState::kFailed))
+        new_state == score::mw::lifecycle::ProcessState::kIdle &&
+        (old_state == score::mw::lifecycle::ProcessState::kTerminated || old_state == ProcessState::kFailed))
     {
         process_state_.store(new_state);
     }
@@ -115,7 +115,7 @@ bool ProcessInfoNode::setState(score::lcm::ProcessState new_state)
     }
 
     if (success && config_->startup_config_.comms_type_ != osal::CommsType::kNoComms &&
-        score::lcm::ProcessState::kIdle != new_state)
+        score::mw::lifecycle::ProcessState::kIdle != new_state)
     {
         // for a reporting process, report a process state change to PHM
         // Note the following system call will not fail by design.
@@ -205,7 +205,7 @@ IComponent::RequestResult ProcessInfoNode::startProcess(score::cpp::stop_token s
         SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(
             getState() != ProcessState::kRunning, "Restart attempted even though process is running");
         // - Terminating: A termination is in progress (allowed)
-        if (!setState(score::lcm::ProcessState::kIdle))
+        if (!setState(score::mw::lifecycle::ProcessState::kIdle))
         {
             LM_LOG_WARN() << "Starting process" << this << "failed: termination in progress";
             error = ComponentError::kErrorBeforeReady;
@@ -215,7 +215,7 @@ IComponent::RequestResult ProcessInfoNode::startProcess(score::cpp::stop_token s
         pid_ = 0;
         status_ = 0;
         error = std::nullopt;
-        static_cast<void>(setState(score::lcm::ProcessState::kStarting));  // Cannot fail by design
+        static_cast<void>(setState(score::mw::lifecycle::ProcessState::kStarting));  // Cannot fail by design
 
         if (osal::OsalReturnType::kSuccess ==
             process_interface_->startProcess(&pid_, &sync_, &config_->startup_config_))
@@ -231,7 +231,7 @@ IComponent::RequestResult ProcessInfoNode::startProcess(score::cpp::stop_token s
             if (!res.has_value())
             {
                 // Fatal error, do not retry
-                setState(score::lcm::ProcessState::kFailed);
+                setState(score::mw::lifecycle::ProcessState::kFailed);
                 error = res.error();
                 break;
             }
@@ -247,7 +247,7 @@ IComponent::RequestResult ProcessInfoNode::startProcess(score::cpp::stop_token s
         }
         else
         {
-            setState(score::lcm::ProcessState::kFailed);
+            setState(score::mw::lifecycle::ProcessState::kFailed);
             error = ComponentError::kErrorBeforeReady;
             break;
         }
@@ -321,10 +321,10 @@ ProcessInfoNode::handleProcessStarted(const score::cpp::stop_token& stop_token)
 {
     switch (process_map_->insertIfNotTerminated(pid_, this))
     {
-        case score::lcm::internal::SafeProcessMapReturnType::kOk:  // Normal case, entry was put in
+        case score::mw::lifecycle::internal::SafeProcessMapReturnType::kOk:  // Normal case, entry was put in
                                                                    // the map, process still running
             return handleProcessStillStarting(stop_token);
-        case score::lcm::internal::SafeProcessMapReturnType::kYield:  // Process has already exited
+        case score::mw::lifecycle::internal::SafeProcessMapReturnType::kYield:  // Process has already exited
             return handleProcessAlreadyTerminated();
         default:  // Error case when pn == -1
             // really bad fatal error, should not happen, treat as a failure to set the state & kill the process
@@ -352,7 +352,7 @@ void ProcessInfoNode::terminateProcess(const score::cpp::stop_token& stop_token)
 {
     LM_LOG_DEBUG() << "terminating process" << process_index_ << "(" << config_->startup_config_.short_name_ << ")";
 
-    if (setState(score::lcm::ProcessState::kTerminating))
+    if (setState(score::mw::lifecycle::ProcessState::kTerminating))
     {
         handleTerminationProcess(stop_token);
     }
@@ -392,7 +392,7 @@ void ProcessInfoNode::handleForcedTermination(const score::cpp::stop_token& stop
                   << ") did not respond to SIGTERM, sending SIGKILL";
 
     while ((osal::OsalReturnType::kSuccess == process_interface_->forceTermination(pid_)) &&
-           (terminator_.timedWait(score::lcm::internal::kMaxSigKillDelay) != osal::OsalReturnType::kSuccess))
+           (terminator_.timedWait(score::mw::lifecycle::internal::kMaxSigKillDelay) != osal::OsalReturnType::kSuccess))
     {
         LM_LOG_FATAL() << "Process" << process_index_ << "(" << config_->startup_config_.short_name_
                        << ") did not respond to SIGKILL!!";
@@ -430,7 +430,7 @@ osal::ProcessID ProcessInfoNode::getPid() const
     return pid_;
 }
 
-score::lcm::ProcessState ProcessInfoNode::getState() const
+score::mw::lifecycle::ProcessState ProcessInfoNode::getState() const
 {
     return process_state_.load();
 }

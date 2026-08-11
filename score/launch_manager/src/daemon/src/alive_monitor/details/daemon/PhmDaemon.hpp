@@ -27,13 +27,7 @@
 #include "score/mw/launch_manager/alive_monitor/details/timers/CycleTimeValidator.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/CycleTimer.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/TimeConversion.hpp"
-namespace score
-{
-namespace lcm
-{
-namespace saf
-{
-namespace daemon
+namespace score::mw::lifecycle::saf::daemon
 {
 
 /// @brief Return codes for PhmDaemon Initialization
@@ -52,14 +46,14 @@ enum class EInitCode : std::int8_t
 class PhmDaemon
 {
   public:
-    using OsClock = score::lcm::saf::timers::OsClockInterface;
-    using ProcessStateReceiver = score::lcm::IProcessStateReceiver;
-    using RecoveryClient = score::lcm::IRecoveryClient;
+    using OsClock = score::mw::lifecycle::saf::timers::OsClockInterface;
+    using ProcessStateReceiver = score::mw::lifecycle::IProcessStateReceiver;
+    using RecoveryClient = score::mw::lifecycle::IRecoveryClient;
     using SupervisionBufferConfig = factory::SupervisionBufferConfig;
-    using CycleTimer = score::lcm::saf::timers::CycleTimer;
-    using CycleTimeValidator = score::lcm::saf::timers::CycleTimeValidator;
-    using NanoSecondType = score::lcm::saf::timers::NanoSecondType;
-    using ProcessStateReader = score::lcm::saf::ifexm::ProcessStateReader;
+    using CycleTimer = score::mw::lifecycle::saf::timers::CycleTimer;
+    using CycleTimeValidator = score::mw::lifecycle::saf::timers::CycleTimeValidator;
+    using NanoSecondType = score::mw::lifecycle::saf::timers::NanoSecondType;
+    using ProcessStateReader = score::mw::lifecycle::saf::ifexm::ProcessStateReader;
     using AliveMonitorConfig = score::mw::lifecycle::internal::alive::AliveMonitorConfig;
 
     /* RULECHECKER_comment(0, 4, check_expensive_to_copy_in_parameter, "f_supervisionErrorInfo name is passed by value\
@@ -220,9 +214,6 @@ class PhmDaemon
     ProcessStateReader processStateReader;
 };
 
-}  // namespace daemon
-}  // namespace saf
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle::saf::daemon
 
 #endif

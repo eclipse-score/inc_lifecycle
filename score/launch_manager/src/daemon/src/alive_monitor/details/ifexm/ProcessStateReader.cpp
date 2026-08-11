@@ -15,13 +15,7 @@
 #include "score/launch_manager/src/daemon/src/common/log.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/TimeConversion.hpp"
 
-namespace score
-{
-namespace lcm
-{
-namespace saf
-{
-namespace ifexm
+namespace score::mw::lifecycle::saf::ifexm
 {
 
 ProcessStateReader::ProcessStateReader(std::unique_ptr<LcmProcessStateReceiver> f_process_state_receiver)
@@ -136,32 +130,29 @@ constexpr ProcessState::EProcState ProcessStateReader::translateProcessState(
 {
     // Following static assertion ensures consistency of process states in EXM and PHM
     static_assert(
-        static_cast<uint8_t>(ProcessState::EProcState::idle) == static_cast<uint8_t>(score::lcm::ProcessState::kIdle),
+        static_cast<uint8_t>(ProcessState::EProcState::idle) == static_cast<uint8_t>(score::mw::lifecycle::ProcessState::kIdle),
         "Lcm State Enum and ProcessState::EProcState Enum do not match.");
     static_assert(
         static_cast<uint8_t>(ProcessState::EProcState::starting) ==
-            static_cast<uint8_t>(score::lcm::ProcessState::kStarting),
+            static_cast<uint8_t>(score::mw::lifecycle::ProcessState::kStarting),
         "Lcm State Enum and ProcessState::EProcState Enum do not match.");
     static_assert(
         static_cast<uint8_t>(ProcessState::EProcState::running) ==
-            static_cast<uint8_t>(score::lcm::ProcessState::kRunning),
+            static_cast<uint8_t>(score::mw::lifecycle::ProcessState::kRunning),
         "Lcm State Enum and ProcessState::EProcState Enum do not match.");
     static_assert(
         static_cast<uint8_t>(ProcessState::EProcState::sigterm) ==
-            static_cast<uint8_t>(score::lcm::ProcessState::kTerminating),
+            static_cast<uint8_t>(score::mw::lifecycle::ProcessState::kTerminating),
         "Lcm State Enum and ProcessState::EProcState Enum do not match.");
     static_assert(
         static_cast<uint8_t>(ProcessState::EProcState::off) ==
-            static_cast<uint8_t>(score::lcm::ProcessState::kTerminated),
+            static_cast<uint8_t>(score::mw::lifecycle::ProcessState::kTerminated),
         "Lcm State Enum and ProcessState::EProcState Enum do not match.");
     static_assert(
         static_cast<uint8_t>(ProcessState::EProcState::failed) ==
-            static_cast<uint8_t>(score::lcm::ProcessState::kFailed),
+            static_cast<uint8_t>(score::mw::lifecycle::ProcessState::kFailed),
         "Lcm State Enum and ProcessState::EProcState Enum do not match.");
     return static_cast<ProcessState::EProcState>(f_processStateLcm);
 }
 
-}  // namespace ifexm
-}  // namespace saf
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle::saf::ifexm

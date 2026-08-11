@@ -60,7 +60,7 @@ inline score::mw::log::Logger& _getLmLogger() noexcept
 #include <iostream>
 #include <string>
 
-namespace score::lcm::internal
+namespace score::mw::lifecycle::internal
 {
 
 enum class LogLevel
@@ -270,11 +270,11 @@ inline Logger& _getLmLogger() noexcept
     return log;
 }
 
-}  // namespace score::lcm::internal
+}  // namespace score::mw::lifecycle::internal
 
 #endif  // LC_LOG_SCORE_MW_LOG
 
-namespace score::lcm::internal
+namespace score::mw::lifecycle::internal
 {
 
 /// @brief Returns a string_view of the errno error message.
@@ -284,13 +284,13 @@ inline std::string_view errno_message(const int err) noexcept(true)
     return std::string_view{std::strerror(err)};
 }
 
-}  // namespace score::lcm::internal
+}  // namespace score::mw::lifecycle::internal
 
 // wrapper macros for Launch Manager
-#define LM_LOG_FATAL() (score::lcm::internal::_getLmLogger().LogFatal())
-#define LM_LOG_ERROR() (score::lcm::internal::_getLmLogger().LogError())
-#define LM_LOG_WARN()  (score::lcm::internal::_getLmLogger().LogWarn())
-#define LM_LOG_INFO()  (score::lcm::internal::_getLmLogger().LogInfo())
-#define LM_LOG_DEBUG() (score::lcm::internal::_getLmLogger().LogDebug())
+#define LM_LOG_FATAL() (score::mw::lifecycle::internal::_getLmLogger().LogFatal())
+#define LM_LOG_ERROR() (score::mw::lifecycle::internal::_getLmLogger().LogError())
+#define LM_LOG_WARN()  (score::mw::lifecycle::internal::_getLmLogger().LogWarn())
+#define LM_LOG_INFO()  (score::mw::lifecycle::internal::_getLmLogger().LogInfo())
+#define LM_LOG_DEBUG() (score::mw::lifecycle::internal::_getLmLogger().LogDebug())
 
 #endif  // LCM_LOG_HPP_INCLUDED

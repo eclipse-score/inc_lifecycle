@@ -19,13 +19,7 @@
 #include "score/mw/launch_manager/alive_monitor/details/ifappl/DataStructures.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
 
-namespace score
-{
-namespace lcm
-{
-namespace saf
-{
-namespace factory
+namespace score::mw::lifecycle::saf::factory
 {
 
 struct SupervisionBufferConfig
@@ -59,9 +53,6 @@ class StaticConfig
         StaticConfig::k_DefaultMonitorBufferElements};
 };
 
-}  // namespace factory
-}  // namespace saf
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle::saf::factory
 
 #endif

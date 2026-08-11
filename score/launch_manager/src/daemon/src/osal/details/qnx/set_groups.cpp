@@ -31,7 +31,4 @@ int setgroups(size_t __n, const gid_t* __groups) noexcept(true)
     return ::setgroups(static_cast<int>(__n & 0X7FFFFFFFUL), __n ? __groups : NULL);
 }
 
-}  // namespace osal
-}  // namespace internal
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::osal

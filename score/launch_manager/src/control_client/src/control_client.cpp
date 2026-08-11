@@ -36,8 +36,8 @@ score::concurrency::InterruptibleFuture<void> GetErrorFuture(ExecErrc errType) n
 
 ControlClient::ControlClient() noexcept
 {
-    static std::function<void(const score::lcm::ExecutionErrorEvent&)> undefinedStateCallback =
-        []([[maybe_unused]] const score::lcm::ExecutionErrorEvent& event) {
+    static std::function<void(const score::mw::lifecycle::ExecutionErrorEvent&)> undefinedStateCallback =
+        []([[maybe_unused]] const score::mw::lifecycle::ExecutionErrorEvent& event) {
         };
 
     try
@@ -70,8 +70,8 @@ score::concurrency::InterruptibleFuture<void> ControlClient::ActivateRunTarget(
 
     if (control_client_impl_ != nullptr)
     {
-        static score::lcm::IdentifierHash pg_name{"MainPG"};
-        score::lcm::IdentifierHash pg_state{"MainPG/" + std::string(runTargetName)};
+        static score::mw::lifecycle::IdentifierHash pg_name{"MainPG"};
+        score::mw::lifecycle::IdentifierHash pg_state{"MainPG/" + std::string(runTargetName)};
         retVal_ = control_client_impl_->SetState(pg_name, pg_state);
     }
     else

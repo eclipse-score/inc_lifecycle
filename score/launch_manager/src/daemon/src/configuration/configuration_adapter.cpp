@@ -22,7 +22,7 @@
 #include <map>
 #include <set>
 
-namespace score::mw::launch_manager::configuration
+namespace score::mw::lifecycle::configuration
 {
 
 namespace
@@ -32,22 +32,22 @@ constexpr uint32_t kDefaultProcessExecutionError = 1U;
 
 uint64_t defaultProcessorAffinityMask()
 {
-    return (1ULL << score::lcm::internal::osal::getNumCores()) - 1ULL;
+    return (1ULL << score::mw::lifecycle::internal::osal::getNumCores()) - 1ULL;
 }
 }  // namespace
 
-score::lcm::internal::osal::CommsType ConfigurationAdapter::mapApplicationType(ApplicationType app_type) const
+score::mw::lifecycle::internal::osal::CommsType ConfigurationAdapter::mapApplicationType(ApplicationType app_type) const
 {
     switch (app_type)
     {
         case ApplicationType::Reporting:
         case ApplicationType::ReportingAndSupervised:
-            return score::lcm::internal::osal::CommsType::kReporting;
+            return score::mw::lifecycle::internal::osal::CommsType::kReporting;
         case ApplicationType::StateManager:
-            return score::lcm::internal::osal::CommsType::kControlClient;
+            return score::mw::lifecycle::internal::osal::CommsType::kControlClient;
         case ApplicationType::Native:
         default:
-            return score::lcm::internal::osal::CommsType::kNoComms;
+            return score::mw::lifecycle::internal::osal::CommsType::kNoComms;
     }
 }
 
@@ -62,7 +62,7 @@ void ConfigurationAdapter::deinitialize()
     {
         for (auto& process : process_group.processes_)
         {
-            for (size_t i = 0U; i < score::lcm::internal::kArgvArraySize && process.startup_config_.argv_[i] != nullptr;
+            for (size_t i = 0U; i < score::mw::lifecycle::internal::kArgvArraySize && process.startup_config_.argv_[i] != nullptr;
                  ++i)
             {
                 free(const_cast<char*>(process.startup_config_.argv_[i]));
@@ -81,7 +81,7 @@ void ConfigurationAdapter::deinitialize()
 
 void ConfigurationAdapter::fillStartupConfigFromDeployment(
     const ComponentConfig& comp,
-    score::lcm::internal::osal::OsalConfig& startup) const
+    score::mw::lifecycle::internal::osal::OsalConfig& startup) const
 {
     const auto& deploy = comp.deployment_config;
     const auto& props = comp.component_properties;
@@ -112,7 +112,7 @@ void ConfigurationAdapter::fillStartupConfigFromDeployment(
 
 void ConfigurationAdapter::fillStartupArguments(
     const ComponentProperties& props,
-    score::lcm::internal::osal::OsalConfig& startup) const
+    score::mw::lifecycle::internal::osal::OsalConfig& startup) const
 {
     // strdup() returns nullptr on OOM. On this embedded target, OOM during daemon
     // startup is unrecoverable — the OS will terminate the process.
@@ -120,8 +120,8 @@ void ConfigurationAdapter::fillStartupArguments(
     startup.argv_[arg_index++] = strdup(startup.executable_path_.c_str());
 
     assert(
-        props.process_arguments.size() <= score::lcm::internal::kMaxArg && "Too many process arguments for argv array");
-    size_t max_args = std::min(props.process_arguments.size(), static_cast<size_t>(score::lcm::internal::kMaxArg));
+        props.process_arguments.size() <= score::mw::lifecycle::internal::kMaxArg && "Too many process arguments for argv array");
+    size_t max_args = std::min(props.process_arguments.size(), static_cast<size_t>(score::mw::lifecycle::internal::kMaxArg));
     for (size_t i = 0U; i < max_args; ++i)
     {
         startup.argv_[arg_index++] = strdup(props.process_arguments[i].c_str());
@@ -130,15 +130,15 @@ void ConfigurationAdapter::fillStartupArguments(
 
 size_t ConfigurationAdapter::fillStartupEnvironment(
     const DeploymentConfig& deploy,
-    score::lcm::internal::osal::OsalConfig& startup) const
+    score::mw::lifecycle::internal::osal::OsalConfig& startup) const
 {
     size_t env_index = 0U;
 
     assert(
-        deploy.environmental_variables.size() + 1U <= score::lcm::internal::kMaxEnv &&
+        deploy.environmental_variables.size() + 1U <= score::mw::lifecycle::internal::kMaxEnv &&
         "Too many environmental variables for envp array");
     size_t max_env =
-        std::min(deploy.environmental_variables.size(), static_cast<size_t>(score::lcm::internal::kMaxEnv));
+        std::min(deploy.environmental_variables.size(), static_cast<size_t>(score::mw::lifecycle::internal::kMaxEnv));
     size_t env_count = 0;
     for (const auto& ev : deploy.environmental_variables)
     {
@@ -158,18 +158,18 @@ size_t ConfigurationAdapter::fillStartupEnvironment(
 void ConfigurationAdapter::appendAliveInterfaceEnvironment(
     const ComponentConfig& comp,
     size_t& env_index,
-    score::lcm::internal::osal::OsalConfig& startup) const
+    score::mw::lifecycle::internal::osal::OsalConfig& startup) const
 {
     bool is_supervised =
         comp.component_properties.application_profile.application_type == ApplicationType::ReportingAndSupervised ||
         comp.component_properties.application_profile.application_type == ApplicationType::StateManager;
-    if (!is_supervised || env_index >= static_cast<size_t>(score::lcm::internal::kMaxEnv))
+    if (!is_supervised || env_index >= static_cast<size_t>(score::mw::lifecycle::internal::kMaxEnv))
     {
         return;
     }
 
     std::string iface_path =
-        std::string(kAliveInterfaceEnvName) + "=" + score::lcm::internal::aliveInterfacePath(comp.name);
+        std::string(kAliveInterfaceEnvName) + "=" + score::mw::lifecycle::internal::aliveInterfacePath(comp.name);
     startup.envp_[env_index++] = strdup(iface_path.c_str());
 }
 
@@ -200,7 +200,7 @@ DependencyList ConfigurationAdapter::buildDependencyList(const ComponentProperti
     for (const auto& dep_name : props.depends_on)
     {
         Dependency dep{};
-        dep.process_state_ = score::lcm::ProcessState::kRunning;
+        dep.process_state_ = score::mw::lifecycle::ProcessState::kRunning;
 
         auto dep_it = component_by_name_.find(dep_name);
         if (dep_it != component_by_name_.end())
@@ -209,8 +209,8 @@ DependencyList ConfigurationAdapter::buildDependencyList(const ComponentProperti
             if (dep_props.ready_condition.has_value())
             {
                 dep.process_state_ = dep_props.ready_condition->process_state == ProcessState::Running
-                                         ? score::lcm::ProcessState::kRunning
-                                         : score::lcm::ProcessState::kTerminated;
+                                         ? score::mw::lifecycle::ProcessState::kRunning
+                                         : score::mw::lifecycle::ProcessState::kTerminated;
             }
         }
 
@@ -388,7 +388,7 @@ bool ConfigurationAdapter::buildFromConfig(const Config& config)
     process_groups_.push_back(std::move(pg));
     process_group_names_.push_back(pg_name);
 
-    main_pg_startup_state_ = score::lcm::internal::ProcessGroupStateID{
+    main_pg_startup_state_ = score::mw::lifecycle::internal::ProcessGroupStateID{
         pg_name, IdentifierHash{std::string("MainPG/") + initial_run_target_name}};
 
     LM_LOG_DEBUG() << "ConfigurationAdapter: Built configuration with " << process_groups_[0].processes_.size()
@@ -446,7 +446,7 @@ IdentifierHash ConfigurationAdapter::getNameOfRecoveryState(const IdentifierHash
     return IdentifierHash{"Recovery"};
 }
 
-std::optional<const score::lcm::internal::ProcessGroupStateID*> ConfigurationAdapter::getMainPGStartupState() const
+std::optional<const score::mw::lifecycle::internal::ProcessGroupStateID*> ConfigurationAdapter::getMainPGStartupState() const
 {
     if (!process_groups_.empty())
     {
@@ -458,7 +458,7 @@ std::optional<const score::lcm::internal::ProcessGroupStateID*> ConfigurationAda
 }
 
 std::optional<const std::vector<uint32_t>*> ConfigurationAdapter::getProcessIndexesList(
-    const score::lcm::internal::ProcessGroupStateID& pg_state_id) const
+    const score::mw::lifecycle::internal::ProcessGroupStateID& pg_state_id) const
 {
     auto state = getProcessGroupStateByID(pg_state_id);
     if (state)
@@ -520,7 +520,7 @@ ProcessGroup* ConfigurationAdapter::getProcessGroupByID(const IdentifierHash& pg
 }
 
 ProcessGroupState* ConfigurationAdapter::getProcessGroupStateByID(
-    const score::lcm::internal::ProcessGroupStateID& pg_id) const
+    const score::mw::lifecycle::internal::ProcessGroupStateID& pg_id) const
 {
     ProcessGroup* pg = getProcessGroupByID(pg_id.pg_name_);
     if (pg)
@@ -556,4 +556,4 @@ std::optional<const ProcessGroup*> ConfigurationAdapter::getProcessGroupByNameAn
     return std::nullopt;
 }
 
-}  // namespace score::mw::launch_manager::configuration
+}  // namespace score::mw::lifecycle::configuration

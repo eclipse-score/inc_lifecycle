@@ -17,7 +17,7 @@
 #include <cstdint>
 #include <ostream>
 
-namespace score::lcm::internal
+namespace score::mw::lifecycle::internal
 {
 
 enum class ConcurrencyErrc : std::uint8_t
@@ -52,12 +52,12 @@ inline std::ostream& operator<<(std::ostream& os, ConcurrencyErrc errc) noexcept
     }
 }
 
-}  // namespace score::lcm::internal
+}  // namespace score::mw::lifecycle::internal
 
 #ifdef LC_LOG_SCORE_MW_LOG
 #include "score/mw/log/logger.h"
 
-namespace score::lcm::internal
+namespace score::mw::lifecycle::internal
 {
 
 inline score::mw::log::LogStream& operator<<(score::mw::log::LogStream& os, ConcurrencyErrc errc) noexcept
@@ -77,7 +77,7 @@ inline score::mw::log::LogStream& operator<<(score::mw::log::LogStream& os, Conc
     }
 }
 
-}  // namespace score::lcm::internal
+}  // namespace score::mw::lifecycle::internal
 
 #endif  // LC_LOG_SCORE_MW_LOG
 

@@ -16,11 +16,7 @@
 
 #include <vector>
 
-namespace score
-{
-namespace lcm
-{
-namespace saf
+namespace score::mw::lifecycle::saf
 {
 namespace common
 {
@@ -238,8 +234,6 @@ class FixedSizeVector
     std::vector<Type> fixedSizedVector{};
 };
 }  // namespace common
-}  // namespace saf
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle::saf
 
 #endif

@@ -15,11 +15,7 @@
 
 #include <cstdint>
 
-namespace score
-{
-namespace lcm
-{
-namespace saf
+namespace score::mw::lifecycle::saf
 {
 namespace common
 {
@@ -27,8 +23,6 @@ namespace common
 using ProcessId = std::size_t;
 
 }  // namespace common
-}  // namespace saf
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle::saf
 
 #endif

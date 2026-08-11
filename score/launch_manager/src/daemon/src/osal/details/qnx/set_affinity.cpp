@@ -49,7 +49,4 @@ int32_t setaffinity(uint64_t cpumask) noexcept(true)
 
     return 0 == ThreadCtl(_NTO_TCTL_RUNMASK_GET_AND_SET_INHERIT, &tm) ? 0 : -1;
 }
-}  // namespace osal
-}  // namespace internal
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::osal

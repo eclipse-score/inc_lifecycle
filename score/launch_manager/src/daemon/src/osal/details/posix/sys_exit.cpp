@@ -44,7 +44,4 @@ void sysexit(int status)
 /* RULECHECKER_comment(1:0,1:0, check_pragma_usage, "External tooling requires pragma", true_no_defect) */
 #pragma CTC ENDSKIP
 #endif
-}  // namespace osal
-}  // namespace internal
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::osal

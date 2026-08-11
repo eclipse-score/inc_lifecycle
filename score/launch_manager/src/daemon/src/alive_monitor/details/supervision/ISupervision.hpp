@@ -21,13 +21,7 @@
 #include <string_view>
 #include <vector>
 
-namespace score
-{
-namespace lcm
-{
-namespace saf
-{
-namespace supervision
+namespace score::mw::lifecycle::saf::supervision
 {
 
 /// @brief ISupervision
@@ -81,9 +75,6 @@ class ISupervision
     const std::string k_cfgName;
 };
 
-}  // namespace supervision
-}  // namespace saf
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle::saf::supervision
 
 #endif

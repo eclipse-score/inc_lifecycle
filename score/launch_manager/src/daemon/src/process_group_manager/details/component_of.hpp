@@ -26,7 +26,7 @@ namespace score::mw::lifecycle::internal
 
 /// @brief Returns the IComponent reference from a variant type
 /// @details All types in the variant must implement the IComponent interface.
-inline IComponent& componentOf(std::variant<score::lcm::internal::ProcessInfoNode, RunTarget>& node)
+inline IComponent& componentOf(std::variant<score::mw::lifecycle::internal::ProcessInfoNode, RunTarget>& node)
 {
     return std::visit(
         [](auto& component) -> IComponent& {

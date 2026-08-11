@@ -25,7 +25,7 @@
 #include "score/mw/lifecycle/execution_error.h"
 #include "score/mw/lifecycle/lifecycle_client/details/report_running_impl.hpp"
 
-using namespace score::lcm::internal::osal;
+using namespace score::mw::lifecycle::internal::osal;
 
 namespace score::mw::lifecycle
 {
@@ -103,7 +103,7 @@ score::Result<std::monostate> ReportRunningImpl::reportKRunningtoDaemon() const 
         return comms_error;
     }
 
-    if (sync->reply_sync_.timedWait(score::lcm::internal::kMaxRunningDelay) == OsalReturnType::kFail)
+    if (sync->reply_sync_.timedWait(score::mw::lifecycle::internal::kMaxRunningDelay) == OsalReturnType::kFail)
     {
         LM_LOG_ERROR() << "[Lifecycle Client] Launch Manager failed to acknowledge kRunning report.";
 

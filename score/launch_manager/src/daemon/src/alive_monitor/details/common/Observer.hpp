@@ -19,11 +19,7 @@
 
 #include <vector>
 
-namespace score
-{
-namespace lcm
-{
-namespace saf
+namespace score::mw::lifecycle::saf
 {
 namespace common
 {
@@ -131,8 +127,6 @@ class Observable
 };
 
 }  // namespace common
-}  // namespace saf
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle::saf
 
 #endif

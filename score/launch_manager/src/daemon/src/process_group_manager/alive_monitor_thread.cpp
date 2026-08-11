@@ -12,11 +12,7 @@
  ********************************************************************************/
 #include "score/mw/launch_manager/process_group_manager/alive_monitor_thread.hpp"
 
-namespace score
-{
-namespace lcm
-{
-namespace internal
+namespace score::mw::lifecycle::internal
 {
 
 AliveMonitorThread::AliveMonitorThread(std::unique_ptr<saf::daemon::IAliveMonitor> health_monitor)
@@ -26,7 +22,7 @@ AliveMonitorThread::AliveMonitorThread(std::unique_ptr<saf::daemon::IAliveMonito
 
 bool AliveMonitorThread::start()
 {
-    score::lcm::saf::daemon::EInitCode init_status{score::lcm::saf::daemon::EInitCode::kNotInitialized};
+    score::mw::lifecycle::saf::daemon::EInitCode init_status{score::mw::lifecycle::saf::daemon::EInitCode::kNotInitialized};
     alive_monitor_thread_ = std::thread([this, &init_status]() {
         const auto initResult = m_health_monitor->init();
 
@@ -53,8 +49,8 @@ void AliveMonitorThread::stop()
 }
 
 void AliveMonitorThread::notifyInitializationComplete(
-    score::lcm::saf::daemon::EInitCode& f_init_status_r,
-    const score::lcm::saf::daemon::EInitCode f_init_result)
+    score::mw::lifecycle::saf::daemon::EInitCode& f_init_status_r,
+    const score::mw::lifecycle::saf::daemon::EInitCode f_init_result)
 {
     {
         std::lock_guard lk(m_initialization_mutex);
@@ -63,14 +59,12 @@ void AliveMonitorThread::notifyInitializationComplete(
     m_initialization_cv.notify_all();
 }
 
-void AliveMonitorThread::waitForInitializationCompleted(score::lcm::saf::daemon::EInitCode& f_init_status_r)
+void AliveMonitorThread::waitForInitializationCompleted(score::mw::lifecycle::saf::daemon::EInitCode& f_init_status_r)
 {
     std::unique_lock lk(m_initialization_mutex);
     m_initialization_cv.wait(lk, [&f_init_status_r]() {
-        return f_init_status_r != score::lcm::saf::daemon::EInitCode::kNotInitialized;
+        return f_init_status_r != score::mw::lifecycle::saf::daemon::EInitCode::kNotInitialized;
     });
 }
 
-}  // namespace internal
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal

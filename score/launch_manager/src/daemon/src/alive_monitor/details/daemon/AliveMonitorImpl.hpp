@@ -20,9 +20,7 @@
 #include "score/mw/launch_manager/alive_monitor/details/daemon/IAliveMonitor.hpp"
 #include "score/mw/launch_manager/configuration/config.hpp"
 
-namespace score
-{
-namespace lcm
+namespace score::mw::lifecycle
 {
 
 class IRecoveryClient;
@@ -33,11 +31,11 @@ namespace saf
 namespace daemon
 {
 
-using SptrIRecoveryClient = std::shared_ptr<score::lcm::IRecoveryClient>;
-using UptrIProcessStateReceiver = std::unique_ptr<score::lcm::IProcessStateReceiver>;
-using UptrPhmDaemon = std::unique_ptr<score::lcm::saf::daemon::PhmDaemon>;
-using OsClock = score::lcm::saf::timers::OsClockInterface;
-using Config = score::mw::launch_manager::configuration::Config;
+using SptrIRecoveryClient = std::shared_ptr<score::mw::lifecycle::IRecoveryClient>;
+using UptrIProcessStateReceiver = std::unique_ptr<score::mw::lifecycle::IProcessStateReceiver>;
+using UptrPhmDaemon = std::unique_ptr<score::mw::lifecycle::saf::daemon::PhmDaemon>;
+using OsClock = score::mw::lifecycle::saf::timers::OsClockInterface;
+using Config = score::mw::lifecycle::configuration::Config;
 using AliveMonitorConfig = score::mw::lifecycle::internal::alive::AliveMonitorConfig;
 
 class AliveMonitorImpl : public IAliveMonitor
@@ -60,9 +58,6 @@ class AliveMonitorImpl : public IAliveMonitor
     AliveMonitorConfig m_config;
 };
 
-}  // namespace daemon
-}  // namespace saf
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle::saf::daemon
 
 #endif

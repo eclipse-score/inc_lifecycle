@@ -32,7 +32,4 @@ int setgroups(size_t __n, const gid_t* __groups) noexcept(true)
 {
     return ::setgroups(__n, __n ? __groups : nullptr);
 }
-}  // namespace osal
-}  // namespace internal
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::osal

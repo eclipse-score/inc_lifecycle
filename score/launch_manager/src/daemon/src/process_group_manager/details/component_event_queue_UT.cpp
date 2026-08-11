@@ -19,7 +19,7 @@
 namespace score::mw::lifecycle::internal
 {
 
-using namespace score::lcm;
+using namespace score::mw::lifecycle;
 
 class ComponentEventQueueTest : public ::testing::Test
 {

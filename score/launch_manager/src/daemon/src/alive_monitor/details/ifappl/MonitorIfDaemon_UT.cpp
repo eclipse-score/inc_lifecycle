@@ -25,7 +25,7 @@
 
 using namespace testing;
 
-namespace score::lcm::saf
+namespace score::mw::lifecycle::saf
 {
 
 namespace
@@ -462,4 +462,4 @@ TEST_F(MonitorIfDaemonTest, InactiveOverflow_ProcessRestartFlag_ClearedAfterNoti
     fix.monitor.checkForNewData(mockClock());  // no new restart -> no additional notification
 }
 
-}  // namespace score::lcm::saf
+}  // namespace score::mw::lifecycle::saf

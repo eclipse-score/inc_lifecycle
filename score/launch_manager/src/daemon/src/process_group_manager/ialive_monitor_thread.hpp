@@ -14,11 +14,7 @@
 #ifndef SCORE_LCM_IALIVE_MONITOR_THREAD_HPP_INCLUDED
 #define SCORE_LCM_IALIVE_MONITOR_THREAD_HPP_INCLUDED
 
-namespace score
-{
-namespace lcm
-{
-namespace internal
+namespace score::mw::lifecycle::internal
 {
 class IAliveMonitorThread
 {
@@ -28,8 +24,6 @@ class IAliveMonitorThread
 
     virtual ~IAliveMonitorThread() = default;
 };
-}  // namespace internal
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal
 
 #endif

@@ -37,7 +37,7 @@ class IProcessStateNotifier
 
     /// @brief Construct and return the Process State Receiver instance used to receive process state changes.
     /// @return Process State Receiver instance
-    virtual std::unique_ptr<score::lcm::IProcessStateReceiver> constructReceiver() = 0;
+    virtual std::unique_ptr<score::mw::lifecycle::IProcessStateReceiver> constructReceiver() = 0;
 
     /// @brief Writes via IPC the latests Process State change, so that PHM can be informed about it.
     /// @details the PosixProcess structure should be complete at his moment. That means:
@@ -45,7 +45,7 @@ class IProcessStateNotifier
     ///          if no more free shared memory, the PosixProcess is not sent.
     /// @param[in]   f_posixProcess   The PosixProcess to be queued
     /// @returns True on success, false for failure (corresponding to kCommunicationError).
-    virtual bool queuePosixProcess(const score::lcm::PosixProcess& f_posixProcess) noexcept = 0;
+    virtual bool queuePosixProcess(const score::mw::lifecycle::PosixProcess& f_posixProcess) noexcept = 0;
 };
 
 }  // namespace lcm

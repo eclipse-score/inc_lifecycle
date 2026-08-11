@@ -18,12 +18,12 @@
 #include "score/mw/launch_manager/process_group_manager/details/graph.hpp"
 #include "score/mw/launch_manager/process_group_manager/mock_iprocess.hpp"
 
-namespace score::lcm::internal
+namespace score::mw::lifecycle::internal
 {
 
 using namespace testing;
 using namespace score::mw::lifecycle;
-using namespace score::mw::launch_manager::configuration;
+using namespace score::mw::lifecycle::configuration;
 using namespace std::chrono_literals;
 
 class MockProcessMap : public SafeProcessMapInserter
@@ -35,8 +35,8 @@ class MockProcessMap : public SafeProcessMapInserter
 class MockProcessStateNotifier : public IProcessStateNotifier
 {
   public:
-    MOCK_METHOD(std::unique_ptr<score::lcm::IProcessStateReceiver>, constructReceiver, (), (override));
-    MOCK_METHOD(bool, queuePosixProcess, (const score::lcm::PosixProcess& f_posixProcess), (override, noexcept));
+    MOCK_METHOD(std::unique_ptr<score::mw::lifecycle::IProcessStateReceiver>, constructReceiver, (), (override));
+    MOCK_METHOD(bool, queuePosixProcess, (const score::mw::lifecycle::PosixProcess& f_posixProcess), (override, noexcept));
 };
 
 class MockTransitionResultPublisher : public ITransitionResultPublisher
@@ -613,4 +613,4 @@ TEST_F(GraphUtilitiesTest, gettersSetters)
     EXPECT_LE(graph_time, after_time);
 }
 
-}  // namespace score::lcm::internal
+}  // namespace score::mw::lifecycle::internal

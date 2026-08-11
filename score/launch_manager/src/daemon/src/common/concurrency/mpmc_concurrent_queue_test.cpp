@@ -24,7 +24,7 @@
 #include <tuple>
 #include <vector>
 
-using namespace score::lcm::internal;
+using namespace score::mw::lifecycle::internal;
 
 class MPMCConcurrentQueueTest_Basic : public ::testing::Test
 {

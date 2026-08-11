@@ -18,13 +18,7 @@
 #include "score/mw/launch_manager/alive_monitor/details/supervision/Alive.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
 
-namespace score
-{
-namespace lcm
-{
-namespace saf
-{
-namespace daemon
+namespace score::mw::lifecycle::saf::daemon
 {
 
 /* RULECHECKER_comment(0, 6, check_expensive_to_copy_in_parameter, "Move only types cannot be passed by const ref",
@@ -102,7 +96,4 @@ bool PhmDaemon::construct(const AliveMonitorConfig& config, const SupervisionBuf
     return isSuccess;
 }
 
-}  // namespace daemon
-}  // namespace saf
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle::saf::daemon

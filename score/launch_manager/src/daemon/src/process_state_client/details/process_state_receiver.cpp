@@ -29,30 +29,29 @@ ProcessStateReceiver::~ProcessStateReceiver() noexcept
 
 score::Result<std::optional<PosixProcess>> ProcessStateReceiver::getNextChangedPosixProcess() noexcept
 {
-    score::lcm::PosixProcess changedProcess;
+    score::mw::lifecycle::PosixProcess changedProcess;
     if (ring_buffer_->getOverflowFlag())
     {
         LM_LOG_ERROR() << "ProcessStateReceiver::getNextChangedPosixProcess: Overflow occurred, "
                           "will be reported as kCommunicationError";
-        return score::Result<std::optional<score::lcm::PosixProcess>>{
+        return score::Result<std::optional<score::mw::lifecycle::PosixProcess>>{
             score::MakeUnexpected(score::mw::lifecycle::ExecErrc::kCommunicationError)};
     }
 
     if (ring_buffer_->empty())
     {
-        return score::Result<std::optional<score::lcm::PosixProcess>>{std::nullopt};
+        return score::Result<std::optional<score::mw::lifecycle::PosixProcess>>{std::nullopt};
     }
 
     auto res = ring_buffer_->tryDequeue(changedProcess);
     if (res)
     {
-        return score::Result<std::optional<score::lcm::PosixProcess>>{changedProcess};
+        return score::Result<std::optional<score::mw::lifecycle::PosixProcess>>{changedProcess};
     }
     else
     {
-        return score::Result<std::optional<score::lcm::PosixProcess>>{
+        return score::Result<std::optional<score::mw::lifecycle::PosixProcess>>{
             score::MakeUnexpected(score::mw::lifecycle::ExecErrc::kGeneralError)};
     }
 }
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle

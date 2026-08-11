@@ -26,7 +26,7 @@
 #include "score/mw/launch_manager/watchdog/WatchdogFactory.hpp"
 
 using namespace std;
-using namespace score::lcm::internal;
+using namespace score::mw::lifecycle::internal;
 
 /// @brief Runs the LCM daemon.
 /// This function runs the LCM daemon by calling the run() method of the provided
@@ -148,7 +148,7 @@ int main(int argc, const char* argv[])
         //     return EXIT_FAILURE;
         // }
 
-        score::mw::launch_manager::configuration::FlatbufferConfigLoader config_loader;
+        score::mw::lifecycle::configuration::FlatbufferConfigLoader config_loader;
         auto config_result = config_loader.load(config_path);
         if (!config_result.has_value())
         {
@@ -156,15 +156,15 @@ int main(int argc, const char* argv[])
             return EXIT_FAILURE;
         }
         LM_LOG_DEBUG() << "Launch Manager Started !!!!";
-        std::shared_ptr<score::lcm::IRecoveryClient> recoveryClient{std::make_shared<score::lcm::RecoveryClient>()};
-        auto process_state_notifier = std::make_unique<score::lcm::internal::ProcessStateNotifier>();
-        std::unique_ptr<score::lcm::saf::daemon::IAliveMonitor> healthMonitor{
-            std::make_unique<score::lcm::saf::daemon::AliveMonitorImpl>(
+        std::shared_ptr<score::mw::lifecycle::IRecoveryClient> recoveryClient{std::make_shared<score::mw::lifecycle::RecoveryClient>()};
+        auto process_state_notifier = std::make_unique<score::mw::lifecycle::internal::ProcessStateNotifier>();
+        std::unique_ptr<score::mw::lifecycle::saf::daemon::IAliveMonitor> healthMonitor{
+            std::make_unique<score::mw::lifecycle::saf::daemon::AliveMonitorImpl>(
                 recoveryClient, process_state_notifier->constructReceiver(), *config_result)};
-        std::unique_ptr<score::lcm::internal::IAliveMonitorThread> aliveMonitorThread{
-            std::make_unique<score::lcm::internal::AliveMonitorThread>(std::move(healthMonitor))};
+        std::unique_ptr<score::mw::lifecycle::internal::IAliveMonitorThread> aliveMonitorThread{
+            std::make_unique<score::mw::lifecycle::internal::AliveMonitorThread>(std::move(healthMonitor))};
 
-        auto watchdog = score::lcm::watchdog::createWatchdog();
+        auto watchdog = score::mw::lifecycle::watchdog::createWatchdog();
         auto process_group_manager = std::make_unique<ProcessGroupManager>(
             std::move(aliveMonitorThread), recoveryClient, std::move(process_state_notifier), std::move(watchdog));
 

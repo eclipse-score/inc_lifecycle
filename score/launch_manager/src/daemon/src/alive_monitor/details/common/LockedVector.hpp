@@ -16,11 +16,7 @@
 
 #include "score/mw/launch_manager/alive_monitor/details/common/FixedSizeVector.hpp"
 
-namespace score
-{
-namespace lcm
-{
-namespace saf
+namespace score::mw::lifecycle::saf
 {
 namespace common
 {
@@ -124,8 +120,6 @@ class LockedVector final : private FixedSizeVector<Type>
 };
 
 }  // namespace common
-}  // namespace saf
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle::saf
 
 #endif

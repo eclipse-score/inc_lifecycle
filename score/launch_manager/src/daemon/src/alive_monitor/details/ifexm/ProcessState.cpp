@@ -13,13 +13,7 @@
 
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ProcessState.hpp"
 
-namespace score
-{
-namespace lcm
-{
-namespace saf
-{
-namespace ifexm
+namespace score::mw::lifecycle::saf::ifexm
 {
 
 ProcessState::ProcessState(const ProcessCfg& f_processCfg_r) noexcept(false)
@@ -65,7 +59,4 @@ void ProcessState::pushData(void) noexcept
     pushResultToObservers();
 }
 
-}  // namespace ifexm
-}  // namespace saf
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle::saf::ifexm

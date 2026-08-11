@@ -20,11 +20,7 @@
 
 #include "score/mw/launch_manager/process_group_manager/ialive_monitor_thread.hpp"
 
-namespace score
-{
-namespace lcm
-{
-namespace internal
+namespace score::mw::lifecycle::internal
 {
 
 /// @brief AliveMonitor manages the lifecycle of the alive monitoring daemon in a separate thread.
@@ -42,9 +38,9 @@ class AliveMonitorThread final : public IAliveMonitorThread
 
   private:
     void notifyInitializationComplete(
-        score::lcm::saf::daemon::EInitCode& f_init_status_r,
-        const score::lcm::saf::daemon::EInitCode f_init_result);
-    void waitForInitializationCompleted(score::lcm::saf::daemon::EInitCode& f_init_status_r);
+        score::mw::lifecycle::saf::daemon::EInitCode& f_init_status_r,
+        const score::mw::lifecycle::saf::daemon::EInitCode f_init_result);
+    void waitForInitializationCompleted(score::mw::lifecycle::saf::daemon::EInitCode& f_init_status_r);
 
     std::unique_ptr<saf::daemon::IAliveMonitor> m_health_monitor{nullptr};
     std::thread alive_monitor_thread_{};
@@ -53,7 +49,5 @@ class AliveMonitorThread final : public IAliveMonitorThread
     std::condition_variable m_initialization_cv{};
 };
 
-}  // namespace internal
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal
 #endif

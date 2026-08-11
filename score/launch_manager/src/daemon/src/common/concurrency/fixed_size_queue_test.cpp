@@ -19,7 +19,7 @@
 #include <type_traits>
 #include <vector>
 
-using namespace score::lcm::internal;
+using namespace score::mw::lifecycle::internal;
 
 class FixedSizeQueueTest : public ::testing::Test
 {

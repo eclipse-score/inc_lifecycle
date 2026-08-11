@@ -55,8 +55,8 @@ struct OsalConfig
 {
     std::string executable_path_{};                                              ///< Path to the executable.
     std::string short_name_;                                                     ///< Short name of the process
-    std::array<const char*, score::lcm::internal::kArgvArraySize> argv_{};       ///< Command-line arguments.
-    char* envp_[static_cast<std::size_t>(score::lcm::internal::kEnvArraySize)];  ///< Environment variables.
+    std::array<const char*, score::mw::lifecycle::internal::kArgvArraySize> argv_{};       ///< Command-line arguments.
+    char* envp_[static_cast<std::size_t>(score::mw::lifecycle::internal::kEnvArraySize)];  ///< Environment variables.
     std::string security_policy_{};          ///< Security policy to apply to this process
     uid_t uid_;                              ///< User ID.
     gid_t gid_;                              ///< Group ID.

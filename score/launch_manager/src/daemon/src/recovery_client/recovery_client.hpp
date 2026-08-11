@@ -17,9 +17,7 @@
 
 #include "score/mw/launch_manager/recovery_client/irecovery_client.h"
 
-namespace score
-{
-namespace lcm
+namespace score::mw::lifecycle
 {
 
 class RecoveryClient final : public IRecoveryClient
@@ -33,13 +31,12 @@ class RecoveryClient final : public IRecoveryClient
     RecoveryClient& operator=(RecoveryClient&&) = delete;
 
     void setRecoveryRequestCallback(RecoveryRequestCallback callback) noexcept override;
-    bool sendRecoveryRequest(const score::lcm::IdentifierHash& process_identifier) noexcept override;
+    bool sendRecoveryRequest(const score::mw::lifecycle::IdentifierHash& process_identifier) noexcept override;
 
   private:
     mutable std::mutex callback_mutex_;
     RecoveryRequestCallback callback_;
 };
-}  // namespace lcm
-}  // namespace score
+}  // namespace score::mw::lifecycle
 
 #endif

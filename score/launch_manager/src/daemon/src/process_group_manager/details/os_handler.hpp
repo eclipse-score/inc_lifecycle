@@ -92,7 +92,7 @@ class OsHandler final
     score::os::SysWait& sys_wait_;
 
     /// @brief Thread object to manage execution of the run method.
-    std::thread os_handler_{&score::lcm::internal::OsHandler::run, this};
+    std::thread os_handler_{&score::mw::lifecycle::internal::OsHandler::run, this};
 };
 
 }  // namespace internal
