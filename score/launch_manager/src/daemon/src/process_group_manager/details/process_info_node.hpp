@@ -25,8 +25,6 @@
 namespace score::mw::lifecycle::internal
 {
 
-using namespace score::mw::lifecycle::internal;
-
 /// @brief Represents both a process and a component in the graph.
 /// @details A ProcessInfoNode is a node in the dependency graph that represents an OS process and its associated
 /// component. It manages the lifecycle of the process, including activation, deactivation, and state reporting. The

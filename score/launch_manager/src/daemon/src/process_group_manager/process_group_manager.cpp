@@ -24,8 +24,6 @@
 namespace score::mw::lifecycle::internal
 {
 
-using namespace score::mw::lifecycle::internal::osal;
-
 static std::atomic_bool em_cancelled{false};
 
 static void my_signal_handler(int)
@@ -209,7 +207,7 @@ bool ProcessGroupManager::initializeControlClientHandler()
                     // statement.
                     const auto osal_result = ControlClientChannel::nudgeControlClientHandler_->init(0U, true);
                     SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(
-                        osal_result == OsalReturnType::kSuccess, "ControlClientChannel semaphore init failed");
+                        osal_result == osal::OsalReturnType::kSuccess, "ControlClientChannel semaphore init failed");
 
                     result = true;
                 }

@@ -23,8 +23,6 @@
 namespace score::mw::lifecycle::internal
 {
 
-using namespace score::mw::lifecycle;
-
 /// @brief A node finished activating successfully.
 struct [[nodiscard]] ActivationSuccessful
 {

@@ -48,8 +48,6 @@ namespace mw::lifecycle
 namespace internal
 {
 
-using namespace score::mw::lifecycle;
-
 using Config = score::mw::launch_manager::configuration::Config;
 
 using WorkerQueue =

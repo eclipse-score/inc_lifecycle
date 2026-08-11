@@ -28,8 +28,6 @@ namespace mw::lifecycle
 namespace internal
 {
 
-using namespace score::mw::lifecycle::internal;
-
 /// @brief Struct representing data in a map item
 struct ProcessInfoData
 {

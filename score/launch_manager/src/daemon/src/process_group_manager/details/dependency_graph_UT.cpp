@@ -22,8 +22,6 @@
 namespace score::mw::lifecycle
 {
 
-using namespace score::mw::lifecycle;
-
 TEST(DependencyGraphTest, EmplaceAndAccessByIndex)
 {
     const std::string_view text = "AAAAA";

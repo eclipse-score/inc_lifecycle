@@ -23,7 +23,6 @@ namespace score::mw::lifecycle::internal
 {
 
 using namespace testing;
-using namespace score::mw::lifecycle;
 using namespace score::mw::launch_manager::configuration;
 using namespace std::chrono_literals;
 

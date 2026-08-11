@@ -33,7 +33,6 @@
 
 namespace score::mw::lifecycle
 {
-using namespace score::mw::lifecycle::internal;
 
 /// @brief What should happen to a ready node right now.
 enum class Action : std::uint8_t
@@ -284,7 +283,7 @@ class Transition
 
         /// @brief The nodes that are ready to be activated/deactivated in the current phase, in the order they were
         /// discovered.
-        FixedSizeQueue<GraphIndex> next_nodes;
+        internal::FixedSizeQueue<GraphIndex> next_nodes;
         std::size_t pending = 0;    // nodes still to reach terminal state in this phase
         Phase phase = Phase::Done;  // active vs deactivation vs finished
 
@@ -292,7 +291,7 @@ class Transition
         /// @deprecated This is a workaround for the case where two processes are started in parallel and their events
         /// processed in sequence. Both onNodeFinished() calls detect that all dependents are ready and try to enqueue
         /// successors. Detection of dependency readiness should be reworked to remove this.
-        std::bitset<static_cast<std::size_t>(ProcessLimits::kMaxProcesses)> enqueued_set{};
+        std::bitset<static_cast<std::size_t>(internal::ProcessLimits::kMaxProcesses)> enqueued_set{};
 
         State(std::size_t nodes) : next_nodes(nodes)
         {
