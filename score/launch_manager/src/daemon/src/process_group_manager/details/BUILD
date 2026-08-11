@@ -327,7 +327,6 @@ lm_cc_test(
 
 lm_cc_test(
     name = "process_group_manager_UT",
-    timeout = "long",
     srcs = ["process_group_manager_UT.cpp"],
     deps = [
         "//score/launch_manager/src/daemon/src/configuration:config",

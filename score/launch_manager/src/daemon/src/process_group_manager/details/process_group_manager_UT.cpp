@@ -108,6 +108,13 @@ Config makeMinimalConfig()
 class ProcessGroupManagerWatchdogTest : public Test
 {
   protected:
+    void expectNormalStartup()
+    {
+        EXPECT_CALL(*alive_monitor_thread_, start()).WillOnce(Return(true));
+        EXPECT_CALL(*watchdog_, init(_, _)).WillOnce(Return(true));
+        EXPECT_CALL(*watchdog_, enable()).WillOnce(Return(true));
+    }
+
     void SetUp() override
     {
         RecordProperty("TestType", "unit-test");
@@ -161,9 +168,7 @@ TEST_F(ProcessGroupManagerWatchdogTest, GivenMinimalConfig_ExpectWatchdogMethods
 
     // Expected
     InSequence sequence;
-    EXPECT_CALL(*alive_monitor_thread_, start()).WillOnce(Return(true));
-    EXPECT_CALL(*watchdog_, init(_, _)).WillOnce(Return(true));
-    EXPECT_CALL(*watchdog_, enable()).WillOnce(Return(true));
+    expectNormalStartup();
     EXPECT_CALL(*watchdog_, disable()).Times(1);
     EXPECT_CALL(*alive_monitor_thread_, stop()).Times(1);
 
@@ -180,9 +185,7 @@ TEST_F(ProcessGroupManagerWatchdogTest, GivenMinimalConfig_ExpectWatchdogService
     const auto config = makeMinimalConfig();
 
     // Expected
-    EXPECT_CALL(*alive_monitor_thread_, start()).WillOnce(Return(true));
-    EXPECT_CALL(*watchdog_, init(_, _)).WillOnce(Return(true));
-    EXPECT_CALL(*watchdog_, enable()).WillOnce(Return(true));
+    expectNormalStartup();
     // Call cancel() to exit the run() loop after at least one cycle of serviceWatchdog() is called
     EXPECT_CALL(*watchdog_, serviceWatchdog()).Times(AtLeast(1)).WillRepeatedly([this]() {
         process_group_manager_->cancel();
@@ -208,9 +211,7 @@ TEST_F(ProcessGroupManagerWatchdogTest, GivenMinimalConfig_ExpectWatchdogFired_W
     constexpr int kNumRecoveryRequests = 16;
 
     // Expected
-    EXPECT_CALL(*alive_monitor_thread_, start()).WillOnce(Return(true));
-    EXPECT_CALL(*watchdog_, init(_, _)).WillOnce(Return(true));
-    EXPECT_CALL(*watchdog_, enable()).WillOnce(Return(true));
+    expectNormalStartup();
     EXPECT_CALL(*watchdog_, fireWatchdogReaction()).Times(AtLeast(1));
     EXPECT_CALL(*watchdog_, serviceWatchdog()).Times(AtLeast(1)).WillRepeatedly([this]() {
         process_group_manager_->cancel();
@@ -242,9 +243,7 @@ TEST_F(ProcessGroupManagerWatchdogTest, GivenMinimalConfig_ExpectWatchdogDisable
     const auto config = makeMinimalConfig();
 
     // Expected
-    EXPECT_CALL(*alive_monitor_thread_, start()).WillOnce(Return(true));
-    EXPECT_CALL(*watchdog_, init(_, _)).WillOnce(Return(true));
-    EXPECT_CALL(*watchdog_, enable()).WillOnce(Return(true));
+    expectNormalStartup();
     // We are explicitly calling deinitialize() in this test for readability,
     // so disable() and stop() are expected to be called twice: once in deinitialize() and once in TearDown().
     EXPECT_CALL(*watchdog_, disable()).Times(2);
