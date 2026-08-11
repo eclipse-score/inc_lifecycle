@@ -32,6 +32,7 @@ namespace
 {
 
 using namespace score::mw::lifecycle::internal;
+namespace configuration = score::mw::lifecycle::internal::configuration;
 
 /// @brief Creates a dependency graph from the configuration.
 /// @param config The configuration containing components and run targets.

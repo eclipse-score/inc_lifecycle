@@ -16,6 +16,7 @@
 
 #include <cstdint>
 
+#include "score/mw/launch_manager/configuration/config.hpp"
 #include "score/mw/launch_manager/watchdog/IWatchdogIf.hpp"
 #include "score/os/fcntl.h"
 #include "score/os/ioctl.h"

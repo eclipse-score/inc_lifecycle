@@ -23,7 +23,7 @@ namespace score::mw::lifecycle::internal::alive
 namespace
 {
 
-using ApplicationType = score::mw::lifecycle::internal::configuration::ApplicationType;
+using configuration::ApplicationType;
 
 bool isSupervisedType(ApplicationType app_type)
 {
@@ -32,7 +32,7 @@ bool isSupervisedType(ApplicationType app_type)
 
 }  // namespace
 
-AliveMonitorConfig aliveMonitorConfig(const score::mw::lifecycle::internal::configuration::Config& config)
+AliveMonitorConfig aliveMonitorConfig(const configuration::Config& config)
 {
     AliveMonitorConfig result{};
     result.evaluation_cycle_ms = config.aliveSupervision().evaluation_cycle_ms;
