@@ -20,6 +20,7 @@ cc_library(
     visibility = ["//score:__subpackages__"],
     deps = [
         "//score/launch_manager/src/daemon/src/common:constants",
+        "//score/launch_manager/src/daemon/src/configuration:component_config",
         "//score/launch_manager/src/daemon/src/osal:ipc_comms",
     ],
 )

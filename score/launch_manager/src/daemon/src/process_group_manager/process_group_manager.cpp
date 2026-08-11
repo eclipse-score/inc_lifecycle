@@ -81,13 +81,10 @@ bool ProcessGroupManager::initialize(const Config& config)
         return false;
     }
 
-    if (!configuration_.initialize(config))
-    {
-        LM_LOG_ERROR() << "Failed to initialize config";
-        return false;
-    }
+    // Config is already initialized by ConfigBuilder, no separate init needed
+    configuration_.emplace(std::move(config));
 
-    const auto* pg_list = configuration_.getListOfProcessGroups().value_or(nullptr);
+    const auto* pg_list = configuration_->getListOfProcessGroups().value_or(nullptr);
     if (!pg_list || pg_list->empty())
     {
         LM_LOG_ERROR() << "Failed to get pg list";
@@ -152,7 +149,7 @@ void ProcessGroupManager::deinitialize()
     os_handler_.reset();
     process_monitor_.reset();
     alive_monitor_thread_->stop();
-    configuration_.deinitialize();
+    // No deinitialize needed - Config destructor handles cleanup
     process_groups_.clear();
 
     thread_pool_.reset();

@@ -18,6 +18,7 @@
 #include <sys/types.h>
 
 #include "score/mw/launch_manager/common/constants.hpp"
+#include "score/mw/launch_manager/configuration/component_config.hpp"
 #include "score/mw/launch_manager/osal/ipc_comms.hpp"
 #include <cstdint>
 
@@ -37,46 +38,13 @@ namespace internal
 namespace osal
 {
 
-/// @brief Represents process limits to be applied by setrlimit()
-
-struct OsalLimits
-{
-    rlim_t data_;  ///< Maximum memory usage in bytes (heapUsage)
-    rlim_t as_;    ///< Maximum address space usage in bytes (systemMemoryUsage)
-    // Note usage of the following may change when resource groups are implemented
-    rlim_t stack_;  ///< Maximum stack usage in bytes (resource group memUsage)
-    rlim_t cpu_;    ///< Maximum cpu usage in seconds (resource group cpuUsage)
-};
-
-/// @brief Represents process startup and other configurations consumed by OSAL.
-// RULECHECKER_comment(1, 1, check_incomplete_data_member_construction, "wi 45913 - This struct is POD, which doesn't
-// have user-declared constructor. The rule doesn’t apply.", false)
-struct OsalConfig
-{
-    std::string executable_path_{};                                                   ///< Path to the executable.
-    std::string short_name_;                                                          ///< Short name of the process
-    std::array<const char*, score::mw::lifecycle::internal::kArgvArraySize> argv_{};  ///< Command-line arguments.
-    char* envp_[static_cast<std::size_t>(score::mw::lifecycle::internal::kEnvArraySize)];  ///< Environment variables.
-    std::string security_policy_{};          ///< Security policy to apply to this process
-    uid_t uid_;                              ///< User ID.
-    gid_t gid_;                              ///< Group ID.
-    std::vector<gid_t> supplementary_gids_;  ///< Supplementary group IDs.
-    CommsType comms_type_;                   ///< The type of communications required by this process
-    uint64_t cpu_mask_;                      ///< Mask for setting processor core affinity
-    int32_t scheduling_policy_;              ///< Scheduling policy defined for this process
-    int32_t scheduling_priority_;            ///< Scheduling priority for this process
-    OsalLimits resource_limits_;             ///< Resource limits for this process
-    std::string working_dir_{};              ///< Working directory for the process
-};
-
 /// @brief Struct to hold configuration parameters for the child process.
-// RULECHECKER_comment(1, 1, check_incomplete_data_member_construction, "wi 45913 - This struct is POD, which doesn't
-// have user-declared constructor. The rule doesn’t apply.", false)
 struct ChildProcessConfig
 {
-    const OsalConfig* config;  ///< child process startup configurations
-    int fd;                    ///< fd File descriptor of the shared memory segment.
-    IpcCommsP shared_block;    ///< sync Pointer to the shared memory block.
+    const score::mw::lifecycle::internal::configuration::ComponentConfig&
+        config;              ///< child process startup configurations
+    int fd;                  ///< fd File descriptor of the shared memory segment.
+    IpcCommsP shared_block;  ///< sync Pointer to the shared memory block.
 };
 
 ///@brief This interface provides functionality that is needed to manage child processes.
@@ -115,7 +83,10 @@ class IProcess
     /// number shall be returned as the function return value KFail to indicate the error. If the pid or config argument
     /// is NULL then simply KFail returned as the function return.
 
-    virtual OsalReturnType startProcess(ProcessID* pid, IpcCommsP* sync, const osal::OsalConfig* config) = 0;
+    virtual OsalReturnType startProcess(
+        ProcessID& pid,
+        IpcCommsP& sync,
+        const score::mw::lifecycle::internal::configuration::ComponentConfig& config) = 0;
 
     ///@brief This function request graceful termination by sending SIGTERM signal to a specified process.
     /// Requesting the group of processes for graceful termination is not supported.

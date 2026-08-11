@@ -273,7 +273,7 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     bool initializeControlClientHandler();
 
     /// @brief The configuration object associated with the ProcessGroupManager.
-    ConfigurationType configuration_;
+    std::optional<score::mw::lifecycle::internal::configuration::Config> configuration_;
 
     /// @brief The process interface object associated with the ProcessGroupManager.
     osal::ProcessLauncher process_interface_;
