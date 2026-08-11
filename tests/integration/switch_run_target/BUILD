@@ -45,19 +45,27 @@ cc_binary(
     for component in [
         "component_a",
         "component_b",
-        "component_d",
     ]
 ]
 
-cc_binary(
-    name = "component_e",
-    srcs = ["//tests/utils/test_helper:reporting_process.cpp"],
-    deps = [
-        "//score/launch_manager:lifecycle_cc",
-        "//tests/utils/test_helper",
-        "@googletest//:gtest_main",
-    ],
-)
+# Components D and E share component_d_or_e.cpp; the component ("d" or "e") is
+# passed on the command line (see switch_run_target.json).
+[
+    cc_binary(
+        name = "component_" + component,
+        srcs = ["component_d_or_e.cpp"],
+        deps = [
+            ":switch_run_target_common",
+            "//score/launch_manager:lifecycle_cc",
+            "//tests/utils/test_helper",
+            "@googletest//:gtest_main",
+        ],
+    )
+    for component in [
+        "d",
+        "e",
+    ]
+]
 
 integration_test(
     name = "switch_run_target",

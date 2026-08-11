@@ -43,7 +43,10 @@ TEST(SwitchRunTarget, ControlClientMock)
     }
     // When we switch run to run target A
     // Then
-    // Processes A and B verify that B is started before A and terminated after A.
+    // Processes A and B verify that B is started before A and terminated after A when switching run targets
+    const auto running_processes = {a_started, b_started, d_started};
+    const auto terminating_processes = {a_terminating, b_terminating, d_terminating};
+
     TEST_STEP("Activate run target A")
     {
         score::cpp::stop_token stop_token;
@@ -52,8 +55,7 @@ TEST(SwitchRunTarget, ControlClientMock)
     }
     TEST_STEP("Verify running processes")
     {
-        const auto running = {a_started, b_started, d_started};
-        for (const auto proc : running)
+        for (const auto proc : running_processes)
         {
             EXPECT_TRUE(std::filesystem::exists(proc)) << "A process depended on by run target A was not started!";
         }
@@ -65,14 +67,22 @@ TEST(SwitchRunTarget, ControlClientMock)
         auto result = client.ActivateRunTarget("Startup").Get(stop_token);
         EXPECT_TRUE(result.has_value()) << "Activating target Startup failed: " << result.error().Message();
     }
-    TEST_STEP("Activate RunTarget Off")
+
+    TEST_STEP("Verify terminated processes")
     {
-        client.ActivateRunTarget("Off");
-        EXPECT_FALSE(std::filesystem::exists(e_started)) << "Component E should not be launched";
+        for (const auto proc : terminating_processes)
+        {
+            EXPECT_TRUE(std::filesystem::exists(proc)) << "A process depended on by run target A was not terminated!";
+        }
+    }
+
+    TEST_STEP("Verify that component E was never started")
+    {
+        EXPECT_FALSE(std::filesystem::exists(e_started)) << "Component E should not have been started!";
     }
 }
 
 int main()
 {
-    return TestRunner(__FILE__, TerminationBehavior::kWait, TerminationNotification::kTestEnd).RunTests();
+    return TestRunner(__FILE__, TerminationBehavior::kContinue, TerminationNotification::kTestEnd).RunTests();
 }
