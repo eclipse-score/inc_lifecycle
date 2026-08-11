@@ -21,8 +21,8 @@
 #include <vector>
 
 using namespace testing;
-using namespace score::lcm::internal;
-using namespace score::lcm;
+using namespace score::mw::lifecycle::internal;
+using namespace score::mw::lifecycle;
 
 // Default ProcessIndex for testing
 constexpr uint32_t kProcessIndex = 111;
@@ -97,7 +97,7 @@ class ProcessInfoNodeFixture : public ::testing::Test
     {
         EXPECT_CALL(mock_processIf_, startProcess(_, _, _)).WillOnce(Return(osal::OsalReturnType::kSuccess));
         EXPECT_CALL(*process_map_, insertIfNotTerminated(_, _))
-            .WillOnce(Return(score::lcm::internal::SafeProcessMapReturnType::kOk));
+            .WillOnce(Return(score::mw::lifecycle::internal::SafeProcessMapReturnType::kOk));
     }
 
     /// @brief Sets up requestTermination to synchronously deliver the OS exit notification.
@@ -131,7 +131,7 @@ TEST_F(ProcessInfoNodeStartupTest, CanConstructIdleProcessInfoNode)
     auto node = createProcessInfoNode();
 
     ASSERT_THAT(node->getIndex(), Eq(kProcessIndex));
-    ASSERT_THAT(node->getState(), Eq(score::lcm::ProcessState::kIdle));
+    ASSERT_THAT(node->getState(), Eq(score::mw::lifecycle::ProcessState::kIdle));
     ASSERT_THAT(node->getPid(), Eq(0));
     ASSERT_THAT(node->active(), IsFalse());
     ASSERT_THAT(node->getControlClientChannel(), IsNull());
@@ -152,7 +152,7 @@ TEST_F(ProcessInfoNodeStartupTest, CanStartNonReportingProcess)
     ASSERT_THAT(result.has_value(), IsTrue());
     ASSERT_THAT(result.value(), Eq(IComponent::RequestState::kSuccess));
     ASSERT_THAT(node->getControlClientChannel(), IsNull());
-    ASSERT_THAT(node->getState(), Eq(score::lcm::ProcessState::kRunning));
+    ASSERT_THAT(node->getState(), Eq(score::mw::lifecycle::ProcessState::kRunning));
 }
 
 TEST_F(ProcessInfoNodeStartupTest, CanStartReportingProcess_ReportsRunningInTime)
@@ -169,7 +169,7 @@ TEST_F(ProcessInfoNodeStartupTest, CanStartReportingProcess_ReportsRunningInTime
     ASSERT_THAT(result.has_value(), IsTrue());
     ASSERT_THAT(result.value(), Eq(IComponent::RequestState::kSuccess));
     ASSERT_THAT(node->getControlClientChannel(), IsNull());
-    ASSERT_THAT(node->getState(), Eq(score::lcm::ProcessState::kRunning));
+    ASSERT_THAT(node->getState(), Eq(score::mw::lifecycle::ProcessState::kRunning));
 }
 
 TEST_F(ProcessInfoNodeStartupTest, OsForkFails_ReturnsErrorBeforeReady)
@@ -185,7 +185,7 @@ TEST_F(ProcessInfoNodeStartupTest, OsForkFails_ReturnsErrorBeforeReady)
 
     ASSERT_THAT(result.has_value(), IsFalse());
     ASSERT_THAT(result.error(), Eq(IComponent::ComponentError::kErrorBeforeReady));
-    ASSERT_THAT(node->getState(), Eq(score::lcm::ProcessState::kFailed));
+    ASSERT_THAT(node->getState(), Eq(score::mw::lifecycle::ProcessState::kFailed));
 }
 
 TEST_F(ProcessInfoNodeStartupTest, MapInsertError_ReturnsErrorBeforeReady)
@@ -198,7 +198,7 @@ TEST_F(ProcessInfoNodeStartupTest, MapInsertError_ReturnsErrorBeforeReady)
     auto node = createProcessInfoNode(osal::CommsType::kNoComms);
     EXPECT_CALL(mock_processIf_, startProcess(_, _, _)).WillOnce(Return(osal::OsalReturnType::kSuccess));
     EXPECT_CALL(*process_map_, insertIfNotTerminated(_, _))
-        .WillOnce(Return(score::lcm::internal::SafeProcessMapReturnType::kInsertionError));
+        .WillOnce(Return(score::mw::lifecycle::internal::SafeProcessMapReturnType::kInsertionError));
     // The error handler calls terminateProcess(), which sends SIGTERM; simulate the OS ack.
     expectOsAcknowledgesTermination(node.get());
 
@@ -206,7 +206,7 @@ TEST_F(ProcessInfoNodeStartupTest, MapInsertError_ReturnsErrorBeforeReady)
 
     ASSERT_THAT(result.has_value(), IsFalse());
     ASSERT_THAT(result.error(), Eq(IComponent::ComponentError::kErrorBeforeReady));
-    ASSERT_THAT(node->getState(), Eq(score::lcm::ProcessState::kFailed));
+    ASSERT_THAT(node->getState(), Eq(score::mw::lifecycle::ProcessState::kFailed));
 }
 
 TEST_F(ProcessInfoNodeStartupTest, SelfTerminating_ExitsBeforeMapInsert_ReturnsSuccess)
@@ -225,13 +225,13 @@ TEST_F(ProcessInfoNodeStartupTest, SelfTerminating_ExitsBeforeMapInsert_ReturnsS
             }),
             Return(osal::OsalReturnType::kSuccess)));
     EXPECT_CALL(*process_map_, insertIfNotTerminated(_, _))
-        .WillOnce(Return(score::lcm::internal::SafeProcessMapReturnType::kYield));
+        .WillOnce(Return(score::mw::lifecycle::internal::SafeProcessMapReturnType::kYield));
 
     auto result = node->activate(score::cpp::stop_token{});
 
     ASSERT_THAT(result.has_value(), IsTrue());
     ASSERT_THAT(result.value(), Eq(IComponent::RequestState::kSuccess));
-    ASSERT_THAT(node->getState(), Eq(score::lcm::ProcessState::kTerminated));
+    ASSERT_THAT(node->getState(), Eq(score::mw::lifecycle::ProcessState::kTerminated));
 }
 
 TEST_F(ProcessInfoNodeStartupTest, ActivateAlreadyActiveNode_ReturnsSuccess)
@@ -247,7 +247,7 @@ TEST_F(ProcessInfoNodeStartupTest, ActivateAlreadyActiveNode_ReturnsSuccess)
     ASSERT_THAT(result.has_value(), IsTrue());
     ASSERT_THAT(result.value(), Eq(IComponent::RequestState::kSuccess));
     ASSERT_THAT(node->active(), IsTrue());
-    ASSERT_THAT(node->getState(), Eq(score::lcm::ProcessState::kRunning));
+    ASSERT_THAT(node->getState(), Eq(score::mw::lifecycle::ProcessState::kRunning));
 }
 
 // Bundles process crashes and timeouts that occur during activate(), before the ready condition is reached.
@@ -272,7 +272,7 @@ TEST_F(ProcessInfoNodeStartupCrashTest, ProcesssTerminated_OnWaitForkRunningTime
 
     ASSERT_THAT(result.has_value(), IsFalse());
     ASSERT_THAT(result.error(), Eq(IComponent::ComponentError::kActivationTimedOut));
-    ASSERT_THAT(node->getState(), Eq(score::lcm::ProcessState::kTerminated));
+    ASSERT_THAT(node->getState(), Eq(score::mw::lifecycle::ProcessState::kTerminated));
 }
 
 TEST_F(ProcessInfoNodeStartupCrashTest, ReportingProcess_CrashesBeforeReady_NoRestarts)
@@ -297,7 +297,7 @@ TEST_F(ProcessInfoNodeStartupCrashTest, ReportingProcess_CrashesBeforeReady_NoRe
 
     ASSERT_THAT(result.has_value(), IsFalse());
     ASSERT_THAT(result.error(), Eq(IComponent::ComponentError::kErrorBeforeReady));
-    ASSERT_THAT(node->getState(), Eq(score::lcm::ProcessState::kTerminated));
+    ASSERT_THAT(node->getState(), Eq(score::mw::lifecycle::ProcessState::kTerminated));
 }
 
 TEST_F(ProcessInfoNodeStartupCrashTest, ReportingProcess_CrashesBeforeReady_WithRestartAttempts)
@@ -316,7 +316,7 @@ TEST_F(ProcessInfoNodeStartupCrashTest, ReportingProcess_CrashesBeforeReady_With
         .WillRepeatedly(Return(osal::OsalReturnType::kSuccess));
     EXPECT_CALL(*process_map_, insertIfNotTerminated(_, _))
         .Times(kTotalAttempts)
-        .WillRepeatedly(Return(score::lcm::internal::SafeProcessMapReturnType::kOk));
+        .WillRepeatedly(Return(score::mw::lifecycle::internal::SafeProcessMapReturnType::kOk));
     // Simulate the OS handler detecting the crash on every attempt, while the process is still waiting to reach
     // kRunning.
     EXPECT_CALL(mock_processIf_, waitForkRunning(_, _))
@@ -332,7 +332,7 @@ TEST_F(ProcessInfoNodeStartupCrashTest, ReportingProcess_CrashesBeforeReady_With
 
     ASSERT_THAT(result.has_value(), IsFalse());
     ASSERT_THAT(result.error(), Eq(IComponent::ComponentError::kErrorBeforeReady));
-    ASSERT_THAT(node->getState(), Eq(score::lcm::ProcessState::kTerminated));
+    ASSERT_THAT(node->getState(), Eq(score::mw::lifecycle::ProcessState::kTerminated));
 }
 
 TEST_F(ProcessInfoNodeStartupCrashTest, NonReportingProcess_CrashesBeforeReady_NoRestarts)
@@ -350,13 +350,13 @@ TEST_F(ProcessInfoNodeStartupCrashTest, NonReportingProcess_CrashesBeforeReady_N
             InvokeWithoutArgs([node = node.get()] {
                 node->tryHandleTermination(-1);
             }),
-            Return(score::lcm::internal::SafeProcessMapReturnType::kOk)));
+            Return(score::mw::lifecycle::internal::SafeProcessMapReturnType::kOk)));
 
     auto result = node->activate(score::cpp::stop_token{});
 
     ASSERT_THAT(result.has_value(), IsFalse());
     ASSERT_THAT(result.error(), Eq(IComponent::ComponentError::kErrorBeforeReady));
-    ASSERT_THAT(node->getState(), Eq(score::lcm::ProcessState::kTerminated));
+    ASSERT_THAT(node->getState(), Eq(score::mw::lifecycle::ProcessState::kTerminated));
 }
 
 TEST_F(ProcessInfoNodeStartupCrashTest, NonReportingProcess_CrashesBeforeReady_WithRestartAttempts)
@@ -379,13 +379,13 @@ TEST_F(ProcessInfoNodeStartupCrashTest, NonReportingProcess_CrashesBeforeReady_W
             InvokeWithoutArgs([node = node.get()] {
                 node->tryHandleTermination(-1);
             }),
-            Return(score::lcm::internal::SafeProcessMapReturnType::kOk)));
+            Return(score::mw::lifecycle::internal::SafeProcessMapReturnType::kOk)));
 
     auto result = node->activate(score::cpp::stop_token{});
 
     ASSERT_THAT(result.has_value(), IsFalse());
     ASSERT_THAT(result.error(), Eq(IComponent::ComponentError::kErrorBeforeReady));
-    ASSERT_THAT(node->getState(), Eq(score::lcm::ProcessState::kTerminated));
+    ASSERT_THAT(node->getState(), Eq(score::mw::lifecycle::ProcessState::kTerminated));
 }
 
 TEST_F(ProcessInfoNodeStartupCrashTest, TimeoutThenSuccess_WithRestarts)
@@ -400,7 +400,7 @@ TEST_F(ProcessInfoNodeStartupCrashTest, TimeoutThenSuccess_WithRestarts)
     EXPECT_CALL(mock_processIf_, startProcess(_, _, _)).Times(2).WillRepeatedly(Return(osal::OsalReturnType::kSuccess));
     EXPECT_CALL(*process_map_, insertIfNotTerminated(_, _))
         .Times(2)
-        .WillRepeatedly(Return(score::lcm::internal::SafeProcessMapReturnType::kOk));
+        .WillRepeatedly(Return(score::mw::lifecycle::internal::SafeProcessMapReturnType::kOk));
     EXPECT_CALL(mock_processIf_, waitForkRunning(_, _))
         .WillOnce(Return(osal::OsalReturnType::kFail))
         .WillOnce(Return(osal::OsalReturnType::kSuccess));
@@ -412,7 +412,7 @@ TEST_F(ProcessInfoNodeStartupCrashTest, TimeoutThenSuccess_WithRestarts)
 
     ASSERT_THAT(result.has_value(), IsTrue());
     ASSERT_THAT(result.value(), Eq(IComponent::RequestState::kSuccess));
-    ASSERT_THAT(node->getState(), Eq(score::lcm::ProcessState::kRunning));
+    ASSERT_THAT(node->getState(), Eq(score::mw::lifecycle::ProcessState::kRunning));
 }
 
 // Bundles unexpected terminations that occur after the ready condition has been reached.
@@ -430,7 +430,7 @@ TEST_F(ProcessInfoNodeUnexpectedTerminationTest, ProcesssCrashed_AfterReadyCondi
 
     ASSERT_THAT(result.has_value(), IsFalse());
     ASSERT_THAT(result.error(), Eq(IComponent::ComponentError::kErrorAfterReady));
-    ASSERT_THAT(node->getState(), Eq(score::lcm::ProcessState::kTerminated));
+    ASSERT_THAT(node->getState(), Eq(score::mw::lifecycle::ProcessState::kTerminated));
 }
 
 TEST_F(ProcessInfoNodeUnexpectedTerminationTest, SelfTerminatingProcess_ExitsWithoutTerminationRequest)
@@ -447,7 +447,7 @@ TEST_F(ProcessInfoNodeUnexpectedTerminationTest, SelfTerminatingProcess_ExitsWit
 
     ASSERT_THAT(result.has_value(), IsTrue());
     ASSERT_THAT(result.value(), Eq(IComponent::RequestState::kWaiting));
-    ASSERT_THAT(node->getState(), Eq(score::lcm::ProcessState::kTerminated));
+    ASSERT_THAT(node->getState(), Eq(score::mw::lifecycle::ProcessState::kTerminated));
 }
 
 TEST_F(ProcessInfoNodeUnexpectedTerminationTest, SelfTerminating_TerminatedReadyCondition_CleanExit_ReturnsSuccess)
@@ -472,7 +472,7 @@ TEST_F(ProcessInfoNodeUnexpectedTerminationTest, SelfTerminating_TerminatedReady
 
     ASSERT_THAT(result.has_value(), IsTrue());
     ASSERT_THAT(result.value(), Eq(IComponent::RequestState::kSuccess));
-    ASSERT_THAT(node->getState(), Eq(score::lcm::ProcessState::kTerminated));
+    ASSERT_THAT(node->getState(), Eq(score::mw::lifecycle::ProcessState::kTerminated));
 }
 
 TEST_F(ProcessInfoNodeUnexpectedTerminationTest, SelfTerminating_CrashAfterReady_ReturnsErrorAfterReady)
@@ -490,7 +490,7 @@ TEST_F(ProcessInfoNodeUnexpectedTerminationTest, SelfTerminating_CrashAfterReady
 
     ASSERT_THAT(result.has_value(), IsFalse());
     ASSERT_THAT(result.error(), Eq(IComponent::ComponentError::kErrorAfterReady));
-    ASSERT_THAT(node->getState(), Eq(score::lcm::ProcessState::kTerminated));
+    ASSERT_THAT(node->getState(), Eq(score::mw::lifecycle::ProcessState::kTerminated));
 }
 
 // Bundles succeess and failures cases when deactivating a process
@@ -517,7 +517,7 @@ TEST_F(ProcessInfoNodeDeactivationTest, CanTerminateNonSelfTerminatingProcess)
     ASSERT_THAT(result.has_value(), IsTrue());
     ASSERT_THAT(result.value(), Eq(IComponent::RequestState::kSuccess));
     ASSERT_THAT(node->active(), IsFalse());
-    ASSERT_THAT(node->getState(), Eq(score::lcm::ProcessState::kIdle));
+    ASSERT_THAT(node->getState(), Eq(score::mw::lifecycle::ProcessState::kIdle));
 }
 
 // Bundles tests for the explicit move constructor, which is required because the class holds atomics.
@@ -537,7 +537,7 @@ TEST_F(ProcessInfoNodeMoveTest, MoveConstruct_IdleNode_PreservesObservableState)
     ProcessInfoNode moved{std::move(*source)};
 
     ASSERT_THAT(moved.getIndex(), Eq(kProcessIndex));
-    ASSERT_THAT(moved.getState(), Eq(score::lcm::ProcessState::kIdle));
+    ASSERT_THAT(moved.getState(), Eq(score::mw::lifecycle::ProcessState::kIdle));
     ASSERT_THAT(moved.active(), IsFalse());
     ASSERT_THAT(moved.getPid(), Eq(0));
     ASSERT_THAT(moved.getControlClientChannel(), IsNull());
@@ -551,13 +551,13 @@ TEST_F(ProcessInfoNodeMoveTest, MoveConstruct_RunningNode_PreservesAtomicState)
         "moved node reports the running state and is active.");
 
     auto source = createRunningProcessInfoNode(osal::CommsType::kNoComms);
-    ASSERT_THAT(source->getState(), Eq(score::lcm::ProcessState::kRunning));
+    ASSERT_THAT(source->getState(), Eq(score::mw::lifecycle::ProcessState::kRunning));
     ASSERT_THAT(source->active(), IsTrue());
 
     ProcessInfoNode moved{std::move(*source)};
 
     ASSERT_THAT(moved.getIndex(), Eq(kProcessIndex));
-    ASSERT_THAT(moved.getState(), Eq(score::lcm::ProcessState::kRunning));
+    ASSERT_THAT(moved.getState(), Eq(score::mw::lifecycle::ProcessState::kRunning));
     ASSERT_THAT(moved.active(), IsTrue());
 }
 
@@ -586,5 +586,5 @@ TEST_F(ProcessInfoNodeDeactivationTest, ProcessIgnoresSigterm_ForcedWithSigkill)
     ASSERT_THAT(result.has_value(), IsTrue());
     ASSERT_THAT(result.value(), Eq(IComponent::RequestState::kSuccess));
     ASSERT_THAT(node->active(), IsFalse());
-    ASSERT_THAT(node->getState(), Eq(score::lcm::ProcessState::kIdle));
+    ASSERT_THAT(node->getState(), Eq(score::mw::lifecycle::ProcessState::kIdle));
 }

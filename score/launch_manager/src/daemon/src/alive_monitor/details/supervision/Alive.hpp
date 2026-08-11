@@ -27,7 +27,7 @@
 
 namespace score
 {
-namespace lcm
+namespace mw::lifecycle
 {
 namespace saf
 {
@@ -127,7 +127,7 @@ class Alive : public ISupervision,
   private:
     /// @brief The pointer is only stored for the identification of a checkpoint observer. It can be further used for
     /// accessing const members only.
-    using CheckpointIdentifier = const score::lcm::saf::ifappl::Checkpoint*;
+    using CheckpointIdentifier = const score::mw::lifecycle::saf::ifappl::Checkpoint*;
 
     /// @brief Time sorted checkpoint snapshot
     struct CheckpointSnapshot final
@@ -146,7 +146,7 @@ class Alive : public ISupervision,
         timers::NanoSecondType timestamp{UINT64_MAX};
         /// @brief Supervision event type that triggered this snapshot
         // cppcheck-suppress unusedStructMember
-        score::lcm::SupervisionEventType eventType{score::lcm::SupervisionEventType::kDeactivation};
+        score::mw::lifecycle::SupervisionEventType eventType{score::mw::lifecycle::SupervisionEventType::kDeactivation};
     };
 
     /// @brief Sync snapshot stores sync timestamp in the time sorting buffer
@@ -287,7 +287,7 @@ class Alive : public ISupervision,
     bool setReferenceCycleTimestamps(timers::NanoSecondType f_baseValue) noexcept(true);
 
     /// @brief Alive reference cycle in [nano seconds]
-    const score::lcm::saf::timers::NanoSecondType k_aliveReferenceCycle;
+    const score::mw::lifecycle::saf::timers::NanoSecondType k_aliveReferenceCycle;
 
     /// @brief Minimum allowed alive indications
     const uint32_t k_minAliveIndications;
@@ -305,10 +305,10 @@ class Alive : public ISupervision,
     const uint32_t k_failedSupervisionCyclesTolerance;
 
     /// @brief Recovery client invoked when supervision expires (null means recovery is disabled)
-    std::shared_ptr<score::lcm::IRecoveryClient> recoveryClient_p;
+    std::shared_ptr<score::mw::lifecycle::IRecoveryClient> recoveryClient_p;
 
     /// @brief Identifier of the supervised process, sent via recovery client when supervision expires
-    const score::lcm::IdentifierHash processIdentifier_;
+    const score::mw::lifecycle::IdentifierHash processIdentifier_;
 
     /// @brief Set to true when sendRecoveryRequest fails (ring buffer full)
     bool recoveryEnqueueFailed_{false};
@@ -341,12 +341,12 @@ class Alive : public ISupervision,
 
     /// @brief Time sorting buffer for update events in alive supervision
     /// @details This buffer sorts all process events and checkpoint events in the same buffer.
-    score::lcm::saf::common::TimeSortingBuffer<TimeSortedUpdateEvent> timeSortingUpdateEventBuffer;
+    score::mw::lifecycle::saf::common::TimeSortingBuffer<TimeSortedUpdateEvent> timeSortingUpdateEventBuffer;
 };
 
 }  // namespace supervision
 }  // namespace saf
-}  // namespace lcm
+}  // namespace mw::lifecycle
 }  // namespace score
 
 #endif

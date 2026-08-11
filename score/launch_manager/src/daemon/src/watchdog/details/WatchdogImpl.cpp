@@ -19,9 +19,7 @@
 #include "score/mw/launch_manager/configuration/config.hpp"
 #include "score/mw/launch_manager/watchdog/details/Watchdog.hpp"
 
-
-
-namespace score::lcm::watchdog
+namespace score::mw::lifecycle::watchdog
 {
 
 namespace
@@ -451,7 +449,7 @@ bool WatchdogImpl::validateTimeoutWithCycleTime(std::int64_t f_cycleTimeInNs, co
 void WatchdogImpl::waitForever() const noexcept
 {
     // This code cannot be covered in tests, as it blocks execution forever
-    const score::lcm::saf::timers::OsClockInterface clock{};
+    const score::mw::lifecycle::saf::timers::OsClockInterface clock{};
     struct timespec sleeptime = {};
     sleeptime.tv_sec = 1;
     sleeptime.tv_nsec = 0;
@@ -465,6 +463,4 @@ void WatchdogImpl::waitForever() const noexcept
 #pragma CTC ENDSKIP
 #endif
 
-} // namespace score::lcm::watchdog
-
-
+}  // namespace score::mw::lifecycle::watchdog

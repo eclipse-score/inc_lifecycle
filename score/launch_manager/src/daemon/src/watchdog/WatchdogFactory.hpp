@@ -20,7 +20,7 @@
 
 namespace score
 {
-namespace lcm
+namespace mw::lifecycle
 {
 namespace watchdog
 {
@@ -30,7 +30,7 @@ namespace watchdog
 std::unique_ptr<IWatchdogIf> createWatchdog();
 
 }  // namespace watchdog
-}  // namespace lcm
+}  // namespace mw::lifecycle
 }  // namespace score
 
 #endif

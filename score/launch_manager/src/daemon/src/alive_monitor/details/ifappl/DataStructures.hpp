@@ -21,7 +21,7 @@
 
 namespace score
 {
-namespace lcm
+namespace mw::lifecycle
 {
 namespace saf
 {
@@ -42,8 +42,8 @@ constexpr uint16_t k_maxCheckpointBufferElements{512U};
 required for Vector and IPC APIs", true_no_defect) */
 struct CheckpointBufferElement final
 {
-    score::lcm::saf::timers::NanoSecondType timestamp{0U};  ///< Timestamp
-    uint32_t checkpointId{0U};                              ///< Checkpoint ID
+    score::mw::lifecycle::saf::timers::NanoSecondType timestamp{0U};  ///< Timestamp
+    uint32_t checkpointId{0U};                                        ///< Checkpoint ID
 
     /// @brief Default constructor needed for storage in vector
     CheckpointBufferElement() = default;
@@ -51,7 +51,9 @@ struct CheckpointBufferElement final
     /// @brief Constructor for usage with emplace
     /// @param [in] f_timestamp The checkpoint timestamp
     /// @param [in] f_checkpointId  The checkpoint id
-    CheckpointBufferElement(score::lcm::saf::timers::NanoSecondType f_timestamp, uint32_t f_checkpointId) noexcept(true)
+    CheckpointBufferElement(
+        score::mw::lifecycle::saf::timers::NanoSecondType f_timestamp,
+        uint32_t f_checkpointId) noexcept(true)
         : timestamp(f_timestamp), checkpointId(f_checkpointId)
     {
     }
@@ -62,7 +64,7 @@ using CheckpointIpcServer = ipc::IpcServer<CheckpointBufferElement, k_maxCheckpo
 
 }  // namespace ifappl
 }  // namespace saf
-}  // namespace lcm
+}  // namespace mw::lifecycle
 }  // namespace score
 
 #endif

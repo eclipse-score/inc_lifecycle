@@ -17,13 +17,7 @@
 
 #include "score/mw/launch_manager/osal/semaphore.hpp"
 
-
-
-
-
-
-
-namespace score::lcm::internal::osal
+namespace score::mw::lifecycle::internal::osal
 {
 
 OsalReturnType Semaphore::init(uint32_t value, bool shared)
@@ -111,10 +105,4 @@ OsalReturnType Semaphore::wait()
     return result;
 }
 
-} // namespace score::lcm::internal::osal
-
-
-
-
-
-
+}  // namespace score::mw::lifecycle::internal::osal

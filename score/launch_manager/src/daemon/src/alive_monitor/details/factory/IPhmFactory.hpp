@@ -19,7 +19,7 @@
 
 namespace score
 {
-namespace lcm
+namespace mw::lifecycle
 {
 class IRecoveryClient;
 }
@@ -27,7 +27,7 @@ class IRecoveryClient;
 
 namespace score
 {
-namespace lcm
+namespace mw::lifecycle
 {
 namespace saf
 {
@@ -119,12 +119,12 @@ class IPhmFactory
         std::vector<supervision::Alive>& f_alive_r,
         std::vector<ifappl::Checkpoint>& f_checkpoints_r,
         std::vector<ifexm::ObservableEvent>& f_processStates_r,
-        std::shared_ptr<score::lcm::IRecoveryClient> f_recoveryClient_r) = 0;
+        std::shared_ptr<score::mw::lifecycle::IRecoveryClient> f_recoveryClient_r) = 0;
 };
 
 }  // namespace factory
 }  // namespace saf
-}  // namespace lcm
+}  // namespace mw::lifecycle
 }  // namespace score
 
 #endif

@@ -16,10 +16,10 @@
 #include <memory>
 
 using namespace testing;
-using namespace score::lcm;
+using namespace score::mw::lifecycle;
 
-using score::lcm::SupervisionControlReceiver;
-using score::lcm::internal::SupervisionControlNotifier;
+using score::mw::lifecycle::SupervisionControlReceiver;
+using score::mw::lifecycle::internal::SupervisionControlNotifier;
 
 class SupervisionControlClient_UT : public ::testing::Test
 {
@@ -57,8 +57,8 @@ TEST_F(SupervisionControlClient_UT, SupervisionControlClient_QueueOneEvent_Succe
         "This test verifies that a single SupervisionEvent can be successfully queued using the "
         "SupervisionControlNotifier and retrieved using the SupervisionControlReceiver.");
     SupervisionEvent event1{
-        .id = score::lcm::IdentifierHash("Process1"),
-        .eventType = score::lcm::SupervisionEventType::kActivation,
+        .id = score::mw::lifecycle::IdentifierHash("Process1"),
+        .eventType = score::mw::lifecycle::SupervisionEventType::kActivation,
         .systemClockTimestamp = {}};
 
     clock_gettime(CLOCK_MONOTONIC, &event1.systemClockTimestamp);
@@ -88,8 +88,8 @@ TEST_F(SupervisionControlClient_UT, SupervisionControlClient_QueueMaxNumberOfEve
     for (size_t i = 0; i < static_cast<size_t>(BufferConstants::BUFFER_QUEUE_SIZE); ++i)
     {
         SupervisionEvent event{
-            .id = score::lcm::IdentifierHash("Process" + std::to_string(i)),
-            .eventType = score::lcm::SupervisionEventType::kActivation,
+            .id = score::mw::lifecycle::IdentifierHash("Process" + std::to_string(i)),
+            .eventType = score::mw::lifecycle::SupervisionEventType::kActivation,
             .systemClockTimestamp = {}};
         bool queued = notifier_->reportActivation(event.id, event.systemClockTimestamp);
         ASSERT_TRUE(queued) << "Failed to queue event at index " << i;
@@ -100,7 +100,7 @@ TEST_F(SupervisionControlClient_UT, SupervisionControlClient_QueueMaxNumberOfEve
         auto result = receiver_->getNextSupervisionEvent();
         ASSERT_TRUE(result.has_value());
         ASSERT_TRUE(result->has_value());
-        EXPECT_EQ(result->value().id, score::lcm::IdentifierHash("Process" + std::to_string(i)));
+        EXPECT_EQ(result->value().id, score::mw::lifecycle::IdentifierHash("Process" + std::to_string(i)));
     }
 
     auto no_more = receiver_->getNextSupervisionEvent();
@@ -115,15 +115,15 @@ TEST_F(SupervisionControlClient_UT, SupervisionControlClient_QueueOneEventTooMan
         "This test verifies that attempting to queue a SupervisionEvent when the buffer is already at maximum capacity "
         "results in a failure, and that no additional events can be retrieved from the receiver.");
     SupervisionEvent event1{
-        .id = score::lcm::IdentifierHash("Process1"),
-        .eventType = score::lcm::SupervisionEventType::kActivation,
+        .id = score::mw::lifecycle::IdentifierHash("Process1"),
+        .eventType = score::mw::lifecycle::SupervisionEventType::kActivation,
         .systemClockTimestamp = {}};
 
     for (size_t i = 0; i < static_cast<size_t>(BufferConstants::BUFFER_QUEUE_SIZE); ++i)
     {
         SupervisionEvent event{
-            .id = score::lcm::IdentifierHash("Process" + std::to_string(i)),
-            .eventType = score::lcm::SupervisionEventType::kActivation,
+            .id = score::mw::lifecycle::IdentifierHash("Process" + std::to_string(i)),
+            .eventType = score::mw::lifecycle::SupervisionEventType::kActivation,
             .systemClockTimestamp = {}};
         bool queued = notifier_->reportActivation(event.id, event.systemClockTimestamp);
         ASSERT_TRUE(queued) << "Failed to queue event at index " << i;

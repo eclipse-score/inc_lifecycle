@@ -19,7 +19,7 @@
 namespace score
 {
 
-namespace lcm
+namespace mw::lifecycle
 {
 
 /// @brief ISupervisionEventPublisher interface for forwarding supervision events to the alive monitor.
@@ -38,7 +38,7 @@ class ISupervisionEventPublisher
     virtual bool reportDeactivation(IdentifierHash id, timespec time) noexcept = 0;
 };
 
-}  // namespace lcm
+}  // namespace mw::lifecycle
 
 }  // namespace score
 

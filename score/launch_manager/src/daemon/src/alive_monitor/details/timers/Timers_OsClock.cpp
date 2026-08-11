@@ -21,10 +21,7 @@
 
 #include "score/mw/launch_manager/alive_monitor/details/timers/TimeConversion.hpp"
 
-
-
-
-namespace score::lcm::saf::timers
+namespace score::mw::lifecycle::saf::timers
 {
 
 NanoSecondType OsClock::getMonotonicSystemClock(void) noexcept(true)
@@ -53,7 +50,4 @@ NanoSecondType OsClock::getMonotonicSystemClock(void) noexcept(true)
     return result;
 }
 
-} // namespace score::lcm::saf::timers
-
-
-
+}  // namespace score::mw::lifecycle::saf::timers

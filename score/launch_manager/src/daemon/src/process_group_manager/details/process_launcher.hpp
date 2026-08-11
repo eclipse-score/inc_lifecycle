@@ -20,7 +20,7 @@
 namespace score
 {
 
-namespace lcm
+namespace mw::lifecycle
 {
 
 namespace internal
@@ -86,7 +86,7 @@ class ProcessLauncher final : public IProcess
 
 }  // namespace internal
 
-}  // namespace lcm
+}  // namespace mw::lifecycle
 
 }  // namespace score
 

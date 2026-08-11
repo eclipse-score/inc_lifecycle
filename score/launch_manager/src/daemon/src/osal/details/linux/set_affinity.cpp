@@ -16,13 +16,7 @@
 #include "score/mw/launch_manager/osal/set_affinity.hpp"
 #include <cstdint>
 
-
-
-
-
-
-
-namespace score::lcm::internal::osal
+namespace score::mw::lifecycle::internal::osal
 {
 
 std::int32_t setaffinity(std::uint64_t cpumask) noexcept(true)
@@ -41,7 +35,4 @@ std::int32_t setaffinity(std::uint64_t cpumask) noexcept(true)
     }
     return 0 == sched_setaffinity(0, sizeof(mask), &mask) ? 0 : -1;
 }
-} // namespace score::lcm::internal::osal
-
-
-
+}  // namespace score::mw::lifecycle::internal::osal

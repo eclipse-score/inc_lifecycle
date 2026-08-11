@@ -15,16 +15,14 @@
 #include "score/mw/launch_manager/common/log.hpp"
 #include "score/mw/launch_manager/supervision_control_client/details/supervision_control_receiver.hpp"
 
-
-
-namespace score::lcm::internal
+namespace score::mw::lifecycle::internal
 {
 
 SupervisionControlNotifier::SupervisionControlNotifier() noexcept
 {
     ring_buffer_ = std::make_shared<ipc_dropin::RingBuffer<
-        static_cast<size_t>(score::lcm::BufferConstants::BUFFER_QUEUE_SIZE),
-        static_cast<size_t>(score::lcm::BufferConstants::BUFFER_MAXPAYLOAD)>>();
+        static_cast<size_t>(score::mw::lifecycle::BufferConstants::BUFFER_QUEUE_SIZE),
+        static_cast<size_t>(score::mw::lifecycle::BufferConstants::BUFFER_MAXPAYLOAD)>>();
 
     ring_buffer_->initialize();
 }
@@ -43,7 +41,7 @@ bool SupervisionControlNotifier::reportDeactivation(IdentifierHash id, timespec 
     return queueSupervisionEvent({id, SupervisionEventType::kDeactivation, time});
 }
 
-bool SupervisionControlNotifier::queueSupervisionEvent(const score::lcm::SupervisionEvent& f_event) noexcept
+bool SupervisionControlNotifier::queueSupervisionEvent(const score::mw::lifecycle::SupervisionEvent& f_event) noexcept
 {
     bool ret = true;
     if (ring_buffer_->tryEnqueue(f_event))
@@ -58,11 +56,9 @@ bool SupervisionControlNotifier::queueSupervisionEvent(const score::lcm::Supervi
     return ret;
 }
 
-std::unique_ptr<score::lcm::ISupervisionControlReceiver> SupervisionControlNotifier::constructReceiver()
+std::unique_ptr<score::mw::lifecycle::ISupervisionControlReceiver> SupervisionControlNotifier::constructReceiver()
 {
-    return std::make_unique<score::lcm::SupervisionControlReceiver>(ring_buffer_);
+    return std::make_unique<score::mw::lifecycle::SupervisionControlReceiver>(ring_buffer_);
 }
 
-} // namespace score::lcm::internal
-
-
+}  // namespace score::mw::lifecycle::internal

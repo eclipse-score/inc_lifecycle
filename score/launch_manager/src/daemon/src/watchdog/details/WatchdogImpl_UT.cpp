@@ -32,9 +32,9 @@ using ::testing::_;
 using ::testing::Return;
 using ::testing::StrEq;
 
-using score::lcm::watchdog::IWatchdogIf;
-using score::lcm::watchdog::WatchdogImpl;
 using score::mw::launch_manager::configuration::WatchdogConfig;
+using score::mw::lifecycle::watchdog::IWatchdogIf;
+using score::mw::lifecycle::watchdog::WatchdogImpl;
 
 namespace
 {

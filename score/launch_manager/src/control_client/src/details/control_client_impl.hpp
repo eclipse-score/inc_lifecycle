@@ -77,7 +77,8 @@ class ControlClientImpl final
   public:
     ControlClientImpl() = delete;
 
-    ControlClientImpl(std::function<void(const score::lcm::ExecutionErrorEvent&)> undefinedStateCallback) noexcept;
+    ControlClientImpl(
+        std::function<void(const score::mw::lifecycle::ExecutionErrorEvent&)> undefinedStateCallback) noexcept;
 
     // this class is not movable or copyable by definition
     ControlClientImpl(const ControlClientImpl&) = delete;
@@ -117,8 +118,8 @@ class ControlClientImpl final
     /// (e.g. Off state for MainPG)
     /// @error score::mw::lifecycle::ExecErrc::kGeneralError if any other error occurs.
     score::concurrency::InterruptibleFuture<void> SetState(
-        const score::lcm::IdentifierHash& pg_name,
-        const score::lcm::IdentifierHash& pg_state) noexcept;
+        const score::mw::lifecycle::IdentifierHash& pg_name,
+        const score::mw::lifecycle::IdentifierHash& pg_state) noexcept;
 
     /// @brief Method to retrieve result of Machine State initial transition to Startup state.
     ///
@@ -146,8 +147,8 @@ class ControlClientImpl final
     /// State.
     /// @error score::mw::lifecycle::ExecErrc::kCommunicationError if ControlClient can't communicate with Launch
     /// Manager (e.g. IPC link is down)
-    score::Result<score::lcm::ExecutionErrorEvent> GetExecutionError(
-        const score::lcm::IdentifierHash& processGroup) noexcept;
+    score::Result<score::mw::lifecycle::ExecutionErrorEvent> GetExecutionError(
+        const score::mw::lifecycle::IdentifierHash& processGroup) noexcept;
 
     ~ControlClientImpl() noexcept;
 
@@ -161,7 +162,7 @@ class ControlClientImpl final
     static std::mutex instance_creation_mutex_;
 
     /// @brief callback that ControlClient instance ask us to invoke when there is a problem with PG
-    std::function<void(const score::lcm::ExecutionErrorEvent&)> undefined_state_callback_;
+    std::function<void(const score::mw::lifecycle::ExecutionErrorEvent&)> undefined_state_callback_;
 
     /// @brief Array of active requests, that wait for completion from LCM side.
     /// When a request has been send to LCM and the answer is not immediately available,
@@ -170,7 +171,7 @@ class ControlClientImpl final
     /// answer arrives from LCM.
     std::array<
         ControlClientRequestInfo,
-        static_cast<uint16_t>(score::lcm::internal::ControlClientLimits::kControlClientMaxRequests)>
+        static_cast<uint16_t>(score::mw::lifecycle::internal::ControlClientLimits::kControlClientMaxRequests)>
         control_client_requests_;
 
     /// @brief Semaphore used to protect access to the request_ link of ControlClientChannel,
@@ -180,7 +181,7 @@ class ControlClientImpl final
     /// Please note that synchronization for control_client_requests_ is only needed, when we are booking a slot
     /// inside this array. When we are releasing a slot inside this array, this can be done without
     /// ipc_request_semaphore_ protection.
-    score::lcm::internal::osal::Semaphore ipc_request_semaphore_;
+    score::mw::lifecycle::internal::osal::Semaphore ipc_request_semaphore_;
 
     /// @brief Thread used for monitoring response_ link of ControlClientChannel.
     /// Asynchronous nature of ControlClient API means responses to ControlClient requests, will arrive at
@@ -202,7 +203,7 @@ class ControlClientImpl final
 
     /// @brief Handle to the real IPC communication channel with LCM
     /// This handle is used to perform low level communication with LCM.
-    score::lcm::internal::ControlClientChannelP ipc_channel_;
+    score::mw::lifecycle::internal::ControlClientChannelP ipc_channel_;
 
     /// @brief Helper method to send a message to LCM, through IPC link (aka request_ link).
     ///
@@ -225,7 +226,7 @@ class ControlClientImpl final
     ///
     /// @threadsafety{thread-safe}
     score::concurrency::InterruptibleFuture<void> SendIpcMessage(
-        score::lcm::internal::ControlClientMessage& msg) noexcept;
+        score::mw::lifecycle::internal::ControlClientMessage& msg) noexcept;
 };
 
 }  // namespace score::mw::lifecycle

@@ -24,7 +24,7 @@
 
 using namespace testing;
 
-namespace score::lcm::saf
+namespace score::mw::lifecycle::saf
 {
 
 namespace
@@ -80,7 +80,7 @@ struct MonitorIfDaemonFixture
     void activateProcess(long ts)
     {
         processState.event.systemClockTimestamp.tv_nsec = ts;
-        processState.event.eventType = score::lcm::SupervisionEventType::kActivation;
+        processState.event.eventType = score::mw::lifecycle::SupervisionEventType::kActivation;
         processState.pushData();
     }
 
@@ -88,7 +88,7 @@ struct MonitorIfDaemonFixture
     void deactivateProcess(long ts)
     {
         processState.event.systemClockTimestamp.tv_nsec = ts;
-        processState.event.eventType = score::lcm::SupervisionEventType::kDeactivation;
+        processState.event.eventType = score::mw::lifecycle::SupervisionEventType::kDeactivation;
         processState.pushData();
     }
 
@@ -425,4 +425,4 @@ TEST_F(MonitorIfDaemonTest, InactiveOverflow_ProcessRestartFlag_ClearedAfterNoti
     fix.monitor.checkForNewData(mockClock());  // no new restart -> no additional notification
 }
 
-}  // namespace score::lcm::saf
+}  // namespace score::mw::lifecycle::saf

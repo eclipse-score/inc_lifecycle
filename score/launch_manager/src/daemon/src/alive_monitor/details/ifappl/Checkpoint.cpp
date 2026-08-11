@@ -13,10 +13,7 @@
 
 #include "score/mw/launch_manager/alive_monitor/details/ifappl/Checkpoint.hpp"
 
-
-
-
-namespace score::lcm::saf::ifappl
+namespace score::mw::lifecycle::saf::ifappl
 {
 
 Checkpoint::Checkpoint(
@@ -76,7 +73,4 @@ const ifexm::ObservableEvent* Checkpoint::getProcess(void) const noexcept(true)
     return processState;
 }
 
-} // namespace score::lcm::saf::ifappl
-
-
-
+}  // namespace score::mw::lifecycle::saf::ifappl

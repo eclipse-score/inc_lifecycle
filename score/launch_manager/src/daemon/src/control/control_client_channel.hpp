@@ -25,7 +25,7 @@
 namespace score
 {
 
-namespace lcm
+namespace mw::lifecycle
 {
 
 namespace internal
@@ -310,7 +310,7 @@ constexpr ControlClientCodeMapping stateArray[] = {
 
 }  // namespace internal
 
-}  // namespace lcm
+}  // namespace mw::lifecycle
 
 }  // namespace score
 

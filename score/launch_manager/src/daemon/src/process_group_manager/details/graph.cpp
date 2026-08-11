@@ -24,11 +24,7 @@
 
 #include "score/assert.hpp"
 
-
-
-
-
-namespace score::lcm::internal
+namespace score::mw::lifecycle::internal
 {
 
 Graph::Graph(
@@ -707,8 +703,4 @@ std::chrono::time_point<std::chrono::steady_clock> Graph::getRequestStartTime()
     return request_start_time_;
 }
 
-} // namespace score::lcm::internal
-
-
-
-
+}  // namespace score::mw::lifecycle::internal

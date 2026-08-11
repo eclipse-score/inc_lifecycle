@@ -44,11 +44,11 @@ constexpr int kPosixSuccess = 0;
 namespace
 {
 
-using score::lcm::internal::signal_safe_log;
-using score::lcm::internal::signal_safe_log_errno;
-using score::lcm::internal::osal::CommsType;
-using score::lcm::internal::osal::IpcCommsSync;
-using score::lcm::internal::osal::sysexit;
+using score::mw::lifecycle::internal::signal_safe_log;
+using score::mw::lifecycle::internal::signal_safe_log_errno;
+using score::mw::lifecycle::internal::osal::CommsType;
+using score::mw::lifecycle::internal::osal::IpcCommsSync;
+using score::mw::lifecycle::internal::osal::sysexit;
 
 /// @brief Applies the given limit.
 /// @details The implementation should be async signal safe.
@@ -81,7 +81,7 @@ void setLimit(const int resource, const std::size_t amount, const std::string_vi
 }
 
 /// @details The implementation should be async signal safe.
-void handleComms(score::lcm::internal::osal::ChildProcessConfig& param)
+void handleComms(score::mw::lifecycle::internal::osal::ChildProcessConfig& param)
 {
     // kNoComms !fd3 & !fd4
     // kReporting  fd3 & !fd4
@@ -135,7 +135,7 @@ void handleComms(score::lcm::internal::osal::ChildProcessConfig& param)
 }
 
 /// @details The implementation should be async signal safe.
-void changeCurrentWorkingDirectory(const score::lcm::internal::osal::OsalConfig& config)
+void changeCurrentWorkingDirectory(const score::mw::lifecycle::internal::osal::OsalConfig& config)
 {
     // working_dir_ is set by python configuration generator in lifecycle_config.py, so it should always be valid.
     // If not, chdir will fail anyway and we will log an error and exit.
@@ -147,7 +147,7 @@ void changeCurrentWorkingDirectory(const score::lcm::internal::osal::OsalConfig&
 }
 
 /// @details The implementation should be async signal safe.
-void implementMemoryResourceLimits(const score::lcm::internal::osal::OsalConfig& config)
+void implementMemoryResourceLimits(const score::mw::lifecycle::internal::osal::OsalConfig& config)
 {
     setLimit(RLIMIT_DATA, config.resource_limits_.data_, "RLIMIT_DATA");
     setLimit(RLIMIT_AS, config.resource_limits_.as_, "RLIMIT_AS");
@@ -161,11 +161,11 @@ void implementMemoryResourceLimits(const score::lcm::internal::osal::OsalConfig&
 }
 
 /// @details The implementation should be async signal safe.
-void changeSecurityPolicy(const score::lcm::internal::osal::OsalConfig& config)
+void changeSecurityPolicy(const score::mw::lifecycle::internal::osal::OsalConfig& config)
 {
     if (config.security_policy_ != "")
     {
-        if (score::lcm::internal::osal::setSecurityPolicy(config.security_policy_.c_str()) != 0)
+        if (score::mw::lifecycle::internal::osal::setSecurityPolicy(config.security_policy_.c_str()) != 0)
         {
             static_cast<void>(
                 signal_safe_log_errno(errno, "changeSecurityPolicy(", config.security_policy_, ") failed"));
@@ -176,13 +176,7 @@ void changeSecurityPolicy(const score::lcm::internal::osal::OsalConfig& config)
 
 }  // namespace
 
-
-
-
-
-
-
-namespace score::lcm::internal::osal
+namespace score::mw::lifecycle::internal::osal
 {
 
 OsalReturnType ProcessLauncher::startProcess(ProcessID* pid, IpcCommsP* block, const OsalConfig* config)
@@ -260,7 +254,7 @@ OsalReturnType ProcessLauncher::startProcess(ProcessID* pid, IpcCommsP* block, c
 bool ProcessLauncher::setupComms(IpcCommsP& block, int& fd, const OsalConfig& config)
 {
     bool comms_result = true;
-    char shm_name[static_cast<uint32_t>(score::lcm::internal::ProcessLimits::maxLocalBuffSize)];
+    char shm_name[static_cast<uint32_t>(score::mw::lifecycle::internal::ProcessLimits::maxLocalBuffSize)];
     size_t length = sizeof(IpcCommsSync);
 
     if (CommsType::kControlClient == config.comms_type_)
@@ -270,7 +264,7 @@ bool ProcessLauncher::setupComms(IpcCommsP& block, int& fd, const OsalConfig& co
 
     static_cast<void>(snprintf(
         shm_name,
-        static_cast<uint32_t>(score::lcm::internal::ProcessLimits::maxLocalBuffSize),
+        static_cast<uint32_t>(score::mw::lifecycle::internal::ProcessLimits::maxLocalBuffSize),
         "/ipc_shared_mem%u",
         shm_name_counter++));
 
@@ -278,8 +272,8 @@ bool ProcessLauncher::setupComms(IpcCommsP& block, int& fd, const OsalConfig& co
 
     if (fd < 0)
     {
-        LM_LOG_ERROR() << "shm_open failed:" << config.executable_path_
-                       << "Unable to open shared memory object. Error:" << score::lcm::internal::errno_message(errno);
+        LM_LOG_ERROR() << "shm_open failed:" << config.executable_path_ << "Unable to open shared memory object. Error:"
+                       << score::mw::lifecycle::internal::errno_message(errno);
         comms_result = false;
     }
     else
@@ -291,7 +285,7 @@ bool ProcessLauncher::setupComms(IpcCommsP& block, int& fd, const OsalConfig& co
             comms_result = false;
             LM_LOG_ERROR() << "ftruncate failed:" << config.executable_path_
                            << "Unable to set size of shared memory file descriptor. Error:"
-                           << score::lcm::internal::errno_message(errno);
+                           << score::mw::lifecycle::internal::errno_message(errno);
         }
 
         if (config.comms_type_ == CommsType::kControlClient)
@@ -470,7 +464,7 @@ OsalReturnType ProcessLauncher::requestTermination(ProcessID pid)
         else
         {
             LM_LOG_ERROR() << "SIGTERM failed: Unable to send SIGTERM to process ID" << pid
-                           << ". Error:" << score::lcm::internal::errno_message(errno);
+                           << ". Error:" << score::mw::lifecycle::internal::errno_message(errno);
         }
     }
     else
@@ -527,7 +521,7 @@ OsalReturnType ProcessLauncher::waitForTermination(osal::ProcessID& pid, int32_t
     {
         /// exiting with pid == 0 is perfectly normal behaviour when all process groups are in the Off state.
         LM_LOG_DEBUG() << "wait failed: Unable to wait for any child process to terminate. Error:"
-                       << score::lcm::internal::errno_message(errno);
+                       << score::mw::lifecycle::internal::errno_message(errno);
     }
 
     return result;
@@ -569,7 +563,7 @@ OsalReturnType ProcessLauncher::waitForkRunning(IpcCommsP sync, std::chrono::mil
         else
         {
             LM_LOG_WARN() << "Skipping semaphore deinitialization - shared memory region appears invalid: "
-                          << score::lcm::internal::errno_message(errno);
+                          << score::mw::lifecycle::internal::errno_message(errno);
         }
     }
     else
@@ -581,10 +575,4 @@ OsalReturnType ProcessLauncher::waitForkRunning(IpcCommsP sync, std::chrono::mil
     return result;
 }
 
-} // namespace score::lcm::internal::osal
-
-
-
-
-
-
+}  // namespace score::mw::lifecycle::internal::osal

@@ -21,7 +21,7 @@
 namespace score
 {
 
-namespace lcm
+namespace mw::lifecycle
 {
 
 namespace internal
@@ -53,7 +53,7 @@ class SupervisionControlNotifier final : public ISupervisionControlNotifier
 
     /// @brief Construct and return the receiver instance used to receive supervision events.
     /// @return Supervision control receiver instance
-    std::unique_ptr<score::lcm::ISupervisionControlReceiver> constructReceiver() override;
+    std::unique_ptr<score::mw::lifecycle::ISupervisionControlReceiver> constructReceiver() override;
 
     /// @brief Report that process with @param id has reached the active state at @param time
     bool reportActivation(IdentifierHash id, timespec time) noexcept override;
@@ -65,18 +65,18 @@ class SupervisionControlNotifier final : public ISupervisionControlNotifier
     /// @brief Writes via IPC the latest supervision event, so that the alive monitor can be informed about it.
     /// @param[in]   f_event   The SupervisionEvent to be queued
     /// @returns True on success, false for failure
-    bool queueSupervisionEvent(const score::lcm::SupervisionEvent& f_event) noexcept;
+    bool queueSupervisionEvent(const score::mw::lifecycle::SupervisionEvent& f_event) noexcept;
 
     /// @brief Ring buffer through which supervision events are forwarded to the alive monitor
     std::shared_ptr<ipc_dropin::RingBuffer<
-        static_cast<size_t>(score::lcm::BufferConstants::BUFFER_QUEUE_SIZE),
-        static_cast<size_t>(score::lcm::BufferConstants::BUFFER_MAXPAYLOAD)>>
+        static_cast<size_t>(score::mw::lifecycle::BufferConstants::BUFFER_QUEUE_SIZE),
+        static_cast<size_t>(score::mw::lifecycle::BufferConstants::BUFFER_MAXPAYLOAD)>>
         ring_buffer_{};
 };
 
 }  // namespace internal
 
-}  // namespace lcm
+}  // namespace mw::lifecycle
 
 }  // namespace score
 #endif

@@ -21,7 +21,7 @@
 namespace score
 {
 
-namespace lcm
+namespace mw::lifecycle
 {
 
 /// @brief Type of supervision event sent from the launch manager to the alive monitor.
@@ -36,7 +36,7 @@ enum class SupervisionEventType : std::uint8_t
 struct SupervisionEvent
 {
     /// @brief Stores the Modelled Process ID as IdentifierHash.
-    score::lcm::IdentifierHash id;
+    score::mw::lifecycle::IdentifierHash id;
 
     /// @brief The type of supervision event.
     SupervisionEventType eventType;
@@ -55,7 +55,7 @@ constexpr std::size_t BUFFER_QUEUE_SIZE = 4096UL;
 
 }  // namespace BufferConstants
 
-}  // namespace lcm
+}  // namespace mw::lifecycle
 
 }  // namespace score
 

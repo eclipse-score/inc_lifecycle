@@ -23,7 +23,7 @@
 namespace score
 {
 
-namespace lcm
+namespace mw::lifecycle
 {
 
 /// @brief ISupervisionControlReceiver interface for receiving supervision events.
@@ -39,7 +39,7 @@ class ISupervisionControlReceiver
     virtual score::Result<std::optional<SupervisionEvent>> getNextSupervisionEvent() noexcept = 0;
 };
 
-}  // namespace lcm
+}  // namespace mw::lifecycle
 
 }  // namespace score
 

@@ -18,7 +18,7 @@
 
 namespace score
 {
-namespace lcm
+namespace mw::lifecycle
 {
 namespace internal
 {
@@ -30,7 +30,7 @@ inline std::string aliveInterfacePath(const std::string& component_name)
 }
 
 }  // namespace internal
-}  // namespace lcm
+}  // namespace mw::lifecycle
 }  // namespace score
 
 #endif  // ALIVE_INTERFACE_PATH_HPP_INCLUDED

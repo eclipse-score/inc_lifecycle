@@ -14,8 +14,7 @@
 
 #include <utility>
 
-
-namespace score::lcm
+namespace score::mw::lifecycle
 {
 
 void RecoveryClient::setRecoveryRequestCallback(RecoveryRequestCallback callback) noexcept
@@ -24,7 +23,7 @@ void RecoveryClient::setRecoveryRequestCallback(RecoveryRequestCallback callback
     callback_ = std::move(callback);
 }
 
-bool RecoveryClient::sendRecoveryRequest(const score::lcm::IdentifierHash& process_identifier) noexcept
+bool RecoveryClient::sendRecoveryRequest(const score::mw::lifecycle::IdentifierHash& process_identifier) noexcept
 {
     std::lock_guard<std::mutex> lock(callback_mutex_);
     if (!callback_)
@@ -34,5 +33,4 @@ bool RecoveryClient::sendRecoveryRequest(const score::lcm::IdentifierHash& proce
     callback_(process_identifier);
     return true;
 }
-} // namespace score::lcm
-
+}  // namespace score::mw::lifecycle

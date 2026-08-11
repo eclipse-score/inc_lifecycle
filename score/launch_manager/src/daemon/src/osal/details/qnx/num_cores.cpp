@@ -17,7 +17,7 @@
 
 namespace score
 {
-namespace lcm
+namespace mw::lifecycle
 {
 namespace internal
 {
@@ -35,5 +35,5 @@ uint32_t getNumCores()
 }
 }  // namespace osal
 }  // namespace internal
-}  // namespace lcm
+}  // namespace mw::lifecycle
 }  // namespace score

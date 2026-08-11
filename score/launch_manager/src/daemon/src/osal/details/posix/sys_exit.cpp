@@ -13,13 +13,7 @@
 
 #include <cstdlib>
 
-
-
-
-
-
-
-namespace score::lcm::internal::osal
+namespace score::mw::lifecycle::internal::osal
 {
 #if defined(__CTC__)
 /* RULECHECKER_comment(1:0,2:0, check_pragma_usage, "External tooling requires pragma", true_no_defect) */
@@ -41,7 +35,4 @@ void sysexit(int status)
 /* RULECHECKER_comment(1:0,1:0, check_pragma_usage, "External tooling requires pragma", true_no_defect) */
 #pragma CTC ENDSKIP
 #endif
-} // namespace score::lcm::internal::osal
-
-
-
+}  // namespace score::mw::lifecycle::internal::osal

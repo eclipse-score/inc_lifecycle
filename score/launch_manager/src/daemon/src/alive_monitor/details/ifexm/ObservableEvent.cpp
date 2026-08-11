@@ -15,7 +15,7 @@
 
 namespace score
 {
-namespace lcm
+namespace mw::lifecycle
 {
 namespace saf
 {
@@ -34,5 +34,5 @@ void ObservableEvent::pushData(void) noexcept
 
 }  // namespace ifexm
 }  // namespace saf
-}  // namespace lcm
+}  // namespace mw::lifecycle
 }  // namespace score

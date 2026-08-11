@@ -18,7 +18,7 @@
 #include <optional>
 #include <vector>
 
-namespace score::lcm::internal
+namespace score::mw::lifecycle::internal
 {
 
 /// @brief Fixed-size FIFO queue
@@ -126,6 +126,6 @@ class FixedSizeQueue
     std::vector<std::optional<T>> slots_;
 };
 
-}  // namespace score::lcm::internal
+}  // namespace score::mw::lifecycle::internal
 
 #endif  // FIXED_SIZED_QUEUE_HPP_INCLUDE

@@ -20,7 +20,7 @@
 #include <thread>
 #include <vector>
 
-using namespace score::lcm::internal;
+using namespace score::mw::lifecycle::internal;
 
 constexpr std::uint64_t g_items_per_prod = 10'000;
 

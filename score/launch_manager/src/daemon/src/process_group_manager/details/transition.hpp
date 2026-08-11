@@ -33,7 +33,7 @@
 
 namespace score::mw::lifecycle
 {
-using namespace score::lcm::internal;
+using namespace score::mw::lifecycle::internal;
 
 /// @brief What should happen to a ready node right now.
 enum class Action : std::uint8_t

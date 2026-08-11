@@ -20,7 +20,7 @@
 namespace score
 {
 
-namespace lcm
+namespace mw::lifecycle
 {
 
 /// @brief SupervisionControlReceiver implementation for receiving supervision events from the Launch Manager.
@@ -28,8 +28,8 @@ class SupervisionControlReceiver final : public ISupervisionControlReceiver
 {
   public:
     using BufferP = std::shared_ptr<ipc_dropin::RingBuffer<
-        static_cast<size_t>(score::lcm::BufferConstants::BUFFER_QUEUE_SIZE),
-        static_cast<size_t>(score::lcm::BufferConstants::BUFFER_MAXPAYLOAD)>>;
+        static_cast<size_t>(score::mw::lifecycle::BufferConstants::BUFFER_QUEUE_SIZE),
+        static_cast<size_t>(score::mw::lifecycle::BufferConstants::BUFFER_MAXPAYLOAD)>>;
 
     /// @brief Constructor that creates the SupervisionControlReceiver
     /// @param ring_buffer Shared pointer to the ring buffer used to receive supervision events
@@ -61,7 +61,7 @@ class SupervisionControlReceiver final : public ISupervisionControlReceiver
     BufferP ring_buffer_{};
 };
 
-}  // namespace lcm
+}  // namespace mw::lifecycle
 
 }  // namespace score
 

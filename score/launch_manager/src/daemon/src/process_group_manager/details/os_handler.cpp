@@ -13,11 +13,7 @@
 
 #include "score/mw/launch_manager/process_group_manager/details/os_handler.hpp"
 
-
-
-
-
-namespace score::lcm::internal
+namespace score::mw::lifecycle::internal
 {
 
 void OsHandler::run(void)
@@ -29,7 +25,7 @@ void OsHandler::run(void)
 
         if (result.has_value() && result.value() > 0)
         {
-            if (score::lcm::internal::SafeProcessMapReturnType::kInsertionError ==
+            if (score::mw::lifecycle::internal::SafeProcessMapReturnType::kInsertionError ==
                 safe_process_map_.findTerminated(result.value(), wait_status))
             {
                 LM_LOG_ERROR() << "No more resources available to track process with PID " << result.value()
@@ -46,8 +42,4 @@ void OsHandler::run(void)
     }
 }
 
-} // namespace score::lcm::internal
-
-
-
-
+}  // namespace score::mw::lifecycle::internal

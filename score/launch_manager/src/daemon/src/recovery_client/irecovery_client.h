@@ -18,7 +18,7 @@
 
 namespace score
 {
-namespace lcm
+namespace mw::lifecycle
 {
 
 /// @brief The RecoveryClient allows the AliveMonitor component to report supervision failures to the
@@ -27,7 +27,7 @@ namespace lcm
 class IRecoveryClient
 {
   public:
-    using RecoveryRequestCallback = std::function<void(const score::lcm::IdentifierHash&)>;
+    using RecoveryRequestCallback = std::function<void(const score::mw::lifecycle::IdentifierHash&)>;
 
     IRecoveryClient() noexcept = default;
     virtual ~IRecoveryClient() noexcept = default;
@@ -44,9 +44,9 @@ class IRecoveryClient
     /// @details Invokes the registered callback with the provided process identifier.
     /// @param process_identifier The process that requires recovery.
     /// @return true if a callback was registered and invoked, false otherwise.
-    virtual bool sendRecoveryRequest(const score::lcm::IdentifierHash& process_identifier) noexcept = 0;
+    virtual bool sendRecoveryRequest(const score::mw::lifecycle::IdentifierHash& process_identifier) noexcept = 0;
 };
-}  // namespace lcm
+}  // namespace mw::lifecycle
 }  // namespace score
 
 #endif

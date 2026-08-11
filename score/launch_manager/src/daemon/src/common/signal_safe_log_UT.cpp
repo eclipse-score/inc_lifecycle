@@ -16,8 +16,8 @@
 #include "score/mw/launch_manager/common/signal_safe_log.hpp"
 
 using namespace testing;
-using score::lcm::internal::signal_safe_log;
-using score::lcm::internal::signal_safe_log_errno;
+using score::mw::lifecycle::internal::signal_safe_log;
+using score::mw::lifecycle::internal::signal_safe_log_errno;
 
 class signal_safe_log_test : public ::testing::Test
 {

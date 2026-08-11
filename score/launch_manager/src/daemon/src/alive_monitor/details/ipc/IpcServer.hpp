@@ -28,7 +28,7 @@
 
 namespace score
 {
-namespace lcm
+namespace mw::lifecycle
 {
 namespace saf
 {
@@ -213,7 +213,7 @@ class IpcServer final : public IpcBase<Payload, MaxNumberElements, Socket>
 
 }  // namespace ipc
 }  // namespace saf
-}  // namespace lcm
+}  // namespace mw::lifecycle
 }  // namespace score
 
 #endif

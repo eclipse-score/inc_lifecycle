@@ -15,10 +15,7 @@
 
 #include <limits>
 
-
-
-
-namespace score::lcm::saf::timers
+namespace score::mw::lifecycle::saf::timers
 {
 
 NanoSecondType TimeConversion::convertToNanoSec(const timespec f_timespec) noexcept(true)
@@ -69,7 +66,4 @@ double TimeConversion::convertNanoSecToMilliSec(const NanoSecondType f_timeValue
     return milliSeconds;
 }
 
-} // namespace score::lcm::saf::timers
-
-
-
+}  // namespace score::mw::lifecycle::saf::timers

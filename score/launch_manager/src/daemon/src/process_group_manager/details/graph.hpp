@@ -42,7 +42,7 @@
 namespace score
 {
 
-namespace lcm
+namespace mw::lifecycle
 {
 
 namespace internal
@@ -428,7 +428,7 @@ class Graph final
 
 }  // namespace internal
 
-}  // namespace lcm
+}  // namespace mw::lifecycle
 
 }  // namespace score
 

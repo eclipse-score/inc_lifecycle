@@ -29,7 +29,7 @@
 #include "score/mw/launch_manager/alive_monitor/details/timers/TimeConversion.hpp"
 namespace score
 {
-namespace lcm
+namespace mw::lifecycle
 {
 namespace saf
 {
@@ -52,14 +52,14 @@ enum class EInitCode : std::int8_t
 class PhmDaemon
 {
   public:
-    using OsClock = score::lcm::saf::timers::OsClockInterface;
-    using SupervisionControlReceiver = score::lcm::ISupervisionControlReceiver;
-    using RecoveryClient = score::lcm::IRecoveryClient;
+    using OsClock = score::mw::lifecycle::saf::timers::OsClockInterface;
+    using SupervisionControlReceiver = score::mw::lifecycle::ISupervisionControlReceiver;
+    using RecoveryClient = score::mw::lifecycle::IRecoveryClient;
     using SupervisionBufferConfig = factory::SupervisionBufferConfig;
-    using CycleTimer = score::lcm::saf::timers::CycleTimer;
-    using CycleTimeValidator = score::lcm::saf::timers::CycleTimeValidator;
-    using NanoSecondType = score::lcm::saf::timers::NanoSecondType;
-    using ObservableEventReader = score::lcm::saf::ifexm::ObservableEventReader;
+    using CycleTimer = score::mw::lifecycle::saf::timers::CycleTimer;
+    using CycleTimeValidator = score::mw::lifecycle::saf::timers::CycleTimeValidator;
+    using NanoSecondType = score::mw::lifecycle::saf::timers::NanoSecondType;
+    using ObservableEventReader = score::mw::lifecycle::saf::ifexm::ObservableEventReader;
     using AliveMonitorConfig = score::mw::lifecycle::internal::alive::AliveMonitorConfig;
 
     /* RULECHECKER_comment(0, 4, check_expensive_to_copy_in_parameter, "f_supervisionErrorInfo name is passed by value\
@@ -222,7 +222,7 @@ class PhmDaemon
 
 }  // namespace daemon
 }  // namespace saf
-}  // namespace lcm
+}  // namespace mw::lifecycle
 }  // namespace score
 
 #endif

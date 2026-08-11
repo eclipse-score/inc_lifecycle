@@ -20,7 +20,7 @@
 namespace score
 {
 
-namespace lcm
+namespace mw::lifecycle
 {
 
 /// @brief ISupervisionControlNotifier interface for forwarding supervision events to the alive monitor.
@@ -34,10 +34,10 @@ class ISupervisionControlNotifier : public ISupervisionEventPublisher
 
     /// @brief Construct and return the receiver instance used to receive supervision events.
     /// @return Supervision control receiver instance
-    virtual std::unique_ptr<score::lcm::ISupervisionControlReceiver> constructReceiver() = 0;
+    virtual std::unique_ptr<score::mw::lifecycle::ISupervisionControlReceiver> constructReceiver() = 0;
 };
 
-}  // namespace lcm
+}  // namespace mw::lifecycle
 
 }  // namespace score
 

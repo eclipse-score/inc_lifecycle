@@ -17,7 +17,7 @@
 namespace score
 {
 
-namespace lcm
+namespace mw::lifecycle
 {
 
 namespace internal
@@ -46,6 +46,6 @@ int setSecurityPolicy(const char* policy)
 
 }  // namespace internal
 
-}  // namespace lcm
+}  // namespace mw::lifecycle
 
 }  // namespace score

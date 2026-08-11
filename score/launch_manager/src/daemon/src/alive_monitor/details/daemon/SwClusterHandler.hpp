@@ -26,7 +26,7 @@
 
 namespace score
 {
-namespace lcm
+namespace mw::lifecycle
 {
 
 class IRecoveryClient;
@@ -96,7 +96,7 @@ class SwClusterHandler
     /// @return                              Construction is successful (true), otherwise failure (false)
     bool constructWorkers(
         const AliveMonitorConfig& config,
-        std::shared_ptr<score::lcm::IRecoveryClient> f_recoveryClient_r,
+        std::shared_ptr<score::mw::lifecycle::IRecoveryClient> f_recoveryClient_r,
         ifexm::ObservableEventReader& f_processStateReader_r,
         const factory::SupervisionBufferConfig& f_bufferConfig_r) noexcept(false);
 
@@ -141,7 +141,7 @@ class SwClusterHandler
 
 }  // namespace daemon
 }  // namespace saf
-}  // namespace lcm
+}  // namespace mw::lifecycle
 }  // namespace score
 
 #endif

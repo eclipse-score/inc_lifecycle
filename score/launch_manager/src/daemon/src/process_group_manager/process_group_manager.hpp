@@ -39,7 +39,7 @@
 #include "score/mw/launch_manager/supervision_control_client/isupervision_control_notifier.hpp"
 #include "score/mw/launch_manager/watchdog/IWatchdogIf.hpp"
 
-namespace score::lcm::internal
+namespace score::mw::lifecycle::internal
 {
 
 using ConfigurationType = ConfigurationAdapter;
@@ -78,8 +78,8 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     ProcessGroupManager(
         std::unique_ptr<IAliveMonitorThread> alive_monitor_thread,
         std::shared_ptr<IRecoveryClient> recovery_client,
-        std::unique_ptr<score::lcm::ISupervisionControlNotifier> supervision_control_notifier,
-        std::unique_ptr<score::lcm::watchdog::IWatchdogIf> watchdog);
+        std::unique_ptr<score::mw::lifecycle::ISupervisionControlNotifier> supervision_control_notifier,
+        std::unique_ptr<score::mw::lifecycle::watchdog::IWatchdogIf> watchdog);
 
     /// @brief Initializes the process group manager.
     /// Loads the flat configuration through ConfigurationManager.
@@ -307,7 +307,7 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     std::shared_ptr<Graph> machine_process_group_{nullptr};
 
     /// @brief Process state notifier object used to send data to PHM
-    std::unique_ptr<score::lcm::ISupervisionControlNotifier> supervision_control_notifier_;
+    std::unique_ptr<score::mw::lifecycle::ISupervisionControlNotifier> supervision_control_notifier_;
 
     std::unique_ptr<IAliveMonitorThread> alive_monitor_thread_;
 
@@ -319,12 +319,12 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     /// on the main thread, so all Graph state mutations happen from a single thread.
     std::unique_ptr<ComponentEventQueue> event_queue_;
 
-    std::shared_ptr<score::lcm::IRecoveryClient> recovery_client_{};
+    std::shared_ptr<score::mw::lifecycle::IRecoveryClient> recovery_client_{};
 
     /// @brief The watchdog serviced during the main loop. May be nullptr in legacy configuration.
-    std::unique_ptr<score::lcm::watchdog::IWatchdogIf> watchdog_;
+    std::unique_ptr<score::mw::lifecycle::watchdog::IWatchdogIf> watchdog_;
 };
 
-}  // namespace score::lcm::internal
+}  // namespace score::mw::lifecycle::internal
 
 #endif  /// PROCESSGROUPMANAGER_HPP_INCLUDED

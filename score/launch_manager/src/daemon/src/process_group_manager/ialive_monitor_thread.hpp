@@ -16,7 +16,7 @@
 
 namespace score
 {
-namespace lcm
+namespace mw::lifecycle
 {
 namespace internal
 {
@@ -29,7 +29,7 @@ class IAliveMonitorThread
     virtual ~IAliveMonitorThread() = default;
 };
 }  // namespace internal
-}  // namespace lcm
+}  // namespace mw::lifecycle
 }  // namespace score
 
 #endif

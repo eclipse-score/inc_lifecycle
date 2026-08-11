@@ -19,7 +19,7 @@
 namespace score
 {
 
-namespace lcm
+namespace mw::lifecycle
 {
 
 namespace internal
@@ -41,6 +41,6 @@ namespace osal
 [[nodiscard]] int32_t setaffinity(uint64_t cpumask) noexcept(true);
 }  // namespace osal
 }  // namespace internal
-}  // namespace lcm
+}  // namespace mw::lifecycle
 }  // namespace score
 #endif

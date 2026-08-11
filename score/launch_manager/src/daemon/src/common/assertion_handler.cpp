@@ -20,7 +20,7 @@ namespace
 // that links this library gets diagnostic output on assertion failure without any
 // explicit setup call.
 const bool kAssertionHandlerRegistered = []() noexcept {
-    score::lcm::common::registerAssertionHandler();
+    score::mw::lifecycle::common::registerAssertionHandler();
     return true;
 }();
 

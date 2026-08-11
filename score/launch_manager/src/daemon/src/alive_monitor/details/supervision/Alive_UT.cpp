@@ -26,23 +26,23 @@
 
 using namespace testing;
 
-using EStatus = score::lcm::saf::supervision::Alive::EStatus;
+using EStatus = score::mw::lifecycle::saf::supervision::Alive::EStatus;
 
 namespace
 {
 
-class MockRecoveryClient : public score::lcm::IRecoveryClient
+class MockRecoveryClient : public score::mw::lifecycle::IRecoveryClient
 {
   public:
     MOCK_METHOD(
         void,
         setRecoveryRequestCallback,
-        (score::lcm::IRecoveryClient::RecoveryRequestCallback callback),
+        (score::mw::lifecycle::IRecoveryClient::RecoveryRequestCallback callback),
         (noexcept, override));
     MOCK_METHOD(
         bool,
         sendRecoveryRequest,
-        (const score::lcm::IdentifierHash& process_group_identifier),
+        (const score::mw::lifecycle::IdentifierHash& process_group_identifier),
         (noexcept, override));
 };
 
@@ -50,7 +50,7 @@ class MockRecoveryClient : public score::lcm::IRecoveryClient
 /// Owns all supporting objects so they outlive the Alive.
 struct AliveFixture
 {
-    inline static const score::lcm::IdentifierHash kProcessId{"42U"};
+    inline static const score::mw::lifecycle::IdentifierHash kProcessId{"42U"};
     static constexpr char kCheckpointName[] = "test_cp";
 
     struct Builder
@@ -58,7 +58,7 @@ struct AliveFixture
         uint32_t failedCyclesTolerance = 0U;
         uint32_t minIndications = 1U;
         uint32_t maxIndications = 3U;
-        score::lcm::saf::timers::NanoSecondType referenceCycleNs = 1000U;
+        score::mw::lifecycle::saf::timers::NanoSecondType referenceCycleNs = 1000U;
 
         Builder& withFailedCyclesTolerance(uint32_t val)
         {
@@ -75,7 +75,7 @@ struct AliveFixture
             maxIndications = val;
             return *this;
         }
-        Builder& withReferenceCycleNs(score::lcm::saf::timers::NanoSecondType val)
+        Builder& withReferenceCycleNs(score::mw::lifecycle::saf::timers::NanoSecondType val)
         {
             referenceCycleNs = val;
             return *this;
@@ -87,18 +87,18 @@ struct AliveFixture
         }
     };
 
-    const score::lcm::IdentifierHash kProcessIdentifier{"test_proc"};
+    const score::mw::lifecycle::IdentifierHash kProcessIdentifier{"test_proc"};
 
     std::shared_ptr<MockRecoveryClient> mockClient = std::make_shared<MockRecoveryClient>();
 
-    score::lcm::saf::ifexm::ObservableEvent processState;
-    score::lcm::saf::ifappl::Checkpoint checkpoint;
+    score::mw::lifecycle::saf::ifexm::ObservableEvent processState;
+    score::mw::lifecycle::saf::ifappl::Checkpoint checkpoint;
 
-    std::unique_ptr<score::lcm::saf::supervision::Alive> alive;
+    std::unique_ptr<score::mw::lifecycle::saf::supervision::Alive> alive;
 
     explicit AliveFixture(const Builder& bld) : processState(kProcessId), checkpoint(kCheckpointName, 1U, &processState)
     {
-        score::lcm::saf::supervision::AliveSupervisionCfg cfg{checkpoint};
+        score::mw::lifecycle::saf::supervision::AliveSupervisionCfg cfg{checkpoint};
         cfg.cfgName_p = "test_alive";
         cfg.aliveReferenceCycle = bld.referenceCycleNs;
         cfg.minAliveIndications = bld.minIndications;
@@ -110,7 +110,7 @@ struct AliveFixture
         cfg.recoveryClient = mockClient;
         cfg.processIdentifier = kProcessIdentifier;
 
-        alive = std::make_unique<score::lcm::saf::supervision::Alive>(cfg);
+        alive = std::make_unique<score::mw::lifecycle::saf::supervision::Alive>(cfg);
         processState.attachObserver(*alive);
     }
 
@@ -118,7 +118,7 @@ struct AliveFixture
     void activateProcess(long ts)
     {
         processState.event.systemClockTimestamp.tv_nsec = ts;
-        processState.event.eventType = score::lcm::SupervisionEventType::kActivation;
+        processState.event.eventType = score::mw::lifecycle::SupervisionEventType::kActivation;
         processState.pushData();
     }
 
@@ -126,12 +126,12 @@ struct AliveFixture
     void deactivateProcess(long ts)
     {
         processState.event.systemClockTimestamp.tv_nsec = ts;
-        processState.event.eventType = score::lcm::SupervisionEventType::kDeactivation;
+        processState.event.eventType = score::mw::lifecycle::SupervisionEventType::kDeactivation;
         processState.pushData();
     }
 
     /// Report one alive heartbeat checkpoint at the given timestamp.
-    void reportHeartbeat(score::lcm::saf::timers::NanoSecondType timestamp)
+    void reportHeartbeat(score::mw::lifecycle::saf::timers::NanoSecondType timestamp)
     {
         checkpoint.pushData(timestamp);
     }

@@ -23,7 +23,7 @@
 
 namespace score
 {
-namespace lcm
+namespace mw::lifecycle
 {
 namespace saf
 {
@@ -36,8 +36,8 @@ namespace ifexm
 class ObservableEventReader
 {
   public:
-    using LcmSupervisionEvent = score::lcm::SupervisionEvent;
-    using LcmSupervisionControlReceiver = score::lcm::ISupervisionControlReceiver;
+    using LcmSupervisionEvent = score::mw::lifecycle::SupervisionEvent;
+    using LcmSupervisionControlReceiver = score::mw::lifecycle::ISupervisionControlReceiver;
 
     /// @brief Constructor
     /// @param [in] f_observable_event_receiver   Process state receiver implementation
@@ -93,7 +93,7 @@ class ObservableEventReader
 
 }  // namespace ifexm
 }  // namespace saf
-}  // namespace lcm
+}  // namespace mw::lifecycle
 }  // namespace score
 
 #endif

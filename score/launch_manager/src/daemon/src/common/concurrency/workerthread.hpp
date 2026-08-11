@@ -22,7 +22,7 @@
 #include <thread>
 #include <vector>
 
-namespace score::lcm::internal
+namespace score::mw::lifecycle::internal
 {
 
 using namespace score::mw::lifecycle::internal;
@@ -117,6 +117,6 @@ class WorkerThread final
     std::vector<std::unique_ptr<std::thread>> worker_threads_{};
 };
 
-}  // namespace score::lcm::internal
+}  // namespace score::mw::lifecycle::internal
 
 #endif  // WORKER_THREAD_HPP_INCLUDED

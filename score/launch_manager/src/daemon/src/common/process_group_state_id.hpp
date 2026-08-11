@@ -19,7 +19,7 @@
 namespace score
 {
 
-namespace lcm
+namespace mw::lifecycle
 {
 
 namespace internal
@@ -31,13 +31,13 @@ namespace internal
 // have user-declared constructor. The rule doesn’t apply.", false)
 struct ProcessGroupStateID final
 {
-    score::lcm::IdentifierHash pg_name_;        ///< Name of the process group.
-    score::lcm::IdentifierHash pg_state_name_;  ///< Name of the process group state.
+    score::mw::lifecycle::IdentifierHash pg_name_;        ///< Name of the process group.
+    score::mw::lifecycle::IdentifierHash pg_state_name_;  ///< Name of the process group state.
 };
 
 }  // namespace internal
 
-}  // namespace lcm
+}  // namespace mw::lifecycle
 
 }  // namespace score
 

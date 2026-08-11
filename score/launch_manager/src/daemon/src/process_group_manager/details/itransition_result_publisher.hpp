@@ -16,7 +16,7 @@
 
 #include "score/mw/launch_manager/control/control_client_channel.hpp"
 
-namespace score::lcm::internal
+namespace score::mw::lifecycle::internal
 {
 
 class ITransitionResultPublisher
@@ -27,6 +27,6 @@ class ITransitionResultPublisher
     virtual ~ITransitionResultPublisher() = default;
 };
 
-}  // namespace score::lcm::internal
+}  // namespace score::mw::lifecycle::internal
 
 #endif  // SCORE_LCM_ITRANSITION_RESULT_PUBLISHER

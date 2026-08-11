@@ -14,9 +14,7 @@
 #include "score/mw/launch_manager/supervision_control_client/details/supervision_control_receiver.hpp"
 #include "score/mw/launch_manager/common/log.hpp"
 
-
-
-namespace score::lcm
+namespace score::mw::lifecycle
 {
 SupervisionControlReceiver::SupervisionControlReceiver(BufferP ring_buffer) noexcept : ring_buffer_(ring_buffer)
 {
@@ -28,30 +26,29 @@ SupervisionControlReceiver::~SupervisionControlReceiver() noexcept
 
 score::Result<std::optional<SupervisionEvent>> SupervisionControlReceiver::getNextSupervisionEvent() noexcept
 {
-    score::lcm::SupervisionEvent event;
+    score::mw::lifecycle::SupervisionEvent event;
     if (ring_buffer_->getOverflowFlag())
     {
         LM_LOG_ERROR() << "SupervisionControlReceiver::getNextSupervisionEvent: Overflow occurred, "
                           "will be reported as kCommunicationError";
-        return score::Result<std::optional<score::lcm::SupervisionEvent>>{
+        return score::Result<std::optional<score::mw::lifecycle::SupervisionEvent>>{
             score::MakeUnexpected(score::mw::lifecycle::ExecErrc::kCommunicationError)};
     }
 
     if (ring_buffer_->empty())
     {
-        return score::Result<std::optional<score::lcm::SupervisionEvent>>{std::nullopt};
+        return score::Result<std::optional<score::mw::lifecycle::SupervisionEvent>>{std::nullopt};
     }
 
     auto res = ring_buffer_->tryDequeue(event);
     if (res)
     {
-        return score::Result<std::optional<score::lcm::SupervisionEvent>>{event};
+        return score::Result<std::optional<score::mw::lifecycle::SupervisionEvent>>{event};
     }
     else
     {
-        return score::Result<std::optional<score::lcm::SupervisionEvent>>{
+        return score::Result<std::optional<score::mw::lifecycle::SupervisionEvent>>{
             score::MakeUnexpected(score::mw::lifecycle::ExecErrc::kGeneralError)};
     }
 }
-} // namespace score::lcm
-
+}  // namespace score::mw::lifecycle

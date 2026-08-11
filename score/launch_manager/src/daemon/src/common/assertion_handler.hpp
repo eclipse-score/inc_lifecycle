@@ -19,7 +19,7 @@
 #include <iostream>
 #include <sstream>
 
-namespace score::lcm::common
+namespace score::mw::lifecycle::common
 {
 
 inline void registerAssertionHandler() noexcept
@@ -38,6 +38,6 @@ inline void registerAssertionHandler() noexcept
     });
 }
 
-}  // namespace score::lcm::common
+}  // namespace score::mw::lifecycle::common
 
 #endif  // ASSERTION_HANDLER_HPP_INCLUDED

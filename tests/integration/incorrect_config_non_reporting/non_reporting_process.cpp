@@ -24,7 +24,7 @@
 
 TEST(NonReporting, Process)
 {
-    using ipc = score::lcm::internal::osal::IpcCommsSync;
+    using ipc = score::mw::lifecycle::internal::osal::IpcCommsSync;
 
     // Map the sync_fd to some shared memory of size 0. With sync_fd=111, this is likely to happen by default
     // As there is no comms channel, using sync_fd in this process should not cause a crash.

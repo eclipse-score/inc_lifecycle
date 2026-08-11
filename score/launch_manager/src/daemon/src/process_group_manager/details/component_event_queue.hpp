@@ -51,7 +51,7 @@ class ComponentEventQueue final : public IComponentEventPublisherConsumer
     [[nodiscard]] bool push(ComponentEvent&& event) override
     {
         auto result = queue_.push(std::move(event));
-        if (!result.has_value() && result.error() == lcm::internal::ConcurrencyErrc::kOverflow)
+        if (!result.has_value() && result.error() == mw::lifecycle::internal::ConcurrencyErrc::kOverflow)
         {
             overflow_.store(true, std::memory_order_release);
             return false;
@@ -95,7 +95,7 @@ class ComponentEventQueue final : public IComponentEventPublisherConsumer
     }
 
   private:
-    lcm::internal::MpscBoundedQueue<ComponentEvent> queue_;
+    mw::lifecycle::internal::MpscBoundedQueue<ComponentEvent> queue_;
     std::size_t capacity_;
     std::atomic<bool> overflow_{false};
 };

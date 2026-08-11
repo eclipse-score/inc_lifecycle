@@ -18,7 +18,7 @@
 
 namespace score
 {
-namespace lcm
+namespace mw::lifecycle
 {
 namespace saf
 {
@@ -39,7 +39,7 @@ class PhmDaemonConfig
 
 }  // namespace daemon
 }  // namespace saf
-}  // namespace lcm
+}  // namespace mw::lifecycle
 }  // namespace score
 
 #endif

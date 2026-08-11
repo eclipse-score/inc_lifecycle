@@ -16,7 +16,7 @@
 
 #include <cstdint>
 
-namespace score::lcm
+namespace score::mw::lifecycle
 {
 
 /// @brief Represents the state of a modelled process.
@@ -30,6 +30,6 @@ enum class ProcessState : std::uint8_t
     kFailed = 5        ///< process failed to start.
 };
 
-}  // namespace score::lcm
+}  // namespace score::mw::lifecycle
 
 #endif  // SCORE_LCM_PROCESS_STATE_HPP_INCLUDED

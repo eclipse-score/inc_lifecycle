@@ -16,9 +16,7 @@
 #include <mutex>
 #include <unordered_map>
 
-
-
-namespace score::lcm
+namespace score::mw::lifecycle
 {
 
 // Please note that a lot of the following info, would normally belong to identifier_hash.hpp file.
@@ -132,6 +130,4 @@ std::mutex& IdentifierHash::get_registry_mutex()
     return registry_mutex;
 }
 
-} // namespace score::lcm
-
-
+}  // namespace score::mw::lifecycle

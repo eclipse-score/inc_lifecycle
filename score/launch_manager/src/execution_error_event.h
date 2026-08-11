@@ -21,7 +21,7 @@
 namespace score
 {
 
-namespace lcm
+namespace mw::lifecycle
 {
 
 /// @brief Represents the execution error.
@@ -41,7 +41,7 @@ struct ExecutionErrorEvent final
     IdentifierHash processGroup;
 };
 
-}  // namespace lcm
+}  // namespace mw::lifecycle
 
 }  // namespace score
 

@@ -25,7 +25,7 @@ struct WatchdogConfig;
 
 namespace score
 {
-namespace lcm
+namespace mw::lifecycle
 {
 namespace watchdog
 {
@@ -56,7 +56,7 @@ class IWatchdogIf
     /// The main loop cycle time must be strictly less than the minimum watchdog timeout to ensure that
     /// the watchdog timeout cannot expire during an unblocked run of the main loop.
     static_assert(
-        score::lcm::internal::kMainLoopCycleTimeMs < kTimeoutMinMillis,
+        score::mw::lifecycle::internal::kMainLoopCycleTimeMs < kTimeoutMinMillis,
         "Main loop cycle time must be less than the minimum watchdog timeout");
 
     /// @brief Destructor.
@@ -137,7 +137,7 @@ class IWatchdogIf
 };
 
 }  // namespace watchdog
-}  // namespace lcm
+}  // namespace mw::lifecycle
 }  // namespace score
 
 #endif

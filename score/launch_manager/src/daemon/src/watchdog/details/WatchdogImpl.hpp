@@ -26,7 +26,7 @@
 
 namespace score
 {
-namespace lcm
+namespace mw::lifecycle
 {
 
 namespace watchdog
@@ -235,7 +235,7 @@ class WatchdogImpl : public IWatchdogIf
 };
 
 }  // namespace watchdog
-}  // namespace lcm
+}  // namespace mw::lifecycle
 }  // namespace score
 
 #endif

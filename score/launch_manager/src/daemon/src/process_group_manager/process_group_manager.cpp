@@ -21,10 +21,10 @@
 #include "score/mw/launch_manager/process_group_manager/ialive_monitor_thread.hpp"
 #include "score/mw/launch_manager/process_group_manager/process_group_manager.hpp"
 
-namespace score::lcm::internal
+namespace score::mw::lifecycle::internal
 {
 
-using namespace score::lcm::internal::osal;
+using namespace score::mw::lifecycle::internal::osal;
 
 static std::atomic_bool em_cancelled{false};
 
@@ -41,8 +41,8 @@ void ProcessGroupManager::cancel()
 ProcessGroupManager::ProcessGroupManager(
     std::unique_ptr<IAliveMonitorThread> alive_monitor_thread,
     std::shared_ptr<IRecoveryClient> recovery_client,
-    std::unique_ptr<score::lcm::ISupervisionControlNotifier> supervision_control_notifier,
-    std::unique_ptr<score::lcm::watchdog::IWatchdogIf> watchdog)
+    std::unique_ptr<score::mw::lifecycle::ISupervisionControlNotifier> supervision_control_notifier,
+    std::unique_ptr<score::mw::lifecycle::watchdog::IWatchdogIf> watchdog)
     : configuration_(),
       process_interface_(),
       process_map_(nullptr),
@@ -128,7 +128,7 @@ bool ProcessGroupManager::initialize(const Config& config)
     // Watchdog config may not be available if no watchdog is configured
     if (watchdog_config.has_value())
     {
-        if (!watchdog_->init(watchdog_config.value(), score::lcm::internal::kMainLoopCycleTimeNs))
+        if (!watchdog_->init(watchdog_config.value(), score::mw::lifecycle::internal::kMainLoopCycleTimeNs))
         {
             LM_LOG_ERROR() << "Watchdog initialization failed";
             return false;
@@ -171,11 +171,11 @@ bool ProcessGroupManager::initializeControlClientHandler()
     // The name is removed from the file system after creation, memory
     // is mapped and a pointer stored, the FD is kept open.
     ControlClientChannel::nudgeControlClientHandler_ = nullptr;
-    char shm_name[static_cast<uint32_t>(score::lcm::internal::ProcessLimits::maxLocalBuffSize)];
+    char shm_name[static_cast<uint32_t>(score::mw::lifecycle::internal::ProcessLimits::maxLocalBuffSize)];
 
     static_cast<void>(snprintf(
         shm_name,
-        static_cast<uint32_t>(score::lcm::internal::ProcessLimits::maxLocalBuffSize),
+        static_cast<uint32_t>(score::mw::lifecycle::internal::ProcessLimits::maxLocalBuffSize),
         "/_nudge~._.~me_"));  // random name
     int fd = shm_open(shm_name, O_CREAT | O_EXCL | O_RDWR, 0U);
 
@@ -331,7 +331,8 @@ bool ProcessGroupManager::run()
 
             // Wait for a graph-relevant event (activation/deactivation completion or
             // unexpected termination). All Graph state mutations happen here, on the main thread.
-            if (event_queue_->waitForEvents(std::chrono::milliseconds(score::lcm::internal::kMainLoopCycleTimeMs)))
+            if (event_queue_->waitForEvents(
+                    std::chrono::milliseconds(score::mw::lifecycle::internal::kMainLoopCycleTimeMs)))
             {
                 processComponentEvents();
             }
@@ -882,4 +883,4 @@ std::shared_ptr<ProcessGroupManager::WorkerQueue> ProcessGroupManager::getWorker
     return worker_jobs_;
 }
 
-}  // namespace score::lcm::internal
+}  // namespace score::mw::lifecycle::internal

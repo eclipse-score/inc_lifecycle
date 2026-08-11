@@ -22,7 +22,7 @@
 
 namespace score
 {
-namespace lcm
+namespace mw::lifecycle
 {
 
 class IRecoveryClient;
@@ -33,10 +33,10 @@ namespace saf
 namespace daemon
 {
 
-using SptrIRecoveryClient = std::shared_ptr<score::lcm::IRecoveryClient>;
-using UptrISupervisionControlReceiver = std::unique_ptr<score::lcm::ISupervisionControlReceiver>;
-using UptrPhmDaemon = std::unique_ptr<score::lcm::saf::daemon::PhmDaemon>;
-using OsClock = score::lcm::saf::timers::OsClockInterface;
+using SptrIRecoveryClient = std::shared_ptr<score::mw::lifecycle::IRecoveryClient>;
+using UptrISupervisionControlReceiver = std::unique_ptr<score::mw::lifecycle::ISupervisionControlReceiver>;
+using UptrPhmDaemon = std::unique_ptr<score::mw::lifecycle::saf::daemon::PhmDaemon>;
+using OsClock = score::mw::lifecycle::saf::timers::OsClockInterface;
 using Config = score::mw::launch_manager::configuration::Config;
 using AliveMonitorConfig = score::mw::lifecycle::internal::alive::AliveMonitorConfig;
 
@@ -62,7 +62,7 @@ class AliveMonitorImpl : public IAliveMonitor
 
 }  // namespace daemon
 }  // namespace saf
-}  // namespace lcm
+}  // namespace mw::lifecycle
 }  // namespace score
 
 #endif

@@ -22,7 +22,7 @@
 
 namespace score
 {
-namespace lcm
+namespace mw::lifecycle
 {
 namespace saf
 {
@@ -65,9 +65,9 @@ class AliveSupervisionCfg final
     saf::ifappl::Checkpoint& checkpoint_r;
 
     /// Recovery client to invoke when supervision expires
-    std::shared_ptr<score::lcm::IRecoveryClient> recoveryClient{};
+    std::shared_ptr<score::mw::lifecycle::IRecoveryClient> recoveryClient{};
     /// Identifier of the supervised process, sent via recovery client when supervision expires
-    score::lcm::IdentifierHash processIdentifier{};
+    score::mw::lifecycle::IdentifierHash processIdentifier{};
 
     /// Default destructor
     ~AliveSupervisionCfg() = default;
@@ -97,7 +97,7 @@ class AliveSupervisionCfg final
 
 }  // namespace supervision
 }  // namespace saf
-}  // namespace lcm
+}  // namespace mw::lifecycle
 }  // namespace score
 
 #endif

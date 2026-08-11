@@ -29,7 +29,7 @@ using ::testing::IsNull;
 using ::testing::Ne;
 using ::testing::NotNull;
 
-using IdentifierHash = score::lcm::IdentifierHash;
+using IdentifierHash = score::mw::lifecycle::IdentifierHash;
 
 Config makeMinimalConfig()
 {
@@ -173,7 +173,8 @@ TEST_F(ConfigurationAdapterTest, GetProcessIndexesListResolvesRunTargetDependenc
 {
     RecordProperty("Description", "getProcessIndexesList resolves RunTarget depends_on to component indexes.");
 
-    score::lcm::internal::ProcessGroupStateID startup_id{IdentifierHash{"MainPG"}, IdentifierHash{"MainPG/Startup"}};
+    score::mw::lifecycle::internal::ProcessGroupStateID startup_id{
+        IdentifierHash{"MainPG"}, IdentifierHash{"MainPG/Startup"}};
 
     auto result = adapter_.getProcessIndexesList(startup_id);
 
@@ -189,7 +190,8 @@ TEST_F(ConfigurationAdapterTest, GetProcessIndexesListResolvesTransitiveDependen
         "Description",
         "Full run target depends on comp_b and Startup; transitive resolution yields both component indexes.");
 
-    score::lcm::internal::ProcessGroupStateID full_id{IdentifierHash{"MainPG"}, IdentifierHash{"MainPG/Full"}};
+    score::mw::lifecycle::internal::ProcessGroupStateID full_id{
+        IdentifierHash{"MainPG"}, IdentifierHash{"MainPG/Full"}};
 
     auto result = adapter_.getProcessIndexesList(full_id);
 
@@ -276,7 +278,7 @@ TEST_F(ConfigurationAdapterTest, GetOsProcessDependenciesMapsComponentDependsOn)
     ASSERT_THAT(deps->size(), Eq(1U));
     EXPECT_THAT((*deps)[0].target_process_id_, Eq(IdentifierHash{"comp_a"}));
     EXPECT_THAT((*deps)[0].os_process_index_, Eq(0U));
-    EXPECT_THAT((*deps)[0].process_state_, Eq(score::lcm::ProcessState::kRunning));
+    EXPECT_THAT((*deps)[0].process_state_, Eq(score::mw::lifecycle::ProcessState::kRunning));
 }
 
 TEST_F(ConfigurationAdapterTest, GetOsProcessDependenciesEmptyForComponentWithNoDeps)
@@ -334,7 +336,7 @@ TEST_F(ConfigurationAdapterTest, OffStateReturnsProcessIndexesListEmpty)
 {
     RecordProperty("Description", "The Off state has no process indexes.");
 
-    score::lcm::internal::ProcessGroupStateID off_id{IdentifierHash{"MainPG"}, IdentifierHash{"MainPG/Off"}};
+    score::mw::lifecycle::internal::ProcessGroupStateID off_id{IdentifierHash{"MainPG"}, IdentifierHash{"MainPG/Off"}};
 
     auto result = adapter_.getProcessIndexesList(off_id);
 
@@ -412,7 +414,7 @@ TEST(ConfigurationAdapterReadyConditionTest, DependencyUsesTargetComponentReadyC
     const auto* deps = *result;
     ASSERT_THAT(deps->size(), Eq(1U));
     EXPECT_THAT((*deps)[0].target_process_id_, Eq(IdentifierHash{"comp_a"}));
-    EXPECT_THAT((*deps)[0].process_state_, Eq(score::lcm::ProcessState::kTerminated))
+    EXPECT_THAT((*deps)[0].process_state_, Eq(score::mw::lifecycle::ProcessState::kTerminated))
         << "Dependency should use comp_a's ready_condition (Terminated), not comp_b's (Running)";
 
     adapter.deinitialize();
@@ -485,7 +487,7 @@ TEST(ConfigurationAdapterReadyConditionTest, DependencyDefaultsToRunningWhenTarg
     ASSERT_TRUE(result.has_value());
     const auto* deps = *result;
     ASSERT_THAT(deps->size(), Eq(1U));
-    EXPECT_THAT((*deps)[0].process_state_, Eq(score::lcm::ProcessState::kRunning))
+    EXPECT_THAT((*deps)[0].process_state_, Eq(score::mw::lifecycle::ProcessState::kRunning))
         << "comp_a has no ready_condition, so dependency should default to Running";
 
     adapter.deinitialize();
@@ -552,7 +554,7 @@ TEST(ConfigurationAdapterFallbackTest, FallbackRunTargetResolvesDependenciesRecu
     ConfigurationAdapter adapter;
     adapter.initialize(config);
 
-    score::lcm::internal::ProcessGroupStateID fallback_id{
+    score::mw::lifecycle::internal::ProcessGroupStateID fallback_id{
         IdentifierHash{"MainPG"}, IdentifierHash{"MainPG/fallback_run_target"}};
 
     auto result = adapter.getProcessIndexesList(fallback_id);

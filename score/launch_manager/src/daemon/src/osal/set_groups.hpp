@@ -21,7 +21,7 @@
 namespace score
 {
 
-namespace lcm
+namespace mw::lifecycle
 {
 
 namespace internal
@@ -38,6 +38,6 @@ namespace osal
 [[nodiscard]] std::int32_t setgroups(size_t __n, const gid_t* __groups) noexcept(true);
 }  // namespace osal
 }  // namespace internal
-}  // namespace lcm
+}  // namespace mw::lifecycle
 }  // namespace score
 #endif

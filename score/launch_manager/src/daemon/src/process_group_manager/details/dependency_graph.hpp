@@ -23,7 +23,7 @@
 namespace score::mw::lifecycle
 {
 
-using namespace score::lcm::internal;
+using namespace score::mw::lifecycle::internal;
 
 /// @brief Index type used to identify nodes in the graph.
 using GraphIndex = std::size_t;

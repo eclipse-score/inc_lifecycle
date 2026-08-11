@@ -22,7 +22,7 @@
 namespace score::mw::lifecycle
 {
 
-using namespace score::lcm;
+using namespace score::mw::lifecycle;
 
 TEST(DependencyGraphTest, EmplaceAndAccessByIndex)
 {

@@ -16,20 +16,11 @@
 
 #include "score/mw/launch_manager/osal/set_groups.hpp"
 
-
-
-
-
-
-
-namespace score::lcm::internal::osal
+namespace score::mw::lifecycle::internal::osal
 {
 
 int setgroups(size_t __n, const gid_t* __groups) noexcept(true)
 {
     return ::setgroups(__n, __n ? __groups : nullptr);
 }
-} // namespace score::lcm::internal::osal
-
-
-
+}  // namespace score::mw::lifecycle::internal::osal
