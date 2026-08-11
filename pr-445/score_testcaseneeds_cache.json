@@ -184,7 +184,7 @@
   {
     "name": "test_crash_on_startup",
     "file": "../_main/tests/integration/crash_on_startup/crash_on_startup.py",
-    "line": "18",
+    "line": "21",
     "result": "passed",
     "repo_name": null,
     "hash": null,
