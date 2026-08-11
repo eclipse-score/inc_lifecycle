@@ -19,7 +19,7 @@
 #include <cstring>
 #include <string>
 
-namespace score::mw::launch_manager::configuration
+namespace score::mw::lifecycle::configuration
 {
 namespace
 {
@@ -572,4 +572,4 @@ TEST(ConfigurationAdapterFallbackTest, FallbackRunTargetResolvesDependenciesRecu
 }
 
 }  // namespace
-}  // namespace score::mw::launch_manager::configuration
+}  // namespace score::mw::lifecycle::configuration

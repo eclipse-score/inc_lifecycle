@@ -70,7 +70,7 @@ class WatchdogImpl : public IWatchdogIf
 
     /// @copydoc IWatchdogIf::init()
     bool init(
-        const score::mw::launch_manager::configuration::WatchdogConfig& watchdog_config,
+        const score::mw::lifecycle::configuration::WatchdogConfig& watchdog_config,
         std::int64_t cycle_time_ns) noexcept override;
 
     /// @copydoc IWatchdogIf::enable()

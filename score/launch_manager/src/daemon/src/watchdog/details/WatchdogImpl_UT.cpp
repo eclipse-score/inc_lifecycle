@@ -32,7 +32,7 @@ using ::testing::_;
 using ::testing::Return;
 using ::testing::StrEq;
 
-using score::mw::launch_manager::configuration::WatchdogConfig;
+using score::mw::lifecycle::configuration::WatchdogConfig;
 using score::mw::lifecycle::watchdog::IWatchdogIf;
 using score::mw::lifecycle::watchdog::WatchdogImpl;
 

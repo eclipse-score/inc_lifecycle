@@ -148,7 +148,7 @@ int main(int argc, const char* argv[])
         //     return EXIT_FAILURE;
         // }
 
-        score::mw::launch_manager::configuration::FlatbufferConfigLoader config_loader;
+        score::mw::lifecycle::configuration::FlatbufferConfigLoader config_loader;
         auto config_result = config_loader.load(config_path);
         if (!config_result.has_value())
         {

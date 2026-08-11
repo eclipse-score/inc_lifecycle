@@ -18,7 +18,7 @@
 
 #include <cstdint>
 
-namespace score::mw::launch_manager::configuration
+namespace score::mw::lifecycle::configuration
 {
 struct WatchdogConfig;
 }
@@ -79,7 +79,7 @@ class IWatchdogIf
     /// @return Status of configuration. True if watchdog configuration is valid and has been successfully taken over
     /// by the Watchdog Interface library, false otherwise.
     virtual bool init(
-        const score::mw::launch_manager::configuration::WatchdogConfig& watchdog_config,
+        const score::mw::lifecycle::configuration::WatchdogConfig& watchdog_config,
         std::int64_t cycle_time_ns) noexcept = 0;
 
     /// @brief Activate the watchdog.

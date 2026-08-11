@@ -23,7 +23,7 @@ namespace score::mw::lifecycle::internal
 {
 
 using namespace testing;
-using namespace score::mw::launch_manager::configuration;
+using namespace score::mw::lifecycle::configuration;
 using namespace std::chrono_literals;
 
 class MockProcessMap : public SafeProcessMapInserter

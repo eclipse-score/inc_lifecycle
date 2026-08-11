@@ -22,7 +22,7 @@
 #include <map>
 #include <set>
 
-namespace score::mw::launch_manager::configuration
+namespace score::mw::lifecycle::configuration
 {
 
 namespace
@@ -560,4 +560,4 @@ std::optional<const ProcessGroup*> ConfigurationAdapter::getProcessGroupByNameAn
     return std::nullopt;
 }
 
-}  // namespace score::mw::launch_manager::configuration
+}  // namespace score::mw::lifecycle::configuration

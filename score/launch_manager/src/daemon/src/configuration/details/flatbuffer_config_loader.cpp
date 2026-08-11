@@ -24,11 +24,9 @@
 #include <cstdint>
 #include <vector>
 
+namespace fb = score::mw::lifecycle::configuration::fb;
 
-
-namespace fb = score::mw::launch_manager::configuration::fb;
-
-namespace score::mw::launch_manager::configuration::details
+namespace score::mw::lifecycle::configuration::details
 {
 
 IConfigLoader::Error mapOsError(const score::os::Error& error)
@@ -146,5 +144,4 @@ score::cpp::expected<Config, IConfigLoader::Error> parseFlatbuffer(const std::ve
     return builder.build();
 }
 
-} // namespace score::mw::launch_manager::configuration::details
-
+}  // namespace score::mw::lifecycle::configuration::details

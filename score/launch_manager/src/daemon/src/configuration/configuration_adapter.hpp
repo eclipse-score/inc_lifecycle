@@ -27,7 +27,7 @@
 #include <string>
 #include <vector>
 
-namespace score::mw::launch_manager::configuration
+namespace score::mw::lifecycle::configuration
 {
 
 using IdentifierHash = score::mw::lifecycle::IdentifierHash;
@@ -155,18 +155,18 @@ class ConfigurationAdapter final
         static_cast<IdentifierHash>("MainPG/Startup")};
 };
 
-}  // namespace score::mw::launch_manager::configuration
+}  // namespace score::mw::lifecycle::configuration
 
 // Aliases for backward compatibility with score::mw::lifecycle::internal consumers
 namespace score::mw::lifecycle::internal
 {
-using ConfigurationAdapter = score::mw::launch_manager::configuration::ConfigurationAdapter;
-using OsProcess = score::mw::launch_manager::configuration::OsProcess;
-using DependencyList = score::mw::launch_manager::configuration::DependencyList;
-using ProcessGroup = score::mw::launch_manager::configuration::ProcessGroup;
-using ProcessGroupState = score::mw::launch_manager::configuration::ProcessGroupState;
-using PgManagerConfig = score::mw::launch_manager::configuration::PgManagerConfig;
-using Dependency = score::mw::launch_manager::configuration::Dependency;
+using ConfigurationAdapter = score::mw::lifecycle::configuration::ConfigurationAdapter;
+using OsProcess = score::mw::lifecycle::configuration::OsProcess;
+using DependencyList = score::mw::lifecycle::configuration::DependencyList;
+using ProcessGroup = score::mw::lifecycle::configuration::ProcessGroup;
+using ProcessGroupState = score::mw::lifecycle::configuration::ProcessGroupState;
+using PgManagerConfig = score::mw::lifecycle::configuration::PgManagerConfig;
+using Dependency = score::mw::lifecycle::configuration::Dependency;
 }  // namespace score::mw::lifecycle::internal
 
 #endif  // CONFIGURATIONADAPTER_HPP_INCLUDED

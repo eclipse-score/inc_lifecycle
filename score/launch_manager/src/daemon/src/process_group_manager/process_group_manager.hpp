@@ -43,7 +43,7 @@ namespace score::mw::lifecycle::internal
 {
 
 using ConfigurationType = ConfigurationAdapter;
-using Config = score::mw::launch_manager::configuration::Config;
+using Config = score::mw::lifecycle::configuration::Config;
 
 /// @brief ProcessGroupManager provides the core functionality of LCM.
 /// Software that is deployed to the machine, should be managed through Process Groups.
