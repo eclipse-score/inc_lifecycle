@@ -14,10 +14,7 @@
 #include "score/mw/launch_manager/process_state_client/details/process_state_receiver.hpp"
 #include "score/mw/launch_manager/common/log.hpp"
 
-namespace score
-{
-
-namespace lcm
+namespace score::mw::lifecycle
 {
 ProcessStateReceiver::ProcessStateReceiver(BufferP ring_buffer) noexcept : ring_buffer_(ring_buffer)
 {

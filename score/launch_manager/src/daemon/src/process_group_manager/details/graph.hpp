@@ -39,13 +39,7 @@
 #include "score/mw/launch_manager/process_state_client/iprocess_state_notifier.hpp"
 #include <score/stop_token.hpp>
 
-namespace score
-{
-
-namespace lcm
-{
-
-namespace internal
+namespace score::mw::lifecycle::internal
 {
 
 
@@ -427,10 +421,6 @@ class Graph final
     score::cpp::stop_source stop_source_;
 };
 
-}  // namespace internal
-
-}  // namespace lcm
-
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal
 
 #endif  /// GRAPH_HPP_INCLUDED

@@ -17,10 +17,7 @@
 #include "ipc_dropin/ringbuffer.hpp"
 #include "score/mw/launch_manager/process_state_client/iprocess_state_receiver.hpp"
 
-namespace score
-{
-
-namespace lcm
+namespace score::mw::lifecycle
 {
 
 using BufferP = std::shared_ptr<ipc_dropin::RingBuffer<
@@ -65,8 +62,6 @@ class ProcessStateReceiver final : public IProcessStateReceiver
     BufferP ring_buffer_{};
 };
 
-}  // namespace lcm
-
-}  // namespace score
+}  // namespace score::mw::lifecycle
 
 #endif  // PROCESSSTATERECEIVER_HPP_INCLUDED

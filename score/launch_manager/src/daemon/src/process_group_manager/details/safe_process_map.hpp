@@ -19,13 +19,7 @@
 #include <atomic>
 #include <cstdint>
 
-namespace score
-{
-
-namespace lcm
-{
-
-namespace internal
+namespace score::mw::lifecycle::internal
 {
 
 
@@ -222,10 +216,6 @@ class SafeProcessMap final : public SafeProcessMapInserter
     score::mw::lifecycle::internal::IComponentController& termination_handler_;
 };
 
-}  // namespace internal
-
-}  // namespace lcm
-
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal
 
 #endif  /// SAFE_PROCESS_MAP_HPP_INCLUDED

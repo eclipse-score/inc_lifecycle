@@ -18,10 +18,7 @@
 
 #include "score/mw/launch_manager/common/identifier_hash.hpp"
 
-namespace score
-{
-
-namespace lcm
+namespace score::mw::lifecycle
 {
 
 /// @brief Represents the execution error.
@@ -41,8 +38,6 @@ struct ExecutionErrorEvent final
     IdentifierHash processGroup;
 };
 
-}  // namespace lcm
-
-}  // namespace score
+}  // namespace score::mw::lifecycle
 
 #endif  // SCORE_LCM_EXECUTION_ERROR_EVENT_H_

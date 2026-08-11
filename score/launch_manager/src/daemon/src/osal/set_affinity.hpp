@@ -16,16 +16,7 @@
 
 #include <cstdint>
 
-namespace score
-{
-
-namespace lcm
-{
-
-namespace internal
-{
-
-namespace osal
+namespace score::mw::lifecycle::internal::osal
 {
 
 /// @brief Set the processor affinity for the current thread

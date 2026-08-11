@@ -16,13 +16,7 @@
 
 #include "score/mw/launch_manager/common/identifier_hash.hpp"
 
-namespace score
-{
-
-namespace lcm
-{
-
-namespace internal
+namespace score::mw::lifecycle::internal
 {
 
 /// @brief Represents process group state in a particular process group. process group state is unique within a process
@@ -35,10 +29,6 @@ struct ProcessGroupStateID final
     score::mw::lifecycle::IdentifierHash pg_state_name_;  ///< Name of the process group state.
 };
 
-}  // namespace internal
-
-}  // namespace lcm
-
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal
 
 #endif  // FUNCTION_STATE_ID_HPP_

@@ -18,13 +18,7 @@
 #include <score/assert.hpp>
 #include <unistd.h>
 
-namespace score
-{
-
-namespace lcm
-{
-
-namespace internal
+namespace score::mw::lifecycle::internal
 {
 
 using namespace score::mw::lifecycle::internal;
@@ -445,8 +439,4 @@ ControlClientChannelP ProcessInfoNode::getControlClientChannel() const
     return std::atomic_load(&control_client_channel_);
 }
 
-}  // namespace internal
-
-}  // namespace lcm
-
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal

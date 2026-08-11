@@ -20,16 +20,7 @@
 #include "score/mw/launch_manager/common/log.hpp"
 #include "semaphore.hpp"
 
-namespace score
-{
-
-namespace lcm
-{
-
-namespace internal
-{
-
-namespace osal
+namespace score::mw::lifecycle::internal::osal
 {
 
 struct IpcCommsSync;
@@ -137,12 +128,6 @@ struct IpcCommsSync final
     };
 };
 
-}  // namespace osal
-
-}  // namespace internal
-
-}  // namespace lcm
-
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::osal
 
 #endif  // OSAL_IPC_COMMS_HPP_INCLUDED

@@ -14,16 +14,7 @@
 
 #include "score/mw/launch_manager/osal/security_policy.hpp"
 #include <cerrno>
-namespace score
-{
-
-namespace lcm
-{
-
-namespace internal
-{
-
-namespace osal
+namespace score::mw::lifecycle::internal::osal
 {
 
 int setSecurityPolicy(const char* policy)
@@ -42,10 +33,4 @@ int setSecurityPolicy(const char* policy)
     }
 }
 
-}  // namespace osal
-
-}  // namespace internal
-
-}  // namespace lcm
-
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::osal

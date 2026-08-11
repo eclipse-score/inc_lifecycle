@@ -19,16 +19,7 @@
 
 #include "return_types.hpp"
 
-namespace score
-{
-
-namespace lcm
-{
-
-namespace internal
-{
-
-namespace osal
+namespace score::mw::lifecycle::internal::osal
 {
 
 /// @brief Semaphore class is a wrapper class for POSIX semaphores.
@@ -123,12 +114,6 @@ class Semaphore final
     sem_t sem_;
 };
 
-}  // namespace osal
-
-}  // namespace internal
-
-}  // namespace lcm
-
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::osal
 
 #endif  /// SEMAPHORE_HPP_INCLUDED

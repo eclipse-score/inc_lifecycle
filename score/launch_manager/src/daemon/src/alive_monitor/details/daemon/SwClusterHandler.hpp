@@ -137,6 +137,8 @@ class SwClusterHandler
     std::vector<supervision::Alive> aliveSupervisions;
 };
 
-}  // namespace score::mw::lifecycle::saf::daemon
+}  // namespace daemon
+}  // namespace saf
+}  // namespace score::mw::lifecycle
 
 #endif

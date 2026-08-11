@@ -58,6 +58,8 @@ class AliveMonitorImpl : public IAliveMonitor
     AliveMonitorConfig m_config;
 };
 
-}  // namespace score::mw::lifecycle::saf::daemon
+}  // namespace daemon
+}  // namespace saf
+}  // namespace score::mw::lifecycle
 
 #endif

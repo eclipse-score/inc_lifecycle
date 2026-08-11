@@ -22,13 +22,7 @@
 #include "score/mw/launch_manager/common/process_group_state_id.hpp"
 #include "score/mw/launch_manager/osal/ipc_comms.hpp"
 
-namespace score
-{
-
-namespace lcm
-{
-
-namespace internal
+namespace score::mw::lifecycle::internal
 {
 
 /// @brief This is initially some ID provided by the Control Client library. When received
@@ -308,10 +302,6 @@ constexpr ControlClientCodeMapping stateArray[] = {
     {ControlClientCode::kValidateProcessGroupStateFailed, "kValidateProcessGroupStateFailed"},
     {ControlClientCode::kValidateProcessGroupStateSuccess, "kValidateProcessGroupStateSuccess"}};
 
-}  // namespace internal
-
-}  // namespace lcm
-
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal
 
 #endif  // CONTROL_CLIENT_CHANNEL_HPP_INCLUDED

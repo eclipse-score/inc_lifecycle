@@ -13,16 +13,7 @@
 #include <sys/neutrino.h>
 
 #include "score/mw/launch_manager/osal/set_affinity.hpp"
-namespace score
-{
-
-namespace lcm
-{
-
-namespace internal
-{
-
-namespace osal
+namespace score::mw::lifecycle::internal::osal
 {
 
 int32_t setaffinity(uint64_t cpumask) noexcept(true)

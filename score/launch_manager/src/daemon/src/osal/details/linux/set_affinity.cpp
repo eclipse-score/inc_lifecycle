@@ -16,16 +16,7 @@
 #include "score/mw/launch_manager/osal/set_affinity.hpp"
 #include <cstdint>
 
-namespace score
-{
-
-namespace lcm
-{
-
-namespace internal
-{
-
-namespace osal
+namespace score::mw::lifecycle::internal::osal
 {
 
 std::int32_t setaffinity(std::uint64_t cpumask) noexcept(true)

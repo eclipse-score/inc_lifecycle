@@ -18,13 +18,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace score
-{
-
-namespace lcm
-{
-
-namespace internal
+namespace score::mw::lifecycle::internal
 {
 
 // coverity[autosar_cpp14_a0_1_1_violation:INTENTIONAL] These are constants that are used globally.
@@ -75,10 +69,6 @@ enum class ProcessLimits : std::uint32_t
     maxLocalBuffSize = 32U    ///< Maximum size for local buffer
 };
 
-}  // namespace internal
-
-}  // namespace lcm
-
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal
 
 #endif  // CONSTANTS_HPP_INCLUDED

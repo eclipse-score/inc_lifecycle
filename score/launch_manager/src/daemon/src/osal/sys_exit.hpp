@@ -14,16 +14,7 @@
 #ifndef SYSEXIT_HPP_INCLUDED
 #define SYSEXIT_HPP_INCLUDED
 
-namespace score
-{
-
-namespace lcm
-{
-
-namespace internal
-{
-
-namespace osal
+namespace score::mw::lifecycle::internal::osal
 {
 
 /// @brief Call the system exit function, which is marked [noreturn].

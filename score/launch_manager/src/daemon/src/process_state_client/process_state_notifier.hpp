@@ -17,13 +17,7 @@
 #include "ipc_dropin/ringbuffer.hpp"
 #include "score/mw/launch_manager/process_state_client/iprocess_state_notifier.hpp"
 
-namespace score
-{
-
-namespace lcm
-{
-
-namespace internal
+namespace score::mw::lifecycle::internal
 {
 
 ///
@@ -78,9 +72,5 @@ class ProcessStateNotifier final : public IProcessStateNotifier
         ring_buffer_{};
 };
 
-}  // namespace internal
-
-}  // namespace lcm
-
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal
 #endif

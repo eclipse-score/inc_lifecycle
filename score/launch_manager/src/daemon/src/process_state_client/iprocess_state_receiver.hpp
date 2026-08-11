@@ -20,10 +20,7 @@
 
 #include "score/mw/launch_manager/process_state_client/posix_process.hpp"
 
-namespace score
-{
-
-namespace lcm
+namespace score::mw::lifecycle
 {
 
 /// @brief IProcessStateReceiver interface for handling the information about each Process current state.
@@ -41,8 +38,6 @@ class IProcessStateReceiver
     virtual score::Result<std::optional<PosixProcess>> getNextChangedPosixProcess() noexcept = 0;
 };
 
-}  // namespace lcm
-
-}  // namespace score
+}  // namespace score::mw::lifecycle
 
 #endif

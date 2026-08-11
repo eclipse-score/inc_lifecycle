@@ -24,13 +24,7 @@
 
 #include "score/mw/log/logger.h"
 
-namespace score
-{
-
-namespace lcm
-{
-
-namespace internal
+namespace score::mw::lifecycle::internal
 {
 
 /// @brief Function to access global logging context, for Launch Manager.
@@ -46,11 +40,7 @@ inline score::mw::log::Logger& _getLmLogger() noexcept
     return log;
 }
 
-}  // namespace internal
-
-}  // namespace lcm
-
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal
 
 #else  // LC_LOG_SCORE_MW_LOG
 

@@ -21,13 +21,7 @@
 #include "score/mw/launch_manager/common/constants.hpp"
 #include "score/mw/launch_manager/common/log.hpp"
 
-namespace score
-{
-
-namespace lcm
-{
-
-namespace internal
+namespace score::mw::lifecycle::internal
 {
 
 void ControlClientChannel::initialize()
@@ -280,8 +274,4 @@ bool ControlClientChannel::is_initialized_ = false;
 std::condition_variable ControlClientChannel::init_cv_{};
 std::mutex ControlClientChannel::init_mutex_{};
 
-}  // namespace internal
-
-}  // namespace lcm
-
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal

@@ -16,10 +16,7 @@
 #include "score/mw/launch_manager/process_state_client/iprocess_state_receiver.hpp"
 #include "score/mw/launch_manager/process_state_client/posix_process.hpp"
 
-namespace score
-{
-
-namespace lcm
+namespace score::mw::lifecycle
 {
 
 ///
@@ -48,8 +45,6 @@ class IProcessStateNotifier
     virtual bool queuePosixProcess(const score::mw::lifecycle::PosixProcess& f_posixProcess) noexcept = 0;
 };
 
-}  // namespace lcm
-
-}  // namespace score
+}  // namespace score::mw::lifecycle
 
 #endif

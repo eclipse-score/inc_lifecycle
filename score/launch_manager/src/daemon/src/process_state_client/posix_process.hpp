@@ -18,10 +18,7 @@
 #include <cstdint>
 #include <ctime>  // for definition of "timespec"
 
-namespace score
-{
-
-namespace lcm
+namespace score::mw::lifecycle
 {
 
 /// @brief Represents the state of a modelled process.
@@ -74,8 +71,6 @@ enum class BufferConstants : size_t
     BUFFER_QUEUE_SIZE = 4096UL  // Ringbuffer queue size
 };
 
-}  // namespace lcm
-
-}  // namespace score
+}  // namespace score::mw::lifecycle
 
 #endif  // POSIXPROCESS_HPP_INCLUDED

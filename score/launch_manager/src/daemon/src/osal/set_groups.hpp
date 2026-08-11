@@ -18,16 +18,7 @@
 
 #include <cstdint>
 
-namespace score
-{
-
-namespace lcm
-{
-
-namespace internal
-{
-
-namespace osal
+namespace score::mw::lifecycle::internal::osal
 {
 
 /// @brief Call the setgroups() function, which has a different signature in Linux and QNX.

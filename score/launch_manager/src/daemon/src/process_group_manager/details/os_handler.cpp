@@ -13,13 +13,7 @@
 
 #include "score/mw/launch_manager/process_group_manager/details/os_handler.hpp"
 
-namespace score
-{
-
-namespace lcm
-{
-
-namespace internal
+namespace score::mw::lifecycle::internal
 {
 
 void OsHandler::run(void)
@@ -48,8 +42,4 @@ void OsHandler::run(void)
     }
 }
 
-}  // namespace internal
-
-}  // namespace lcm
-
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal
