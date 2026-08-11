@@ -33,9 +33,7 @@ ProcessInfoNode::ProcessInfoNode(
       process_index_(index),
       pid_(0),
       status_(0),
-      process_state_(score::mw::lifecycle::ProcessState::kIdle),
-      ready_condition_(ready_condition),
-      config_(config),
+      config_(std::move(config)),
       state_publisher_(state_publisher),
       process_interface_(process_interface),
       process_map_(std::move(process_map))
@@ -78,7 +76,7 @@ IComponent::RequestResult ProcessInfoNode::tryReportSuccess()
 
         if (auto time = getTimeForReport())
         {
-            state_publisher_.reportActivation(config_->process_id_, time.value());
+            state_publisher_.reportActivation(IdentifierHash{config_.name}, time.value());
         }
 
         return {RequestState::kSuccess};
@@ -88,7 +86,8 @@ IComponent::RequestResult ProcessInfoNode::tryReportSuccess()
 
 std::optional<timespec> ProcessInfoNode::getTimeForReport() const
 {
-    if (config_->startup_config_.comms_type_ == osal::CommsType::kNoComms)
+    if (config_.component_properties.application_profile.application_type ==
+        score::mw::lifecycle::internal::configuration::ApplicationType::Native)
     {
         return std::nullopt;
     }
@@ -412,7 +411,7 @@ IComponent::RequestResult ProcessInfoNode::deactivate(score::cpp::stop_token sto
     reached_ready_.store(false);
     if (auto time = getTimeForReport())
     {
-        state_publisher_.reportDeactivation(config_->process_id_, time.value());
+        state_publisher_.reportDeactivation(IdentifierHash{config_.name}, time.value());
     }
     terminateProcess(stop_token);
     setState(ProcessState::kIdle);
