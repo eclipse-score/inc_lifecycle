@@ -2158,7 +2158,7 @@
   {
     "name": "ProcessGroupManagerWatchdogTest__GivenMinimalConfig_ExpectWatchdogDisabled_WhenDeinitializeCalled",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_group_manager_UT.cpp",
-    "line": "237",
+    "line": "238",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
