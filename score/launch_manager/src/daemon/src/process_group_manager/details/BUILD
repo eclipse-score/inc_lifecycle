@@ -11,7 +11,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+load("@rules_cc//cc:defs.bzl", "cc_library")
 load("//tests/utils/bazel:unit_test.bzl", "lm_cc_test")
 
 cc_library(
@@ -126,7 +126,7 @@ cc_library(
     ],
 )
 
-cc_test(
+lm_cc_test(
     name = "component_event_queue_UT",
     srcs = ["component_event_queue_UT.cpp"],
     deps = [
@@ -155,7 +155,7 @@ cc_library(
     ],
 )
 
-cc_test(
+lm_cc_test(
     name = "process_info_node_UT",
     srcs = ["process_info_node_UT.cpp"],
     deps = [
@@ -203,7 +203,7 @@ cc_library(
     ],
 )
 
-cc_test(
+lm_cc_test(
     name = "graph_UT",
     srcs = ["graph_UT.cpp"],
     deps = [
@@ -356,7 +356,7 @@ cc_library(
     ],
 )
 
-cc_test(
+lm_cc_test(
     name = "dependency_graph_UT",
     srcs = ["dependency_graph_UT.cpp"],
     deps = [
@@ -366,7 +366,7 @@ cc_test(
     ],
 )
 
-cc_test(
+lm_cc_test(
     name = "transition_UT",
     srcs = ["transition_UT.cpp"],
     deps = [
