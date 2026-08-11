@@ -17,13 +17,11 @@
 
 #include "score/mw/launch_manager/process_group_manager/details/safe_process_map.hpp"
 
-namespace score
-{
 
-namespace lcm
-{
 
-namespace internal
+
+
+namespace score::lcm::internal
 {
 
 SafeProcessMap::SafeProcessMap(uint32_t capacity, IComponentController& termination_handler)
@@ -310,8 +308,8 @@ SafeProcessMapReturnType SafeProcessMap::insertIfNotTerminated(osal::ProcessID k
     return static_cast<SafeProcessMapReturnType>(search(key, {0, object}));
 }
 
-}  // namespace internal
+} // namespace score::lcm::internal
 
-}  // namespace lcm
 
-}  // namespace score
+
+

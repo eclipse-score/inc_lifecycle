@@ -22,13 +22,11 @@
 #include <score/stop_token.hpp>
 #include <atomic>
 
-namespace score
-{
 
-namespace lcm
-{
 
-namespace internal
+
+
+namespace score::lcm::internal
 {
 
 using namespace score::mw::lifecycle::internal;
@@ -219,10 +217,10 @@ class ProcessInfoNode final : public IComponent
     std::shared_ptr<SafeProcessMapInserter> process_map_;
 };
 
-}  // namespace internal
+} // namespace score::lcm::internal
 
-}  // namespace lcm
 
-}  // namespace score
+
+
 
 #endif

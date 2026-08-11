@@ -16,9 +16,8 @@
 
 #include "score/mw/launch_manager/recovery_client/recovery_client.hpp"
 
-namespace score
-{
-namespace lcm
+
+namespace score::lcm
 {
 
 class RecoveryClientTest : public ::testing::Test
@@ -103,5 +102,5 @@ TEST_F(RecoveryClientTest, ReRegisteringCallbackReplacesPreviousCallback)
     EXPECT_EQ(callback2_calls, 1U);
 }
 
-}  // namespace lcm
-}  // namespace score
+} // namespace score::lcm
+

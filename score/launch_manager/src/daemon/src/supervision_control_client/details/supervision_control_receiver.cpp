@@ -14,10 +14,9 @@
 #include "score/mw/launch_manager/supervision_control_client/details/supervision_control_receiver.hpp"
 #include "score/mw/launch_manager/common/log.hpp"
 
-namespace score
-{
 
-namespace lcm
+
+namespace score::lcm
 {
 SupervisionControlReceiver::SupervisionControlReceiver(BufferP ring_buffer) noexcept : ring_buffer_(ring_buffer)
 {
@@ -54,5 +53,5 @@ score::Result<std::optional<SupervisionEvent>> SupervisionControlReceiver::getNe
             score::MakeUnexpected(score::mw::lifecycle::ExecErrc::kGeneralError)};
     }
 }
-}  // namespace lcm
-}  // namespace score
+} // namespace score::lcm
+

@@ -14,9 +14,8 @@
 
 #include <utility>
 
-namespace score
-{
-namespace lcm
+
+namespace score::lcm
 {
 
 void RecoveryClient::setRecoveryRequestCallback(RecoveryRequestCallback callback) noexcept
@@ -35,5 +34,5 @@ bool RecoveryClient::sendRecoveryRequest(const score::lcm::IdentifierHash& proce
     callback_(process_identifier);
     return true;
 }
-}  // namespace lcm
-}  // namespace score
+} // namespace score::lcm
+

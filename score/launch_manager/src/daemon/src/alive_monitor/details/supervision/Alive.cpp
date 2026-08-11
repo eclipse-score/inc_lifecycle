@@ -21,13 +21,10 @@
 #include "score/mw/launch_manager/alive_monitor/details/timers/TimeConversion.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
 
-namespace score
-{
-namespace lcm
-{
-namespace saf
-{
-namespace supervision
+
+
+
+namespace score::lcm::saf::supervision
 {
 
 Alive::Alive(const AliveSupervisionCfg& f_aliveCfg_r)
@@ -600,7 +597,7 @@ timers::NanoSecondType Alive::getTimestampOfUpdateEvent(const TimeSortedUpdateEv
     return timestamp;
 }
 
-}  // namespace supervision
-}  // namespace saf
-}  // namespace lcm
-}  // namespace score
+} // namespace score::lcm::saf::supervision
+
+
+

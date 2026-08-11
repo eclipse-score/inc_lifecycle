@@ -12,11 +12,9 @@
  ********************************************************************************/
 #include "score/mw/launch_manager/process_group_manager/alive_monitor_thread.hpp"
 
-namespace score
-{
-namespace lcm
-{
-namespace internal
+
+
+namespace score::lcm::internal
 {
 
 AliveMonitorThread::AliveMonitorThread(std::unique_ptr<saf::daemon::IAliveMonitor> health_monitor)
@@ -71,6 +69,6 @@ void AliveMonitorThread::waitForInitializationCompleted(score::lcm::saf::daemon:
     });
 }
 
-}  // namespace internal
-}  // namespace lcm
-}  // namespace score
+} // namespace score::lcm::internal
+
+

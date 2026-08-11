@@ -176,16 +176,13 @@ void changeSecurityPolicy(const score::lcm::internal::osal::OsalConfig& config)
 
 }  // namespace
 
-namespace score
-{
 
-namespace lcm
-{
 
-namespace internal
-{
 
-namespace osal
+
+
+
+namespace score::lcm::internal::osal
 {
 
 OsalReturnType ProcessLauncher::startProcess(ProcessID* pid, IpcCommsP* block, const OsalConfig* config)
@@ -584,10 +581,10 @@ OsalReturnType ProcessLauncher::waitForkRunning(IpcCommsP sync, std::chrono::mil
     return result;
 }
 
-}  // namespace osal
+} // namespace score::lcm::internal::osal
 
-}  // namespace internal
 
-}  // namespace lcm
 
-}  // namespace score
+
+
+

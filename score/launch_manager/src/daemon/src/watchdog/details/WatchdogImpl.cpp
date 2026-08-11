@@ -19,11 +19,9 @@
 #include "score/mw/launch_manager/configuration/config.hpp"
 #include "score/mw/launch_manager/watchdog/details/Watchdog.hpp"
 
-namespace score
-{
-namespace lcm
-{
-namespace watchdog
+
+
+namespace score::lcm::watchdog
 {
 
 namespace
@@ -467,6 +465,6 @@ void WatchdogImpl::waitForever() const noexcept
 #pragma CTC ENDSKIP
 #endif
 
-}  // namespace watchdog
-}  // namespace lcm
-}  // namespace score
+} // namespace score::lcm::watchdog
+
+

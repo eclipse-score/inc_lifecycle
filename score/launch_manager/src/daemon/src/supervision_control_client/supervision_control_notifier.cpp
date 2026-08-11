@@ -15,11 +15,9 @@
 #include "score/mw/launch_manager/common/log.hpp"
 #include "score/mw/launch_manager/supervision_control_client/details/supervision_control_receiver.hpp"
 
-namespace score
-{
-namespace lcm
-{
-namespace internal
+
+
+namespace score::lcm::internal
 {
 
 SupervisionControlNotifier::SupervisionControlNotifier() noexcept
@@ -65,6 +63,6 @@ std::unique_ptr<score::lcm::ISupervisionControlReceiver> SupervisionControlNotif
     return std::make_unique<score::lcm::SupervisionControlReceiver>(ring_buffer_);
 }
 
-}  // namespace internal
-}  // namespace lcm
-}  // namespace score
+} // namespace score::lcm::internal
+
+

@@ -18,13 +18,10 @@
 #include "score/mw/launch_manager/alive_monitor/details/ifappl/MonitorIfDaemon.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/supervision/Alive.hpp"
 
-namespace score
-{
-namespace lcm
-{
-namespace saf
-{
-namespace daemon
+
+
+
+namespace score::lcm::saf::daemon
 {
 
 SwClusterHandler::SwClusterHandler(const std::string& f_swClusterName_r)
@@ -118,7 +115,7 @@ void SwClusterHandler::performCyclicTriggers(const timers::NanoSecondType f_sync
     evaluateSupervisions(f_syncTimestamp);
 }
 
-}  // namespace daemon
-}  // namespace saf
-}  // namespace lcm
-}  // namespace score
+} // namespace score::lcm::saf::daemon
+
+
+

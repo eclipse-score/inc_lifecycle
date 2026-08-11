@@ -15,13 +15,10 @@
 
 #include "score/mw/launch_manager/osal/num_cores.hpp"
 
-namespace score
-{
-namespace lcm
-{
-namespace internal
-{
-namespace osal
+
+
+
+namespace score::lcm::internal::osal
 {
 uint32_t getNumCores()
 {
@@ -35,7 +32,7 @@ uint32_t getNumCores()
         return static_cast<uint32_t>(res);
     }
 }
-}  // namespace osal
-}  // namespace internal
-}  // namespace lcm
-}  // namespace score
+} // namespace score::lcm::internal::osal
+
+
+

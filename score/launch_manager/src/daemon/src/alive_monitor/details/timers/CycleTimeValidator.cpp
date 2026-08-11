@@ -12,13 +12,10 @@
  ********************************************************************************/
 #include "score/mw/launch_manager/alive_monitor/details/timers/CycleTimeValidator.hpp"
 
-namespace score
-{
-namespace lcm
-{
-namespace saf
-{
-namespace timers
+
+
+
+namespace score::lcm::saf::timers
 {
 
 int64_t CycleTimeValidator::getMonotonicClockAccuracy(
@@ -59,7 +56,7 @@ int64_t CycleTimeValidator::adjustCycleTimeOnClockAccuracy(
     return intervalNs;
 }
 
-}  // namespace timers
-}  // namespace saf
-}  // namespace lcm
-}  // namespace score
+} // namespace score::lcm::saf::timers
+
+
+
