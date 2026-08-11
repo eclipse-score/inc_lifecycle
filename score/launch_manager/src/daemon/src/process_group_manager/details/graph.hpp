@@ -25,6 +25,7 @@
 
 #include "score/mw/launch_manager/common/concurrency/mpmc_concurrent_queue.hpp"
 #include "score/mw/launch_manager/common/identifier_hash.hpp"
+#include "score/mw/launch_manager/configuration/config.hpp"
 #include "score/mw/launch_manager/control/control_client_channel.hpp"
 #include "score/mw/launch_manager/osal/semaphore.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/component_event.hpp"
@@ -47,8 +48,6 @@ namespace mw::lifecycle
 
 namespace internal
 {
-
-using Config = score::mw::lifecycle::internal::configuration::Config;
 
 using WorkerQueue =
     MPMCConcurrentQueue<std::optional<ComponentTask>, static_cast<std::size_t>(ProcessLimits::kMaxProcesses)>;
@@ -146,11 +145,14 @@ static constexpr GraphState state_results[][static_cast<uint>(GraphState::kUndef
 class Graph final
 {
   public:
+    /// @brief All possible implementation of a Component.
+    using Component = std::variant<ProcessInfoNode, RunTarget>;
+
     /// @brief Constructor to initialize a Graph object.
     /// @param max_num_nodes Maximum number of nodes this graph can hold.
     Graph(
         uint32_t max_num_nodes,
-        ConfigurationAdapter* configuration,
+        configuration::Config* configuration,
         std::shared_ptr<WorkerQueue> job_queue,
         osal::IProcess* process_interface,
         std::shared_ptr<SafeProcessMapInserter> process_map,
@@ -289,9 +291,6 @@ class Graph final
     void forceKillProcesses();
 
   private:
-    /// @brief Helper function to identify a node with ready state "Terminated" from the legacy configuration
-    bool nodeHasTerminatedDeps(IdentifierHash pg_name, uint32_t node_index);
-
     /// @brief Reports that a node has finished executing, enqueuing successors or updating the graph state if a
     /// transition has finished.
     void nodeExecuted(uint32_t node, score::cpp::expected_blank<IComponent::ComponentError> error);
@@ -306,22 +305,8 @@ class Graph final
     /// @returns False if the requested state was not set
     bool setState(GraphState new_state);
 
-    /// @brief Creates one ProcessInfoNode per process and adds it to the dependency graph.
-    /// @param num_processes The number of processes in this process group.
-    void createProcessInfoNodes(uint32_t num_processes);
-
-    /// @brief Creates one RunTarget node per configured ProcessGroupState and wires it to depend
-    /// on the processes listed for that state.
-    /// @param pg_name The identifier of the process group.
-    void createRunTargetNodes(IdentifierHash pg_name);
-
     /// @return The index of the RunTarget node for @p pg_state, or -1 if not found.
     int32_t getRunTargetIndex(IdentifierHash pg_state) const;
-
-    /// @brief Reads process dependencies from the configuration and adds the corresponding
-    /// edges to the dependency graph.
-    /// @param pg_name The identifier of the process group.
-    void createSuccessorLists(IdentifierHash pg_name);
 
     /// @brief Pushes the given task onto the worker queue while the graph is in transition.
     /// Retries on timeout.
@@ -355,16 +340,13 @@ class Graph final
 
     /// @brief Nodes for all unique processes in this process group, plus a virtual RunTarget node
     /// per configured ProcessGroupState.
-    DependencyGraph<std::variant<ProcessInfoNode, RunTarget>> nodes_;
-
-    /// @brief Maps a ProcessGroupState name to the index of its RunTarget node in @c nodes_.
-    std::vector<std::pair<IdentifierHash, uint32_t>> run_targets_;
+    DependencyGraph<Component> nodes_;
 
     /// @brief Builder for creating the transition object for the current state transition.
-    TransitionBuilder<std::variant<ProcessInfoNode, RunTarget>> transition_builder_;
+    TransitionBuilder<Component> transition_builder_;
 
     /// @brief The currently active transition or nullptr before the first one starts.
-    Transition<std::variant<ProcessInfoNode, RunTarget>>* current_transition_{nullptr};
+    Transition<Component>* current_transition_{nullptr};
 
     /// @brief Current state of the graph.
     GraphState state_{GraphState::kSuccess};
@@ -376,7 +358,7 @@ class Graph final
     mutable std::mutex requested_state_mutex_{};
 
     /// @brief Config pointer to set up graph nodes
-    ConfigurationAdapter* configuration_;
+    configuration::Config* configuration_;
 
     /// @brief Queue to push component tasks to
     std::shared_ptr<WorkerQueue> job_queue_;
@@ -415,7 +397,7 @@ class Graph final
     ControlClientMessage cancel_message_;
 
     /// @brief Constant for Off state.
-    IdentifierHash off_state_{};
+    IdentifierHash off_state_{"Off"};
 
     /// @brief Stores the timestamp based on the system clock when starting a request
     std::chrono::time_point<std::chrono::steady_clock> request_start_time_;

@@ -16,6 +16,7 @@
 #include <score/span.hpp>
 #include <functional>
 #include <type_traits>
+#include <unordered_map>
 #include <variant>
 
 #include "score/mw/launch_manager/common/log.hpp"
@@ -27,9 +28,108 @@
 namespace score::mw::lifecycle::internal
 {
 
+namespace
+{
+
+using namespace score::mw::lifecycle::internal;
+
+/// @brief Creates a dependency graph from the configuration.
+/// @param config The configuration containing components and run targets.
+/// @param supervision_event_publisher Publisher for supervision events.
+/// @param process_interface Interface for OS process operations.
+/// @param process_map Map for tracking process PIDs.
+/// @return A populated dependency graph with all components and run targets.
+DependencyGraph<Graph::Component> CreateDependencyGraph(
+    configuration::Config* config,
+    ISupervisionEventPublisher& supervision_event_publisher,
+    osal::IProcess* process_interface,
+    std::shared_ptr<SafeProcessMapInserter> process_map)
+{
+    const auto& run_targets = config->runTargets();
+    auto components = config->takeComponents();
+
+    DependencyGraph<Graph::Component> graph(components.size() + run_targets.size());
+
+    // map component names to their graph index, needed for deps
+    // (there is probably a better way of walking the graph)
+    std::unordered_map<std::string, GraphIndex> component_name_to_index;
+
+    // store dependency information before moving components
+    std::vector<std::vector<std::string>> component_dependencies;
+    component_dependencies.reserve(components.size());
+    for (auto& component_config : components)
+    {
+        component_dependencies.push_back(std::move(component_config.component_properties.depends_on));
+    }
+
+    // insert all components and build the <name, index> map
+    for (std::size_t i = 0; i < components.size(); ++i)
+    {
+        const auto component_name = components[i].name;
+
+        LM_LOG_DEBUG() << "Creating component node:" << component_name;
+
+        const auto index = graph.emplace(
+            std::in_place_type<ProcessInfoNode>,
+            std::move(components[i]),
+            static_cast<uint32_t>(i),
+            supervision_event_publisher,
+            process_interface,
+            process_map);
+
+        component_name_to_index[component_name] = index;
+
+        // all of this relies on graphindex having sequential indexes
+        // TODO use IdHash later...
+        SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(
+            index == i, "Component graph indices must match component order");
+    }
+
+    LM_LOG_DEBUG() << "Created" << components.size() << "component nodes";
+
+    // do the component dependencies
+    for (std::size_t i = 0; i < component_dependencies.size(); ++i)
+    {
+        for (const auto& dep_name : component_dependencies[i])
+        {
+            auto it = component_name_to_index.find(dep_name);
+            SCORE_LANGUAGE_FUTURECPP_PRECONDITION_MESSAGE(
+                it != component_name_to_index.end(),
+                "Component dependency not found in component list");
+
+            graph.addDependency(i, it->second);
+        }
+    }
+
+    // create run_targets and do their dependencies
+    for (const auto& run_target_config : run_targets)
+    {
+        const auto node_index = static_cast<uint32_t>(graph.size());
+        static_cast<void>(graph.emplace(std::in_place_type<RunTarget>, node_index));
+
+        LM_LOG_DEBUG() << "Created RunTarget node:" << run_target_config.name << "at index" << node_index;
+
+        for (const auto& dep_name : run_target_config.depends_on)
+        {
+            auto it = component_name_to_index.find(dep_name);
+            SCORE_LANGUAGE_FUTURECPP_PRECONDITION_MESSAGE(
+                it != component_name_to_index.end(),
+                "RunTarget dependency not found in component list");
+
+            graph.addDependency(node_index, it->second);
+        }
+    }
+
+    LM_LOG_DEBUG() << "Created dependency graph with" << graph.size() << "total nodes";
+
+    return graph;
+}
+
+}  // anonymous namespace
+
 Graph::Graph(
     uint32_t max_num_nodes,
-    ConfigurationAdapter* configuration,
+    configuration::Config* configuration,
     std::shared_ptr<WorkerQueue> job_queue,
     osal::IProcess* process_interface,
     std::shared_ptr<SafeProcessMapInserter> process_map,
@@ -68,127 +168,28 @@ Graph::~Graph()
 void Graph::initProcessGroupNodes(IdentifierHash pg_name, uint32_t num_processes, uint32_t index)
 {
     pg_index_ = index;
-    off_state_ = configuration_->getNameOfOffState(pg_name);
     requested_state_.pg_state_name_ = off_state_;
     requested_state_.pg_name_ = pg_name;
 
     LM_LOG_DEBUG() << "Process group index" << index << "(with name" << pg_name << ") has" << num_processes
                    << "processes";
 
-    createProcessInfoNodes(num_processes);
-
-    if (nodes_.size() == num_processes)
-    {
-        createSuccessorLists(pg_name);
-        createRunTargetNodes(pg_name);
-    }
-}
-
-void Graph::createProcessInfoNodes(uint32_t num_processes)
-{
-    for (uint32_t process_id = 0U; process_id < num_processes; ++process_id)
-    {
-        LM_LOG_DEBUG() << "Creating process node with id:" << process_id;
-        auto ready_condition = nodeHasTerminatedDeps(getProcessGroupName(), process_id)
-                                   ? ProcessInfoNode::ReadyCondition::kTerminated
-                                   : ProcessInfoNode::ReadyCondition::kRunning;
-
-        const auto* config =
-            configuration_->getOsProcessConfiguration(getProcessGroupName(), process_id).value_or(nullptr);
-        if (!config)
-        {
-            LM_LOG_ERROR() << "No configuration for process" << process_id << "of process group"
-                           << getProcessGroupName();
-        }
-
-        const auto index = nodes_.emplace(
-            std::in_place_type<ProcessInfoNode>,
-            config,
-            process_id,
-            ready_condition,
-            supervision_event_publisher_,
-            process_interface_,
-            process_map_);
-        static_cast<void>(index);
-        SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(
-            index == process_id, "Graph indicies must line up with os process indices");
-    }
-    LM_LOG_DEBUG() << "Created" << nodes_.size() << "process nodes";
-}
-
-void Graph::createRunTargetNodes(IdentifierHash pg_name)
-{
-    const auto num_processes = nodes_.size();
-    const auto* states = configuration_->getListOfProcessGroupStates(pg_name).value_or(nullptr);
-
-    SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(states != nullptr, "Process group states not found for process group");
-
-    for (const auto& state : *states)
-    {
-        const auto node_index = static_cast<uint32_t>(nodes_.size());
-        const auto emplaced_index = nodes_.emplace(std::in_place_type<RunTarget>, node_index);
-        static_cast<void>(emplaced_index);
-        SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(
-            emplaced_index == node_index, "RunTarget index must match its position in the graph");
-        run_targets_.emplace_back(state.name_, node_index);
-
-        for (const auto process_index : state.process_indexes_)
-        {
-            SCORE_LANGUAGE_FUTURECPP_PRECONDITION_MESSAGE(
-                process_index < num_processes,
-                "Process index is out of range for the dependency graph of process group");
-            nodes_.addDependency(node_index, process_index);
-            LM_LOG_DEBUG() << "Added RunTarget dependency:" << process_index << "->" << node_index;
-        }
-    }
+    nodes_ = CreateDependencyGraph(configuration_, supervision_event_publisher_, process_interface_, process_map_);
 }
 
 int32_t Graph::getRunTargetIndex(IdentifierHash pg_state) const
 {
-    for (const auto& [state_name, index] : run_targets_)
+    const auto& run_targets = configuration_->runTargets();
+    const auto num_components = nodes_.size() - run_targets.size();
+
+    for (std::size_t i = 0; i < run_targets.size(); ++i)
     {
-        if (state_name == pg_state)
+        if (IdentifierHash(run_targets[i].name) == pg_state)
         {
-            return static_cast<int32_t>(index);
+            return static_cast<int32_t>(num_components + i);
         }
     }
     return -1;
-}
-
-bool Graph::nodeHasTerminatedDeps(IdentifierHash pg_name, uint32_t node_index)
-{
-    const DependencyList* dep_list = configuration_->getOsProcessDependencies(pg_name, node_index).value_or(nullptr);
-
-    if (dep_list && dep_list->size() > 0)
-    {
-        return (*dep_list)[0].process_state_ == ProcessState::kTerminated;
-    }
-
-    return false;
-}
-
-void Graph::createSuccessorLists(IdentifierHash pg_name)
-{
-    LM_LOG_DEBUG() << "Creating successor lists for process group" << pg_name;
-
-    // Now create the successor lists for each process in this process group
-    for (std::size_t i = 0; i < nodes_.size(); i++)
-    {
-        const DependencyList* dep_list = configuration_->getOsProcessDependencies(pg_name, i).value_or(nullptr);
-
-        if (dep_list)
-        {
-            for (const Dependency& dep : *dep_list)
-            {
-                SCORE_LANGUAGE_FUTURECPP_PRECONDITION_MESSAGE(
-                    dep.os_process_index_ < nodes_.size(),
-                    "Process index is out of range for the dependency graph of process group");
-
-                nodes_.addDependency(i, dep.os_process_index_);
-                LM_LOG_DEBUG() << "Added successor node dependency:" << dep.os_process_index_ << "->" << i;
-            }
-        }
-    }
 }
 
 bool Graph::setState(GraphState new_state)
