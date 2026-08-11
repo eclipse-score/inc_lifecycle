@@ -94,7 +94,7 @@ use_repo(llvm, "llvm_toolchain")
 
 # UTs on QNX
 bazel_dep(name = "score_qnx_unit_tests", version = "0.2.0", dev_dependency = True)
-bazel_dep(name = "score_rules_imagefs", version = "0.0.3", dev_dependency = True)
+bazel_dep(name = "score_rules_imagefs", version = "0.0.4", dev_dependency = True)
 
 imagefs = use_extension("@score_rules_imagefs//extensions:imagefs.bzl", "imagefs", dev_dependency = True)
 imagefs.toolchain(
