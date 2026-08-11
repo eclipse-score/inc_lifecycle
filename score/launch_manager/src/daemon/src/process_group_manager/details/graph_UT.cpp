@@ -188,7 +188,7 @@ class GraphTest : public ::testing::Test
         job_queue_,
         &process_interface_,
         mock_process_map,
-        &mock_supervision_event_publisher_,
+        mock_supervision_event_publisher_,
         &mock_transition_result_publisher_};
 
     static constexpr std::string_view pg_string{"MainPG"};

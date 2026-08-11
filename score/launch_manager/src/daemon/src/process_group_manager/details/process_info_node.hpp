@@ -63,7 +63,7 @@ class ProcessInfoNode final : public IComponent
         const OsProcess* config,
         uint32_t index,
         ReadyCondition ready_condition,
-        ISupervisionEventPublisher* state_publisher,
+        ISupervisionEventPublisher& state_publisher,
         osal::IProcess* process_interface,
         std::shared_ptr<SafeProcessMapInserter> process_map);
 
@@ -80,6 +80,7 @@ class ProcessInfoNode final : public IComponent
           config_(other.config_),
           control_client_channel_(std::move(other.control_client_channel_)),
           sync_(std::move(other.sync_)),
+          state_publisher_(other.state_publisher_),
           process_interface_(other.process_interface_),
           process_map_(std::move(other.process_map_))
     {
@@ -206,7 +207,7 @@ class ProcessInfoNode final : public IComponent
     osal::IpcCommsP sync_{nullptr};
 
     /// @brief Interface for reporting component state to health monitor
-    ISupervisionEventPublisher* state_publisher_;
+    ISupervisionEventPublisher& state_publisher_;
 
     /// @brief True if we have returned a success or failure for the current activation/deactivation
     std::atomic_flag success_returned_{false};

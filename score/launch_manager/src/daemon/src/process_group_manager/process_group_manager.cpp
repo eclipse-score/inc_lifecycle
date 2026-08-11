@@ -245,7 +245,7 @@ bool ProcessGroupManager::initializeProcessGroups()
                 worker_jobs_,
                 &process_interface_,
                 process_map_,
-                supervision_control_notifier_.get(),
+                *supervision_control_notifier_.get(),
                 this));
         }
     }

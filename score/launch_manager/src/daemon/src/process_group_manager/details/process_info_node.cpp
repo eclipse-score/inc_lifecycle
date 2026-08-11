@@ -31,7 +31,7 @@ ProcessInfoNode::ProcessInfoNode(
     const OsProcess* config,
     uint32_t index,
     ReadyCondition ready_condition,
-    ISupervisionEventPublisher* state_publisher,
+    ISupervisionEventPublisher& state_publisher,
     osal::IProcess* process_interface,
     std::shared_ptr<SafeProcessMapInserter> process_map)
     : terminator_(),
@@ -80,7 +80,7 @@ IComponent::RequestResult ProcessInfoNode::tryReportSuccess()
 
         if (auto time = getTimeForReport())
         {
-            state_publisher_->reportActivation(config_->process_id_, time.value());
+            state_publisher_.reportActivation(config_->process_id_, time.value());
         }
 
         return {RequestState::kSuccess};
@@ -416,7 +416,7 @@ IComponent::RequestResult ProcessInfoNode::deactivate(score::cpp::stop_token sto
     reached_ready_.store(false);
     if (auto time = getTimeForReport())
     {
-        state_publisher_->reportDeactivation(config_->process_id_, time.value());
+        state_publisher_.reportDeactivation(config_->process_id_, time.value());
     }
     terminateProcess(stop_token);
     setState(ProcessState::kIdle);

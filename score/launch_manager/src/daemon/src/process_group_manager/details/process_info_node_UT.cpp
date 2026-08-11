@@ -60,7 +60,7 @@ class ProcessInfoNodeFixture : public ::testing::Test
         config_.pgm_config_ = pgm_config;
 
         return std::make_unique<ProcessInfoNode>(
-            &config_, kProcessIndex, ready_condition, &mock_publisher_, &mock_processIf_, process_map_);
+            &config_, kProcessIndex, ready_condition, mock_publisher_, &mock_processIf_, process_map_);
     }
 
     /// @brief Helper method to create a ProcessInfoNode that is self-terminating.

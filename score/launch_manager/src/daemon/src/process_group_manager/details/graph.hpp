@@ -156,7 +156,7 @@ class Graph final
         std::shared_ptr<WorkerQueue> job_queue,
         osal::IProcess* process_interface,
         std::shared_ptr<SafeProcessMapInserter> process_map,
-        ISupervisionEventPublisher* supervision_event_publisher,
+        ISupervisionEventPublisher& supervision_event_publisher,
         ITransitionResultPublisher* transition_result_receiver);
 
     /// @brief Destructor to clean up resources used by the Graph object.
@@ -390,7 +390,7 @@ class Graph final
     std::shared_ptr<SafeProcessMapInserter> process_map_;
 
     /// @brief Interface to pass process nodes for alive monitor notifications
-    ISupervisionEventPublisher* supervision_event_publisher_;
+    ISupervisionEventPublisher& supervision_event_publisher_;
 
     /// @brief Class to receive information about the initial state transition result
     ITransitionResultPublisher* transition_result_receiver_;
