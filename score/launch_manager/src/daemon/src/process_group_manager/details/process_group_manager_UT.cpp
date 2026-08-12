@@ -31,25 +31,25 @@
 
 using namespace testing;
 
-namespace score::lcm::internal
+namespace score::mw::lifecycle::internal
 {
 namespace
 {
 
-using score::lcm::MockRecoveryClient;
-using score::lcm::MockSupervisionControlNotifier;
-using score::lcm::watchdog::MockWatchdogIf;
+using score::mw::lifecycle::MockRecoveryClient;
+using score::mw::lifecycle::MockSupervisionControlNotifier;
+using score::mw::lifecycle::watchdog::MockWatchdogIf;
 
-using score::mw::launch_manager::configuration::AliveSupervisionConfig;
-using score::mw::launch_manager::configuration::ApplicationType;
-using score::mw::launch_manager::configuration::ComponentConfig;
-using score::mw::launch_manager::configuration::Config;
-using score::mw::launch_manager::configuration::ConfigBuilder;
-using score::mw::launch_manager::configuration::FallbackRunTargetConfig;
-using score::mw::launch_manager::configuration::ProcessState;
-using score::mw::launch_manager::configuration::ReadyCondition;
-using score::mw::launch_manager::configuration::RunTargetConfig;
-using score::mw::launch_manager::configuration::WatchdogConfig;
+using score::mw::lifecycle::configuration::AliveSupervisionConfig;
+using score::mw::lifecycle::configuration::ApplicationType;
+using score::mw::lifecycle::configuration::ComponentConfig;
+using score::mw::lifecycle::configuration::Config;
+using score::mw::lifecycle::configuration::ConfigBuilder;
+using score::mw::lifecycle::configuration::FallbackRunTargetConfig;
+using score::mw::lifecycle::configuration::ProcessState;
+using score::mw::lifecycle::configuration::ReadyCondition;
+using score::mw::lifecycle::configuration::RunTargetConfig;
+using score::mw::lifecycle::configuration::WatchdogConfig;
 
 Config makeMinimalConfig()
 {
@@ -134,7 +134,7 @@ class ProcessGroupManagerWatchdogTest : public Test
         auto supervision_control_notifier = std::make_unique<NiceMock<MockSupervisionControlNotifier>>();
         supervision_control_notifier_ = supervision_control_notifier.get();
         ON_CALL(*supervision_control_notifier_, constructReceiver())
-            .WillByDefault(Return(ByMove(std::unique_ptr<score::lcm::ISupervisionControlReceiver>{})));
+            .WillByDefault(Return(ByMove(std::unique_ptr<score::mw::lifecycle::ISupervisionControlReceiver>{})));
         ON_CALL(*supervision_control_notifier_, reportActivation(_, _)).WillByDefault(Return(true));
         ON_CALL(*supervision_control_notifier_, reportDeactivation(_, _)).WillByDefault(Return(true));
 
@@ -155,7 +155,7 @@ class ProcessGroupManagerWatchdogTest : public Test
 
     MockAliveMonitorThread* alive_monitor_thread_{};
     MockRecoveryClient* recovery_client_{};
-    score::lcm::IRecoveryClient::RecoveryRequestCallback recovery_callback_{};
+    score::mw::lifecycle::IRecoveryClient::RecoveryRequestCallback recovery_callback_{};
     MockSupervisionControlNotifier* supervision_control_notifier_{};
     MockWatchdogIf* watchdog_{};
     std::unique_ptr<ProcessGroupManager> process_group_manager_;
@@ -228,7 +228,7 @@ TEST_F(ProcessGroupManagerWatchdogTest, GivenMinimalConfig_ExpectWatchdogFired_W
     ASSERT_TRUE(recovery_callback_);
     for (int i = 0; i < kNumRecoveryRequests; ++i)
     {
-        recovery_callback_(score::lcm::IdentifierHash{"overflow_probe"});
+        recovery_callback_(score::mw::lifecycle::IdentifierHash{"overflow_probe"});
     }
 
     auto run_result = process_group_manager_->run();
@@ -255,4 +255,4 @@ TEST_F(ProcessGroupManagerWatchdogTest, GivenMinimalConfig_ExpectWatchdogDisable
 }
 
 }  // namespace
-}  // namespace score::lcm::internal
+}  // namespace score::mw::lifecycle::internal

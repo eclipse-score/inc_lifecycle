@@ -22,7 +22,7 @@
 
 namespace score
 {
-namespace lcm
+namespace mw::lifecycle
 {
 namespace saf
 {
@@ -71,7 +71,7 @@ class ObservableEvent : public saf::common::Observable<ObservableEvent>
 
 }  // namespace ifexm
 }  // namespace saf
-}  // namespace lcm
+}  // namespace mw::lifecycle
 }  // namespace score
 
 #endif

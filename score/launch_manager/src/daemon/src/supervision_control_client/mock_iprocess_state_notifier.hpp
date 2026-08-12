@@ -22,7 +22,7 @@
 
 namespace score
 {
-namespace lcm
+namespace mw::lifecycle
 {
 
 /// @brief Reusable gmock mock for IProcessStateNotifier, for use by tests of components that notify PHM of process
@@ -30,11 +30,15 @@ namespace lcm
 class MockProcessStateNotifier : public IProcessStateNotifier
 {
   public:
-    MOCK_METHOD(std::unique_ptr<score::lcm::IProcessStateReceiver>, constructReceiver, (), (override));
-    MOCK_METHOD(bool, queuePosixProcess, (const score::lcm::PosixProcess& f_posixProcess), (noexcept, override));
+    MOCK_METHOD(std::unique_ptr<score::mw::lifecycle::IProcessStateReceiver>, constructReceiver, (), (override));
+    MOCK_METHOD(
+        bool,
+        queuePosixProcess,
+        (const score::mw::lifecycle::PosixProcess& f_posixProcess),
+        (noexcept, override));
 };
 
-}  // namespace lcm
+}  // namespace mw::lifecycle
 }  // namespace score
 
 #endif  // IPROCESSSTATE_NOTIFIER_MOCK_HPP_INCLUDED

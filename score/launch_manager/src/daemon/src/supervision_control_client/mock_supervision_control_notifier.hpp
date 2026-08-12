@@ -16,7 +16,7 @@
 #include "score/mw/launch_manager/supervision_control_client/isupervision_control_notifier.hpp"
 #include <gmock/gmock.h>
 
-namespace score::lcm
+namespace score::mw::lifecycle
 {
 
 class MockSupervisionControlNotifier : public ISupervisionControlNotifier
@@ -24,9 +24,9 @@ class MockSupervisionControlNotifier : public ISupervisionControlNotifier
   public:
     MOCK_METHOD(bool, reportActivation, (IdentifierHash id, timespec time), (override, noexcept));
     MOCK_METHOD(bool, reportDeactivation, (IdentifierHash id, timespec time), (override, noexcept));
-    MOCK_METHOD(std::unique_ptr<score::lcm::ISupervisionControlReceiver>, constructReceiver, (), (override));
+    MOCK_METHOD(std::unique_ptr<score::mw::lifecycle::ISupervisionControlReceiver>, constructReceiver, (), (override));
 };
 
-}  // namespace score::lcm
+}  // namespace score::mw::lifecycle
 
 #endif  // MOCK_SUPERVISION_CONTROL_NOTIFIER_HPP_INCLUDED

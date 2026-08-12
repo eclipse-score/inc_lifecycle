@@ -30,8 +30,6 @@
 namespace score::mw::lifecycle::configuration
 {
 
-using IdentifierHash = score::mw::lifecycle::IdentifierHash;
-
 struct PgManagerConfig final
 {
     bool is_self_terminating_{};

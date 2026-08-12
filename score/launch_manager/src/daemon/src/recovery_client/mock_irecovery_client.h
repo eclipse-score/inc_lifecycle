@@ -19,7 +19,7 @@
 
 namespace score
 {
-namespace lcm
+namespace mw::lifecycle
 {
 
 /// @brief Reusable gmock mock for IRecoveryClient, for use by tests of components that either request recovery
@@ -31,11 +31,11 @@ class MockRecoveryClient : public IRecoveryClient
     MOCK_METHOD(
         bool,
         sendRecoveryRequest,
-        (const score::lcm::IdentifierHash& process_group_identifier),
+        (const score::mw::lifecycle::IdentifierHash& process_group_identifier),
         (noexcept, override));
 };
 
-}  // namespace lcm
+}  // namespace mw::lifecycle
 }  // namespace score
 
 #endif  // SCORE_LCM_IRECOVERYCLIENT_MOCK_H_

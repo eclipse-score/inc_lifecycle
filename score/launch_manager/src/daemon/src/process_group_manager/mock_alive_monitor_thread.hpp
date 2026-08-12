@@ -20,7 +20,7 @@
 
 namespace score
 {
-namespace lcm
+namespace mw::lifecycle
 {
 namespace internal
 {
@@ -35,7 +35,7 @@ class MockAliveMonitorThread : public IAliveMonitorThread
 };
 
 }  // namespace internal
-}  // namespace lcm
+}  // namespace mw::lifecycle
 }  // namespace score
 
 #endif  // SCORE_LCM_IALIVE_MONITOR_THREAD_MOCK_HPP_INCLUDED
