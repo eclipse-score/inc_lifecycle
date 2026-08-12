@@ -136,8 +136,7 @@ Graph::Graph(
     std::shared_ptr<SafeProcessMapInserter> process_map,
     ISupervisionEventPublisher& supervision_event_publisher,
     ITransitionResultPublisher* transition_result_receiver)
-    : pg_index_(0U),
-      nodes_(max_num_nodes),
+    : nodes_(max_num_nodes),
       transition_builder_(nodes_),
       state_(GraphState::kSuccess),
       requested_state_(),
@@ -159,23 +158,12 @@ Graph::Graph(
     last_state_manager_.process_index_ = 0xFFFFU;  // an invalid state manager
     last_state_manager_.process_group_index_ = 0xFFFFU;
     cancel_message_.request_or_response_ = ControlClientCode::kNotSet;
+    nodes_ = CreateDependencyGraph(configuration_, supervision_event_publisher_, process_interface_, process_map_);
 }
 
 Graph::~Graph()
 {
     LM_LOG_DEBUG() << "Graph destroyed";
-}
-
-void Graph::initProcessGroupNodes(IdentifierHash pg_name, uint32_t num_processes, uint32_t index)
-{
-    pg_index_ = index;
-    requested_state_.pg_state_name_ = off_state_;
-    requested_state_.pg_name_ = pg_name;
-
-    LM_LOG_DEBUG() << "Process group index" << index << "(with name" << pg_name << ") has" << num_processes
-                   << "processes";
-
-    nodes_ = CreateDependencyGraph(configuration_, supervision_event_publisher_, process_interface_, process_map_);
 }
 
 int32_t Graph::getRunTargetIndex(IdentifierHash pg_state) const
@@ -588,11 +576,6 @@ IdentifierHash Graph::getProcessGroupState()
     return requested_state_.pg_state_name_;
 }
 
-uint32_t Graph::getProcessGroupIndex()
-{
-    return pg_index_;
-}
-
 const ProcessInfoNode* Graph::findControlClient()
 {
     auto* pin = getProcessInfoNode(getStateManager().process_index_);
@@ -629,17 +612,17 @@ void Graph::setLastExecutionError(uint32_t code)
 
 IdentifierHash Graph::setPendingState(IdentifierHash new_state)
 {
-    IdentifierHash result_state = pending_state_;
+    IdentifierHash old_state = pending_state_;
 
     pending_state_ = new_state;
 
-    if (new_state != result_state)
+    if (new_state != old_state)
     {
-        LM_LOG_DEBUG() << "Pending state for process group" << requested_state_.pg_name_ << "changed from"
-                       << result_state << "to" << pending_state_;
+        LM_LOG_DEBUG() << "Pending transition change from"
+                       << old_state << "to" << pending_state_;
     }
 
-    return result_state;
+    return old_state;
 }
 
 IdentifierHash Graph::getPendingState()

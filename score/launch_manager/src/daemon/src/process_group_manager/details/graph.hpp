@@ -174,12 +174,6 @@ class Graph final
     /// @brief Move assignment operator(deleted).
     Graph& operator=(Graph&&) noexcept = delete;
 
-    /// @brief Create & initialise nodes for this process group
-    /// @param pg The IdentifierHash of the process group to store
-    /// @param num_processes Number of processes in this process group
-    /// @param index The index of the process group in the vector of process groups
-    void initProcessGroupNodes(IdentifierHash pg, uint32_t num_processes, uint32_t index);
-
     /// @brief Applies a ComponentEvent — produced by ProcessMonitor from worker/OS-handler thread
     /// callbacks and drained on the main thread — to this graph.
     /// @details Dispatches on the event's variant:
@@ -230,9 +224,6 @@ class Graph final
     /// @return The current target state of the process group. Only meaningful when
     /// getState() returns GraphState::kSuccess.
     IdentifierHash getProcessGroupState();
-
-    /// @return The index of this graph within the ProcessGroupManager's graph list.
-    uint32_t getProcessGroupIndex();
 
     /// @return The ProcessInfoNode that has a ControlClientChannel, or nullptr if none exists.
     const ProcessInfoNode* findControlClient();
@@ -331,9 +322,6 @@ class Graph final
     /// completes. Moves the graph state to kUndefinedState and posts the appropriate event.
     /// @param current_state The graph state when the last job completed (not kInTransition).
     void handleNonTransitionExecution(GraphState current_state);
-
-    /// @brief The process group index
-    uint32_t pg_index_;
 
     /// @brief Number of jobs that have been queued but are not yet executed
     int32_t jobs_in_progress_{0};

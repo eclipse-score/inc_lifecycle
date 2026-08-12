@@ -13,6 +13,7 @@
 #ifndef FLATBUFFER_CONFIG_LOADER_HPP
 #define FLATBUFFER_CONFIG_LOADER_HPP
 
+#include "score/mw/launch_manager/configuration/config.hpp"
 #include "score/mw/launch_manager/configuration/config_loader.hpp"
 
 #include "score/flatbuffers/load_buffer.hpp"

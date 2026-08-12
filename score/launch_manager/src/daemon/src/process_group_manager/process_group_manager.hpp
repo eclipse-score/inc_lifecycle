@@ -60,7 +60,7 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     using WorkerQueue =
         MPMCConcurrentQueue<std::optional<ComponentTask>, static_cast<std::size_t>(ProcessLimits::kMaxProcesses)>;
 
-    using Config = score::mw::launch_manager::configuration::Config;
+    using Config = score::mw::lifecycle::internal::configuration::Config;
 
   public:
     /// @brief Constructs a new ProcessGroupManager object.
@@ -237,7 +237,7 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     void processGetExecutionError(ControlClientChannelP scc);
 
     /// @brief process a request to get the initial machine state transition result
-    /// @details if `machine_process_group_` is a null pointer:\n
+    /// @details if `graph_` is a null pointer:\n
     ///     set the request code of the message to `kInitialMachineStateNotSet`\n
     /// else:\n
     ///     wait for `initial_state_transition_result_` to be not equal to `kInitialMachineStateNotSet`\n
@@ -266,14 +266,11 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     /// @brief Creates process component objects, including the job queue and worker threads.
     void createProcessComponentsObjects(std::size_t total_processes);
 
-    /// @brief Initializes the graph nodes.
-    void initializeGraphNodes();
-
     /// @brief Initializes the Control Client handler.
     bool initializeControlClientHandler();
 
     /// @brief The configuration object associated with the ProcessGroupManager.
-    std::optional<score::mw::lifecycle::internal::configuration::Config> configuration_;
+    std::unique_ptr<score::mw::lifecycle::internal::configuration::Config> configuration_;
 
     /// @brief The process interface object associated with the ProcessGroupManager.
     osal::ProcessLauncher process_interface_;
@@ -287,19 +284,11 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     /// @brief Shared pointer to the job queue for ProcessInfoNode jobs.
     std::shared_ptr<WorkerQueue> worker_jobs_;
 
-    /// @brief Number of process groups.
-    /// @deprecated there is no reason to store the number of process groups in the class
-    /// @todo Remove this data member, it is not required (a local variable may be used)
-    uint32_t num_process_groups_ = 0U;
-
-    /// @brief Stores the process groups as shared pointers to Graph objects.
-    std::vector<std::shared_ptr<Graph>> process_groups_{};
-
     /// @brief The result of the initial state transition
     std::atomic<ControlClientCode> initial_state_transition_result_{ControlClientCode::kInitialMachineStateNotSet};
 
-    /// @brief Pointer to the graph corresponding to the machine process group
-    std::shared_ptr<Graph> machine_process_group_{nullptr};
+    /// @brief Pointer to the gaph.
+    std::shared_ptr<Graph> graph_{nullptr};
 
     /// @brief Process state notifier object used to send data to PHM
     std::unique_ptr<score::mw::lifecycle::ISupervisionControlNotifier> supervision_control_notifier_;

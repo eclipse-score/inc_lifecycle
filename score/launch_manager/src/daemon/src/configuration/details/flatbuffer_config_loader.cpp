@@ -12,6 +12,8 @@
  ********************************************************************************/
 
 #include "score/mw/launch_manager/configuration/flatbuffer_config_loader.hpp"
+#include "score/mw/launch_manager/configuration/config.hpp"
+#include "score/mw/launch_manager/configuration/config_loader.hpp"
 
 #include "score/launch_manager/src/daemon/src/configuration/details/flatbuffer_type_converters.hpp"
 #include "score/launch_manager/src/daemon/src/configuration/details/lm_flatcfg_generated.h"
@@ -25,6 +27,9 @@
 #include <vector>
 
 namespace score::mw::lifecycle::internal::configuration
+{
+
+namespace details
 {
 
 IConfigLoader::Error mapOsError(const score::os::Error& error)
@@ -141,5 +146,7 @@ score::cpp::expected<Config, IConfigLoader::Error> parseFlatbuffer(const std::ve
 
     return builder.build();
 }
+
+}  // namespace details
 
 }  // namespace score::mw::lifecycle::internal::configuration

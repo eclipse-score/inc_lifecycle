@@ -28,8 +28,6 @@
 namespace score::mw::lifecycle::internal::configuration
 {
 
-namespace fb = score::mw::lifecycle::internal::configuration::fb;
-
 namespace
 {
 
@@ -53,9 +51,6 @@ std::optional<T> optionalScalarValue(const ::flatbuffers::Optional<T>& field)
 }
 
 }  // anonymous namespace
-
-namespace details
-{
 
 constexpr double kSecondsToMilliseconds = 1000.0;
 
@@ -652,5 +647,4 @@ score::cpp::expected<std::vector<RunTargetConfig>, IConfigLoader::Error> convert
     return run_targets;
 }
 
-}  // namespace details
 }  // namespace score::mw::lifecycle::internal::configuration

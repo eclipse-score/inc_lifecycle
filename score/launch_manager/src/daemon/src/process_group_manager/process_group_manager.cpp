@@ -14,6 +14,7 @@
 #include <fcntl.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <algorithm>
 #include <csignal>
 
 #include "score/mw/launch_manager/common/log.hpp"
@@ -46,8 +47,6 @@ ProcessGroupManager::ProcessGroupManager(
       process_map_(nullptr),
       thread_pool_(nullptr),
       worker_jobs_(nullptr),
-      num_process_groups_(0U),
-      process_groups_(),
       supervision_control_notifier_(std::move(supervision_control_notifier)),
       alive_monitor_thread_(std::move(alive_monitor_thread)),
       recovery_client_(recovery_client),
@@ -82,20 +81,11 @@ bool ProcessGroupManager::initialize(const Config& config)
     }
 
     // Config is already initialized by ConfigBuilder, no separate init needed
-    configuration_.emplace(std::move(config));
+    // Move config into unique_ptr - Config is move-only
+    Config temp_config = std::move(const_cast<Config&>(config));
+    configuration_ = std::make_unique<Config>(std::move(temp_config));
 
-    const auto* pg_list = configuration_->getListOfProcessGroups().value_or(nullptr);
-    if (!pg_list || pg_list->empty())
-    {
-        LM_LOG_ERROR() << "Failed to get pg list";
-        return false;
-    }
-
-    std::uint32_t total_processes = 0;
-    for (const auto pg_name : *pg_list)
-    {
-        total_processes += configuration_.getNumberOfOsProcesses(pg_name).value_or(0);
-    }
+    const std::size_t total_processes = configuration_->components().size();
 
     if (total_processes > static_cast<uint32_t>(ProcessLimits::kMaxProcesses))
     {
@@ -111,19 +101,19 @@ bool ProcessGroupManager::initialize(const Config& config)
     }
 
     LM_LOG_DEBUG() << "Process Group initialization done";
-    initializeGraphNodes();
     if (!alive_monitor_thread_->start())
     {
         LM_LOG_ERROR() << "Alive monitor thread failed to start";
         return false;
     }
 
-    const auto watchdog_config = config.watchdog();
+    const auto& watchdog_config = configuration_->watchdog();
 
     // Watchdog config may not be available if no watchdog is configured
     if (watchdog_config.has_value())
     {
-        if (!watchdog_->init(watchdog_config.value(), score::mw::lifecycle::internal::kMainLoopCycleTimeNs))
+        const auto& wc = watchdog_config.value();
+        if (!watchdog_->init(wc, score::lcm::internal::kMainLoopCycleTimeNs))
         {
             LM_LOG_ERROR() << "Watchdog initialization failed";
             return false;
@@ -150,7 +140,7 @@ void ProcessGroupManager::deinitialize()
     process_monitor_.reset();
     alive_monitor_thread_->stop();
     // No deinitialize needed - Config destructor handles cleanup
-    process_groups_.clear();
+    graph_.reset();
 
     thread_pool_.reset();
     worker_jobs_.reset();
@@ -217,48 +207,17 @@ bool ProcessGroupManager::initializeControlClientHandler()
 
 bool ProcessGroupManager::initializeProcessGroups()
 {
-    bool success = false;
+    graph_ = std::make_shared<Graph>(
+        configuration_->components().size() + configuration_->runTargets().size(),
+        configuration_.get(),
+        worker_jobs_,
+        &process_interface_,
+        process_map_,
+        *supervision_control_notifier_.get(),
+        this);
 
-    auto pg_list = configuration_.getListOfProcessGroups().value_or(nullptr);
-
-    if (pg_list && !pg_list->empty())
-    {
-        num_process_groups_ = static_cast<uint32_t>(pg_list->size() & 0xFFFFFFFFUL);
-        LM_LOG_DEBUG() << num_process_groups_ << "process group(s)";
-
-        success = true;
-
-        for (const auto& pg_name : *pg_list)
-        {
-            uint32_t num_processes = configuration_.getNumberOfOsProcesses(pg_name).value_or(0);
-            const auto* states = configuration_.getListOfProcessGroupStates(pg_name).value_or(nullptr);
-            const uint32_t num_run_targets = states ? static_cast<uint32_t>(states->size()) : 0U;
-
-            process_groups_.push_back(std::make_shared<Graph>(
-                num_processes + num_run_targets,
-                &configuration_,
-                worker_jobs_,
-                &process_interface_,
-                process_map_,
-                *supervision_control_notifier_.get(),
-                this));
-        }
-    }
-    else
-    {
-        LM_LOG_ERROR() << "No process groups";
-    }
-
-    if (success)
-    {
-        LM_LOG_DEBUG() << "Process groups initialized successfully";
-    }
-    else
-    {
-        LM_LOG_ERROR() << "Failed to initialize process groups";
-    }
-
-    return success;
+    LM_LOG_DEBUG() << "Process group initialized successfully";
+    return true;
 }
 
 void ProcessGroupManager::createProcessComponentsObjects(std::size_t total_processes)
@@ -288,21 +247,6 @@ void ProcessGroupManager::createProcessComponentsObjects(std::size_t total_proce
     LM_LOG_DEBUG() << "Creating worker threads...";
     thread_pool_ = std::make_unique<ThreadPool<ComponentTask>>(
         worker_jobs_, static_cast<uint32_t>(ProcessLimits::kNumWorkerThreads), *process_monitor_);
-}
-
-void ProcessGroupManager::initializeGraphNodes()
-{
-    auto pg_list = configuration_.getListOfProcessGroups().value_or(nullptr);
-
-    for (size_t idx = 0U; idx < process_groups_.size(); ++idx)
-    {
-        process_groups_[idx]->initProcessGroupNodes(
-            pg_list->at(idx),
-            configuration_.getNumberOfOsProcesses(pg_list->at(idx)).value_or(0U),
-            static_cast<uint32_t>(idx & 0xFFFFFFFFUL));
-    }
-
-    LM_LOG_DEBUG() << "Graphs initialized";
 }
 
 bool ProcessGroupManager::run()
@@ -339,10 +283,10 @@ bool ProcessGroupManager::run()
                 watchdog_->fireWatchdogReaction();
             }
 
-            for (auto pg : process_groups_)
+            if (graph_)
             {
-                controlClientHandler(*pg);
-                processGroupHandler(*pg);
+                controlClientHandler(*graph_);
+                processGroupHandler(*graph_);
             }
 
             watchdog_->serviceWatchdog();
@@ -355,9 +299,10 @@ bool ProcessGroupManager::run()
 
 void ProcessGroupManager::processComponentEvents()
 {
-    // Single-graph assumption: PGM creates one ProcessMonitor bound to the first (only) graph, so
-    // every event always applies to it. Multi-graph routing is deferred to a future revision.
-    Graph& graph = *process_groups_.front();
+    if (!graph_)
+    {
+        return;
+    }
 
     while (auto event = event_queue_->getNextEvent())
     {
@@ -367,47 +312,39 @@ void ProcessGroupManager::processComponentEvents()
         }
         else
         {
-            graph.handleComponentEvent(*event);
+            graph_->handleComponentEvent(*event);
         }
     }
 }
 
 bool ProcessGroupManager::startInitialTransition()
 {
-    bool result = false;
     LM_LOG_DEBUG() << "=============STARTING MAINPG STARTUP STATE============";
-
-    // Initial transition of machine process group
-    const ProcessGroupStateID* pg_startup_id = configuration_.getMainPGStartupState().value_or(nullptr);
-
-    if (pg_startup_id)
+    if (!graph_)
     {
-        machine_process_group_ = getProcessGroup(pg_startup_id->pg_name_);
-
-        if (machine_process_group_)
-        {
-            machine_process_group_->startInitialTransition(pg_startup_id->pg_state_name_);
-            result = true;
-        }
+        return false;
     }
-    else
-    {
-        LM_LOG_ERROR() << "No startup state, exiting from process group manager";
-    }
-    return result;
+    // Convert string_view to IdentifierHash
+    const std::string initial_target{configuration_->initialRunTarget()};
+    graph_->startInitialTransition(IdentifierHash(initial_target));
+    return true;
 }
 
 void ProcessGroupManager::allProcessGroupsOff()
 {
-    // Wait for process group states to change while actively draining shutdown events.
+    if (!graph_)
+    {
+        return;
+    }
+
+    // Wait for process group state to change while actively draining shutdown events.
     // SupervisionFailure is intentionally ignored here so recovery transitions do not
     // fight the forced transition to Off.
     auto waitForStateCompletion = [this](GraphState state_to_be_completed, int32_t max_wait_ms) -> bool {
         constexpr int32_t kSleepIntervalMs = 10;
 
-        Graph& graph = *process_groups_.front();
-        auto has_state = [&graph, state_to_be_completed]() {
-            return graph.getState() == state_to_be_completed;
+        auto has_state = [this, state_to_be_completed]() {
+            return graph_->getState() == state_to_be_completed;
         };
 
         int32_t remaining_ms = max_wait_ms;
@@ -420,7 +357,7 @@ void ProcessGroupManager::allProcessGroupsOff()
                 {
                     continue;
                 }
-                graph.handleComponentEvent(*event);
+                graph_->handleComponentEvent(*event);
             }
 
             remaining_ms -= kSleepIntervalMs;
@@ -429,40 +366,35 @@ void ProcessGroupManager::allProcessGroupsOff()
         return !has_state();
     };
 
-    Graph& graph = *process_groups_.front();
     // First, check if we're already transitioning to Off - if so, no need to cancel
-    if (!graph.isTransitioningToOff())
+    if (!graph_->isTransitioningToOff())
     {
         // Cancel any pending transitions that are not going to Off
-        LM_LOG_DEBUG() << "Cancel all process group transitions";
-        graph.cancel();
+        LM_LOG_DEBUG() << "Cancel process group transition";
+        graph_->cancel();
 
         // Wait for cancellation to complete
-        LM_LOG_DEBUG() << "Wait for process group cancellations";
+        LM_LOG_DEBUG() << "Wait for process group cancellation";
         if (!waitForStateCompletion(GraphState::kCancelled, 2000))
         {
             LM_LOG_ERROR() << "NOTE: Cancellation timed out";
         }
 
-        // Start transitioning all process groups to the "Off" state
-        LM_LOG_DEBUG() << "Start transitioning process groups to Off state";
-        (void)graph.startTransitionToOffState();
+        // Start transitioning the process group to the "Off" state
+        LM_LOG_DEBUG() << "Start transitioning process group to Off state";
+        (void)graph_->startTransitionToOffState();
     }
     else
     {
         LM_LOG_DEBUG() << "Already transitioning to Off state, skipping cancellation";
     }
 
-    LM_LOG_DEBUG() << "Wait for all process groups to complete the transition";
+    LM_LOG_DEBUG() << "Wait for process group to complete the transition";
     if (!waitForStateCompletion(GraphState::kInTransition, 1000))
     {
         LM_LOG_ERROR() << "NOTE: Transition to Off state timed out";
         thread_pool_->stop();
-
-        for (auto& pg : process_groups_)
-        {
-            pg->forceKillProcesses();
-        }
+        graph_->forceKillProcesses();
     }
 }
 
@@ -550,8 +482,8 @@ void ProcessGroupManager::controlClientRequests(Graph& pg)
     if (scc->getRequest())
     {
         // Fill in some routing details
-        scc->request().originating_control_client_.process_group_index_ =
-            static_cast<uint16_t>(pg.getProcessGroupIndex() & 0xFFFFU);
+        // Single process group at index 0
+        scc->request().originating_control_client_.process_group_index_ = 0U;
         scc->request().originating_control_client_.process_index_ =
             static_cast<uint16_t>(control_client->getIndex() & 0xFFFFU);
 
@@ -606,30 +538,30 @@ void ProcessGroupManager::controlClientRequests(Graph& pg)
 
 void ProcessGroupManager::handleRecoveryRequest(const IdentifierHash& process_identifier)
 {
-    auto pg = getProcessGroupByProcessId(process_identifier);
-
-    if (nullptr == pg)
+    if (!graph_)
     {
-        LM_LOG_ERROR() << "handleRecoveryRequest: Unknown process " << process_identifier;
+        LM_LOG_ERROR() << "handleRecoveryRequest: No graph available";
         return;
     }
 
-    const IdentifierHash old_state = pg->getProcessGroupState();
-    const IdentifierHash recovery_state = configuration_.getNameOfRecoveryState(pg->getProcessGroupName());
-    const GraphState graph_state = pg->getState();
+    // TODO: Determine recovery state from configuration
+    // For now, transition to fallback run target
+    const IdentifierHash old_state = graph_->getProcessGroupState();
+    const IdentifierHash recovery_state("fallback");  // TODO: Get from configuration
+    const GraphState graph_state = graph_->getState();
 
-    LM_LOG_DEBUG() << "handleRecoveryRequest: Processing recovery request for PG " << process_identifier << " to state "
-                   << recovery_state;
+    LM_LOG_DEBUG() << "handleRecoveryRequest: Processing recovery request for process " << process_identifier
+                   << " to state " << recovery_state;
 
     if (GraphState::kInTransition == graph_state)
     {
         if (old_state != recovery_state)
         {
             // Cancel current transition and start new one
-            (void)pg->setPendingState(recovery_state);
-            pg->setRequestStartTime();
-            pg->cancel();
-            controlClientResponses(*pg);
+            (void)graph_->setPendingState(recovery_state);
+            graph_->setRequestStartTime();
+            graph_->cancel();
+            controlClientResponses(*graph_);
         }
         else
         {
@@ -645,8 +577,8 @@ void ProcessGroupManager::handleRecoveryRequest(const IdentifierHash& process_id
     else
     {
         // Start new state transition
-        (void)pg->setPendingState(recovery_state);
-        pg->setRequestStartTime();
+        (void)graph_->setPendingState(recovery_state);
+        graph_->setRequestStartTime();
     }
 }
 
@@ -729,10 +661,9 @@ void ProcessGroupManager::processGetExecutionError(ControlClientChannelP scc)
 
 void ProcessGroupManager::processGetInitialMachineStateTransitionResult(ControlClientChannelP scc)
 {
-    // If the machine process group is not valid or we have requested the result the maximum number of times
+    // If the process group is not valid or we have requested the result the maximum number of times
     // we immediately return an error. Otherwise, the response is deferred until later.
-    if (!machine_process_group_ ||
-        ((1UL << (sizeof(scc->initial_result_count_) * 8UL)) - 1UL == scc->initial_result_count_))
+    if (!graph_ || ((1UL << (sizeof(scc->initial_result_count_) * 8UL)) - 1UL == scc->initial_result_count_))
     {
         // We know immediately that there is a failure
         scc->request().request_or_response_ = ControlClientCode::kInitialMachineStateNotSet;
@@ -745,7 +676,15 @@ void ProcessGroupManager::processGetInitialMachineStateTransitionResult(ControlC
 
 void ProcessGroupManager::processValidateFunctionStateID(ControlClientChannelP scc)
 {
-    if (configuration_.getProcessIndexesList(scc->request().process_group_state_))
+    // Check if the requested state name matches any run target
+    const auto& run_targets = configuration_->runTargets();
+    const auto& requested_state_name = scc->request().process_group_state_.pg_state_name_;
+
+    bool found = std::any_of(run_targets.begin(), run_targets.end(), [&requested_state_name](const auto& rt) {
+        return requested_state_name == rt.name;
+    });
+
+    if (found)
     {
         scc->request().request_or_response_ = ControlClientCode::kValidateProcessGroupStateSuccess;
     }
@@ -791,9 +730,10 @@ void ProcessGroupManager::processGroupHandler(Graph& pg)
 
             ProcessGroupStateID recovery_state;
             recovery_state.pg_name_ = pg.getProcessGroupName();
-            recovery_state.pg_state_name_ = configuration_.getNameOfRecoveryState(recovery_state.pg_name_);
+            // TODO: Determine recovery state from configuration
+            recovery_state.pg_state_name_ = IdentifierHash("fallback");  // TODO: Get from configuration
 
-            LM_LOG_WARN() << "Problem discovered in PG" << recovery_state.pg_name_ << "Activating Recovery state.";
+            LM_LOG_WARN() << "Problem discovered, activating recovery state: " << recovery_state.pg_state_name_;
 
             // no point checking errors here...
             // nobody requested this transition, so there is nowhere to communicate an error
@@ -812,9 +752,9 @@ void ProcessGroupManager::setInitialStateTransitionResult(ControlClientCode resu
 
 ProcessInfoNode* ProcessGroupManager::getProcessInfoNode(uint32_t pg_index, uint32_t process_index)
 {
-    if (pg_index < process_groups_.size())
+    if (pg_index == 0U && graph_)
     {
-        return process_groups_[pg_index]->getProcessInfoNode(process_index);
+        return graph_->getProcessInfoNode(process_index);
     }
 
     return nullptr;
@@ -822,40 +762,20 @@ ProcessInfoNode* ProcessGroupManager::getProcessInfoNode(uint32_t pg_index, uint
 
 std::shared_ptr<Graph> ProcessGroupManager::getProcessGroupByProcessId(const IdentifierHash& process_id)
 {
-    for (auto& pg : process_groups_)
-    {
-        const IdentifierHash pg_name = pg->getProcessGroupName();
-        const uint32_t count = configuration_.getNumberOfOsProcesses(pg_name).value_or(0U);
-        for (uint32_t idx = 0U; idx < count; ++idx)
-        {
-            const auto* proc = configuration_.getOsProcessConfiguration(pg_name, idx).value_or(nullptr);
-            if (proc != nullptr && proc->process_id_ == process_id)
-            {
-                return pg;
-            }
-        }
-    }
-    return nullptr;
+    // With single graph, just return it if it exists
+    // The graph manages all processes
+    (void)process_id;  // Unused in single-graph model
+    return graph_;
 }
 
 std::shared_ptr<Graph> ProcessGroupManager::getProcessGroup(IdentifierHash pg_name)
 {
-    /* we could use a map, we could use std::find_if
-       however, there's not many process groups so gain of using a map
-       is small, and it seems simpler just to write a simple loop.
-     */
-    std::shared_ptr<Graph> result = nullptr;
-
-    for (auto pg : process_groups_)
+    if (graph_ && graph_->getProcessGroupName() == pg_name)
     {
-        if (pg->getProcessGroupName() == pg_name)
-        {
-            result = pg;
-            break;
-        }
+        return graph_;
     }
 
-    return result;
+    return nullptr;
 }
 
 osal::IProcess* ProcessGroupManager::getProcessInterface()
