@@ -184,7 +184,9 @@ cc_library(
     hdrs = ["graph.hpp"],
     include_prefix = "score/mw/launch_manager/process_group_manager/details",
     strip_include_prefix = "/score/launch_manager/src/daemon/src/process_group_manager/details",
-    visibility = ["//score/launch_manager/src/daemon/src/process_group_manager:__pkg__"],
+    visibility = [
+        "//score/launch_manager/src/daemon/src/process_group_manager:__pkg__",
+    ],
     deps = [
         ":component_event_queue",
         ":component_of",
@@ -320,6 +322,21 @@ lm_cc_test(
         ":safe_process_map",
         "@googletest//:gtest_main",
         "@score_baselibs//score/os/mocklib:sys_wait_mock",
+    ],
+)
+
+lm_cc_test(
+    name = "process_group_manager_UT",
+    srcs = ["process_group_manager_UT.cpp"],
+    deps = [
+        "//score/launch_manager/src/daemon/src/configuration:config",
+        "//score/launch_manager/src/daemon/src/process_group_manager",
+        "//score/launch_manager/src/daemon/src/process_group_manager:ialive_monitor_thread_mock",
+        "//score/launch_manager/src/daemon/src/recovery_client:recovery_client_mock",
+        "//score/launch_manager/src/daemon/src/supervision_control_client:isupervision_control_notifier",
+        "//score/launch_manager/src/daemon/src/supervision_control_client:mock_supervision_control_notifier",
+        "//score/launch_manager/src/daemon/src/watchdog:i_watchdog_if_mock",
+        "@googletest//:gtest_main",
     ],
 )
 

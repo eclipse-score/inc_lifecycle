@@ -46,6 +46,19 @@ cc_library(
 )
 
 cc_library(
+    name = "ialive_monitor_thread_mock",
+    testonly = True,
+    hdrs = ["alive_monitor_thread_mock.hpp"],
+    include_prefix = "score/mw/launch_manager/process_group_manager",
+    strip_include_prefix = "/score/launch_manager/src/daemon/src/process_group_manager",
+    visibility = ["//score:__subpackages__"],
+    deps = [
+        ":ialive_monitor_thread",
+        "@googletest//:gtest",
+    ],
+)
+
+cc_library(
     name = "alive_monitor_thread",
     srcs = ["alive_monitor_thread.cpp"],
     hdrs = ["alive_monitor_thread.hpp"],

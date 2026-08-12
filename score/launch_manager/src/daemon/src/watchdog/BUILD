@@ -46,3 +46,16 @@ lm_cc_test(
         "@googletest//:gtest_main",
     ],
 )
+
+cc_library(
+    name = "i_watchdog_if_mock",
+    testonly = True,
+    hdrs = ["IWatchdogIfMock.hpp"],
+    include_prefix = "score/mw/launch_manager/watchdog",
+    strip_include_prefix = "/score/launch_manager/src/daemon/src/watchdog",
+    visibility = ["//score:__subpackages__"],
+    deps = [
+        ":i_watchdog_if",
+        "@googletest//:gtest",
+    ],
+)

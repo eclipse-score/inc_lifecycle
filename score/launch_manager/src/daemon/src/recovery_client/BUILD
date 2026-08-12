@@ -32,6 +32,19 @@ cc_library(
     ],
 )
 
+cc_library(
+    name = "recovery_client_mock",
+    testonly = True,
+    hdrs = ["irecovery_client_mock.h"],
+    include_prefix = "score/mw/launch_manager/recovery_client",
+    strip_include_prefix = "/score/launch_manager/src/daemon/src/recovery_client",
+    visibility = ["//score:__subpackages__"],
+    deps = [
+        ":recovery_client",
+        "@googletest//:gtest",
+    ],
+)
+
 lm_cc_test(
     name = "recovery_client_UT",
     srcs = ["recovery_client_UT.cpp"],
