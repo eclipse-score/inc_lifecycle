@@ -19,8 +19,7 @@
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ObservableEvent.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ObservableEventReader.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
-
-#include "score/mw/launch_manager/alive_monitor/details/common/AliveMonitorConfig.hpp"
+#include "score/mw/launch_manager/configuration/config.hpp"
 #include <string>
 #include <vector>
 
@@ -54,7 +53,8 @@ class Alive;
 namespace daemon
 {
 
-using AliveMonitorConfig = score::mw::lifecycle::internal::alive::AliveMonitorConfig;
+using mw::lifecycle::internal::configuration::AliveSupervisionConfig;
+using mw::lifecycle::internal::configuration::ComponentAliveSupervision;
 
 /// @brief Software Cluster Handler wraps the full PHM Supervision and Recovery Notification functionality for one
 ///        Software Cluster.
@@ -98,7 +98,7 @@ class SwClusterHandler
     /// @param [in] f_bufferConfig_r           Configuration settings for constructing workers
     /// @return                              Construction is successful (true), otherwise failure (false)
     bool constructWorkers(
-        const AliveMonitorConfig& config,
+        const std::vector<std::pair<IdentifierHash, ComponentAliveSupervision>>&& component_config,
         std::shared_ptr<score::mw::lifecycle::IRecoveryClient> f_recoveryClient_r,
         ifexm::ObservableEventReader& f_processStateReader_r,
         const factory::SupervisionBufferConfig& f_bufferConfig_r) noexcept(false);

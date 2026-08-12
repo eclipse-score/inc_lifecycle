@@ -40,15 +40,15 @@ SwClusterHandler::~SwClusterHandler() = default;
 /* RULECHECKER_comment(0, 3, check_max_cyclomatic_complexity, "Max cyclomatic complexity violation\
    is tolerated for this function. ", true_no_defect) */
 bool SwClusterHandler::constructWorkers(
-    const AliveMonitorConfig& config,
-    std::shared_ptr<score::mw::lifecycle::IRecoveryClient> f_recoveryClient_r,
+    const std::vector<std::pair<IdentifierHash, ComponentAliveSupervision>>&& component_config,
+    std::shared_ptr<mw::lifecycle::IRecoveryClient> f_recoveryClient_r,
     ifexm::ObservableEventReader& f_processStateReader_r,
     const factory::SupervisionBufferConfig& f_bufferConfig_r) noexcept(false)
 {
     bool isSuccess{false};
     factory::FlatCfgFactory flatCfgFactory{f_bufferConfig_r};
 
-    isSuccess = flatCfgFactory.init(config.supervised_components);
+    isSuccess = flatCfgFactory.init(component_config);
     if (isSuccess)
     {
         LM_LOG_DEBUG() << "Software Cluster Handler starts constructing workers:" << f_swClusterName;

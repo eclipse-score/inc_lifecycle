@@ -14,6 +14,7 @@
 #ifndef ALIVE_INTERFACE_PATH_HPP_INCLUDED
 #define ALIVE_INTERFACE_PATH_HPP_INCLUDED
 
+#include "score/mw/launch_manager/common/identifier_hash.hpp"
 #include <string>
 
 namespace score
@@ -24,9 +25,16 @@ namespace internal
 {
 
 /// Returns the IPC socket path for the alive monitoring interface of a component.
-inline std::string aliveInterfacePath(const std::string& component_name)
+inline std::string aliveInterfacePath(const IdentifierHash& component_name)
 {
-    return "/lifecycle_health_" + component_name;
+    const std::lock_guard<std::mutex> lock(IdentifierHash::get_registry_mutex());
+    const auto& reg = IdentifierHash::get_registry();
+    const auto it = reg.find(component_name.data());
+    if (it != reg.end())
+    {
+        return "/lifecycle_health_" + it->second;
+    }
+    return "/lifecycle_health_" + std::to_string(component_name.data());
 }
 
 }  // namespace internal

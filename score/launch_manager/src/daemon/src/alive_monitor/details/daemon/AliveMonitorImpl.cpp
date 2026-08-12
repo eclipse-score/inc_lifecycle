@@ -27,7 +27,7 @@ AliveMonitorImpl::AliveMonitorImpl(
     const Config& config)
     : m_recovery_client(recovery_client),
       m_observable_event_receiver(std::move(observable_event_receiver)),
-      m_config(score::mw::lifecycle::internal::alive::aliveMonitorConfig(config))
+      m_config(config)
 {
 }
 

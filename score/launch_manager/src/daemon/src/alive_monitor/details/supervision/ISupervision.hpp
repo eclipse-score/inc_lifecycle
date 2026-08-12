@@ -17,6 +17,7 @@
 #include <cstdint>
 
 #include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
+#include "score/mw/launch_manager/common/identifier_hash.hpp"
 #include <string>
 #include <string_view>
 #include <vector>
@@ -42,7 +43,7 @@ class ISupervision
     /// @brief Constructor
     /// @param [in] f_supervisionConfigName_p       Unique name set by configuration
     /// @warning    Constructor may throw std::exceptions
-    explicit ISupervision(const char* const f_supervisionConfigName_p) noexcept(false);
+    explicit ISupervision(const IdentifierHash f_supervisionConfigName_p) noexcept(false);
 
     /// @brief Default destructor
     /* RULECHECKER_comment(0, 3, check_min_instructions, "Default destructor is not provided\
@@ -58,7 +59,7 @@ class ISupervision
 
     /// @brief Get the name of the configuration element for the corresponding supervision container
     /// @return std::string_view   View over the name of the corresponding supervision configuration container
-    std::string_view getConfigName(void) const noexcept;
+    IdentifierHash getConfigName(void) const noexcept;
 
   protected:
     /// @brief Default Move Constructor
@@ -78,7 +79,7 @@ class ISupervision
 
   private:
     /// Unique name set by configuration
-    const std::string k_cfgName;
+    const IdentifierHash k_cfgName;
 };
 
 }  // namespace supervision

@@ -16,10 +16,10 @@
 
 #include <memory>
 
-#include "score/mw/launch_manager/alive_monitor/details/common/AliveMonitorConfig.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/factory/IPhmFactory.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/factory/StaticConfig.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ObservableEventReader.hpp"
+#include "score/mw/launch_manager/configuration/config.hpp"
 #include <string>
 #include <vector>
 
@@ -41,7 +41,7 @@ namespace saf
 namespace factory
 {
 
-using SupervisedComponentConfig = score::mw::lifecycle::internal::alive::SupervisedComponentConfig;
+using ComponentAliveSupervision = score::mw::lifecycle::internal::configuration::ComponentAliveSupervision;
 
 /// @brief PHM Factory for FlatCfg AR21-11 format
 /// @details Provides methods to create worker objects depending on a AR21-11 based PHM FlatCfg file
@@ -70,7 +70,7 @@ class FlatCfgFactory : public IPhmFactory
     /// @brief Initialize SW cluster
     /// @param [in] supervised  Vector of supervised component configurations
     /// @return                 Initialization is successful (true), otherwise failure (false)
-    bool init(const std::vector<SupervisedComponentConfig>& supervised);
+    bool init(const std::vector<std::pair<IdentifierHash, ComponentAliveSupervision>>& supervised);
 
     /// @brief Refer to the description of the base class (IPhmFactory)
     bool createObservableEvents(
@@ -100,11 +100,6 @@ class FlatCfgFactory : public IPhmFactory
         std::shared_ptr<score::mw::lifecycle::IRecoveryClient> f_recoveryClient_r) override;
 
   private:
-    /// @brief Get process id based on ASR path of process
-    /// @param[in] comp  Reference to component configuration
-    /// @return          process id
-    static score::mw::lifecycle::IdentifierHash getProcessId(const SupervisedComponentConfig& comp) noexcept(true);
-
     /// @brief Create IPC Channel with uid-based access permission
     /// @details Only the given uid will ge granted r/w access, no group will be granted access
     /// @param[in,out] f_ipcServer_r The IPC server object
@@ -119,8 +114,7 @@ class FlatCfgFactory : public IPhmFactory
     /// @brief The buffer configuration for constructing supervision objects
     const factory::SupervisionBufferConfig& bufferConfig_r;
 
-    std::vector<SupervisedComponentConfig> supervised_components_;
-    std::vector<std::string> alive_cfg_names_;
+    std::vector<std::pair<IdentifierHash, ComponentAliveSupervision>> supervised_components_;
 };
 
 }  // namespace factory

@@ -28,7 +28,7 @@ namespace score::mw::lifecycle::internal::saf::daemon
 PhmDaemon::PhmDaemon(OsClock& f_osClock, std::unique_ptr<ISupervisionControlReceiver> f_observable_event_receiver)
     : osClock{f_osClock},
       cycleTimer{&osClock},
-      swClusterHandlers{},
+      swClusterHandler{"todo: remove this name"},
       processStateReader{std::move(f_observable_event_receiver)}
 {
     static_cast<void>(f_osClock);
@@ -46,10 +46,7 @@ void PhmDaemon::performCyclicTriggers(void)
 
     if (processStateReader.distributeChanges(syncTimestamp))
     {
-        for (auto& phmHandler : swClusterHandlers)
-        {
-            phmHandler.performCyclicTriggers(syncTimestamp);
-        }
+        swClusterHandler.performCyclicTriggers(syncTimestamp);
     }
     else
     {
@@ -58,42 +55,24 @@ void PhmDaemon::performCyclicTriggers(void)
     }
 }
 
-bool PhmDaemon::construct(const AliveMonitorConfig& config, const SupervisionBufferConfig& f_bufferConfig_r) noexcept(
-    false)
+bool PhmDaemon::construct(const Config& config, const SupervisionBufferConfig& f_bufferConfig_r) noexcept(false)
 {
-    bool isSuccess{true};
-
-    score::Result<std::vector<std::string>> listSwClustersPhm{{"MainCluster"}};
-    if (!listSwClustersPhm.has_value())
+    // In a later refactoring step, components will register their own alive supervision and provide their identifier.
+    // For now, we must construct this vector to link the id to the alive supervision
+    std::vector<std::pair<IdentifierHash, ComponentAliveSupervision>> component_configs;
+    for (const auto& comp : config.components())
     {
-        LM_LOG_ERROR() << "Phm Daemon: retrieving the list of PHM software cluster configurations failed with error:"
-                       << listSwClustersPhm.error().Message();
-        isSuccess = false;
-    }
-    else
-    {
-        if (listSwClustersPhm.value().size() == 0U)
+        if (!comp.component_properties.application_profile.alive_supervision.has_value())
         {
-            LM_LOG_WARN() << "Phm Daemon: is starting without any software cluster configurations!";
+            continue;
         }
-
-        // Reserve the vector swClusterHandlers obtained from flatcfg before constructing the SwClusters
-        swClusterHandlers.reserve(listSwClustersPhm.value().size());
-
-        for (auto strSwClusterName : listSwClustersPhm.value())
-        {
-            swClusterHandlers.emplace_back(strSwClusterName);
-            isSuccess =
-                swClusterHandlers.back().constructWorkers(config, recoveryClient, processStateReader, f_bufferConfig_r);
-            if (!isSuccess)
-            {
-                LM_LOG_ERROR() << "Phm Daemon: failed to create worker objects for swclusterhandler:"
-                               << strSwClusterName;
-                break;
-            }
-        }
+        const auto& alive = comp.component_properties.application_profile.alive_supervision.value();
+        component_configs.emplace_back(IdentifierHash{comp.name}, alive);
     }
-    return isSuccess;
+
+    const auto res = swClusterHandler.constructWorkers(
+        std::move(component_configs), recoveryClient, processStateReader, f_bufferConfig_r);
+    return res;
 }
 
 }  // namespace score::mw::lifecycle::internal::saf::daemon

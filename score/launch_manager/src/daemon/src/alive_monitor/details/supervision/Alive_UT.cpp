@@ -20,13 +20,13 @@
 #include "score/mw/launch_manager/alive_monitor/details/ifappl/Checkpoint.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ObservableEvent.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/supervision/Alive.hpp"
-#include "score/mw/launch_manager/alive_monitor/details/supervision/SupervisionCfg.hpp"
 #include "score/mw/launch_manager/common/identifier_hash.hpp"
 #include "score/mw/launch_manager/recovery_client/irecovery_client.h"
 
 using namespace testing;
 
 using EStatus = score::mw::lifecycle::internal::saf::supervision::Alive::EStatus;
+using score::mw::lifecycle::internal::configuration::ComponentAliveSupervision;
 
 namespace
 {
@@ -98,19 +98,13 @@ struct AliveFixture
 
     explicit AliveFixture(const Builder& bld) : processState(kProcessId), checkpoint(kCheckpointName, 1U, &processState)
     {
-        score::mw::lifecycle::internal::saf::supervision::AliveSupervisionCfg cfg{checkpoint};
-        cfg.cfgName_p = "test_alive";
-        cfg.aliveReferenceCycle = bld.referenceCycleNs;
-        cfg.minAliveIndications = bld.minIndications;
-        cfg.maxAliveIndications = bld.maxIndications;
-        cfg.isMinCheckDisabled = (bld.minIndications == 0U);
-        cfg.isMaxCheckDisabled = (bld.maxIndications == 0U);
-        cfg.failedCyclesTolerance = bld.failedCyclesTolerance;
-        cfg.checkpointBufferSize = 16U;
-        cfg.recoveryClient = mockClient;
-        cfg.processIdentifier = kProcessIdentifier;
+        ComponentAliveSupervision cfg{};
+        cfg.min_indications = bld.minIndications;
+        cfg.max_indications = bld.maxIndications;
+        cfg.failed_cycles_tolerance = bld.failedCyclesTolerance;
 
-        alive = std::make_unique<score::mw::lifecycle::internal::saf::supervision::Alive>(cfg);
+        alive = std::make_unique<score::mw::lifecycle::internal::saf::supervision::Alive>(
+            kProcessIdentifier, cfg, mockClient, checkpoint);
         processState.attachObserver(*alive);
     }
 

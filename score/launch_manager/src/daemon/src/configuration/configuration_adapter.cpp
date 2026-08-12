@@ -171,8 +171,8 @@ void ConfigurationAdapter::appendAliveInterfaceEnvironment(
         return;
     }
 
-    std::string iface_path =
-        std::string(kAliveInterfaceEnvName) + "=" + score::mw::lifecycle::internal::aliveInterfacePath(comp.name);
+    std::string iface_path = std::string(kAliveInterfaceEnvName) + "=" +
+                             mw::lifecycle::internal::aliveInterfacePath(IdentifierHash{comp.name});
     startup.envp_[env_index++] = strdup(iface_path.c_str());
 }
 

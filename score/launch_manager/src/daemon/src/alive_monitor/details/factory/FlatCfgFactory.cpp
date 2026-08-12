@@ -26,7 +26,6 @@
 #include "score/mw/launch_manager/alive_monitor/details/ifappl/MonitorIfDaemon.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ObservableEvent.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/supervision/Alive.hpp"
-#include "score/mw/launch_manager/alive_monitor/details/supervision/SupervisionCfg.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/TimeConversion.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
 #include "score/mw/launch_manager/common/alive_interface_path.hpp"
@@ -44,7 +43,7 @@ FlatCfgFactory::FlatCfgFactory(const BufferConfig& f_bufferConfig_r) : IPhmFacto
 {
 }
 
-bool FlatCfgFactory::init(const std::vector<SupervisedComponentConfig>& supervised)
+bool FlatCfgFactory::init(const std::vector<std::pair<IdentifierHash, ComponentAliveSupervision>>& supervised)
 {
     supervised_components_ = supervised;
     return true;
@@ -61,7 +60,7 @@ bool FlatCfgFactory::createObservableEvents(
         f_processStates_r.reserve(supervised_components_.size());
         for (const auto& comp : supervised_components_)
         {
-            const auto id = IdentifierHash{comp.name};
+            const auto id = IdentifierHash{comp.first};
             f_processStates_r.emplace_back(id);
             isSuccess = f_processStateReader_r.registerObservableEvent(f_processStates_r.back(), id);
             if (!isSuccess)
@@ -69,7 +68,7 @@ bool FlatCfgFactory::createObservableEvents(
                 break;
             }
 
-            LM_LOG_DEBUG() << "Successfully created Observable Events:" << comp.name;
+            LM_LOG_DEBUG() << "Successfully created Observable Events:" << comp.first;
         }
     }
     catch (const std::exception& f_exception_r)
@@ -126,9 +125,9 @@ bool FlatCfgFactory::createAliveIfIpcs(std::vector<ifappl::CheckpointIpcServer>&
 
         for (const auto& comp : supervised_components_)
         {
-            const std::string pathInterface = score::mw::lifecycle::internal::aliveInterfacePath(comp.name);
+            const std::string pathInterface = score::mw::lifecycle::internal::aliveInterfacePath(comp.first);
             f_interfaceIpcs_r.emplace_back();
-            const std::int32_t configuredUid = static_cast<std::int32_t>(comp.uid);
+            const std::int32_t configuredUid = static_cast<std::int32_t>(comp.first.data());
             isSuccess = initIpcServerWithUidBasedAccess(f_interfaceIpcs_r.back(), pathInterface, configuredUid);
 
             if (isSuccess)
@@ -208,7 +207,7 @@ bool FlatCfgFactory::createSupervisionCheckpoints(
         for (size_t idx = 0; idx < supervised_components_.size(); ++idx)
         {
             const auto& comp = supervised_components_[idx];
-            const std::string checkpointCfgName = comp.name + "_checkpoint";
+            const std::string checkpointCfgName = std::to_string(comp.first.data()) + "_checkpoint";
             const uint32_t checkpointId = StaticConfig::k_DefaultCheckpointId;
 
             const ifexm::ObservableEvent* process_p{&f_processStates_r.at(idx)};
@@ -250,40 +249,14 @@ bool FlatCfgFactory::createAliveSupervisions(
     try
     {
         f_alive_r.reserve(supervised_components_.size());
-        alive_cfg_names_.clear();
-        alive_cfg_names_.reserve(supervised_components_.size());
 
         for (size_t idx = 0; idx < supervised_components_.size(); ++idx)
         {
             const auto& comp = supervised_components_[idx];
-            const auto& alive_sup = comp.alive_supervision;
-            SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(
-                alive_sup.has_value(), "Supervised component must have alive_supervision configured");
+            const auto& id = comp.first;
+            const auto& alive_sup = comp.second;
 
-            alive_cfg_names_.emplace_back(comp.name + "_alive_supervision");
-            NanoSecondType aliveReferenceCycleCfg{
-                timers::TimeConversion::convertMilliSecToNanoSec(static_cast<double>(alive_sup->reporting_cycle_ms))};
-            uint32_t minAliveIndicationsCfg = alive_sup->min_indications.value_or(0U);
-            uint32_t maxAliveIndicationsCfg = alive_sup->max_indications.value_or(0U);
-            bool isMinCheckDisabledCfg = (minAliveIndicationsCfg == 0U);
-            bool isMaxCheckDisabledCfg = (maxAliveIndicationsCfg == 0U);
-            uint32_t failedCyclesToleranceCfg = alive_sup->failed_cycles_tolerance;
-
-            supervision::AliveSupervisionCfg aliveSupCfg{f_checkpoints_r.at(idx)};
-
-            aliveSupCfg.cfgName_p = alive_cfg_names_.back().c_str();
-            aliveSupCfg.aliveReferenceCycle = aliveReferenceCycleCfg;
-            aliveSupCfg.minAliveIndications = minAliveIndicationsCfg;
-            aliveSupCfg.maxAliveIndications = maxAliveIndicationsCfg;
-            aliveSupCfg.isMinCheckDisabled = isMinCheckDisabledCfg;
-            aliveSupCfg.isMaxCheckDisabled = isMaxCheckDisabledCfg;
-            aliveSupCfg.failedCyclesTolerance = failedCyclesToleranceCfg;
-            aliveSupCfg.checkpointBufferSize = bufferConfig_r.bufferSizeAliveSupervision;
-            aliveSupCfg.recoveryClient = f_recoveryClient_r;
-
-            aliveSupCfg.processIdentifier = getProcessId(comp);
-
-            f_alive_r.emplace_back(aliveSupCfg);
+            f_alive_r.emplace_back(id, alive_sup, f_recoveryClient_r, f_checkpoints_r.at(idx));
 
             f_processStates_r.at(idx).attachObserver(f_alive_r.back());
 
@@ -310,11 +283,6 @@ bool FlatCfgFactory::createAliveSupervisions(
     }
 
     return isSuccess;
-}
-
-IdentifierHash FlatCfgFactory::getProcessId(const SupervisedComponentConfig& comp) noexcept(true)
-{
-    return IdentifierHash{comp.name};
 }
 
 }  // namespace score::mw::lifecycle::internal::saf::factory
