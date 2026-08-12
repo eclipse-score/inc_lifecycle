@@ -21,18 +21,9 @@
 namespace score::mw::lifecycle::internal::saf::daemon
 {
 
-SwClusterHandler::SwClusterHandler(const std::string& f_swClusterName_r)
-    : f_swClusterName(f_swClusterName_r),
-      processStates{},
-      aliveIfIpcs{},
-      aliveInterfaces{},
-      checkpoints{},
-      aliveSupervisions{}
+SwClusterHandler::SwClusterHandler()
+    : processStates{}, aliveIfIpcs{}, aliveInterfaces{}, checkpoints{}, aliveSupervisions{}
 {
-    if (f_swClusterName_r.empty())
-    {
-        LM_LOG_ERROR() << "Software Cluster Handler: Software cluster name is empty!";
-    }
 }
 
 SwClusterHandler::~SwClusterHandler() = default;
@@ -50,7 +41,7 @@ bool SwClusterHandler::constructWorkers(
     isSuccess = flatCfgFactory.init(component_config);
     if (isSuccess)
     {
-        LM_LOG_DEBUG() << "Software Cluster Handler starts constructing workers:" << f_swClusterName;
+        LM_LOG_DEBUG() << "Software Cluster Handler starts constructing workers";
         isSuccess = flatCfgFactory.createObservableEvents(processStates, f_processStateReader_r);
     }
     if (isSuccess)

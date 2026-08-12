@@ -28,7 +28,7 @@ namespace score::mw::lifecycle::internal::saf::daemon
 PhmDaemon::PhmDaemon(OsClock& f_osClock, std::unique_ptr<ISupervisionControlReceiver> f_observable_event_receiver)
     : osClock{f_osClock},
       cycleTimer{&osClock},
-      swClusterHandler{"todo: remove this name"},
+      swClusterHandler{},
       processStateReader{std::move(f_observable_event_receiver)}
 {
     static_cast<void>(f_osClock);

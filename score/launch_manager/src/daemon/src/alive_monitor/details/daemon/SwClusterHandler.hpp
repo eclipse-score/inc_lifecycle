@@ -62,12 +62,8 @@ using mw::lifecycle::internal::configuration::ComponentAliveSupervision;
 class SwClusterHandler
 {
   public:
-    /// @brief No Default Constructor
-    SwClusterHandler() = delete;
-
     /// @brief Constructor
-    /// @param [in] f_swClusterName_r   Software Cluster name which shall be handled
-    explicit SwClusterHandler(const std::string& f_swClusterName_r);
+    explicit SwClusterHandler();
 
     /// @brief Destroys the workers
     virtual ~SwClusterHandler();
@@ -120,9 +116,6 @@ class SwClusterHandler
     /// @details Evaluate all supervisions created during construction.
     /// @param [in] f_syncTimestamp   Timestamp for cyclic synchronization
     void evaluateSupervisions(const timers::NanoSecondType f_syncTimestamp);
-
-    /// SwCluster Name for this SwCLusterHandler Object
-    const std::string f_swClusterName;
 
     /// Vector of Process states
     std::vector<ifexm::ObservableEvent> processStates;
