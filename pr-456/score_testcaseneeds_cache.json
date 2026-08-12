@@ -5518,7 +5518,7 @@
   {
     "name": "MonitorIfDaemonTest__GetInterfaceName_ReturnsNameGivenAtConstruction",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/ifappl/MonitorIfDaemon_UT.cpp",
-    "line": "168",
+    "line": "157",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5532,7 +5532,7 @@
   {
     "name": "MonitorIfDaemonTest__InitiallyInactive_CheckForNewData_DoesNotNotifyCheckpoint",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/ifappl/MonitorIfDaemon_UT.cpp",
-    "line": "176",
+    "line": "165",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5546,7 +5546,7 @@
   {
     "name": "MonitorIfDaemonTest__DeactivationBeforeActivation_RemainsInactive",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/ifappl/MonitorIfDaemon_UT.cpp",
-    "line": "188",
+    "line": "177",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5560,7 +5560,7 @@
   {
     "name": "MonitorIfDaemonTest__ActivationEvent_ActivatesMonitorOnNextCheckForNewData",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/ifappl/MonitorIfDaemon_UT.cpp",
-    "line": "205",
+    "line": "194",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5574,7 +5574,7 @@
   {
     "name": "MonitorIfDaemonTest__DeactivationEvent_DeactivatesMonitor_NoFurtherDataForwarded",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/ifappl/MonitorIfDaemon_UT.cpp",
-    "line": "223",
+    "line": "212",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5588,7 +5588,7 @@
   {
     "name": "MonitorIfDaemonTest__Active_CheckpointDataForwarded",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/ifappl/MonitorIfDaemon_UT.cpp",
-    "line": "245",
+    "line": "234",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5602,7 +5602,7 @@
   {
     "name": "MonitorIfDaemonTest__Active_FutureTimestamp_NotForwardedInCurrentCycle",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/ifappl/MonitorIfDaemon_UT.cpp",
-    "line": "263",
+    "line": "252",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5616,7 +5616,7 @@
   {
     "name": "MonitorIfDaemonTest__Active_FutureTimestampCheckpoint_ConsumedInLaterCycle",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/ifappl/MonitorIfDaemon_UT.cpp",
-    "line": "277",
+    "line": "266",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5630,7 +5630,7 @@
   {
     "name": "MonitorIfDaemonTest__Active_NonMatchingCheckpointId_NotForwarded",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/ifappl/MonitorIfDaemon_UT.cpp",
-    "line": "296",
+    "line": "285",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5644,7 +5644,7 @@
   {
     "name": "MonitorIfDaemonTest__Active_MultipleCheckpointsInOneCycle_AllForwarded",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/ifappl/MonitorIfDaemon_UT.cpp",
-    "line": "313",
+    "line": "302",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5658,7 +5658,7 @@
   {
     "name": "MonitorIfDaemonTest__Active_TwoAttachedCheckpoints_RoutedByCheckpointId",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/ifappl/MonitorIfDaemon_UT.cpp",
-    "line": "330",
+    "line": "319",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5672,7 +5672,7 @@
   {
     "name": "MonitorIfDaemonTest__Active_OverflowDetected_TransitionsToInactiveOverflow",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/ifappl/MonitorIfDaemon_UT.cpp",
-    "line": "356",
+    "line": "345",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5686,7 +5686,7 @@
   {
     "name": "MonitorIfDaemonTest__InactiveOverflow_NoProcessRestart_DoesNotRepeatNotification",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/ifappl/MonitorIfDaemon_UT.cpp",
-    "line": "376",
+    "line": "365",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5700,7 +5700,7 @@
   {
     "name": "MonitorIfDaemonTest__InactiveOverflow_ProcessRestarts_PushesOverflowNotificationAgain",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/ifappl/MonitorIfDaemon_UT.cpp",
-    "line": "394",
+    "line": "383",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5714,7 +5714,7 @@
   {
     "name": "MonitorIfDaemonTest__InactiveOverflow_ProcessRestartFlag_ClearedAfterNotification",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/ifappl/MonitorIfDaemon_UT.cpp",
-    "line": "416",
+    "line": "405",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5994,7 +5994,7 @@
   {
     "name": "AliveSupervisionTest__AliveTransitionsOkToExpiredOnMissingHeartbeat",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/supervision/Alive_UT.cpp",
-    "line": "164",
+    "line": "152",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -6008,7 +6008,7 @@
   {
     "name": "AliveSupervisionTest__AliveStaysOkWithCorrectHeartbeats",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/supervision/Alive_UT.cpp",
-    "line": "186",
+    "line": "174",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -6022,7 +6022,7 @@
   {
     "name": "AliveSupervisionTest__AliveReportsEnqueueFailureWhenRingBufferFull",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/supervision/Alive_UT.cpp",
-    "line": "209",
+    "line": "197",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -6036,7 +6036,7 @@
   {
     "name": "AliveSupervisionTest__AliveDebouncesThroughFailedBeforeExpired",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/supervision/Alive_UT.cpp",
-    "line": "229",
+    "line": "217",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -6050,7 +6050,7 @@
   {
     "name": "AliveSupervisionTest__DeactivatesOnSupervisionDeactivation",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/supervision/Alive_UT.cpp",
-    "line": "254",
+    "line": "242",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -6064,7 +6064,7 @@
   {
     "name": "AliveSupervisionTest__ReactivatesAfterDeactivation",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/supervision/Alive_UT.cpp",
-    "line": "270",
+    "line": "258",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -6078,7 +6078,7 @@
   {
     "name": "AliveSupervisionTest__MaxIndicationViolationExpires",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/supervision/Alive_UT.cpp",
-    "line": "293",
+    "line": "281",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
