@@ -23,7 +23,7 @@
 
 namespace score
 {
-namespace mw::lifecycle
+namespace mw::lifecycle::internal
 {
 namespace saf
 {
@@ -83,7 +83,7 @@ class ISupervision
 
 }  // namespace supervision
 }  // namespace saf
-}  // namespace mw::lifecycle
+}  // namespace mw::lifecycle::internal
 }  // namespace score
 
 #endif

@@ -32,10 +32,10 @@ class AliveImpl
 {
   public:
     /// @brief The element that is sent via IPC
-    using CheckpointBufferElement = score::mw::lifecycle::saf::ifappl::CheckpointBufferElement;
+    using CheckpointBufferElement = score::mw::lifecycle::internal::saf::ifappl::CheckpointBufferElement;
     /// @brief The IPC Connection type
-    using CheckpointIpcClient = score::mw::lifecycle::saf::ipc::
-        IpcClient<CheckpointBufferElement, score::mw::lifecycle::saf::ifappl::k_maxCheckpointBufferElements>;
+    using CheckpointIpcClient = score::mw::lifecycle::internal::saf::ipc::
+        IpcClient<CheckpointBufferElement, score::mw::lifecycle::internal::saf::ifappl::k_maxCheckpointBufferElements>;
 
     /// @brief Non-parametric constructor is not supported
     AliveImpl() = delete;

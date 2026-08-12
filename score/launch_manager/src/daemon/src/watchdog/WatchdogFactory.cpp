@@ -15,7 +15,7 @@
 
 #include "score/mw/launch_manager/watchdog/details/WatchdogImpl.hpp"
 
-namespace score::mw::lifecycle::watchdog
+namespace score::mw::lifecycle::internal::watchdog
 {
 
 std::unique_ptr<IWatchdogIf> createWatchdog()
@@ -23,4 +23,4 @@ std::unique_ptr<IWatchdogIf> createWatchdog()
     return std::make_unique<WatchdogImpl>();
 }
 
-}  // namespace score::mw::lifecycle::watchdog
+}  // namespace score::mw::lifecycle::internal::watchdog

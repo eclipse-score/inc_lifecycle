@@ -31,6 +31,9 @@ namespace mw::lifecycle
 
 class IRecoveryClient;
 
+namespace internal
+{
+
 namespace saf
 {
 
@@ -141,6 +144,7 @@ class SwClusterHandler
 
 }  // namespace daemon
 }  // namespace saf
+}  // namespace internal
 }  // namespace mw::lifecycle
 }  // namespace score
 

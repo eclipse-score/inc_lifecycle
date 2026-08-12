@@ -32,7 +32,7 @@
 #include "score/mw/launch_manager/common/alive_interface_path.hpp"
 #include "score/mw/launch_manager/common/identifier_hash.hpp"
 
-namespace score::mw::lifecycle::saf::factory
+namespace score::mw::lifecycle::internal::saf::factory
 {
 
 using BufferConfig = SupervisionBufferConfig;
@@ -317,4 +317,4 @@ IdentifierHash FlatCfgFactory::getProcessId(const SupervisedComponentConfig& com
     return IdentifierHash{comp.name};
 }
 
-}  // namespace score::mw::lifecycle::saf::factory
+}  // namespace score::mw::lifecycle::internal::saf::factory

@@ -43,7 +43,7 @@ namespace score::mw::lifecycle::internal
 {
 
 using ConfigurationType = ConfigurationAdapter;
-using Config = score::mw::lifecycle::configuration::Config;
+using Config = score::mw::lifecycle::internal::configuration::Config;
 
 /// @brief ProcessGroupManager provides the core functionality of LCM.
 /// Software that is deployed to the machine, should be managed through Process Groups.
@@ -79,7 +79,7 @@ class ProcessGroupManager final : public ITransitionResultPublisher
         std::unique_ptr<IAliveMonitorThread> alive_monitor_thread,
         std::shared_ptr<IRecoveryClient> recovery_client,
         std::unique_ptr<score::mw::lifecycle::ISupervisionControlNotifier> supervision_control_notifier,
-        std::unique_ptr<score::mw::lifecycle::watchdog::IWatchdogIf> watchdog);
+        std::unique_ptr<score::mw::lifecycle::internal::watchdog::IWatchdogIf> watchdog);
 
     /// @brief Initializes the process group manager.
     /// Loads the flat configuration through ConfigurationManager.
@@ -322,7 +322,7 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     std::shared_ptr<score::mw::lifecycle::IRecoveryClient> recovery_client_{};
 
     /// @brief The watchdog serviced during the main loop. May be nullptr in legacy configuration.
-    std::unique_ptr<score::mw::lifecycle::watchdog::IWatchdogIf> watchdog_;
+    std::unique_ptr<score::mw::lifecycle::internal::watchdog::IWatchdogIf> watchdog_;
 };
 
 }  // namespace score::mw::lifecycle::internal

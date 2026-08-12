@@ -23,7 +23,7 @@
 
 namespace score
 {
-namespace mw::lifecycle
+namespace mw::lifecycle::internal
 {
 namespace saf
 {
@@ -71,7 +71,7 @@ class TimeConversion
 
 }  // namespace timers
 }  // namespace saf
-}  // namespace mw::lifecycle
+}  // namespace mw::lifecycle::internal
 }  // namespace score
 
 #endif

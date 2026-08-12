@@ -29,7 +29,7 @@
 #include <type_traits>
 #include <vector>
 
-namespace score::mw::lifecycle::configuration
+namespace score::mw::lifecycle::internal::configuration
 {
 
 namespace details
@@ -143,6 +143,6 @@ score::cpp::expected<TargetT, IConfigLoader::Error> validateRange(int64_t value,
     const fb::Watchdog* fb_wd);
 
 }  // namespace details
-}  // namespace score::mw::lifecycle::configuration
+}  // namespace score::mw::lifecycle::internal::configuration
 
 #endif  // FLATBUFFER_TYPE_CONVERTERS_HPP

@@ -20,7 +20,7 @@
 
 namespace score
 {
-namespace mw::lifecycle
+namespace mw::lifecycle::internal
 {
 namespace watchdog
 {
@@ -34,7 +34,8 @@ class MockWatchdogIf : public IWatchdogIf
     MOCK_METHOD(
         bool,
         init,
-        (const score::mw::lifecycle::configuration::WatchdogConfig& watchdog_config, std::int64_t cycle_time_ns),
+        (const score::mw::lifecycle::internal::configuration::WatchdogConfig& watchdog_config,
+         std::int64_t cycle_time_ns),
         (noexcept, override));
     MOCK_METHOD(bool, enable, (), (noexcept, override));
     MOCK_METHOD(void, disable, (), (noexcept, override));
@@ -43,7 +44,7 @@ class MockWatchdogIf : public IWatchdogIf
 };
 
 }  // namespace watchdog
-}  // namespace mw::lifecycle
+}  // namespace mw::lifecycle::internal
 }  // namespace score
 
 #endif  // IWATCHDOGIFMOCK_HPP_INCLUDED

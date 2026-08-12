@@ -18,7 +18,7 @@
 
 namespace score
 {
-namespace mw::lifecycle
+namespace mw::lifecycle::internal
 {
 namespace saf
 {
@@ -39,7 +39,7 @@ class PhmDaemonConfig
 
 }  // namespace daemon
 }  // namespace saf
-}  // namespace mw::lifecycle
+}  // namespace mw::lifecycle::internal
 }  // namespace score
 
 #endif

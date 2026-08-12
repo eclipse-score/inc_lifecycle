@@ -21,7 +21,7 @@
 #include "score/mw/launch_manager/alive_monitor/details/timers/TimeConversion.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
 
-namespace score::mw::lifecycle::saf::supervision
+namespace score::mw::lifecycle::internal::saf::supervision
 {
 
 Alive::Alive(const AliveSupervisionCfg& f_aliveCfg_r)
@@ -48,7 +48,7 @@ Alive::Alive(const AliveSupervisionCfg& f_aliveCfg_r)
 }
 
 // coverity[exn_spec_violation:FALSE] std::length_error is not thrown from push() which uses fixed-size-vector
-void Alive::updateData(const score::mw::lifecycle::saf::ifappl::Checkpoint& f_observable_r) noexcept(true)
+void Alive::updateData(const score::mw::lifecycle::internal::saf::ifappl::Checkpoint& f_observable_r) noexcept(true)
 {
     timers::NanoSecondType timestamp{f_observable_r.getTimestamp()};
 
@@ -594,4 +594,4 @@ timers::NanoSecondType Alive::getTimestampOfUpdateEvent(const TimeSortedUpdateEv
     return timestamp;
 }
 
-}  // namespace score::mw::lifecycle::saf::supervision
+}  // namespace score::mw::lifecycle::internal::saf::supervision

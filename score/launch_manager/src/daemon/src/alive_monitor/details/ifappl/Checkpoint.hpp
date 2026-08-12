@@ -25,7 +25,7 @@
 
 namespace score
 {
-namespace mw::lifecycle
+namespace mw::lifecycle::internal
 {
 namespace saf
 {
@@ -78,12 +78,12 @@ class Checkpoint : public saf::common::Observable<Checkpoint>
 
     /// @brief Get timestamp
     /// @return NanoSecondType  Timestamp value of the reported checkpoint in [nano seconds]
-    score::mw::lifecycle::saf::timers::NanoSecondType getTimestamp(void) const noexcept(true);
+    score::mw::lifecycle::internal::saf::timers::NanoSecondType getTimestamp(void) const noexcept(true);
 
     /// @brief Push data to checkpoint observer
     /// @details Push the checkpoint timestamp to the checkpoint observer to notify it was reported
     /// @param [in] f_timestamp     Timestamp value captured when the checkpoint was reported in [nano seconds]
-    void pushData(const score::mw::lifecycle::saf::timers::NanoSecondType f_timestamp) noexcept(true);
+    void pushData(const score::mw::lifecycle::internal::saf::timers::NanoSecondType f_timestamp) noexcept(true);
 
     /// @brief Set data loss event
     /// @details Set data loss event in the checkpoint observer
@@ -116,12 +116,12 @@ class Checkpoint : public saf::common::Observable<Checkpoint>
     bool isDataLossEvent;
 
     /// @brief Timestamp value in [nano seconds]
-    score::mw::lifecycle::saf::timers::NanoSecondType timestamp;
+    score::mw::lifecycle::internal::saf::timers::NanoSecondType timestamp;
 };
 
 }  // namespace ifappl
 }  // namespace saf
-}  // namespace mw::lifecycle
+}  // namespace mw::lifecycle::internal
 }  // namespace score
 
 #endif

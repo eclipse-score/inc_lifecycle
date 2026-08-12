@@ -10,7 +10,7 @@
 //   Note: Without "= null", flatbuffer will return a default value and there is no way to know if it has been configured or not
 // - optional values are defined with "= null" and they are populated as std::optional in the code
 
-namespace score.mw.lifecycle.configuration.fb;
+namespace score.mw.lifecycle.internal.configuration.fb;
 
 // Specifies the level of integration between the component and the Launch Manager.
 enum ApplicationType : byte {

@@ -148,7 +148,7 @@ int main(int argc, const char* argv[])
         //     return EXIT_FAILURE;
         // }
 
-        score::mw::lifecycle::configuration::FlatbufferConfigLoader config_loader;
+        score::mw::lifecycle::internal::configuration::FlatbufferConfigLoader config_loader;
         auto config_result = config_loader.load(config_path);
         if (!config_result.has_value())
         {
@@ -160,13 +160,13 @@ int main(int argc, const char* argv[])
             std::make_shared<score::mw::lifecycle::RecoveryClient>()};
         auto supervision_control_notifier =
             std::make_unique<score::mw::lifecycle::internal::SupervisionControlNotifier>();
-        std::unique_ptr<score::mw::lifecycle::saf::daemon::IAliveMonitor> healthMonitor{
-            std::make_unique<score::mw::lifecycle::saf::daemon::AliveMonitorImpl>(
+        std::unique_ptr<score::mw::lifecycle::internal::saf::daemon::IAliveMonitor> healthMonitor{
+            std::make_unique<score::mw::lifecycle::internal::saf::daemon::AliveMonitorImpl>(
                 recoveryClient, supervision_control_notifier->constructReceiver(), *config_result)};
         std::unique_ptr<score::mw::lifecycle::internal::IAliveMonitorThread> aliveMonitorThread{
             std::make_unique<score::mw::lifecycle::internal::AliveMonitorThread>(std::move(healthMonitor))};
 
-        auto watchdog = score::mw::lifecycle::watchdog::createWatchdog();
+        auto watchdog = score::mw::lifecycle::internal::watchdog::createWatchdog();
         auto process_group_manager = std::make_unique<ProcessGroupManager>(
             std::move(aliveMonitorThread),
             recoveryClient,

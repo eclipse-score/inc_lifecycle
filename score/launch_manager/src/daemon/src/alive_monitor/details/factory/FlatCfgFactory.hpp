@@ -33,7 +33,7 @@ class ControlClient;
 
 namespace score
 {
-namespace mw::lifecycle
+namespace mw::lifecycle::internal
 {
 namespace saf
 {
@@ -125,7 +125,7 @@ class FlatCfgFactory : public IPhmFactory
 
 }  // namespace factory
 }  // namespace saf
-}  // namespace mw::lifecycle
+}  // namespace mw::lifecycle::internal
 }  // namespace score
 
 #endif

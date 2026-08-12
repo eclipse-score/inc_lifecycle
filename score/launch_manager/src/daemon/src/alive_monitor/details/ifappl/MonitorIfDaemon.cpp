@@ -18,7 +18,7 @@
 #include "score/launch_manager/src/daemon/src/common/log.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ObservableEvent.hpp"
 
-namespace score::mw::lifecycle::saf::ifappl
+namespace score::mw::lifecycle::internal::saf::ifappl
 {
 
 MonitorIfDaemon::MonitorIfDaemon(CheckpointIpcServer& f_ipcServer_r, const char* f_interfaceName_p)
@@ -195,4 +195,4 @@ void MonitorIfDaemon::pushOverflowInfoToCheckpointObservers(void) const
     }
 }
 
-}  // namespace score::mw::lifecycle::saf::ifappl
+}  // namespace score::mw::lifecycle::internal::saf::ifappl

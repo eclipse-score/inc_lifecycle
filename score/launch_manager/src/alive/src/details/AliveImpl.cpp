@@ -34,7 +34,8 @@ AliveImpl::AliveImpl(
 
 void AliveImpl::ReportCheckpoint(std::uint32_t f_checkpointId) const noexcept(true)
 {
-    (void)ipcClient->sendEmplace(score::mw::lifecycle::saf::timers::OsClock::getMonotonicSystemClock(), f_checkpointId);
+    (void)ipcClient->sendEmplace(
+        score::mw::lifecycle::internal::saf::timers::OsClock::getMonotonicSystemClock(), f_checkpointId);
 }
 
 void AliveImpl::connectToPhmDaemon(void) noexcept(false)

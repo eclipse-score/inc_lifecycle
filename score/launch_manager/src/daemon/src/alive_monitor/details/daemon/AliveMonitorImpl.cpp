@@ -18,7 +18,7 @@
 
 #include "score/mw/launch_manager/alive_monitor/details/daemon/AliveMonitorImpl.hpp"
 
-namespace score::mw::lifecycle::saf::daemon
+namespace score::mw::lifecycle::internal::saf::daemon
 {
 
 AliveMonitorImpl::AliveMonitorImpl(
@@ -72,4 +72,4 @@ bool AliveMonitorImpl::run(std::atomic_bool& cancel_thread) noexcept
     return m_daemon->startCyclicExec(cancel_thread);
 }
 
-}  // namespace score::mw::lifecycle::saf::daemon
+}  // namespace score::mw::lifecycle::internal::saf::daemon

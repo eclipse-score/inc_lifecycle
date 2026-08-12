@@ -20,7 +20,7 @@
 #include <string_view>
 #include <vector>
 
-namespace score::mw::lifecycle::configuration
+namespace score::mw::lifecycle::internal::configuration
 {
 
 enum class ApplicationType : uint8_t
@@ -290,6 +290,6 @@ class ConfigBuilder
     std::optional<WatchdogConfig> watchdog_;
 };
 
-}  // namespace score::mw::lifecycle::configuration
+}  // namespace score::mw::lifecycle::internal::configuration
 
 #endif  // CONFIG_HPP

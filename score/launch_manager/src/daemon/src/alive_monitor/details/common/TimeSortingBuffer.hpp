@@ -21,7 +21,7 @@
 
 namespace score
 {
-namespace mw::lifecycle
+namespace mw::lifecycle::internal
 {
 namespace saf
 {
@@ -75,7 +75,7 @@ class TimeSortingBuffer
     possible to classify cheap_to_copy or expensive_to_copy without referring original object.", true_no_defect) */
     bool push(
         const TimeSortedElementType& f_element_r,
-        const score::mw::lifecycle::saf::timers::NanoSecondType f_timestamp)
+        const score::mw::lifecycle::internal::saf::timers::NanoSecondType f_timestamp)
     {
         bool isSuccess{false};
         SortChainElement newElement{nullptr, nullptr, f_element_r, f_timestamp};
@@ -140,7 +140,8 @@ class TimeSortingBuffer
             nullptr};                       // Pointer to previous element, null pointer means first element (oldest)
         SortChainElement* next_p{nullptr};  // Pointer to next element, null pointer means last element (latest)
         TimeSortedElementType element{};    // Element to be sorted
-        score::mw::lifecycle::saf::timers::NanoSecondType timestamp{0U};  // Timestamp used for sorting the elements
+        score::mw::lifecycle::internal::saf::timers::NanoSecondType timestamp{
+            0U};  // Timestamp used for sorting the elements
     };
 
     /// Sort elements
@@ -231,7 +232,7 @@ class TimeSortingBuffer
 
 }  // namespace common
 }  // namespace saf
-}  // namespace mw::lifecycle
+}  // namespace mw::lifecycle::internal
 }  // namespace score
 
 #endif

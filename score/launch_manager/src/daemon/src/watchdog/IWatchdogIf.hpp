@@ -18,14 +18,14 @@
 
 #include <cstdint>
 
-namespace score::mw::lifecycle::configuration
+namespace score::mw::lifecycle::internal::configuration
 {
 struct WatchdogConfig;
 }
 
 namespace score
 {
-namespace mw::lifecycle
+namespace mw::lifecycle::internal
 {
 namespace watchdog
 {
@@ -79,7 +79,7 @@ class IWatchdogIf
     /// @return Status of configuration. True if watchdog configuration is valid and has been successfully taken over
     /// by the Watchdog Interface library, false otherwise.
     virtual bool init(
-        const score::mw::lifecycle::configuration::WatchdogConfig& watchdog_config,
+        const score::mw::lifecycle::internal::configuration::WatchdogConfig& watchdog_config,
         std::int64_t cycle_time_ns) noexcept = 0;
 
     /// @brief Activate the watchdog.
@@ -137,7 +137,7 @@ class IWatchdogIf
 };
 
 }  // namespace watchdog
-}  // namespace mw::lifecycle
+}  // namespace mw::lifecycle::internal
 }  // namespace score
 
 #endif

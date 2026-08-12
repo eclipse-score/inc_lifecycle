@@ -20,7 +20,7 @@
 
 namespace score
 {
-namespace mw::lifecycle
+namespace mw::lifecycle::internal
 {
 namespace saf
 {
@@ -35,7 +35,7 @@ class CycleTimeValidator
     /// @param[in] f_clock_sys Interface to access the system clock functionality
     /// @return nanoseconds or -1 if receiving the clock resolution fails
     static int64_t getMonotonicClockAccuracy(
-        const score::mw::lifecycle::saf::timers::OsClockInterface& f_clock_sys) noexcept(true);
+        const score::mw::lifecycle::internal::saf::timers::OsClockInterface& f_clock_sys) noexcept(true);
 
     /// @brief Adjust a given time interval based on the clock accuracy of
     /// the monotonic clock.
@@ -47,12 +47,12 @@ class CycleTimeValidator
     /// - -1 if retrieving the system's clock resolution failed
     static int64_t adjustCycleTimeOnClockAccuracy(
         const int64_t f_requested_interval_ns,
-        const score::mw::lifecycle::saf::timers::OsClockInterface& f_clock_sys) noexcept(true);
+        const score::mw::lifecycle::internal::saf::timers::OsClockInterface& f_clock_sys) noexcept(true);
 };
 
 }  // namespace timers
 }  // namespace saf
-}  // namespace mw::lifecycle
+}  // namespace mw::lifecycle::internal
 }  // namespace score
 
 #endif

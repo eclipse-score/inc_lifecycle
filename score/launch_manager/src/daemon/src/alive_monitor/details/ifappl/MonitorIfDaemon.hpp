@@ -22,7 +22,7 @@
 
 namespace score
 {
-namespace mw::lifecycle
+namespace mw::lifecycle::internal
 {
 namespace saf
 {
@@ -95,7 +95,8 @@ class MonitorIfDaemon : public common::Observer<ifexm::ObservableEvent>
     /// @brief Check for new data
     /// @details Check Alive interface for new data from application side
     /// @param [in]  f_syncTimestamp    Timestamp till data shall be read, newer data will not be considered
-    void checkForNewData(const score::mw::lifecycle::saf::timers::NanoSecondType f_syncTimestamp) noexcept(true);
+    void checkForNewData(const score::mw::lifecycle::internal::saf::timers::NanoSecondType f_syncTimestamp) noexcept(
+        true);
 
   private:
     /// @brief Check if checkpoint ring buffer overflow has occurred
@@ -118,7 +119,8 @@ class MonitorIfDaemon : public common::Observer<ifexm::ObservableEvent>
     /// @details The checkpoint ring buffer data is pushed to checkpoint specific objects.
     /// @param [in]  f_syncTimestamp        Timestamp till data shall be read, newer data will not be considered
     /// @returns True if reading data from IPC channel and pushing data to observers was successful, else false
-    bool pushNewDataToCheckpointObservers(const score::mw::lifecycle::saf::timers::NanoSecondType f_syncTimestamp);
+    bool pushNewDataToCheckpointObservers(
+        const score::mw::lifecycle::internal::saf::timers::NanoSecondType f_syncTimestamp);
 
     /// @brief Push a single checkpoint to observers
     /// @param[in] f_elem_r The checkpoint to push to observers
@@ -156,7 +158,7 @@ class MonitorIfDaemon : public common::Observer<ifexm::ObservableEvent>
 
 }  // namespace ifappl
 }  // namespace saf
-}  // namespace mw::lifecycle
+}  // namespace mw::lifecycle::internal
 }  // namespace score
 
 #endif

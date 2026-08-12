@@ -27,7 +27,7 @@
 
 namespace score
 {
-namespace mw::lifecycle
+namespace mw::lifecycle::internal
 {
 namespace saf
 {
@@ -127,7 +127,7 @@ class Alive : public ISupervision,
   private:
     /// @brief The pointer is only stored for the identification of a checkpoint observer. It can be further used for
     /// accessing const members only.
-    using CheckpointIdentifier = const score::mw::lifecycle::saf::ifappl::Checkpoint*;
+    using CheckpointIdentifier = const score::mw::lifecycle::internal::saf::ifappl::Checkpoint*;
 
     /// @brief Time sorted checkpoint snapshot
     struct CheckpointSnapshot final
@@ -287,7 +287,7 @@ class Alive : public ISupervision,
     bool setReferenceCycleTimestamps(timers::NanoSecondType f_baseValue) noexcept(true);
 
     /// @brief Alive reference cycle in [nano seconds]
-    const score::mw::lifecycle::saf::timers::NanoSecondType k_aliveReferenceCycle;
+    const score::mw::lifecycle::internal::saf::timers::NanoSecondType k_aliveReferenceCycle;
 
     /// @brief Minimum allowed alive indications
     const uint32_t k_minAliveIndications;
@@ -341,12 +341,12 @@ class Alive : public ISupervision,
 
     /// @brief Time sorting buffer for update events in alive supervision
     /// @details This buffer sorts all process events and checkpoint events in the same buffer.
-    score::mw::lifecycle::saf::common::TimeSortingBuffer<TimeSortedUpdateEvent> timeSortingUpdateEventBuffer;
+    score::mw::lifecycle::internal::saf::common::TimeSortingBuffer<TimeSortedUpdateEvent> timeSortingUpdateEventBuffer;
 };
 
 }  // namespace supervision
 }  // namespace saf
-}  // namespace mw::lifecycle
+}  // namespace mw::lifecycle::internal
 }  // namespace score
 
 #endif

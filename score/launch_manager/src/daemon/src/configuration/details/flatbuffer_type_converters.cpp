@@ -25,10 +25,10 @@
 #include <string>
 #include <vector>
 
-namespace score::mw::lifecycle::configuration
+namespace score::mw::lifecycle::internal::configuration
 {
 
-namespace fb = score::mw::lifecycle::configuration::fb;
+namespace fb = score::mw::lifecycle::internal::configuration::fb;
 
 namespace
 {
@@ -653,4 +653,4 @@ score::cpp::expected<std::vector<RunTargetConfig>, IConfigLoader::Error> convert
 }
 
 }  // namespace details
-}  // namespace score::mw::lifecycle::configuration
+}  // namespace score::mw::lifecycle::internal::configuration

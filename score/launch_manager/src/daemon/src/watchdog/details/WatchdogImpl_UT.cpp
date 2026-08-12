@@ -32,9 +32,9 @@ using ::testing::_;
 using ::testing::Return;
 using ::testing::StrEq;
 
-using score::mw::lifecycle::configuration::WatchdogConfig;
-using score::mw::lifecycle::watchdog::IWatchdogIf;
-using score::mw::lifecycle::watchdog::WatchdogImpl;
+using score::mw::lifecycle::internal::configuration::WatchdogConfig;
+using score::mw::lifecycle::internal::watchdog::IWatchdogIf;
+using score::mw::lifecycle::internal::watchdog::WatchdogImpl;
 
 namespace
 {

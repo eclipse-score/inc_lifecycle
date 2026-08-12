@@ -12,11 +12,11 @@
  ********************************************************************************/
 #include "score/mw/launch_manager/alive_monitor/details/timers/CycleTimeValidator.hpp"
 
-namespace score::mw::lifecycle::saf::timers
+namespace score::mw::lifecycle::internal::saf::timers
 {
 
 int64_t CycleTimeValidator::getMonotonicClockAccuracy(
-    const score::mw::lifecycle::saf::timers::OsClockInterface& f_clock_sys) noexcept(true)
+    const score::mw::lifecycle::internal::saf::timers::OsClockInterface& f_clock_sys) noexcept(true)
 {
     struct timespec clockResolution{};
     int64_t accuracyNs{-1};
@@ -32,12 +32,12 @@ int64_t CycleTimeValidator::getMonotonicClockAccuracy(
 
 int64_t CycleTimeValidator::adjustCycleTimeOnClockAccuracy(
     const int64_t f_requested_interval_ns,
-    const score::mw::lifecycle::saf::timers::OsClockInterface& f_clock_sys) noexcept(true)
+    const score::mw::lifecycle::internal::saf::timers::OsClockInterface& f_clock_sys) noexcept(true)
 {
     int64_t intervalNs{-1};  // start with an invalid value
 
     const int64_t accuracyNs{
-        score::mw::lifecycle::saf::timers::CycleTimeValidator::getMonotonicClockAccuracy(f_clock_sys)};
+        score::mw::lifecycle::internal::saf::timers::CycleTimeValidator::getMonotonicClockAccuracy(f_clock_sys)};
 
     if (0 < accuracyNs)
     {
@@ -54,4 +54,4 @@ int64_t CycleTimeValidator::adjustCycleTimeOnClockAccuracy(
     return intervalNs;
 }
 
-}  // namespace score::mw::lifecycle::saf::timers
+}  // namespace score::mw::lifecycle::internal::saf::timers

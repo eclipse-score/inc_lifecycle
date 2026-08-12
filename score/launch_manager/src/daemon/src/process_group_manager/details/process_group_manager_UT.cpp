@@ -38,18 +38,18 @@ namespace
 
 using score::mw::lifecycle::MockRecoveryClient;
 using score::mw::lifecycle::MockSupervisionControlNotifier;
-using score::mw::lifecycle::watchdog::MockWatchdogIf;
+using score::mw::lifecycle::internal::watchdog::MockWatchdogIf;
 
-using score::mw::lifecycle::configuration::AliveSupervisionConfig;
-using score::mw::lifecycle::configuration::ApplicationType;
-using score::mw::lifecycle::configuration::ComponentConfig;
-using score::mw::lifecycle::configuration::Config;
-using score::mw::lifecycle::configuration::ConfigBuilder;
-using score::mw::lifecycle::configuration::FallbackRunTargetConfig;
-using score::mw::lifecycle::configuration::ProcessState;
-using score::mw::lifecycle::configuration::ReadyCondition;
-using score::mw::lifecycle::configuration::RunTargetConfig;
-using score::mw::lifecycle::configuration::WatchdogConfig;
+using score::mw::lifecycle::internal::configuration::AliveSupervisionConfig;
+using score::mw::lifecycle::internal::configuration::ApplicationType;
+using score::mw::lifecycle::internal::configuration::ComponentConfig;
+using score::mw::lifecycle::internal::configuration::Config;
+using score::mw::lifecycle::internal::configuration::ConfigBuilder;
+using score::mw::lifecycle::internal::configuration::FallbackRunTargetConfig;
+using score::mw::lifecycle::internal::configuration::ProcessState;
+using score::mw::lifecycle::internal::configuration::ReadyCondition;
+using score::mw::lifecycle::internal::configuration::RunTargetConfig;
+using score::mw::lifecycle::internal::configuration::WatchdogConfig;
 
 Config makeMinimalConfig()
 {

@@ -40,7 +40,7 @@ ProcessGroupManager::ProcessGroupManager(
     std::unique_ptr<IAliveMonitorThread> alive_monitor_thread,
     std::shared_ptr<IRecoveryClient> recovery_client,
     std::unique_ptr<score::mw::lifecycle::ISupervisionControlNotifier> supervision_control_notifier,
-    std::unique_ptr<score::mw::lifecycle::watchdog::IWatchdogIf> watchdog)
+    std::unique_ptr<score::mw::lifecycle::internal::watchdog::IWatchdogIf> watchdog)
     : configuration_(),
       process_interface_(),
       process_map_(nullptr),

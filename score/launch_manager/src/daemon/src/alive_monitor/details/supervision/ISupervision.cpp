@@ -13,7 +13,7 @@
 
 #include "score/mw/launch_manager/alive_monitor/details/supervision/ISupervision.hpp"
 
-namespace score::mw::lifecycle::saf::supervision
+namespace score::mw::lifecycle::internal::saf::supervision
 {
 
 ISupervision::ISupervision(const char* const f_supervisionConfigName_p) : k_cfgName(f_supervisionConfigName_p)
@@ -27,4 +27,4 @@ std::string_view ISupervision::getConfigName(void) const noexcept
     return k_cfgName;
 }
 
-}  // namespace score::mw::lifecycle::saf::supervision
+}  // namespace score::mw::lifecycle::internal::saf::supervision

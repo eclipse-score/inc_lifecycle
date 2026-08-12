@@ -48,7 +48,7 @@ namespace mw::lifecycle
 namespace internal
 {
 
-using Config = score::mw::lifecycle::configuration::Config;
+using Config = score::mw::lifecycle::internal::configuration::Config;
 
 using WorkerQueue =
     MPMCConcurrentQueue<std::optional<ComponentTask>, static_cast<std::size_t>(ProcessLimits::kMaxProcesses)>;

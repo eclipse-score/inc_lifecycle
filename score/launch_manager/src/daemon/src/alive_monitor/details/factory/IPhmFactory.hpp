@@ -27,7 +27,7 @@ class IRecoveryClient;
 
 namespace score
 {
-namespace mw::lifecycle
+namespace mw::lifecycle::internal
 {
 namespace saf
 {
@@ -124,7 +124,7 @@ class IPhmFactory
 
 }  // namespace factory
 }  // namespace saf
-}  // namespace mw::lifecycle
+}  // namespace mw::lifecycle::internal
 }  // namespace score
 
 #endif

@@ -42,9 +42,9 @@ class AliveMonitorThread final : public IAliveMonitorThread
 
   private:
     void notifyInitializationComplete(
-        score::mw::lifecycle::saf::daemon::EInitCode& f_init_status_r,
-        const score::mw::lifecycle::saf::daemon::EInitCode f_init_result);
-    void waitForInitializationCompleted(score::mw::lifecycle::saf::daemon::EInitCode& f_init_status_r);
+        score::mw::lifecycle::internal::saf::daemon::EInitCode& f_init_status_r,
+        const score::mw::lifecycle::internal::saf::daemon::EInitCode f_init_result);
+    void waitForInitializationCompleted(score::mw::lifecycle::internal::saf::daemon::EInitCode& f_init_status_r);
 
     std::unique_ptr<saf::daemon::IAliveMonitor> m_health_monitor{nullptr};
     std::thread alive_monitor_thread_{};

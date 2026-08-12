@@ -16,7 +16,7 @@
 
 #include <utility>
 
-namespace score::mw::lifecycle::configuration
+namespace score::mw::lifecycle::internal::configuration
 {
 
 // --- EnvironmentVariable ---
@@ -230,4 +230,4 @@ std::optional<WatchdogConfig> Config::takeWatchdog()
     return std::move(watchdog_);
 }
 
-}  // namespace score::mw::lifecycle::configuration
+}  // namespace score::mw::lifecycle::internal::configuration

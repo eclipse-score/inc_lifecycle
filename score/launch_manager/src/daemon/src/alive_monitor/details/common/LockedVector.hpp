@@ -18,7 +18,7 @@
 
 namespace score
 {
-namespace mw::lifecycle
+namespace mw::lifecycle::internal
 {
 namespace saf
 {
@@ -125,7 +125,7 @@ class LockedVector final : private FixedSizeVector<Type>
 
 }  // namespace common
 }  // namespace saf
-}  // namespace mw::lifecycle
+}  // namespace mw::lifecycle::internal
 }  // namespace score
 
 #endif

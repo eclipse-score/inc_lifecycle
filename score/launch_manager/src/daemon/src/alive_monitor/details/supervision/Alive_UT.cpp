@@ -26,7 +26,7 @@
 
 using namespace testing;
 
-using EStatus = score::mw::lifecycle::saf::supervision::Alive::EStatus;
+using EStatus = score::mw::lifecycle::internal::saf::supervision::Alive::EStatus;
 
 namespace
 {
@@ -58,7 +58,7 @@ struct AliveFixture
         uint32_t failedCyclesTolerance = 0U;
         uint32_t minIndications = 1U;
         uint32_t maxIndications = 3U;
-        score::mw::lifecycle::saf::timers::NanoSecondType referenceCycleNs = 1000U;
+        score::mw::lifecycle::internal::saf::timers::NanoSecondType referenceCycleNs = 1000U;
 
         Builder& withFailedCyclesTolerance(uint32_t val)
         {
@@ -75,7 +75,7 @@ struct AliveFixture
             maxIndications = val;
             return *this;
         }
-        Builder& withReferenceCycleNs(score::mw::lifecycle::saf::timers::NanoSecondType val)
+        Builder& withReferenceCycleNs(score::mw::lifecycle::internal::saf::timers::NanoSecondType val)
         {
             referenceCycleNs = val;
             return *this;
@@ -91,14 +91,14 @@ struct AliveFixture
 
     std::shared_ptr<MockRecoveryClient> mockClient = std::make_shared<MockRecoveryClient>();
 
-    score::mw::lifecycle::saf::ifexm::ObservableEvent processState;
-    score::mw::lifecycle::saf::ifappl::Checkpoint checkpoint;
+    score::mw::lifecycle::internal::saf::ifexm::ObservableEvent processState;
+    score::mw::lifecycle::internal::saf::ifappl::Checkpoint checkpoint;
 
-    std::unique_ptr<score::mw::lifecycle::saf::supervision::Alive> alive;
+    std::unique_ptr<score::mw::lifecycle::internal::saf::supervision::Alive> alive;
 
     explicit AliveFixture(const Builder& bld) : processState(kProcessId), checkpoint(kCheckpointName, 1U, &processState)
     {
-        score::mw::lifecycle::saf::supervision::AliveSupervisionCfg cfg{checkpoint};
+        score::mw::lifecycle::internal::saf::supervision::AliveSupervisionCfg cfg{checkpoint};
         cfg.cfgName_p = "test_alive";
         cfg.aliveReferenceCycle = bld.referenceCycleNs;
         cfg.minAliveIndications = bld.minIndications;
@@ -110,7 +110,7 @@ struct AliveFixture
         cfg.recoveryClient = mockClient;
         cfg.processIdentifier = kProcessIdentifier;
 
-        alive = std::make_unique<score::mw::lifecycle::saf::supervision::Alive>(cfg);
+        alive = std::make_unique<score::mw::lifecycle::internal::saf::supervision::Alive>(cfg);
         processState.attachObserver(*alive);
     }
 
@@ -131,7 +131,7 @@ struct AliveFixture
     }
 
     /// Report one alive heartbeat checkpoint at the given timestamp.
-    void reportHeartbeat(score::mw::lifecycle::saf::timers::NanoSecondType timestamp)
+    void reportHeartbeat(score::mw::lifecycle::internal::saf::timers::NanoSecondType timestamp)
     {
         checkpoint.pushData(timestamp);
     }
