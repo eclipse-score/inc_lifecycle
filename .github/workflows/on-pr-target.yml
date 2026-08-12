@@ -1,0 +1,100 @@
+# *******************************************************************************
+# Copyright (c) 2025 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+# Note: Checks here are difficult to modify, because they always use the definition
+# from the main branch. Prefer using on-pr.yml if at all possible.
+
+name: PR Target
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize]
+  merge_group:
+    types: [checks_requested]
+  push:
+    branches:
+      - main
+
+permissions:
+  pull-requests: write
+  issues: write
+
+jobs:
+  qnx-build:
+    name: Build and test ${{ matrix.bazel-config }}
+    strategy:
+      fail-fast: false
+      matrix:
+        bazel-config: [unit-tests-x86_64-qnx, unit-tests-arm64-qnx]
+    uses: eclipse-score/cicd-workflows/.github/workflows/qnx-build.yml@d5dfe332bab87edb629ae691dd4c83923712ec3d
+    permissions:
+      contents: read
+      pull-requests: read
+    with:
+      bazel-target: "//score/... //examples/..."
+      bazel-config: ${{ matrix.bazel-config }}
+      bazel-test-target: "//examples/... //score/... //tests/..."
+      credential-helper: "scripts/internal/qnx_creds.py"
+      bazel-disk-cache: ${{ matrix.bazel-config }}
+    secrets:
+      score-qnx-license: ${{ secrets.SCORE_QNX_LICENSE }}
+      score-qnx-user: ${{ secrets.SCORE_QNX_USER }}
+      score-qnx-password: ${{ secrets.SCORE_QNX_PASSWORD }}
+
+  # This is only here as a dependency of the documentation, the main test job is in on-pr.yml.
+  testlogs:
+    name: Upload test logs
+    uses: eclipse-score/cicd-workflows/.github/workflows/tests.yml@93aac16ada7d247bbb6ae926509ddea74cf5213a # v0.0.2
+    permissions:
+      contents: read
+    with:
+      bazel-target: 'test --lockfile_mode=error //score/... //tests/... //scripts/... --config=x86_64-linux'
+      upload-name: 'bazel-testlogs'
+
+  docs-build:
+    name: Build documentation
+    needs: testlogs
+    uses: eclipse-score/cicd-workflows/.github/workflows/docs.yml@93aac16ada7d247bbb6ae926509ddea74cf5213a # v0.0.2
+    permissions:
+      contents: write
+      pages: write
+      pull-requests: write
+      id-token: write
+    with:
+      # the bazel-target depends on your repo specific docs_targets configuration (e.g. "suffix")
+      bazel-target: "--lockfile_mode=error //:docs -- --github_user=${{ github.repository_owner }} --github_repo=${{ github.event.repository.name }}"
+      retention-days: 3
+      tests-report-artifact: bazel-testlogs
+
+  license-check:
+    name: License check
+    uses: eclipse-score/cicd-workflows/.github/workflows/license-check.yml@93aac16ada7d247bbb6ae926509ddea74cf5213a # v0.0.2
+    with:
+      repo-url: "${{ github.server_url }}/${{ github.repository }}"
+      bazel-target: "run --lockfile_mode=error //:license-check"
+    secrets:
+      dash-api-token: ${{ secrets.ECLIPSE_GITLAB_API_TOKEN }}
+
+  ready:
+    name: Ready to merge
+    needs:
+      - qnx-build
+      - docs-build
+      - license-check
+    runs-on: ubuntu-slim
+    permissions: {}
+    if: always()
+    steps:
+      - name: Fail if any required job did not succeed
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: false

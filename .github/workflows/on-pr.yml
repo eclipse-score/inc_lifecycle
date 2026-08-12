@@ -10,9 +10,8 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-name: On PR Checks
-permissions:
-  contents: read
+name: PR
+
 on:
   pull_request:
     types: [opened, reopened, synchronize]
@@ -21,6 +20,210 @@ on:
   push:
     branches:
       - main
+
 jobs:
   common:
+    name: Common checks
+    permissions:
+      contents: read
     uses: eclipse-score/cicd-workflows/.github/workflows/on-pr.yml@on-pr/v0.0.0
+
+  build:
+    name: Build ${{ matrix.bazel-config }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        bazel-config: [x86_64-linux, arm64-linux]
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Bazel
+        uses: bazel-contrib/setup-bazel@0.19.0
+        with:
+          bazelisk-cache: true
+          disk-cache: ${{ github.workflow }}-${{ matrix.bazel-config }}
+          repository-cache: true
+          cache-save: ${{ github.event_name == 'push' }}
+
+      - name: Build with Bazel
+        run: |
+          bazel build --lockfile_mode=error --config ${{ matrix.bazel-config }} //score/... //examples/...
+
+  test:
+    name: Test ${{ matrix.bazel-config }}
+    strategy:
+      fail-fast: false
+      matrix:
+        bazel-config: [x86_64-linux, arm64-linux]
+        # TODO: GitHub provides ARM servers but the workflow template does not allow to use them.
+        exclude:
+          - bazel-config: arm64-linux
+    uses: eclipse-score/cicd-workflows/.github/workflows/tests.yml@93aac16ada7d247bbb6ae926509ddea74cf5213a # v0.0.2
+    permissions:
+      contents: read
+    with:
+      bazel-target: 'test --lockfile_mode=error //score/... //tests/... //scripts/... --config=${{ matrix.bazel-config }}'
+
+  reference-integration:
+    name: Reference integration
+    # TODO: restore job once fixed. https://github.com/eclipse-score/lifecycle/issues/84
+    if: false
+    uses: eclipse-score/reference_integration/.github/workflows/reusable_smoke-test.yml@main
+    secrets: inherit
+    with:
+      repo_runner_labels: 'ubuntu-latest'
+      module_name: 'score_lifecycle_health'
+      target_branch: 'main'
+
+  sanitizers:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: ASAN + UBSAN + LSAN
+            bazel-config: asan_ubsan_lsan
+          - name: TSAN
+            bazel-config: tsan
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Bazel
+        uses: bazel-contrib/setup-bazel@0.19.0
+        with:
+          bazelisk-cache: true
+          disk-cache: ${{ github.workflow }}-${{ matrix.bazel-config }}
+          repository-cache: true
+          cache-save: ${{ github.event_name == 'push' }}
+
+      - name: Run tests with sanitizers
+        run: |
+          bazel test --lockfile_mode=error --config=${{ matrix.bazel-config }} --config=x86_64-linux //score/... //tests/... --verbose_failures
+
+      - name: Upload test logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: bazel-testlogs-${{ matrix.bazel-config }}-${{ github.run_id }}
+          path: bazel-testlogs/
+          retention-days: 7
+
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Cache Cargo registry, git deps & target
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-lint-clippy-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-lint-clippy-
+
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: 1.90.0
+          override: true
+          components: clippy
+
+      - name: check clippy errors
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --all-features --all-targets --workspace -- -D warnings
+
+  cpp-coverage:
+    name: C++ coverage
+    uses: eclipse-score/cicd-workflows/.github/workflows/cpp-coverage.yml@d5dfe332bab87edb629ae691dd4c83923712ec3d # v0.0.0
+    permissions:
+      contents: read
+    with:
+      bazel-target: "//score/..."
+      bazel-config: "x86_64-linux"
+      extra-bazel-flags: "--test_output=errors --nocache_test_results --lockfile_mode=error --test_lang_filters=-rust,-miri"
+      artifact-name-suffix: "_cpp"
+      retention-days: 10
+      # Accepting temporarily a lower coverage for the following reasons:
+      #  - The coverage report is not accurate (does not include all files, includes mocks, etc.)
+      #  - Some of the code (e.g. control client) is about to be replaced so testing it now does not make sense
+      #    However, it is still more transparent to report a lower coverage rather than excluding various classes from the report
+      min-coverage: 66
+
+  rust-coverage:
+    name: Rust coverage
+    uses: eclipse-score/cicd-workflows/.github/workflows/rust-coverage.yml@d5dfe332bab87edb629ae691dd4c83923712ec3d # v0.0.0
+    permissions:
+      contents: read
+    with:
+      bazel-test-targets: "//score/..."
+      bazel-test-config-flags: "--config=x86_64-linux --config=ferrocene-coverage --lockfile_mode=error --test_lang_filters=-cc,-miri"
+      bazel-test-args: "--test_output=errors --nocache_test_results --build_tag_filters=-miri,-loom --test_tag_filters=-miri,-loom"
+      coverage-target: "//:rust_coverage"
+      coverage-artifact-name: "rust-coverage-html"
+      min-coverage: 93
+
+  docs-check:
+    name: Check documentation
+    uses: eclipse-score/cicd-workflows/.github/workflows/docs-verify.yml@93aac16ada7d247bbb6ae926509ddea74cf5213a # v0.0.2
+    permissions:
+      pull-requests: write
+      contents: read
+    with:
+      bazel-docs-verify-target: "--lockfile_mode=error //:docs_check"
+
+  gitlint:
+    name: Check commit messages
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'pull_request' }}
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Run Gitlint Action
+        uses: ./.github/actions/gitlint
+        with:
+          pr-number: ${{ github.event.number }}
+          base-branch: ${{ github.event.pull_request.base.ref }}
+
+  ready:
+    name: Ready to merge
+    needs:
+      - common
+      - build
+      - test
+      - reference-integration
+      - sanitizers
+      - clippy
+      - cpp-coverage
+      - rust-coverage
+      - docs-check
+      - gitlint
+    runs-on: ubuntu-slim
+    permissions: {}
+    if: always()
+    steps:
+      - name: Fail if any required job did not succeed
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: false
