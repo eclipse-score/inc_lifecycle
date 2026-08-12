@@ -19,9 +19,9 @@
 /// a reference for other components (e.g. config_management) that depend on the
 /// lifecycle mocks in their own test suites.
 
-#include "score/mw/lifecycle/applicationcontextmock.h"
-#include "score/mw/lifecycle/lifecyclemanagermock.h"
-#include "score/mw/lifecycle/mwlifecyclemanagermock.h"
+#include "score/mw/lifecycle/mock_applicationcontext.h"
+#include "score/mw/lifecycle/mock_lifecyclemanager.h"
+#include "score/mw/lifecycle/mock_mwlifecyclemanager.h"
 #include "score/mw/lifecycle/runapplication.h"
 
 #include <gmock/gmock.h>

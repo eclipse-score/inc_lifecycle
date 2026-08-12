@@ -21,7 +21,7 @@ cc_library(
 
 cc_binary(
     name = "control_client_mock",
-    srcs = ["control_client_mock.cpp"],
+    srcs = ["mock_control_client.cpp"],
     deps = [
         ":switch_run_target_common",
         "//score/launch_manager:control_cc",

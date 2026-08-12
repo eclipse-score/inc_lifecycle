@@ -53,4 +53,4 @@ def test_shutdown_signal(target, setup_test, assert_test_results, remote_test_di
         timeout_s=10.0,
     )
 
-    assert_test_results({"control_daemon_mock.xml", "shutdown_signal_process.xml"})
+    assert_test_results({"mock_control_daemon.xml", "shutdown_signal_process.xml"})

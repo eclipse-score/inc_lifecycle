@@ -20,7 +20,7 @@ cc_library(
 
 cc_binary(
     name = "control_daemon_mock",
-    srcs = ["control_daemon_mock.cpp"],
+    srcs = ["mock_control_daemon.cpp"],
     deps = [
         ":shutdown_signal_common",
         "//score/launch_manager:control_cc",

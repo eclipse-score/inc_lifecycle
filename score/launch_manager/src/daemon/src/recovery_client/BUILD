@@ -35,7 +35,7 @@ cc_library(
 cc_library(
     name = "recovery_client_mock",
     testonly = True,
-    hdrs = ["irecovery_client_mock.h"],
+    hdrs = ["mock_irecovery_client.h"],
     include_prefix = "score/mw/launch_manager/recovery_client",
     strip_include_prefix = "/score/launch_manager/src/daemon/src/recovery_client",
     visibility = ["//score:__subpackages__"],

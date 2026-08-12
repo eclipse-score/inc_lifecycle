@@ -15,7 +15,7 @@ load("//tests/utils/bazel:integration.bzl", "integration_test")
 
 cc_binary(
     name = "control_client_mock",
-    srcs = ["control_client_mock.cpp"],
+    srcs = ["mock_control_client.cpp"],
     deps = [
         "//score/launch_manager:control_cc",
         "//score/launch_manager:lifecycle_cc",

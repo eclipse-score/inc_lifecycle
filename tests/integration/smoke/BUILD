@@ -15,7 +15,7 @@ load("//tests/utils/bazel:integration.bzl", "integration_test")
 
 cc_binary(
     name = "control_daemon_mock",
-    srcs = ["control_daemon_mock.cpp"],
+    srcs = ["mock_control_daemon.cpp"],
     data = [],
     deps = [
         "//score/launch_manager:control_cc",

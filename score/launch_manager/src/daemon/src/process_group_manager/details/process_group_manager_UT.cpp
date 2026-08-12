@@ -13,10 +13,10 @@
 
 #include "score/mw/launch_manager/process_group_manager/process_group_manager.hpp"
 
-#include "score/mw/launch_manager/process_group_manager/alive_monitor_thread_mock.hpp"
-#include "score/mw/launch_manager/recovery_client/irecovery_client_mock.h"
+#include "score/mw/launch_manager/process_group_manager/mock_alive_monitor_thread.hpp"
+#include "score/mw/launch_manager/recovery_client/mock_irecovery_client.h"
 #include "score/mw/launch_manager/supervision_control_client/mock_supervision_control_notifier.hpp"
-#include "score/mw/launch_manager/watchdog/IWatchdogIfMock.hpp"
+#include "score/mw/launch_manager/watchdog/mock_IWatchdogIf.hpp"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>

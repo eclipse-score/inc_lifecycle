@@ -41,4 +41,4 @@ def test_smoke(target, setup_test, assert_test_results, remote_test_dir):
         timeout_s=3.0,
     )
 
-    assert_test_results({"control_daemon_mock.xml", "gtest_process.xml"})
+    assert_test_results({"mock_control_daemon.xml", "gtest_process.xml"})

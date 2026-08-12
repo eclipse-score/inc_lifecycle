@@ -15,7 +15,7 @@
 #define SCORE_MW_LIFECYCLE_MOCKS_LIFECYCLEMANAGERMOCK_H_
 
 #include "score/mw/lifecycle/application.h"
-#include "score/mw/lifecycle/applicationcontextmock.h"
+#include "score/mw/lifecycle/mock_applicationcontext.h"
 #include "score/os/utils/mocklib/signalmock.h"
 #include "score/os/utils/signal.h"
 

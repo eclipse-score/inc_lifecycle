@@ -153,11 +153,11 @@ cc_library(
     name = "applicationcontext_mock",
     testonly = True,
     srcs = [
-        "src/applicationcontextmock.cpp",
+        "src/mock_applicationcontext.cpp",
     ],
     hdrs = [
         "src/applicationcontext.h",
-        "src/applicationcontextmock.h",
+        "src/mock_applicationcontext.h",
     ],
     features = COMPILER_WARNING_FEATURES,
     include_prefix = "score/mw/lifecycle",
@@ -173,11 +173,11 @@ cc_library(
     name = "mw_lifecycle_manager_mock",
     testonly = True,
     srcs = [
-        "src/mwlifecyclemanagermock.cpp",
+        "src/mock_mwlifecyclemanager.cpp",
     ],
     hdrs = [
         "src/lifecyclemanager.h",
-        "src/mwlifecyclemanagermock.h",
+        "src/mock_mwlifecyclemanager.h",
     ],
     features = COMPILER_WARNING_FEATURES,
     include_prefix = "score/mw/lifecycle",
@@ -193,12 +193,12 @@ cc_library(
     name = "lifecycle_mock",
     testonly = True,
     srcs = [
-        "src/lifecyclemanagermock.cpp",
+        "src/mock_lifecyclemanager.cpp",
     ],
     hdrs = [
         "src/application.h",
         "src/lifecyclemanager.h",
-        "src/lifecyclemanagermock.h",
+        "src/mock_lifecyclemanager.h",
     ],
     features = COMPILER_WARNING_FEATURES,
     include_prefix = "score/mw/lifecycle",
@@ -217,10 +217,10 @@ cc_library(
 cc_library(
     name = "report_running_mock",
     testonly = True,
-    srcs = ["src/report_running_mock.cpp"],
+    srcs = ["src/mock_report_running.cpp"],
     hdrs = [
+        "src/mock_report_running.h",
         "src/report_running.h",
-        "src/report_running_mock.h",
     ],
     features = COMPILER_WARNING_FEATURES,
     include_prefix = "score/mw/lifecycle",
