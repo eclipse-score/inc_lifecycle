@@ -43,4 +43,4 @@ def test_complex_monitoring(target, setup_test, assert_test_results, remote_test
         timeout_s=4.0,
     )
 
-    assert_test_results({"component_complex_monitoring.xml", "control_client_mock.xml"})
+    assert_test_results({"component_complex_monitoring.xml", "mock_control_client.xml"})

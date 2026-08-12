@@ -61,7 +61,7 @@ def test_crash_on_startup(
     crash_report_names = {
         n: f"process_crashing_on_startup_n_times_n_equals_{n}.xml" for n in (1, 2, 3)
     }
-    assert_test_results({"control_client_mock.xml", *crash_report_names.values()})
+    assert_test_results({"mock_control_client.xml", *crash_report_names.values()})
 
     # The number of crashes is recorded in each report and must match the configured crash count.
     for n, report_name in crash_report_names.items():

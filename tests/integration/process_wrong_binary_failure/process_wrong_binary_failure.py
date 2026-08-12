@@ -40,4 +40,4 @@ def test_process_wrong_binary_failure(
         timeout_s=6,
     )
 
-    assert_test_results({"control_client_mock.xml"})
+    assert_test_results({"mock_control_client.xml"})

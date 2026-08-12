@@ -42,4 +42,4 @@ def test_fallback_to_same_target_restarts(
         timeout_s=4.0,
     )
 
-    assert_test_results({"control_client_mock.xml", "process_crashing_once.xml"})
+    assert_test_results({"mock_control_client.xml", "process_crashing_once.xml"})

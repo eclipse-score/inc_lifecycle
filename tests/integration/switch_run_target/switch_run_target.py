@@ -51,7 +51,7 @@ def test_switch_run_target(target, setup_test, assert_test_results, remote_test_
     # Process E never starts
     assert_test_results(
         {
-            "control_client_mock.xml",
+            "mock_control_client.xml",
             "component_a.xml",
             "component_b.xml",
             "component_d.xml",

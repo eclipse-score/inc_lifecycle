@@ -52,4 +52,4 @@ def test_recovery_action_complex_rep_failure(
         timeout_s=10.0,
     )
 
-    assert_test_results({"control_client_mock.xml", "complex_reporting_process.xml"})
+    assert_test_results({"mock_control_client.xml", "complex_reporting_process.xml"})
