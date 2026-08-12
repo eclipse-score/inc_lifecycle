@@ -14,7 +14,6 @@
 #ifndef SWCLUSTERHANDLER_HPP_INCLUDED
 #define SWCLUSTERHANDLER_HPP_INCLUDED
 
-#include "score/mw/launch_manager/alive_monitor/details/factory/StaticConfig.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifappl/DataStructures.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ObservableEvent.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ObservableEventReader.hpp"

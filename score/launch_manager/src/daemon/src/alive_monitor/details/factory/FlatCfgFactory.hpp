@@ -17,7 +17,6 @@
 #include <memory>
 
 #include "score/mw/launch_manager/alive_monitor/details/factory/IPhmFactory.hpp"
-#include "score/mw/launch_manager/alive_monitor/details/factory/StaticConfig.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ObservableEventReader.hpp"
 #include "score/mw/launch_manager/configuration/config.hpp"
 #include <string>

@@ -122,10 +122,7 @@ void MonitorIfDaemon::pushCheckpointToObservers(CheckpointBufferElement& f_elem_
 {
     for (auto& observer : checkpointObservers)
     {
-        if (f_elem_r.checkpointId == observer->getId())
-        {
-            observer->pushData(f_elem_r.timestamp);
-        }
+        observer->pushData(f_elem_r.timestamp);
     }
 }
 

@@ -96,7 +96,7 @@ struct AliveFixture
 
     std::unique_ptr<score::mw::lifecycle::internal::saf::supervision::Alive> alive;
 
-    explicit AliveFixture(const Builder& bld) : processState(kProcessId), checkpoint(kCheckpointName, 1U, &processState)
+    explicit AliveFixture(const Builder& bld) : processState(kProcessId), checkpoint(kCheckpointName, &processState)
     {
         ComponentAliveSupervision cfg{};
         cfg.min_indications = bld.minIndications;

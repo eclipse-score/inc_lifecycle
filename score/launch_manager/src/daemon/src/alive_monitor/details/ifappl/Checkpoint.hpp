@@ -51,13 +51,9 @@ class Checkpoint : public saf::common::Observable<Checkpoint>
 
     /// @brief Constructor
     /// @param [in] f_checkpointCfgName_p       Name of the corresponding configured supervision checkpoint container
-    /// @param [in] f_checkpointId              ID of checkpoint
     /// @param [in] f_processState_p            The process that is reporting this checkpoint
     /// @throws std::bad_alloc in case of insufficient memory for string allocation
-    Checkpoint(
-        const char* const f_checkpointCfgName_p,
-        const uint32_t f_checkpointId,
-        const ifexm::ObservableEvent* f_processState_p) noexcept(false);
+    Checkpoint(const char* const f_checkpointCfgName_p, const ifexm::ObservableEvent* f_processState_p) noexcept(false);
 
     /// @brief Default Move Constructor
     /// Cannot be noexcept, since the base class move constructor is not noexcept
@@ -71,10 +67,6 @@ class Checkpoint : public saf::common::Observable<Checkpoint>
 
     /// @brief Default Destructor
     ~Checkpoint() override = default;
-
-    /// @brief Get checkpoint ID
-    /// @return uint32_t    ID of checkpoint
-    uint32_t getId(void) const noexcept(true);
 
     /// @brief Get timestamp
     /// @return NanoSecondType  Timestamp value of the reported checkpoint in [nano seconds]
@@ -105,9 +97,6 @@ class Checkpoint : public saf::common::Observable<Checkpoint>
   private:
     /// @brief Name of the corresponding configured SupervisionCheckpoint
     const std::string k_configName;
-
-    /// @brief Checkpoint identification
-    const uint32_t k_checkpointId;
 
     /// @brief The process that is reporting this checkpoint
     const ifexm::ObservableEvent* processState;

@@ -21,7 +21,6 @@
 
 #include "score/launch_manager/src/daemon/src/common/log.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/factory/IPhmFactory.hpp"
-#include "score/mw/launch_manager/alive_monitor/details/factory/StaticConfig.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifappl/Checkpoint.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifappl/MonitorIfDaemon.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ObservableEvent.hpp"
@@ -207,10 +206,9 @@ bool FlatCfgFactory::createSupervisionCheckpoints(
         {
             const auto& comp = supervised_components_[idx];
             const std::string checkpointCfgName = std::to_string(comp.first.data()) + "_checkpoint";
-            const uint32_t checkpointId = StaticConfig::k_DefaultCheckpointId;
 
             const ifexm::ObservableEvent* process_p{&f_processStates_r.at(idx)};
-            f_checkpoints_r.emplace_back(checkpointCfgName.c_str(), checkpointId, process_p);
+            f_checkpoints_r.emplace_back(checkpointCfgName.c_str(), process_p);
             f_interfaces_r.at(idx).attachCheckpoint(f_checkpoints_r.back());
 
             LM_LOG_DEBUG() << "Successfully created supervision checkpoint:" << f_checkpoints_r.back().getConfigName();

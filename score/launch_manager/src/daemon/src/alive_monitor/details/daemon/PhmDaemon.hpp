@@ -21,7 +21,6 @@
 #include "score/launch_manager/src/daemon/src/common/log.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/daemon/PhmDaemonConfig.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/daemon/SwClusterHandler.hpp"
-#include "score/mw/launch_manager/alive_monitor/details/factory/StaticConfig.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ObservableEventReader.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/CycleTimeValidator.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/CycleTimer.hpp"

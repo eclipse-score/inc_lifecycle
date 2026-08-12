@@ -29,7 +29,6 @@ cc_library(
     visibility = ["//score/launch_manager/src/daemon/src/alive_monitor:__subpackages__"],
     deps = [
         "//score/launch_manager/src/daemon/src/alive_monitor/details/factory:flat_cfg_factory",
-        "//score/launch_manager/src/daemon/src/alive_monitor/details/factory:static_config",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/ifappl:checkpoint",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/ifappl:data_structures",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/ifappl:monitor_if_daemon",
@@ -53,7 +52,6 @@ cc_library(
         ":phm_daemon_config",
         ":sw_cluster_handler",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/factory:flat_cfg_factory",
-        "//score/launch_manager/src/daemon/src/alive_monitor/details/factory:static_config",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/ifappl:monitor_if_daemon",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/ifexm:observable_event_reader",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/supervision:alive",

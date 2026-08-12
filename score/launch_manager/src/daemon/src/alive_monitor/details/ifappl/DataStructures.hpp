@@ -42,19 +42,14 @@ constexpr uint16_t k_maxCheckpointBufferElements{512U};
 required for Vector and IPC APIs", true_no_defect) */
 struct CheckpointBufferElement final
 {
-    score::mw::lifecycle::internal::saf::timers::NanoSecondType timestamp{0U};  ///< Timestamp
-    uint32_t checkpointId{0U};                                                  ///< Checkpoint ID
+    internal::saf::timers::NanoSecondType timestamp{0U};  ///< Timestamp
 
     /// @brief Default constructor needed for storage in vector
     CheckpointBufferElement() = default;
 
     /// @brief Constructor for usage with emplace
     /// @param [in] f_timestamp The checkpoint timestamp
-    /// @param [in] f_checkpointId  The checkpoint id
-    CheckpointBufferElement(
-        score::mw::lifecycle::internal::saf::timers::NanoSecondType f_timestamp,
-        uint32_t f_checkpointId) noexcept(true)
-        : timestamp(f_timestamp), checkpointId(f_checkpointId)
+    CheckpointBufferElement(internal::saf::timers::NanoSecondType f_timestamp) noexcept(true) : timestamp(f_timestamp)
     {
     }
 };

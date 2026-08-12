@@ -24,18 +24,6 @@ cc_library(
 )
 
 cc_library(
-    name = "static_config",
-    hdrs = ["StaticConfig.hpp"],
-    include_prefix = "score/mw/launch_manager/alive_monitor/details/factory",
-    strip_include_prefix = "/score/launch_manager/src/daemon/src/alive_monitor/details/factory",
-    visibility = ["//score/launch_manager/src/daemon/src/alive_monitor:__subpackages__"],
-    deps = [
-        "//score/launch_manager/src/daemon/src/alive_monitor/details/ifappl:data_structures",
-        "//score/launch_manager/src/daemon/src/alive_monitor/details/timers:timers_os_clock",
-    ],
-)
-
-cc_library(
     name = "flat_cfg_factory",
     srcs = ["FlatCfgFactory.cpp"],
     hdrs = ["FlatCfgFactory.hpp"],
@@ -44,7 +32,6 @@ cc_library(
     visibility = ["//score/launch_manager/src/daemon/src/alive_monitor:__subpackages__"],
     deps = [
         ":i_phm_factory",
-        "//score/launch_manager/src/daemon/src/alive_monitor/details/factory:static_config",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/ifappl:checkpoint",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/ifappl:monitor_if_daemon",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/ifexm:observable_event",

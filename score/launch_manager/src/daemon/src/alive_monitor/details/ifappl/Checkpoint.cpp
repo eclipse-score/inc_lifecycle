@@ -18,21 +18,14 @@ namespace score::mw::lifecycle::internal::saf::ifappl
 
 Checkpoint::Checkpoint(
     const char* const f_checkpointCfgName_p,
-    const uint32_t f_checkpointId,
     const ifexm::ObservableEvent* f_processState_p) noexcept(false)
     : Observable<Checkpoint>(),
       k_configName(f_checkpointCfgName_p),
-      k_checkpointId(f_checkpointId),
       processState(f_processState_p),
       isDataLossEvent(false),
       timestamp(0U)
 {
     static_cast<void>(0U);
-}
-
-uint32_t Checkpoint::getId(void) const noexcept(true)
-{
-    return k_checkpointId;
 }
 
 timers::NanoSecondType Checkpoint::getTimestamp(void) const noexcept(true)
