@@ -42,11 +42,10 @@ SwClusterHandler::~SwClusterHandler() = default;
 bool SwClusterHandler::constructWorkers(
     const std::vector<std::pair<IdentifierHash, ComponentAliveSupervision>>&& component_config,
     std::shared_ptr<mw::lifecycle::IRecoveryClient> f_recoveryClient_r,
-    ifexm::ObservableEventReader& f_processStateReader_r,
-    const factory::SupervisionBufferConfig& f_bufferConfig_r) noexcept(false)
+    ifexm::ObservableEventReader& f_processStateReader_r) noexcept(false)
 {
     bool isSuccess{false};
-    factory::FlatCfgFactory flatCfgFactory{f_bufferConfig_r};
+    factory::FlatCfgFactory flatCfgFactory{};
 
     isSuccess = flatCfgFactory.init(component_config);
     if (isSuccess)

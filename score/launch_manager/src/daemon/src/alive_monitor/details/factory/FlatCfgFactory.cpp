@@ -34,12 +34,11 @@
 namespace score::mw::lifecycle::internal::saf::factory
 {
 
-using BufferConfig = SupervisionBufferConfig;
 using RecoveryClient = score::mw::lifecycle::IRecoveryClient;
 using NanoSecondType = saf::timers::NanoSecondType;
 using IdentifierHash = score::mw::lifecycle::IdentifierHash;
 
-FlatCfgFactory::FlatCfgFactory(const BufferConfig& f_bufferConfig_r) : IPhmFactory(), bufferConfig_r(f_bufferConfig_r)
+FlatCfgFactory::FlatCfgFactory() : IPhmFactory()
 {
 }
 

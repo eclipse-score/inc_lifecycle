@@ -51,7 +51,7 @@ class FlatCfgFactory : public IPhmFactory
   public:
     /// @brief Constructor
     /// @param [in] f_bufferConfig_r Buffer configuration used for constructing supervisions
-    explicit FlatCfgFactory(const factory::SupervisionBufferConfig& f_bufferConfig_r);
+    explicit FlatCfgFactory();
 
     /// @brief Destructor
     /* RULECHECKER_comment(0, 5, check_min_instructions, "Default destructor is not provided\
@@ -110,9 +110,6 @@ class FlatCfgFactory : public IPhmFactory
         ifappl::CheckpointIpcServer& f_ipcServer_r,
         const std::string& f_ipcPath_r,
         const std::int32_t f_uid) noexcept(false);
-
-    /// @brief The buffer configuration for constructing supervision objects
-    const factory::SupervisionBufferConfig& bufferConfig_r;
 
     std::vector<std::pair<IdentifierHash, ComponentAliveSupervision>> supervised_components_;
 };

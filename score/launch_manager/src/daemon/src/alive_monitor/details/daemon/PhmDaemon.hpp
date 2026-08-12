@@ -56,7 +56,6 @@ class PhmDaemon
     using OsClock = score::mw::lifecycle::internal::saf::timers::OsClockInterface;
     using SupervisionControlReceiver = score::mw::lifecycle::ISupervisionControlReceiver;
     using RecoveryClient = score::mw::lifecycle::IRecoveryClient;
-    using SupervisionBufferConfig = factory::SupervisionBufferConfig;
     using CycleTimer = score::mw::lifecycle::internal::saf::timers::CycleTimer;
     using CycleTimeValidator = score::mw::lifecycle::internal::saf::timers::CycleTimeValidator;
     using NanoSecondType = score::mw::lifecycle::internal::saf::timers::NanoSecondType;
@@ -95,7 +94,7 @@ class PhmDaemon
     {
         recoveryClient = recovery_client;
 
-        if (!construct(config, factory::StaticConfig::kDefaultSupervisionBufferConfig))
+        if (!construct(config))
         {
             return EInitCode::kConstructFlatCfgFactoryFailed;
         }
@@ -199,7 +198,7 @@ class PhmDaemon
     /// @details Create the SwclusterHandler objects and the workers for the SwclusterHandler
     /// @param[in] f_bufferConfig_r The buffer configuration used for worker construction
     /// @return bool true if workers creation succeeded, false otherwise
-    bool construct(const Config& config, const SupervisionBufferConfig& f_bufferConfig_r) noexcept(false);
+    bool construct(const Config& config) noexcept(false);
 
     /// @brief Perform cyclic execution of Phm daemon
     /// @details Perform cyclic execution of Phm daemon functionalities, for e.g., evaluation of supervisions.

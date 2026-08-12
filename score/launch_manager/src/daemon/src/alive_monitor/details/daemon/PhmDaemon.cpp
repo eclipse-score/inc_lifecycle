@@ -55,7 +55,7 @@ void PhmDaemon::performCyclicTriggers(void)
     }
 }
 
-bool PhmDaemon::construct(const Config& config, const SupervisionBufferConfig& f_bufferConfig_r) noexcept(false)
+bool PhmDaemon::construct(const Config& config) noexcept(false)
 {
     // In a later refactoring step, components will register their own alive supervision and provide their identifier.
     // For now, we must construct this vector to link the id to the alive supervision
@@ -70,8 +70,8 @@ bool PhmDaemon::construct(const Config& config, const SupervisionBufferConfig& f
         component_configs.emplace_back(IdentifierHash{comp.name}, alive);
     }
 
-    const auto res = swClusterHandler.constructWorkers(
-        std::move(component_configs), recoveryClient, processStateReader, f_bufferConfig_r);
+    const auto res =
+        swClusterHandler.constructWorkers(std::move(component_configs), recoveryClient, processStateReader);
     return res;
 }
 

@@ -100,8 +100,7 @@ class SwClusterHandler
     bool constructWorkers(
         const std::vector<std::pair<IdentifierHash, ComponentAliveSupervision>>&& component_config,
         std::shared_ptr<score::mw::lifecycle::IRecoveryClient> f_recoveryClient_r,
-        ifexm::ObservableEventReader& f_processStateReader_r,
-        const factory::SupervisionBufferConfig& f_bufferConfig_r) noexcept(false);
+        ifexm::ObservableEventReader& f_processStateReader_r) noexcept(false);
 
     /// @brief Perform cyclic execution
     /// @details Perform cyclic execution required for supervision of the Software Cluster
