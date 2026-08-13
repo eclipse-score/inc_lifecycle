@@ -18,11 +18,10 @@ The script is designed to be compatible with precommit hooks, where the files to
 parameters. The tool can be configured with a number of command line options, as detailed in help.
 
 Usage:
-    python3 ./fix_test_doubles_naming_precommit.py [-h] [--dry-run] [--update-usage]
-        [--naming-format {suffix,prefix}] [filenames ...]
+    python3 ./fix_test_doubles_naming_precommit.py [-h] [--dry-run] [filenames ...]
 
 Example:
-    python3 ./fix_test_doubles_naming_precommit.py --dry-run --naming-format suffix component_mock.cpp
+    python3 ./fix_test_doubles_naming_precommit.py --dry-run component_mock.cpp
 """
 
 import logging
@@ -49,11 +48,6 @@ class TestDoubleName(Enum):
     @staticmethod
     def to_regex_alternation() -> str:
         return "(" + ("|".join([name.value for name in TestDoubleName]) + ")")
-
-
-class NamingConvention(Enum):
-    SUFFIX = "suffix"
-    PREFIX = "prefix"
 
 
 @dataclass(frozen=True)
@@ -93,7 +87,7 @@ def normalize_base_name(old_name: str) -> str:
     return base.strip("_-")
 
 
-def build_target_name(path: Path, naming_format: str) -> Path | None:
+def build_target_name(path: Path) -> Path | None:
     """
     Create a path containing the corrected name of the test double
     """
@@ -101,11 +95,8 @@ def build_target_name(path: Path, naming_format: str) -> Path | None:
     test_double_name = TestDoubleName.from_path(path).value
 
     base = normalize_base_name(filename)
-
-    if naming_format == NamingConvention.SUFFIX.value:
-        target = f"{test_double_name}_{base}{extension}"
-    else:
-        target = f"{base}_{test_double_name}{extension}"
+    # Build a new name using the test double as a prefix
+    target = f"{test_double_name}_{base}{extension}"
 
     return path.with_name(target)
 
@@ -125,9 +116,7 @@ def has_multiple_double_names(path: Path) -> bool:
     return len(matches) > 1
 
 
-def define_operations(
-    filenames: list[str], naming_format: str
-) -> list[RenameOperation]:
+def define_operations(filenames: list[str]) -> list[RenameOperation]:
     operations: list[RenameOperation] = []
     for path_str in filenames:
         path = Path(path_str)
@@ -148,7 +137,7 @@ def define_operations(
                 f"Invalid file name {path} contains multiple double names."
             )
 
-        target_name = build_target_name(path, naming_format)
+        target_name = build_target_name(path)
 
         # Skip files that are already named correctly
         if path == target_name:
@@ -161,32 +150,6 @@ def define_operations(
 def apply_operations(operations: list[RenameOperation]) -> None:
     for operation in operations:
         operation.source.rename(operation.target)
-
-
-def replace_usage_in_files(files: list[Path], old_name: str, new_name: str) -> int:
-    """Replace old filename with new filename in the given files."""
-    replacements_made = 0
-
-    # Create pattern that matches the old filename in various contexts
-    pattern = re.compile(r"\b" + re.escape(old_name) + r"\b", re.IGNORECASE)
-
-    for file_path in files:
-        try:
-            with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
-                original_content = f.read()
-
-            # Replace all occurrences
-            new_content = pattern.sub(new_name, original_content)
-
-            if new_content != original_content:
-                with open(file_path, "w", encoding="utf-8") as f:
-                    f.write(new_content)
-                replacements_made += 1
-                print(f"    Updated usages in: {file_path}.")
-        except (OSError, IOError) as e:
-            print(f"    Warning: Could not update {file_path}: {e}.")
-
-    return replacements_made
 
 
 def file_contains_pattern(file_path: Path, pattern: str) -> bool:
@@ -204,7 +167,7 @@ def has_conflicts(operations: list[RenameOperation]):
     for operation in operations:
         if operation.target.exists():
             logging.error(
-                f"Conflict detected: Renaming {operation.source} to {operation.target} will overwrite an exiting file"
+                f"Conflict detected: Renaming {operation.source} to {operation.target} will overwrite an existing file"
             )
             conflicts += 1
         if operation.target in seen:
@@ -233,21 +196,9 @@ def main() -> int:
         action="store_true",
         help="Do not make any changes to any files.",
     )
-    parser.add_argument(
-        "--update-usage",
-        action="store_true",
-        help="Replace usage of old filenames with the correct filename (does not replace in --dry-run mode).",
-    )
-    SUPPORTED_NAMING_CONVENTIONS = [convention.value for convention in NamingConvention]
-    parser.add_argument(
-        "--naming-format",
-        choices=SUPPORTED_NAMING_CONVENTIONS,
-        default=NamingConvention.SUFFIX,
-        help="Desired naming convention for the test double.",
-    )
     args = parser.parse_args()
 
-    operations = define_operations(args.filenames, args.naming_format)
+    operations = define_operations(args.filenames)
 
     if has_conflicts(operations):
         logging.error("Conflicts detected, aborting.")
@@ -257,61 +208,16 @@ def main() -> int:
         logging.info("No files need renaming.")
         return 0
 
+    logging.info("Planned rename operations:")
     action = "DRY-RUN" if args.dry_run else "RENAME"
     for operation in operations:
-        print(f"{action}: {operation.source} -> {operation.target}.")
+        logging.info(f"{action}: {operation.source} -> {operation.target}.")
 
-    print(f"\nTotal planned renames: {len(operations)}.")
+    logging.info(f"Total planned renames: {len(operations)}.")
 
     if not args.dry_run:
         apply_operations(operations)
         logging.info("Renaming completed.")
-
-        # If --update-usage is set, search for and replace usage of the old filename
-        if args.update_usage:
-            logging.info("\nSearching for usages of old filenames...")
-            total_updated = 0
-
-            usage_files = [
-                Path(raw)
-                for raw in args.filenames
-                if Path(raw).exists() and Path(raw).is_file()
-            ]
-
-            for operation in operations:
-                old_name = operation.source.name
-                new_name = operation.target.name
-
-                logging.info(f"\nProcessing: {old_name} -> {new_name}.")
-                files_with_usages = [
-                    path
-                    for path in usage_files
-                    if file_contains_pattern(path, old_name)
-                ]
-
-                # Exclude the renamed file itself from the search results
-                files_with_usages = [
-                    f
-                    for f in files_with_usages
-                    if f.resolve() != operation.target.resolve()
-                ]
-
-                if files_with_usages:
-                    logging.info(
-                        f"  Found {len(files_with_usages)} file(s) with usages of '{old_name}':"
-                    )
-                    if not args.dry_run:
-                        updated = replace_usage_in_files(
-                            files_with_usages, old_name, new_name
-                        )
-                        total_updated += updated
-                else:
-                    logging.info(f"  No usages found for '{old_name}'.")
-
-            if total_updated > 0:
-                logging.info(f"\n✓ Updated usages in {total_updated} file(s).")
-            else:
-                logging.info("\nNo usages found or updated.")
     else:
         logging.info("Dry run only. Re-run without --dry-run to perform changes.")
 

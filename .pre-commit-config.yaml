@@ -21,8 +21,8 @@ repos:
         files: (BUILD|BUILD\.bazel|WORKSPACE|\.bazelrc|[^/]+\.(py|bzl|bazel|yaml|yml|rs|c|cpp|h|hpp))$
         pass_filenames: false
       - id: test-doubles-naming-fix
-        name: test-doubles-naming-fix
-        entry: python3 ./scripts/fix_test_doubles_naming_precommit.py --update-usage
+        name: Check and fix test double file names
+        entry: python3 ./scripts/fix_test_doubles_naming_precommit.py
         language: system
         files: '\.(cc|cpp|h|hpp)$'
         pass_filenames: true
