@@ -44,10 +44,12 @@ DependencyGraph<Graph::Component> CreateDependencyGraph(
     configuration::Config* config,
     ISupervisionEventPublisher& supervision_event_publisher,
     osal::IProcess* process_interface,
-    std::shared_ptr<SafeProcessMapInserter> process_map)
+    std::shared_ptr<SafeProcessMapInserter> process_map,
+    std::unordered_map<std::size_t, GraphIndex>& run_target_map)
 {
     const auto& run_targets = config->runTargets();
     auto components = config->takeComponents();
+    const auto num_of_components = components.size();
 
     DependencyGraph<Graph::Component> graph(components.size() + run_targets.size());
 
@@ -64,25 +66,26 @@ DependencyGraph<Graph::Component> CreateDependencyGraph(
     }
 
     // insert all components and build the <name, index> map
-    for (std::size_t i = 0; i < components.size(); ++i)
+    std::size_t graph_index = 0;
+    for (; graph_index < components.size(); ++graph_index)
     {
-        const auto component_name = components[i].name;
-
-        LM_LOG_DEBUG() << "Creating component node:" << component_name;
+        const auto component_name = components[graph_index].name;
 
         const auto index = graph.emplace(
             std::in_place_type<ProcessInfoNode>,
-            std::move(components[i]),
-            static_cast<uint32_t>(i),
+            std::move(components[graph_index]),
+            static_cast<uint32_t>(graph_index),
             supervision_event_publisher,
             process_interface,
             process_map);
 
+        LM_LOG_DEBUG() << "Creating component node:" << component_name << "at index:" << index;
         component_name_to_index[component_name] = index;
 
         // all of this relies on graphindex having sequential indexes
         // TODO use IdHash later...
-        SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(index == i, "Component graph indices must match component order");
+        SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(
+            index == graph_index, "Component graph indices must match component order");
     }
 
     LM_LOG_DEBUG() << "Created" << components.size() << "component nodes";
@@ -103,22 +106,44 @@ DependencyGraph<Graph::Component> CreateDependencyGraph(
     // create run_targets and do their dependencies
     for (const auto& run_target_config : run_targets)
     {
-        const auto node_index = static_cast<uint32_t>(graph.size());
-        static_cast<void>(graph.emplace(std::in_place_type<RunTarget>, node_index));
+        auto index = graph.emplace(std::in_place_type<RunTarget>, graph_index);
+        graph_index++;
+        LM_LOG_DEBUG() << "Created RunTarget node:" << run_target_config.name << "at index" << index;
 
-        LM_LOG_DEBUG() << "Created RunTarget node:" << run_target_config.name << "at index" << node_index;
+        SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(
+            index == graph_index - 1, "Component graph indices must match component order");
 
-        for (const auto& dep_name : run_target_config.depends_on)
+        component_name_to_index[run_target_config.name] = index;
+        run_target_map.insert({IdentifierHash{run_target_config.name}.data(), index});
+    };
+
+    for (std::size_t i = 0; i < run_targets.size(); ++i)
+    {
+        for (const auto& dep_name : run_targets[i].depends_on)
         {
             auto it = component_name_to_index.find(dep_name);
+            LM_LOG_ERROR() << run_targets[i].name << "HAS DEP TO " << dep_name;
             SCORE_LANGUAGE_FUTURECPP_PRECONDITION_MESSAGE(
                 it != component_name_to_index.end(), "RunTarget dependency not found in component list");
 
-            graph.addDependency(node_index, it->second);
+            graph.addDependency(num_of_components + i, it->second);
         }
     }
 
-    // static_cast<void>(graph.emplace(std::in_place_type<RunTarget>, graph.size()));
+    auto fallback_index = graph.emplace(std::in_place_type<RunTarget>, graph.size());
+    run_target_map.insert({IdentifierHash{"fallback"}.data(), fallback_index});
+
+    LM_LOG_ERROR() << "FALLBACK at index:" << fallback_index;
+    for (const auto& dep_name : config->fallbackRunTarget().depends_on)
+    {
+        auto it = component_name_to_index.find(dep_name);
+        LM_LOG_ERROR() << dep_name;
+        LM_LOG_ERROR() << "FALLBACK" << "HAS DEP TO " << dep_name;
+        SCORE_LANGUAGE_FUTURECPP_PRECONDITION_MESSAGE(
+            it != component_name_to_index.end(), "RunTarget dependency not found in component list");
+
+        graph.addDependency(fallback_index, it->second);
+    }
 
     LM_LOG_DEBUG() << "Created dependency graph with" << graph.size() << "total nodes";
 
@@ -157,7 +182,8 @@ Graph::Graph(
     last_state_manager_.process_index_ = 0xFFFFU;  // an invalid state manager
     last_state_manager_.process_group_index_ = 0xFFFFU;
     cancel_message_.request_or_response_ = ControlClientCode::kNotSet;
-    nodes_ = CreateDependencyGraph(configuration_, supervision_event_publisher_, process_interface_, process_map_);
+    nodes_ = CreateDependencyGraph(
+        configuration_, supervision_event_publisher_, process_interface_, process_map_, run_targets_);
 }
 
 Graph::~Graph()
@@ -167,17 +193,12 @@ Graph::~Graph()
 
 int32_t Graph::getRunTargetIndex(IdentifierHash pg_state) const
 {
-    const auto& run_targets = configuration_->runTargets();
-    const auto num_components = nodes_.size() - run_targets.size();
-
-    for (std::size_t i = 0; i < run_targets.size(); ++i)
+    auto it = run_targets_.find(pg_state.data());
+    if (it == run_targets_.end())
     {
-        if (IdentifierHash(run_targets[i].name) == pg_state)
-        {
-            return static_cast<int32_t>(num_components + i);
-        }
+        return -1;
     }
-    return -1;
+    return static_cast<int32_t>(it->second);
 }
 
 bool Graph::setState(GraphState new_state)
@@ -251,6 +272,7 @@ void Graph::queueReadyNodes()
 {
     // Range-for consumes the frontier via the transition's iterator (nextReady()); RunTarget
     // completions reported inside the loop append successors that this same iteration picks up.
+    LM_LOG_DEBUG() << "Queued Nodes";
     for (const auto [node, action] : *current_transition_)
     {
         const ComponentTaskType task_type =
@@ -350,6 +372,7 @@ void Graph::startTransition(IdentifierHash pg_state)
     queueReadyNodes();
     if (current_transition_->isFinished())
     {
+        LM_LOG_DEBUG() << "Finsihed?";
         finalizeTransitionSuccess();
     }
 }

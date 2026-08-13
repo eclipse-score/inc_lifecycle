@@ -19,6 +19,7 @@
 #include <memory>
 #include <mutex>
 #include <string_view>
+#include <unordered_map>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -329,6 +330,8 @@ class Graph final
     /// @brief Nodes for all unique processes in this process group, plus a virtual RunTarget node
     /// per configured ProcessGroupState.
     DependencyGraph<Component> nodes_;
+
+    std::unordered_map<std::size_t, GraphIndex> run_targets_{};
 
     /// @brief Builder for creating the transition object for the current state transition.
     TransitionBuilder<Component> transition_builder_;
