@@ -113,7 +113,7 @@ bool ProcessGroupManager::initialize(const Config& config)
     if (watchdog_config.has_value())
     {
         const auto& wc = watchdog_config.value();
-        if (!watchdog_->init(wc, score::lcm::internal::kMainLoopCycleTimeNs))
+        if (!watchdog_->init(wc, score::mw::lifecycle::internal::kMainLoopCycleTimeNs))
         {
             LM_LOG_ERROR() << "Watchdog initialization failed";
             return false;

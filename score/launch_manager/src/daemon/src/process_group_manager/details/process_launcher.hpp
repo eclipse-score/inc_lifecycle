@@ -34,7 +34,10 @@ class ProcessLauncher final : public IProcess
 {
   public:
     /// @see IProcess::startProcess() for details
-    OsalReturnType startProcess(ProcessID& pid, IpcCommsP& sync, const score::mw::lifecycle::internal::configuration::ComponentConfig& config) override;
+    OsalReturnType startProcess(
+        ProcessID& pid,
+        IpcCommsP& sync,
+        const score::mw::lifecycle::internal::configuration::ComponentConfig& config) override;
 
     /// @see IProcess::requestTermination() for details
     OsalReturnType requestTermination(ProcessID pid) override;
@@ -56,7 +59,8 @@ class ProcessLauncher final : public IProcess
     ///                    segment will be stored.
     /// @param[in] config Pointer to the configuration for initializing the communication.
     /// @return True if shared memory creation and initialization are successful, false otherwise.
-    bool setupComms(IpcCommsP& sync, int& fd, const score::mw::lifecycle::internal::configuration::ComponentConfig& config);
+    bool
+    setupComms(IpcCommsP& sync, int& fd, const score::mw::lifecycle::internal::configuration::ComponentConfig& config);
 
     /// @brief Initializes semaphores within a given shared memory block.
     /// @param[in] block Pointer to the shared memory block where semaphores will be initialized.
@@ -67,7 +71,9 @@ class ProcessLauncher final : public IProcess
     /// @param[in,out] fd Reference to store the file descriptor of the shared memory.
     /// @param[in] config Pointer to the configuration for initializing the Control Client.
     /// @return None.
-    IpcCommsP initializeControlClient(int& fd, const score::mw::lifecycle::internal::configuration::ComponentConfig& config);
+    IpcCommsP initializeControlClient(
+        int& fd,
+        const score::mw::lifecycle::internal::configuration::ComponentConfig& config);
 
     /// @brief Handles the execution of the child process after forking.
     /// @param[in] param Reference to child process configuration.
@@ -76,7 +82,8 @@ class ProcessLauncher final : public IProcess
     /// @brief Sets up all the scheduling and security parameters described in the config, for the current process.
     /// @param config the configuration to use
     /// @return kFail if any operation fails, kSuccess otherwise
-    static OsalReturnType setSchedulingAndSecurity(const score::mw::lifecycle::internal::configuration::ComponentConfig& config);
+    static OsalReturnType setSchedulingAndSecurity(
+        const score::mw::lifecycle::internal::configuration::ComponentConfig& config);
 
     ///@brief Atomic counter for shared memory names
     std::atomic_uint32_t shm_name_counter = {0};

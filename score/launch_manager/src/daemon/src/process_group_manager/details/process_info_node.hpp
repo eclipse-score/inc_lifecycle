@@ -93,7 +93,7 @@ class ProcessInfoNode final : public IComponent
     [[nodiscard]] osal::ProcessID getPid() const;
 
     /// @return The current state of this process.
-    [[nodiscard]] score::lcm::ProcessState getState() const;
+    [[nodiscard]] score::mw::lifecycle::ProcessState getState() const;
 
     /// @return The ControlClientChannel for this process, or nullptr if none exists.
     [[nodiscard]] ControlClientChannelP getControlClientChannel() const;

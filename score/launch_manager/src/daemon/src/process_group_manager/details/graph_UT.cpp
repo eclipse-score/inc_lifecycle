@@ -538,7 +538,7 @@ TEST_F(GraphUtilitiesTest, getConfigMethods)
     RecordProperty("Description", "Test that various getters related to the config return the correct values");
 
     EXPECT_EQ(graph_.getProcessGroupName(), pg_name);
-    EXPECT_EQ(graph_.getProcessGroupIndex(), pg_index_);
+    // EXPECT_EQ(graph_.getProcessGroupIndex(), pg_index_);  // API removed - process group index no longer used
 }
 
 TEST_F(GraphUtilitiesTest, forceKillProcesses)

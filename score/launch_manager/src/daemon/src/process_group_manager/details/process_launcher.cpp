@@ -174,7 +174,7 @@ void changeSecurityPolicy(const score::mw::lifecycle::internal::configuration::C
     if (config.deployment_config.sandbox.security_policy.has_value() &&
         !config.deployment_config.sandbox.security_policy.value().empty())
     {
-        if (score::lcm::internal::osal::setSecurityPolicy(
+        if (score::mw::lifecycle::internal::osal::setSecurityPolicy(
                 config.deployment_config.sandbox.security_policy.value().c_str()) != 0)
         {
             static_cast<void>(signal_safe_log_errno(
@@ -291,8 +291,8 @@ bool ProcessLauncher::setupComms(
     if (fd < 0)
     {
         std::string executable_path = config.deployment_config.bin_dir + "/" + config.component_properties.binary_name;
-        LM_LOG_ERROR() << "shm_open failed:" << executable_path
-                       << "Unable to open shared memory object. Error:" << score::lcm::internal::errno_message(errno);
+        LM_LOG_ERROR() << "shm_open failed:" << executable_path << "Unable to open shared memory object. Error:"
+                       << score::mw::lifecycle::internal::errno_message(errno);
         comms_result = false;
     }
     else
@@ -479,12 +479,12 @@ void ProcessLauncher::handleChildProcess(ChildProcessConfig& param)
         param.config.deployment_config.bin_dir + "/" + param.config.component_properties.binary_name;
 
     // Build argv array - note: must be null-terminated
-    std::array<const char*, score::lcm::internal::kArgvArraySize> argv{};
+    std::array<const char*, score::mw::lifecycle::internal::kArgvArraySize> argv{};
     size_t arg_idx = 0;
     argv[arg_idx++] = executable_path.c_str();
     for (const auto& arg : param.config.component_properties.process_arguments)
     {
-        if (arg_idx < score::lcm::internal::kArgvArraySize - 1)
+        if (arg_idx < score::mw::lifecycle::internal::kArgvArraySize - 1)
         {
             argv[arg_idx++] = arg.c_str();
         }

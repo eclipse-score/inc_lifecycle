@@ -28,14 +28,14 @@ generate_cpp(
 
 cc_library(
     name = "environment_config",
-    hdrs = ["environment_config.hpp"],
     srcs = ["environment_config.cpp"],
+    hdrs = ["environment_config.hpp"],
     include_prefix = "score/mw/launch_manager/configuration",
     strip_include_prefix = "/score/launch_manager/src/daemon/src/configuration",
     visibility = ["//score:__subpackages__"],
     deps = [
         "@score_baselibs//score/language/futurecpp",
-    ]
+    ],
 )
 
 cc_library(
@@ -54,7 +54,7 @@ cc_library(
     visibility = ["//score:__subpackages__"],
     deps = [
         ":environment_config",
-        ":recovery_action_config"
+        ":recovery_action_config",
     ],
 )
 
@@ -65,9 +65,9 @@ cc_library(
     include_prefix = "score/mw/launch_manager/configuration",
     strip_include_prefix = "/score/launch_manager/src/daemon/src/configuration",
     visibility = ["//score:__subpackages__"],
-    deps = [ 
+    deps = [
+        ":component_config",
         "@score_baselibs//score/language/futurecpp",
-        ":component_config"
     ],
 )
 

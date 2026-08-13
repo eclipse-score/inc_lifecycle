@@ -33,7 +33,6 @@ struct ComponentAliveSupervision
     std::optional<std::uint32_t> max_indications;
 };
 
-
 enum class ApplicationType : std::uint8_t
 {
     Native = 0,
@@ -48,7 +47,6 @@ struct ApplicationProfile
     bool is_self_terminating{};
     std::optional<ComponentAliveSupervision> alive_supervision;
 };
-
 
 enum class ProcessState : uint8_t
 {

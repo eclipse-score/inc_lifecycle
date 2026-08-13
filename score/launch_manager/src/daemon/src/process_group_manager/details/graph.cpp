@@ -82,8 +82,7 @@ DependencyGraph<Graph::Component> CreateDependencyGraph(
 
         // all of this relies on graphindex having sequential indexes
         // TODO use IdHash later...
-        SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(
-            index == i, "Component graph indices must match component order");
+        SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(index == i, "Component graph indices must match component order");
     }
 
     LM_LOG_DEBUG() << "Created" << components.size() << "component nodes";
@@ -95,8 +94,7 @@ DependencyGraph<Graph::Component> CreateDependencyGraph(
         {
             auto it = component_name_to_index.find(dep_name);
             SCORE_LANGUAGE_FUTURECPP_PRECONDITION_MESSAGE(
-                it != component_name_to_index.end(),
-                "Component dependency not found in component list");
+                it != component_name_to_index.end(), "Component dependency not found in component list");
 
             graph.addDependency(i, it->second);
         }
@@ -114,8 +112,7 @@ DependencyGraph<Graph::Component> CreateDependencyGraph(
         {
             auto it = component_name_to_index.find(dep_name);
             SCORE_LANGUAGE_FUTURECPP_PRECONDITION_MESSAGE(
-                it != component_name_to_index.end(),
-                "RunTarget dependency not found in component list");
+                it != component_name_to_index.end(), "RunTarget dependency not found in component list");
 
             graph.addDependency(node_index, it->second);
         }
@@ -621,8 +618,7 @@ IdentifierHash Graph::setPendingState(IdentifierHash new_state)
 
     if (new_state != old_state)
     {
-        LM_LOG_DEBUG() << "Pending transition change from"
-                       << old_state << "to" << pending_state_;
+        LM_LOG_DEBUG() << "Pending transition change from" << old_state << "to" << pending_state_;
     }
 
     return old_state;

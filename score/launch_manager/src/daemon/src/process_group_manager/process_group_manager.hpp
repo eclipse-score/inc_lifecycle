@@ -41,7 +41,6 @@
 namespace score::mw::lifecycle::internal
 {
 
-
 /// @brief ProcessGroupManager provides the core functionality of LCM.
 /// Software that is deployed to the machine, should be managed through Process Groups.
 /// A Process Group (PG) can be described as a set of applications, or executable files, that should be controlled in a
