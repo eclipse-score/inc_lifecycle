@@ -876,7 +876,7 @@
 <li><dl class="simple">
 <dt><strong>Allowed Values:</strong></dt><dd><ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;Exists&quot;</span></code>: The component is ready when the file at <code class="docutils literal notranslate"><span class="pre">file_path</span></code> exists.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">&quot;Deleted&quot;</span></code>: The component is ready when the file at <code class="docutils literal notranslate"><span class="pre">file_path</span></code> is deleted.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;NotExisting&quot;</span></code>: The component is ready when the file at <code class="docutils literal notranslate"><span class="pre">file_path</span></code> does not exist.</p></li>
 </ul>
 </dd>
 </dl>
@@ -887,10 +887,10 @@
 </dl>
 </li>
 <li><dl class="simple">
-<dt><strong>polling_interval</strong> (integer, optional)</dt><dd><ul>
-<li><p><strong>Description:</strong> Specifies the time interval, in milliseconds, at which the <strong>Launch Manager</strong> checks the file existence state.</p></li>
+<dt><strong>polling_interval</strong> (number, optional)</dt><dd><ul>
+<li><p><strong>Description:</strong> Specifies the time interval, in seconds (e.g., <code class="docutils literal notranslate"><span class="pre">0.3</span></code> for 300 milliseconds), at which the <strong>Launch Manager</strong> checks the file existence state.</p></li>
 <li><p><strong>Constraint:</strong> Must be greater than 0.</p></li>
-<li><p><strong>Default:</strong> <code class="docutils literal notranslate"><span class="pre">10</span></code></p></li>
+<li><p><strong>Default:</strong> <code class="docutils literal notranslate"><span class="pre">0.01</span></code></p></li>
 </ul>
 </dd>
 </dl>
