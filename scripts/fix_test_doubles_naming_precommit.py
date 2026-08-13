@@ -102,6 +102,9 @@ def build_target_name(path: Path) -> Path | None:
 
 
 def is_double(path: Path) -> bool:
+    """
+    Return true if the given path is a test double
+    """
     SUPPORTED_TEST_DOUBLE_NAMES = [name.value for name in TestDoubleName]
     TEST_DOUBLE_SEARCH_PATTERNS = [
         re.compile(rf"(?i)(^|[^a-z0-9]){name}([^a-z0-9]|$)")
@@ -111,12 +114,18 @@ def is_double(path: Path) -> bool:
 
 
 def has_multiple_double_names(path: Path) -> bool:
+    """
+    Return true if more than one test double names are present in a file name
+    """
     pattern = TestDoubleName.to_regex_alternation()
     matches = re.findall(pattern, str(path), flags=re.IGNORECASE)
     return len(matches) > 1
 
 
 def define_operations(filenames: list[str]) -> list[RenameOperation]:
+    """
+    Define all the rename operations required to make the source files conformant
+    """
     operations: list[RenameOperation] = []
     for path_str in filenames:
         path = Path(path_str)
@@ -148,19 +157,17 @@ def define_operations(filenames: list[str]) -> list[RenameOperation]:
 
 
 def apply_operations(operations: list[RenameOperation]) -> None:
+    """
+    Do the renaming of the files
+    """
     for operation in operations:
         operation.source.rename(operation.target)
 
 
-def file_contains_pattern(file_path: Path, pattern: str) -> bool:
-    try:
-        content = file_path.read_text(encoding="utf-8", errors="ignore")
-    except (OSError, IOError):
-        return False
-    return pattern.lower() in content.lower()
-
-
 def has_conflicts(operations: list[RenameOperation]):
+    """
+    Check if any of the operations will conflict with a previous operation, or an existing file
+    """
     seen = {}
     conflicts = 0
 
@@ -184,7 +191,7 @@ def has_conflicts(operations: list[RenameOperation]):
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Rename files containing 'mock' using suffix '<name>_mock.<ext>' or prefix 'mock_<name>.<ext>' format."
+        description="Rename test double files to conform with a prefix format."
     )
     parser.add_argument(
         "filenames",
