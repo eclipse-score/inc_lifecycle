@@ -634,7 +634,8 @@ TEST_F(ConverterTest, ConvertFileExistenceStateMapsBothValues)
 {
     RecordProperty("Description", "convertFileExistenceState maps both enum values correctly.");
     EXPECT_THAT(details::convertFileExistenceState(fb::FileExistenceState::Exists), Eq(FileExistenceState::Exists));
-    EXPECT_THAT(details::convertFileExistenceState(fb::FileExistenceState::Deleted), Eq(FileExistenceState::Deleted));
+    EXPECT_THAT(
+        details::convertFileExistenceState(fb::FileExistenceState::NotExisting), Eq(FileExistenceState::NotExisting));
 }
 
 TEST_F(ConverterTest, ConvertFileStateNullReturnsNullopt)
@@ -648,14 +649,14 @@ TEST_F(ConverterTest, ConvertFileStateValid)
 {
     RecordProperty("Description", "convertFileState maps file_path and an explicit state correctly.");
     ::flatbuffers::FlatBufferBuilder fbb;
-    auto fs = fb::CreateFileStateDirect(fbb, "/tmp/ready", fb::FileExistenceState::Deleted);
+    auto fs = fb::CreateFileStateDirect(fbb, "/tmp/ready", fb::FileExistenceState::NotExisting);
     fbb.Finish(fs);
     const auto* ptr = ::flatbuffers::GetRoot<fb::FileState>(fbb.GetBufferPointer());
 
     auto result = details::convertFileState(ptr);
     ASSERT_THAT(result.has_value(), IsTrue());
     EXPECT_THAT(result->file_path, Eq("/tmp/ready"));
-    EXPECT_THAT(result->state, Eq(FileExistenceState::Deleted));
+    EXPECT_THAT(result->state, Eq(FileExistenceState::NotExisting));
 }
 
 TEST_F(ConverterTest, ConvertFileStateDefaultsToExists)

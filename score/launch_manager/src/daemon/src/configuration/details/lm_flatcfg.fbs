@@ -29,7 +29,7 @@ enum ProcessState : byte {
 // Specifies the required existence state of a watched file.
 enum FileExistenceState : byte {
   Exists = 0,
-  Deleted = 1
+  NotExisting = 1
 }
 
 // Scheduling policy for a component's initial thread.
@@ -65,8 +65,8 @@ table FileState {
   file_path:string (required); // required
   // Existence state of the file. Defaults to Exists if not specified.
   state:FileExistenceState = Exists; // optional, defaults to Exists
-  // Time in ms to wait between each poll if the file is present.
-  polling_interval: uint32 = 10; //optional, defaults to 10ms
+  // Time in seconds to wait between each poll if the file is present.
+  polling_interval: double = 0.01; //optional, defaults to 0.01s (10ms)
 }
 
 // Defines the conditions that determine when the component enters the ready state.

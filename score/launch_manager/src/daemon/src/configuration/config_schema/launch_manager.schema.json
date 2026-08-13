@@ -92,25 +92,25 @@
             },
             "file_state": {
               "type": "object",
-              "description": "Specifies a ready condition based on the existence state of a file at a given path.",
+              "description": "Specifies a ready condition based on the existence of a file at a given path.",
               "properties": {
                 "file_path": {
                   "type": "string",
-                  "pattern": "^/.*",
+                  "pattern": "^/(?:[^/]+(?:/[^/]+)*)$",
                   "description": "Specifies the absolute path to the file being watched."
                 },
                 "state": {
                   "type": "string",
                   "enum": [
                     "Exists",
-                    "Deleted"
+                    "NotExisting"
                   ],
-                  "description": "Specifies the required existence state of the file. 'Exists': the file must be present at 'file_path'. 'Deleted': the file must be absent from 'file_path'. Defaults to 'Exists' if not specified."
+                  "description": "Specifies the required existence of the file. 'Exists': the file must be present at 'file_path'. 'NotExisting': the file must be absent from 'file_path'. Defaults to 'Exists' if not specified."
                 },
                 "polling_interval": {
-                  "type": "integer",
+                  "type": "number",
                   "exclusiveMinimum": 0,
-                  "description": "Specifies the time interval, in milliseconds, at which the Launch Manager checks the file existence state."
+                  "description": "Specifies the time interval, in seconds (e.g., '0.3' for 300 milliseconds), at which the Launch Manager checks the file existence. Defaults to 10 milliseconds."
                 }
               },
               "required": [
@@ -119,7 +119,18 @@
               "additionalProperties": false
             }
           },
-          "required": [],
+          "oneOf": [
+            {
+              "required": [
+                "process_state"
+              ]
+            },
+            {
+              "required": [
+                "file_state"
+              ]
+            }
+          ],
           "additionalProperties": false
         }
       },

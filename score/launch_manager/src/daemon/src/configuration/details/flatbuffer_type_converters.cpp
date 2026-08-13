@@ -107,8 +107,8 @@ FileExistenceState convertFileExistenceState(fb::FileExistenceState fb_state)
 {
     switch (fb_state)
     {
-        case fb::FileExistenceState::Deleted:
-            return FileExistenceState::Deleted;
+        case fb::FileExistenceState::NotExisting:
+            return FileExistenceState::NotExisting;
         case fb::FileExistenceState::Exists:
             return FileExistenceState::Exists;
     }
@@ -317,10 +317,11 @@ std::optional<FileState> convertFileState(const fb::FileState* fb_fs)
     SCORE_LANGUAGE_FUTURECPP_ASSERT_PRD_MESSAGE(
         fb_fs->file_path(), "FileState::file_path must never be nullptr as it is required in the schema");
 
-    return FileState{
-        fb_fs->file_path()->str(),
-        convertFileExistenceState(fb_fs->state()),
-        std::chrono::milliseconds{fb_fs->polling_interval()}};
+    const auto polling_interval_seconds = fb_fs->polling_interval();
+    const auto polling_interval_ms =
+        std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::duration<double>(polling_interval_seconds));
+
+    return FileState{fb_fs->file_path()->str(), convertFileExistenceState(fb_fs->state()), polling_interval_ms};
 }
 
 std::optional<ReadyCondition> convertReadyCondition(const fb::ReadyCondition* fb_rc)

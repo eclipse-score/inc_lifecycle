@@ -14,12 +14,12 @@
 #define COMPONENT_CONFIG_HPP
 
 #include <sys/types.h>
+#include <chrono>
 #include <cstdint>
 #include <optional>
 #include <string>
-#include <vector>
 #include <variant>
-#include <chrono>
+#include <vector>
 
 #include "score/mw/launch_manager/configuration/environment_config.hpp"
 #include "score/mw/launch_manager/configuration/recovery_action_config.hpp"
@@ -53,10 +53,8 @@ struct ApplicationProfile
 enum class FileExistenceState : uint8_t
 {
     Exists = 0,
-    Deleted,
+    NotExisting,
 };
-
-
 
 struct FileState
 {
@@ -64,7 +62,6 @@ struct FileState
     FileExistenceState state{FileExistenceState::Exists};
     std::chrono::milliseconds polling_interval{10};
 };
-
 
 enum class ProcessState : std::uint8_t
 {
