@@ -44,7 +44,7 @@ class TestDoubleName(Enum):
         for double in TestDoubleName:
             if double.value in str(path):
                 return double
-            raise NotImplementedError
+        raise NotImplementedError
 
     @staticmethod
     def to_regex_alternation() -> str:
@@ -54,17 +54,6 @@ class TestDoubleName(Enum):
 class NamingConvention(Enum):
     SUFFIX = "suffix"
     PREFIX = "prefix"
-
-
-SUPPORTED_TEST_DOUBLE_NAMES = [name.value for name in TestDoubleName]
-SUPPORTED_NAMING_CONVENTIONS = [convention.value for convention in NamingConvention]
-
-TEST_DOUBLE_SEARCH_PATTERNS = [
-    re.compile(rf"(?i)(^|[^a-z0-9]){name}([^a-z0-9]|$)")
-    for name in SUPPORTED_TEST_DOUBLE_NAMES
-]
-
-ENDING_MOCK_PATTERN = re.compile(r"(?i)mock$")
 
 
 @dataclass(frozen=True)
@@ -87,14 +76,19 @@ def split_name_and_extension(path: Path) -> tuple[str, str]:
     return path.name, ""
 
 
-def normalize_base_name(stem: str) -> str:
+def normalize_base_name(old_name: str) -> str:
     """
-    Remove any occurances of the test double name from a filename
+    Remove the first occurrence of a test double name from a filename
     """
-    base = stem
     double_name = TestDoubleName.to_regex_alternation()
-    base = re.sub(rf"(?i)(^|[_-]){double_name}(?=($|[_-]))", r"\1", base)
-    base = re.sub(rf"(?i){double_name}$", "", base)
+    # Match the double name only when it sits between separators (`_`/`-`) or
+    # the start/end of the string, so e.g. "mockable" is left alone. The two
+    # boundary groups are captured so a shared separator (e.g. the "_" in
+    # "foo_mock_bar") is preserved rather than consumed twice; the double
+    # name itself (group 2) is dropped by omitting it from the replacement.
+    base = re.sub(rf"(?i)(^|[_-]){double_name}($|[_-])", r"\1\3", old_name, count=1)
+    # Collapse any doubled-up separator left behind (e.g. "foo__bar") and
+    # trim a leading/trailing one (e.g. from "mock_foo" or "foo_mock").
     base = re.sub(r"[_-]{2,}", "_", base)
     return base.strip("_-")
 
@@ -117,7 +111,18 @@ def build_target_name(path: Path, naming_format: str) -> Path | None:
 
 
 def is_double(path: Path) -> bool:
+    SUPPORTED_TEST_DOUBLE_NAMES = [name.value for name in TestDoubleName]
+    TEST_DOUBLE_SEARCH_PATTERNS = [
+        re.compile(rf"(?i)(^|[^a-z0-9]){name}([^a-z0-9]|$)")
+        for name in SUPPORTED_TEST_DOUBLE_NAMES
+    ]
     return any([r.search(str(path)) is not None for r in TEST_DOUBLE_SEARCH_PATTERNS])
+
+
+def has_multiple_double_names(path: Path) -> bool:
+    pattern = TestDoubleName.to_regex_alternation()
+    matches = re.findall(pattern, str(path), flags=re.IGNORECASE)
+    return len(matches) > 1
 
 
 def define_operations(
@@ -129,13 +134,19 @@ def define_operations(
 
         # Skip paths that don't exist as files
         if not path.exists() or not path.is_file():
-            logging.warning(f"Skipping {path}, it does not exist as a file")
+            logging.warning(f"Skipping {path}, it does not exist as a file.")
             continue
 
         # Skip files that are not test doubles
         if not is_double(path):
-            logging.info(f"Ignoring {path}, it is not a recognised test double")
+            logging.info(f"Ignoring {path}, it is not a recognised test double.")
             continue
+
+        # Error if we find more than one test double name in a file name
+        if has_multiple_double_names(path):
+            raise ValueError(
+                f"Invalid file name {path} contains multiple double names."
+            )
 
         target_name = build_target_name(path, naming_format)
 
@@ -171,9 +182,9 @@ def replace_usage_in_files(files: list[Path], old_name: str, new_name: str) -> i
                 with open(file_path, "w", encoding="utf-8") as f:
                     f.write(new_content)
                 replacements_made += 1
-                print(f"    Updated usages in: {file_path}")
+                print(f"    Updated usages in: {file_path}.")
         except (OSError, IOError) as e:
-            print(f"    Warning: Could not update {file_path}: {e}")
+            print(f"    Warning: Could not update {file_path}: {e}.")
 
     return replacements_made
 
@@ -227,6 +238,7 @@ def main() -> int:
         action="store_true",
         help="Replace usage of old filenames with the correct filename (does not replace in --dry-run mode).",
     )
+    SUPPORTED_NAMING_CONVENTIONS = [convention.value for convention in NamingConvention]
     parser.add_argument(
         "--naming-format",
         choices=SUPPORTED_NAMING_CONVENTIONS,
@@ -247,9 +259,9 @@ def main() -> int:
 
     action = "DRY-RUN" if args.dry_run else "RENAME"
     for operation in operations:
-        print(f"{action}: {operation.source} -> {operation.target}")
+        print(f"{action}: {operation.source} -> {operation.target}.")
 
-    print(f"\nTotal planned renames: {len(operations)}")
+    print(f"\nTotal planned renames: {len(operations)}.")
 
     if not args.dry_run:
         apply_operations(operations)
@@ -270,7 +282,7 @@ def main() -> int:
                 old_name = operation.source.name
                 new_name = operation.target.name
 
-                logging.info(f"\nProcessing: {old_name} -> {new_name}")
+                logging.info(f"\nProcessing: {old_name} -> {new_name}.")
                 files_with_usages = [
                     path
                     for path in usage_files
@@ -294,14 +306,18 @@ def main() -> int:
                         )
                         total_updated += updated
                 else:
-                    logging.info(f"  No usages found for '{old_name}'")
+                    logging.info(f"  No usages found for '{old_name}'.")
 
             if total_updated > 0:
-                logging.info(f"\n✓ Updated usages in {total_updated} file(s)")
+                logging.info(f"\n✓ Updated usages in {total_updated} file(s).")
             else:
-                logging.info("\nNo usages found or updated")
+                logging.info("\nNo usages found or updated.")
     else:
         logging.info("Dry run only. Re-run without --dry-run to perform changes.")
+
+    # We return success only if no rename operations were required
+    if operations:
+        return 1
 
     return 0
 
