@@ -20,6 +20,12 @@ repos:
         language: system
         files: (BUILD|BUILD\.bazel|WORKSPACE|\.bazelrc|[^/]+\.(py|bzl|bazel|yaml|yml|rs|c|cpp|h|hpp))$
         pass_filenames: false
+      - id: test-doubles-naming-fix
+        name: test-doubles-naming-fix
+        entry: python3 ./scripts/fix_test_doubles_naming_precommit.py --update-usage
+        language: system
+        files: '\.(cc|cpp|h|hpp)$'
+        pass_filenames: true
   - repo: https://github.com/pocc/pre-commit-hooks
     rev: v1.3.5
     hooks:
