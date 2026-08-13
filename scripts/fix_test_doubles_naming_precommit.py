@@ -208,16 +208,15 @@ def main() -> int:
         logging.info("No files need renaming.")
         return 0
 
-    logging.info("Planned rename operations:")
-    action = "DRY-RUN" if args.dry_run else "RENAME"
+    logging.warning("Non-conformant files have been found, fixing now.")
+    action = "Renaming"
+    if args.dry_run:
+        action += " (dry-run)"
     for operation in operations:
-        logging.info(f"{action}: {operation.source} -> {operation.target}.")
-
-    logging.info(f"Total planned renames: {len(operations)}.")
+        logging.warning(f"{action}: {operation.source} -> {operation.target}.")
 
     if not args.dry_run:
         apply_operations(operations)
-        logging.info("Renaming completed.")
     else:
         logging.info("Dry run only. Re-run without --dry-run to perform changes.")
 
