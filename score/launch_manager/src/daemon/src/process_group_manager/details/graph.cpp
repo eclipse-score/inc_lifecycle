@@ -121,6 +121,8 @@ DependencyGraph<Graph::Component> CreateDependencyGraph(
         }
     }
 
+    // static_cast<void>(graph.emplace(std::in_place_type<RunTarget>, graph.size()));
+
     LM_LOG_DEBUG() << "Created dependency graph with" << graph.size() << "total nodes";
 
     return graph;
@@ -329,6 +331,7 @@ void Graph::tryQueueNode(ComponentTask task)
 
 void Graph::startTransition(IdentifierHash pg_state)
 {
+    LM_LOG_DEBUG() << "Graph starting transition to" << pg_state;
     IdentifierHash old_state_name;
     {
         std::lock_guard<std::mutex> lock(requested_state_mutex_);

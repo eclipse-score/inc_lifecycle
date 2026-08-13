@@ -103,15 +103,10 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     /// @return Returns true if the process group manager ran successfully, false otherwise.
     bool run();
 
-    /// @brief Get the process group for a given pg_name
-    /// @param pg_name the name to look up
+    /// @brief Get the process group for a given run_target
+    /// @param run_target the name to look up
     /// @return a pointer to the Graph, or nullptr if not found
-    std::shared_ptr<Graph> getProcessGroup(IdentifierHash pg_name);
-
-    /// @brief Get the process group that owns the process with the given identifier
-    /// @param process_id the process identifier to look up
-    /// @return a pointer to the Graph, or nullptr if not found
-    std::shared_ptr<Graph> getProcessGroupByProcessId(const IdentifierHash& process_id);
+    std::shared_ptr<Graph> getProcessGroup(IdentifierHash run_target);
 
     /// @brief Get a node corresponding to the given process group and process index
     /// @param pg_index The index of the process group in the list of groups managed by this manager

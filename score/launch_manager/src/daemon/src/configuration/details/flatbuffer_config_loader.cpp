@@ -106,6 +106,15 @@ score::cpp::expected<Config, IConfigLoader::Error> parseFlatbuffer(const std::ve
     {
         return score::cpp::make_unexpected(run_targets.error());
     }
+
+    // add Off state
+    if (std::none_of((*run_targets).cbegin(), (*run_targets).cend(), [](const RunTargetConfig& rt) {
+            return rt.name == "Off";
+        }))
+    {
+        (*run_targets).push_back(RunTargetConfig{"Off", "Off State", {}, 999, {}});
+    }
+
     builder.setRunTargets(std::move(*run_targets));
 
     // Convert fallback run target

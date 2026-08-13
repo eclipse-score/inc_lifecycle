@@ -14,6 +14,7 @@
 #include <sys/stat.h>
 #include <cerrno>
 #include <cstdint>
+#include <iostream>
 #include <map>
 #include <thread>
 
@@ -332,6 +333,8 @@ score::concurrency::InterruptibleFuture<void> ControlClientImpl::SetState(
     const score::mw::lifecycle::IdentifierHash& pg_state) noexcept
 {
     score::concurrency::InterruptibleFuture<void> retVal_{};
+
+    std::cout << "Setting state " << pg_name << pg_state << std::endl;
 
     if (nullptr != ipc_channel_)
     {

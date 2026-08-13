@@ -490,13 +490,14 @@ void ProcessGroupManager::controlClientRequests(Graph& pg)
         LM_LOG_DEBUG() << "ProcessGroupManager::ControlClientHandler: got request"
                        << scc->toString(scc->request().request_or_response_) << "("
                        << static_cast<int>(scc->request().request_or_response_) << ") re state"
-                       << scc->request().process_group_state_.pg_state_name_ << "of PG"
-                       << scc->request().process_group_state_.pg_name_;
+                       << scc->request().process_group_state_.pg_state_name_;
 
+        LM_LOG_DEBUG() << "HERER++++++++";
         // Now process the request
         switch (scc->request().request_or_response_)
         {
             case ControlClientCode::kSetStateRequest:
+                LM_LOG_DEBUG() << "HERER++++++++";
                 processStateTransition(scc);
                 break;
 
@@ -584,55 +585,40 @@ void ProcessGroupManager::handleRecoveryRequest(const IdentifierHash& process_id
 
 void ProcessGroupManager::processStateTransition(ControlClientChannelP scc)
 {
-    // First of all, if the process group is not known, then return kSetStateInvalidArguments straight away
-    // Set new pending target state
-    // If the process group is in transition
-    //   if the target state is not the requested state, send a kCanceled response
-    //   to the last state manager and cancel the graph
-    // Set new state manager
-    auto pg = getProcessGroup(scc->request().process_group_state_.pg_name_);
 
-    if (nullptr == pg)
-    {
-        // Error, unknown process group
-        scc->request().request_or_response_ = ControlClientCode::kSetStateInvalidArguments;
-    }
-    else
-    {
-        IdentifierHash old_state = pg->getProcessGroupState();
-        GraphState graph_state = pg->getState();
-        scc->request().request_or_response_ = ControlClientCode::kSetStateSuccess;
+    IdentifierHash old_state = graph_->getProcessGroupState();
+    GraphState graph_state = graph_->getState();
+    scc->request().request_or_response_ = ControlClientCode::kSetStateSuccess;
 
-        if (GraphState::kInTransition == graph_state)
+    if (GraphState::kInTransition == graph_state)
+    {
+        if (old_state != scc->request().process_group_state_.pg_state_name_)
         {
-            if (old_state != scc->request().process_group_state_.pg_state_name_)
-            {
-                (void)pg->setPendingState(scc->request().process_group_state_.pg_state_name_);
-                // get state transition start time stamp
-                pg->setRequestStartTime();
-                pg->cancel();
-            }
-            else
-            {
-                // already in transition to the requested state
-                // pg->cancel();
-                scc->request().request_or_response_ = ControlClientCode::kSetStateTransitionToSameState;
-            }
-        }
-        else if (GraphState::kSuccess == graph_state && old_state == scc->request().process_group_state_.pg_state_name_)
-        {
-            // Already in state
-            scc->request().request_or_response_ = ControlClientCode::kSetStateAlreadyInState;
+            (void)graph_->setPendingState(scc->request().process_group_state_.pg_state_name_);
+            // get state transition start time stamp
+            graph_->setRequestStartTime();
+            graph_->cancel();
         }
         else
         {
-            (void)pg->setPendingState(scc->request().process_group_state_.pg_state_name_);
-            // get state transition start time stamp
-            pg->setRequestStartTime();
+            // already in transition to the requested state
+            // pg->cancel();
+            scc->request().request_or_response_ = ControlClientCode::kSetStateTransitionToSameState;
         }
-        pg->updateCancelMessage();
-        pg->setStateManager(scc->request().originating_control_client_);
     }
+    else if (GraphState::kSuccess == graph_state && old_state == scc->request().process_group_state_.pg_state_name_)
+    {
+        // Already in state
+        scc->request().request_or_response_ = ControlClientCode::kSetStateAlreadyInState;
+    }
+    else
+    {
+        (void)graph_->setPendingState(scc->request().process_group_state_.pg_state_name_);
+        // get state transition start time stamp
+        graph_->setRequestStartTime();
+    }
+    graph_->updateCancelMessage();
+    graph_->setStateManager(scc->request().originating_control_client_);
 }
 
 void ProcessGroupManager::processGetExecutionError(ControlClientChannelP scc)
@@ -758,14 +744,6 @@ ProcessInfoNode* ProcessGroupManager::getProcessInfoNode(uint32_t pg_index, uint
     }
 
     return nullptr;
-}
-
-std::shared_ptr<Graph> ProcessGroupManager::getProcessGroupByProcessId(const IdentifierHash& process_id)
-{
-    // With single graph, just return it if it exists
-    // The graph manages all processes
-    (void)process_id;  // Unused in single-graph model
-    return graph_;
 }
 
 std::shared_ptr<Graph> ProcessGroupManager::getProcessGroup(IdentifierHash pg_name)
