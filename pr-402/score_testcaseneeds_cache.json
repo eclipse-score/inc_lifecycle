@@ -42,6 +42,20 @@
     "FullyVerifies": null
   },
   {
+    "name": "test_crash_ignores_dependents",
+    "file": "../_main/tests/integration/crash_ignores_dependents/crash_ignores_dependents.py",
+    "line": "18",
+    "result": "passed",
+    "repo_name": null,
+    "hash": null,
+    "url": null,
+    "TestType": null,
+    "DerivationTechnique": null,
+    "result_text": "",
+    "PartiallyVerifies": null,
+    "FullyVerifies": null
+  },
+  {
     "name": "test_incorrect_config_non_reporting",
     "file": "../_main/tests/integration/incorrect_config_non_reporting/test_incorrect_config_non_reporting.py",
     "line": "19",
@@ -56,8 +70,36 @@
     "FullyVerifies": null
   },
   {
+    "name": "test_shutdown_signal",
+    "file": "../_main/tests/integration/shutdown_signal/shutdown_signal.py",
+    "line": "18",
+    "result": "passed",
+    "repo_name": null,
+    "hash": null,
+    "url": null,
+    "TestType": null,
+    "DerivationTechnique": null,
+    "result_text": "",
+    "PartiallyVerifies": null,
+    "FullyVerifies": null
+  },
+  {
     "name": "test_complex_monitoring",
     "file": "../_main/tests/integration/complex_monitoring/complex_monitoring.py",
+    "line": "18",
+    "result": "passed",
+    "repo_name": null,
+    "hash": null,
+    "url": null,
+    "TestType": null,
+    "DerivationTechnique": null,
+    "result_text": "",
+    "PartiallyVerifies": null,
+    "FullyVerifies": null
+  },
+  {
+    "name": "test_fallback_to_same_target_restarts",
+    "file": "../_main/tests/integration/fallback_to_same_target_restarts/fallback_to_same_target_restarts.py",
     "line": "18",
     "result": "passed",
     "repo_name": null,
@@ -142,7 +184,7 @@
   {
     "name": "test_crash_on_startup",
     "file": "../_main/tests/integration/crash_on_startup/crash_on_startup.py",
-    "line": "18",
+    "line": "21",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -1570,7 +1612,7 @@
   {
     "name": "OsHandlerTest__WaitReturnsUnknownPidWhenMapIsFull_OutOfResourcesPathDoesNotNotifyCallbacks",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/oshandler_UT.cpp",
-    "line": "160",
+    "line": "161",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1584,7 +1626,7 @@
   {
     "name": "OsHandlerTest__WaitReturnsErrorThenProcessId_HandlerRecoversAndInvokesCallback",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/oshandler_UT.cpp",
-    "line": "191",
+    "line": "192",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1598,7 +1640,7 @@
   {
     "name": "ComponentEventQueueTest__WaitForEventsReturnsFalseOnEmptyQueue",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/component_event_queue_UT.cpp",
-    "line": "36",
+    "line": "34",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1612,7 +1654,7 @@
   {
     "name": "ComponentEventQueueTest__WaitForEventsReturnsTrueAfterPush",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/component_event_queue_UT.cpp",
-    "line": "42",
+    "line": "40",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1626,7 +1668,7 @@
   {
     "name": "ComponentEventQueueTest__GetNextEventReturnsNulloptWhenEmpty",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/component_event_queue_UT.cpp",
-    "line": "49",
+    "line": "47",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1640,7 +1682,7 @@
   {
     "name": "ComponentEventQueueTest__GetNextEventReturnsPushedEventWithPayloadIntact",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/component_event_queue_UT.cpp",
-    "line": "55",
+    "line": "53",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1654,7 +1696,7 @@
   {
     "name": "ComponentEventQueueTest__GetNextEventReturnsSupervisionFailureWithPayloadIntact",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/component_event_queue_UT.cpp",
-    "line": "68",
+    "line": "66",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1668,7 +1710,7 @@
   {
     "name": "ComponentEventQueueTest__GetOverflowStaysFalseUnderNormalUsage",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/component_event_queue_UT.cpp",
-    "line": "84",
+    "line": "82",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1682,7 +1724,7 @@
   {
     "name": "ComponentEventQueueTest__GetOverflowBecomesTrueOnceQueueIsFull",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/component_event_queue_UT.cpp",
-    "line": "92",
+    "line": "90",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1696,7 +1738,7 @@
   {
     "name": "ComponentEventQueueTest__StopFailsWaitForEventsOnEmptyQueue",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/component_event_queue_UT.cpp",
-    "line": "110",
+    "line": "108",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1710,7 +1752,7 @@
   {
     "name": "ComponentEventQueueTest__GetNextEventStillDrainsQueuedEventsAfterStop",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/component_event_queue_UT.cpp",
-    "line": "121",
+    "line": "119",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1724,7 +1766,7 @@
   {
     "name": "GraphOrdinaryTransitionTest__correctJobDetails",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "235",
+    "line": "228",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1738,7 +1780,7 @@
   {
     "name": "GraphOrdinaryTransitionTest__simpleActivationTransition",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "249",
+    "line": "242",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1752,7 +1794,7 @@
   {
     "name": "GraphOrdinaryTransitionTest__simpleDeactivationTransition",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "266",
+    "line": "259",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1766,7 +1808,7 @@
   {
     "name": "GraphInitialTransitionTest__nothingToDo",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "288",
+    "line": "281",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1780,7 +1822,7 @@
   {
     "name": "GraphInitialTransitionTest__jobFailure",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "301",
+    "line": "294",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1794,7 +1836,7 @@
   {
     "name": "GraphInitialTransitionTest__cancel",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "318",
+    "line": "311",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1808,7 +1850,7 @@
   {
     "name": "GraphOffTransitionTest__normalShutdown",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "342",
+    "line": "335",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1822,7 +1864,7 @@
   {
     "name": "GraphOffTransitionTest__shutdownDuringTransition",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "362",
+    "line": "355",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1836,7 +1878,7 @@
   {
     "name": "GraphHandleComponentEventTest__failedFirstDuringTransition",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "400",
+    "line": "393",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1850,7 +1892,7 @@
   {
     "name": "GraphHandleComponentEventTest__failureFollowedBySuccessFails",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "419",
+    "line": "412",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1864,7 +1906,7 @@
   {
     "name": "GraphHandleComponentEventTest__unexpectedTerminationDuringSuccess",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "439",
+    "line": "432",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1878,7 +1920,7 @@
   {
     "name": "GraphHandleComponentEventTest__unexpectedTerminationDuringTransition",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "453",
+    "line": "454",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1892,7 +1934,7 @@
   {
     "name": "GraphCancelTest__notInTransition",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "481",
+    "line": "490",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1906,7 +1948,7 @@
   {
     "name": "GraphCancelTest__cancelsOngoingTransition",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "491",
+    "line": "500",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1920,7 +1962,7 @@
   {
     "name": "GraphUtilitiesTest__getProcessInfoNode",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "512",
+    "line": "521",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1934,7 +1976,7 @@
   {
     "name": "GraphUtilitiesTest__getConfigMethods",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "528",
+    "line": "537",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1948,7 +1990,7 @@
   {
     "name": "GraphUtilitiesTest__forceKillProcesses",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "536",
+    "line": "545",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1962,7 +2004,7 @@
   {
     "name": "GraphUtilitiesTest__toString",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "550",
+    "line": "559",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1976,7 +2018,7 @@
   {
     "name": "GraphUtilitiesTest__gettersSetters",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "564",
+    "line": "573",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -1990,7 +2032,7 @@
   {
     "name": "DependencyGraphTest__EmplaceAndAccessByIndex",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/dependency_graph_UT.cpp",
-    "line": "27",
+    "line": "25",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -2004,7 +2046,7 @@
   {
     "name": "DependencyGraphTest__EmplaceReturnsSequentialIndices",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/dependency_graph_UT.cpp",
-    "line": "37",
+    "line": "35",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -2018,7 +2060,7 @@
   {
     "name": "DependencyGraphTest__AddDependencyWiresDependsOnAndDependents",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/dependency_graph_UT.cpp",
-    "line": "49",
+    "line": "47",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -2032,7 +2074,7 @@
   {
     "name": "DependencyGraphTest__SizeReflectsNumberOfEmplacedNodes",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/dependency_graph_UT.cpp",
-    "line": "62",
+    "line": "60",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -2046,7 +2088,7 @@
   {
     "name": "DependencyGraphTest__TraverseVisitsWholeChainThroughDependsOn",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/dependency_graph_UT.cpp",
-    "line": "72",
+    "line": "70",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -2060,13 +2102,69 @@
   {
     "name": "DependencyGraphTest__TraverseVisitsSharedDependencyExactlyOnce",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/dependency_graph_UT.cpp",
-    "line": "93",
+    "line": "91",
     "result": "passed",
     "repo_name": null,
     "hash": null,
     "url": null,
     "TestType": null,
     "DerivationTechnique": null,
+    "result_text": "",
+    "PartiallyVerifies": null,
+    "FullyVerifies": null
+  },
+  {
+    "name": "ProcessGroupManagerWatchdogTest__GivenMinimalConfig_ExpectWatchdogMethodsCalledInSequence_WhenInitializeCalled",
+    "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_group_manager_UT.cpp",
+    "line": "164",
+    "result": "passed",
+    "repo_name": "local_repo",
+    "hash": "",
+    "url": "",
+    "TestType": "unit-test",
+    "DerivationTechnique": "explorative-testing",
+    "result_text": "",
+    "PartiallyVerifies": null,
+    "FullyVerifies": null
+  },
+  {
+    "name": "ProcessGroupManagerWatchdogTest__GivenMinimalConfig_ExpectWatchdogServicePerCycle_WhenRunCalled",
+    "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_group_manager_UT.cpp",
+    "line": "182",
+    "result": "passed",
+    "repo_name": "local_repo",
+    "hash": "",
+    "url": "",
+    "TestType": "unit-test",
+    "DerivationTechnique": "explorative-testing",
+    "result_text": "",
+    "PartiallyVerifies": null,
+    "FullyVerifies": null
+  },
+  {
+    "name": "ProcessGroupManagerWatchdogTest__GivenMinimalConfig_ExpectWatchdogFired_WhenRecoveryClientOverflowsDuringRunCall",
+    "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_group_manager_UT.cpp",
+    "line": "205",
+    "result": "passed",
+    "repo_name": "local_repo",
+    "hash": "",
+    "url": "",
+    "TestType": "unit-test",
+    "DerivationTechnique": "explorative-testing",
+    "result_text": "",
+    "PartiallyVerifies": null,
+    "FullyVerifies": null
+  },
+  {
+    "name": "ProcessGroupManagerWatchdogTest__GivenMinimalConfig_ExpectWatchdogDisabled_WhenDeinitializeCalled",
+    "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_group_manager_UT.cpp",
+    "line": "240",
+    "result": "passed",
+    "repo_name": "local_repo",
+    "hash": "",
+    "url": "",
+    "TestType": "unit-test",
+    "DerivationTechnique": "explorative-testing",
     "result_text": "",
     "PartiallyVerifies": null,
     "FullyVerifies": null
@@ -2284,7 +2382,7 @@
   {
     "name": "ProcessInfoNodeStartupTest__CanConstructIdleProcessInfoNode",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_info_node_UT.cpp",
-    "line": "133",
+    "line": "126",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2298,7 +2396,7 @@
   {
     "name": "ProcessInfoNodeStartupTest__CanStartNonReportingProcess",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_info_node_UT.cpp",
-    "line": "147",
+    "line": "140",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2312,7 +2410,7 @@
   {
     "name": "ProcessInfoNodeStartupTest__CanStartReportingProcess_ReportsRunningInTime",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_info_node_UT.cpp",
-    "line": "165",
+    "line": "158",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2326,7 +2424,7 @@
   {
     "name": "ProcessInfoNodeStartupTest__OsForkFails_ReturnsErrorBeforeReady",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_info_node_UT.cpp",
-    "line": "182",
+    "line": "175",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2340,7 +2438,7 @@
   {
     "name": "ProcessInfoNodeStartupTest__MapInsertError_ReturnsErrorBeforeReady",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_info_node_UT.cpp",
-    "line": "198",
+    "line": "191",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2354,7 +2452,7 @@
   {
     "name": "ProcessInfoNodeStartupTest__SelfTerminating_ExitsBeforeMapInsert_ReturnsSuccess",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_info_node_UT.cpp",
-    "line": "219",
+    "line": "212",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2368,7 +2466,7 @@
   {
     "name": "ProcessInfoNodeStartupTest__ActivateAlreadyActiveNode_ReturnsSuccess",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_info_node_UT.cpp",
-    "line": "244",
+    "line": "237",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2382,7 +2480,7 @@
   {
     "name": "ProcessInfoNodeStartupCrashTest__ProcesssTerminated_OnWaitForkRunningTimeout",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_info_node_UT.cpp",
-    "line": "265",
+    "line": "258",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2396,7 +2494,7 @@
   {
     "name": "ProcessInfoNodeStartupCrashTest__ReportingProcess_CrashesBeforeReady_NoRestarts",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_info_node_UT.cpp",
-    "line": "288",
+    "line": "278",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2410,7 +2508,7 @@
   {
     "name": "ProcessInfoNodeStartupCrashTest__ReportingProcess_CrashesBeforeReady_WithRestartAttempts",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_info_node_UT.cpp",
-    "line": "313",
+    "line": "303",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2424,7 +2522,7 @@
   {
     "name": "ProcessInfoNodeStartupCrashTest__NonReportingProcess_CrashesBeforeReady_NoRestarts",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_info_node_UT.cpp",
-    "line": "356",
+    "line": "338",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2438,7 +2536,7 @@
   {
     "name": "ProcessInfoNodeStartupCrashTest__NonReportingProcess_CrashesBeforeReady_WithRestartAttempts",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_info_node_UT.cpp",
-    "line": "380",
+    "line": "362",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2452,7 +2550,7 @@
   {
     "name": "ProcessInfoNodeStartupCrashTest__TimeoutThenSuccess_WithRestarts",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_info_node_UT.cpp",
-    "line": "409",
+    "line": "391",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2466,7 +2564,7 @@
   {
     "name": "ProcessInfoNodeUnexpectedTerminationTest__ProcesssCrashed_AfterReadyCondition",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_info_node_UT.cpp",
-    "line": "445",
+    "line": "422",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2480,7 +2578,7 @@
   {
     "name": "ProcessInfoNodeUnexpectedTerminationTest__SelfTerminatingProcess_ExitsWithoutTerminationRequest",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_info_node_UT.cpp",
-    "line": "459",
+    "line": "436",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2494,7 +2592,7 @@
   {
     "name": "ProcessInfoNodeUnexpectedTerminationTest__SelfTerminating_TerminatedReadyCondition_CleanExit_ReturnsSuccess",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_info_node_UT.cpp",
-    "line": "476",
+    "line": "453",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2508,7 +2606,7 @@
   {
     "name": "ProcessInfoNodeUnexpectedTerminationTest__SelfTerminating_CrashAfterReady_ReturnsErrorAfterReady",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_info_node_UT.cpp",
-    "line": "501",
+    "line": "478",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2522,7 +2620,7 @@
   {
     "name": "ProcessInfoNodeDeactivationTest__CanTerminateNonSelfTerminatingProcess",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_info_node_UT.cpp",
-    "line": "524",
+    "line": "501",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2536,7 +2634,7 @@
   {
     "name": "ProcessInfoNodeDeactivationTest__ProcessIgnoresSigterm_ForcedWithSigkill",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_info_node_UT.cpp",
-    "line": "591",
+    "line": "564",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2550,7 +2648,7 @@
   {
     "name": "ProcessInfoNodeMoveTest__MoveConstruct_IdleNode_PreservesObservableState",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_info_node_UT.cpp",
-    "line": "555",
+    "line": "528",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2564,7 +2662,7 @@
   {
     "name": "ProcessInfoNodeMoveTest__MoveConstruct_RunningNode_PreservesAtomicState",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_info_node_UT.cpp",
-    "line": "573",
+    "line": "546",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2676,7 +2774,7 @@
   {
     "name": "SafeProcessMapTest__InsertBeyondCapacityReturnsOutOfMemory",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/safeprocessmap_UT.cpp",
-    "line": "175",
+    "line": "177",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2690,7 +2788,7 @@
   {
     "name": "SafeProcessMapTest__InsertSamePidTwiceYieldsUntilFindTerminatedResolves",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/safeprocessmap_UT.cpp",
-    "line": "200",
+    "line": "202",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2704,7 +2802,7 @@
   {
     "name": "SafeProcessMapTest__FindTerminatedSamePidTwiceYieldsUntilInsertResolves",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/safeprocessmap_UT.cpp",
-    "line": "236",
+    "line": "240",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2718,7 +2816,7 @@
   {
     "name": "SafeProcessMapTest__FindTerminatedWorksAtMaxTreeDepth",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/safeprocessmap_UT.cpp",
-    "line": "275",
+    "line": "281",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2732,7 +2830,7 @@
   {
     "name": "SafeProcessMapTest__ConcurrentInsertAndFindFromMultipleThreads",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/safeprocessmap_UT.cpp",
-    "line": "333",
+    "line": "343",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2746,7 +2844,7 @@
   {
     "name": "SafeProcessMapTest__ConcurrentFindAndInsertFromMultipleThreads",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/safeprocessmap_UT.cpp",
-    "line": "375",
+    "line": "385",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2823,6 +2921,62 @@
     "url": "",
     "TestType": "interface-test",
     "DerivationTechnique": "explorative-testing",
+    "result_text": "",
+    "PartiallyVerifies": null,
+    "FullyVerifies": null
+  },
+  {
+    "name": "SupervisionControlClient_UT__SupervisionControlClient_ConstructReceiver_Succeeds",
+    "file": "score/launch_manager/src/daemon/src/supervision_control_client/supervision_control_client_ut.cpp",
+    "line": "43",
+    "result": "passed",
+    "repo_name": "local_repo",
+    "hash": "",
+    "url": "",
+    "TestType": "interface-test",
+    "DerivationTechnique": "explorative-testing ",
+    "result_text": "",
+    "PartiallyVerifies": null,
+    "FullyVerifies": null
+  },
+  {
+    "name": "SupervisionControlClient_UT__SupervisionControlClient_QueueOneEvent_Succeeds",
+    "file": "score/launch_manager/src/daemon/src/supervision_control_client/supervision_control_client_ut.cpp",
+    "line": "53",
+    "result": "passed",
+    "repo_name": "local_repo",
+    "hash": "",
+    "url": "",
+    "TestType": "interface-test",
+    "DerivationTechnique": "explorative-testing ",
+    "result_text": "",
+    "PartiallyVerifies": null,
+    "FullyVerifies": null
+  },
+  {
+    "name": "SupervisionControlClient_UT__SupervisionControlClient_QueueMaxNumberOfEvents_Succeeds",
+    "file": "score/launch_manager/src/daemon/src/supervision_control_client/supervision_control_client_ut.cpp",
+    "line": "81",
+    "result": "passed",
+    "repo_name": "local_repo",
+    "hash": "",
+    "url": "",
+    "TestType": "interface-test",
+    "DerivationTechnique": "explorative-testing ",
+    "result_text": "",
+    "PartiallyVerifies": null,
+    "FullyVerifies": null
+  },
+  {
+    "name": "SupervisionControlClient_UT__SupervisionControlClient_QueueOneEventTooMany_Fails",
+    "file": "score/launch_manager/src/daemon/src/supervision_control_client/supervision_control_client_ut.cpp",
+    "line": "111",
+    "result": "passed",
+    "repo_name": "local_repo",
+    "hash": "",
+    "url": "",
+    "TestType": "interface-test",
+    "DerivationTechnique": "explorative-testing ",
     "result_text": "",
     "PartiallyVerifies": null,
     "FullyVerifies": null
@@ -3250,7 +3404,7 @@
   {
     "name": "RecoveryClientTest__SendRecoveryRequestInvokesRegisteredCallback",
     "file": "score/launch_manager/src/daemon/src/recovery_client/recovery_client_UT.cpp",
-    "line": "34",
+    "line": "32",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -3264,7 +3418,7 @@
   {
     "name": "RecoveryClientTest__SendRecoveryRequestReturnsFalseWithoutRegisteredCallback",
     "file": "score/launch_manager/src/daemon/src/recovery_client/recovery_client_UT.cpp",
-    "line": "50",
+    "line": "48",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -3278,7 +3432,7 @@
   {
     "name": "RecoveryClientTest__MultipleRequestsInvokeCallbackInOrder",
     "file": "score/launch_manager/src/daemon/src/recovery_client/recovery_client_UT.cpp",
-    "line": "58",
+    "line": "56",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -3292,7 +3446,7 @@
   {
     "name": "RecoveryClientTest__ReRegisteringCallbackReplacesPreviousCallback",
     "file": "score/launch_manager/src/daemon/src/recovery_client/recovery_client_UT.cpp",
-    "line": "83",
+    "line": "81",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -4748,7 +4902,7 @@
   {
     "name": "ConfigurationAdapterTest__GetProcessIndexesListResolvesTransitiveDependencies",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "186",
+    "line": "187",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -4762,7 +4916,7 @@
   {
     "name": "ConfigurationAdapterTest__GetOsProcessConfigurationMapsComponentFields",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "206",
+    "line": "208",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -4776,7 +4930,7 @@
   {
     "name": "ConfigurationAdapterTest__GetOsProcessConfigurationInjectsAliveInterfaceForSupervised",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "228",
+    "line": "230",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -4790,7 +4944,7 @@
   {
     "name": "ConfigurationAdapterTest__GetOsProcessConfigurationNoAliveInterfaceForNative",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "249",
+    "line": "251",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -4804,7 +4958,7 @@
   {
     "name": "ConfigurationAdapterTest__GetOsProcessDependenciesMapsComponentDependsOn",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "266",
+    "line": "268",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -4818,7 +4972,7 @@
   {
     "name": "ConfigurationAdapterTest__GetOsProcessDependenciesEmptyForComponentWithNoDeps",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "282",
+    "line": "284",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -4832,7 +4986,7 @@
   {
     "name": "ConfigurationAdapterTest__GetNumberOfOsProcessesReturnsComponentCount",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "295",
+    "line": "297",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -4846,7 +5000,7 @@
   {
     "name": "ConfigurationAdapterTest__GetSoftwareClusterReturnsDefault",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "305",
+    "line": "307",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -4860,7 +5014,7 @@
   {
     "name": "ConfigurationAdapterTest__GetOsProcessConfigurationReturnsNulloptForInvalidIndex",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "315",
+    "line": "317",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -4874,7 +5028,7 @@
   {
     "name": "ConfigurationAdapterTest__GetOsProcessConfigurationReturnsNulloptForUnknownPG",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "324",
+    "line": "326",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -4888,7 +5042,7 @@
   {
     "name": "ConfigurationAdapterTest__OffStateReturnsProcessIndexesListEmpty",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "333",
+    "line": "335",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -4902,7 +5056,7 @@
   {
     "name": "ConfigurationAdapterReadyConditionTest__DependencyUsesTargetComponentReadyCondition",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "345",
+    "line": "347",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -4916,7 +5070,7 @@
   {
     "name": "ConfigurationAdapterReadyConditionTest__DependencyDefaultsToRunningWhenTargetHasNoReadyCondition",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "421",
+    "line": "423",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -4930,7 +5084,7 @@
   {
     "name": "ConfigurationAdapterReadyConditionTest__FileStateReadyConditionTriggersAssert",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "620",
+    "line": "622",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -4944,7 +5098,7 @@
   {
     "name": "ConfigurationAdapterFallbackTest__FallbackRunTargetResolvesDependenciesRecursively",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "494",
+    "line": "496",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -4958,7 +5112,7 @@
   {
     "name": "ConfigurationAdapterDependencyTest__DependencyOnNonExistentComponentIsIgnored",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "572",
+    "line": "574",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -4972,7 +5126,7 @@
   {
     "name": "FlatbufferConfigLoaderTest__LoadMinimalConfig",
     "file": "score/launch_manager/src/daemon/src/configuration/details/flatbuffer_config_loader_UT.cpp",
-    "line": "188",
+    "line": "189",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -4986,7 +5140,21 @@
   {
     "name": "FlatbufferConfigLoaderTest__LoadSingleComponent",
     "file": "score/launch_manager/src/daemon/src/configuration/details/flatbuffer_config_loader_UT.cpp",
-    "line": "201",
+    "line": "202",
+    "result": "passed",
+    "repo_name": "local_repo",
+    "hash": "",
+    "url": "",
+    "TestType": "interface-test",
+    "DerivationTechnique": "explorative-testing",
+    "result_text": "",
+    "PartiallyVerifies": null,
+    "FullyVerifies": null
+  },
+  {
+    "name": "FlatbufferConfigLoaderTest__LoadSingleComponentWithFileState",
+    "file": "score/launch_manager/src/daemon/src/configuration/details/flatbuffer_config_loader_UT.cpp",
+    "line": "270",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5000,7 +5168,7 @@
   {
     "name": "FlatbufferConfigLoaderTest__LoadRunTargets",
     "file": "score/launch_manager/src/daemon/src/configuration/details/flatbuffer_config_loader_UT.cpp",
-    "line": "269",
+    "line": "314",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5014,7 +5182,7 @@
   {
     "name": "FlatbufferConfigLoaderTest__LoadFallbackRunTarget",
     "file": "score/launch_manager/src/daemon/src/configuration/details/flatbuffer_config_loader_UT.cpp",
-    "line": "298",
+    "line": "343",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5028,7 +5196,7 @@
   {
     "name": "FlatbufferConfigLoaderTest__LoadAliveSupervision",
     "file": "score/launch_manager/src/daemon/src/configuration/details/flatbuffer_config_loader_UT.cpp",
-    "line": "326",
+    "line": "371",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5042,7 +5210,7 @@
   {
     "name": "FlatbufferConfigLoaderTest__LoadWatchdog",
     "file": "score/launch_manager/src/daemon/src/configuration/details/flatbuffer_config_loader_UT.cpp",
-    "line": "346",
+    "line": "391",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5056,7 +5224,7 @@
   {
     "name": "FlatbufferConfigLoaderTest__LoadRestartRecoveryAction",
     "file": "score/launch_manager/src/daemon/src/configuration/details/flatbuffer_config_loader_UT.cpp",
-    "line": "376",
+    "line": "421",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5070,7 +5238,7 @@
   {
     "name": "FlatbufferConfigLoaderTest__LoadSwitchRunTargetAction",
     "file": "score/launch_manager/src/daemon/src/configuration/details/flatbuffer_config_loader_UT.cpp",
-    "line": "411",
+    "line": "456",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5084,7 +5252,7 @@
   {
     "name": "FlatbufferConfigLoaderTest__LoadSandbox",
     "file": "score/launch_manager/src/daemon/src/configuration/details/flatbuffer_config_loader_UT.cpp",
-    "line": "430",
+    "line": "475",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5098,7 +5266,7 @@
   {
     "name": "FlatbufferConfigLoaderTest__LoadComponentAliveSupervision",
     "file": "score/launch_manager/src/daemon/src/configuration/details/flatbuffer_config_loader_UT.cpp",
-    "line": "484",
+    "line": "529",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5112,7 +5280,7 @@
   {
     "name": "FlatbufferConfigLoaderTest__LoadEnvironmentalVariables",
     "file": "score/launch_manager/src/daemon/src/configuration/details/flatbuffer_config_loader_UT.cpp",
-    "line": "515",
+    "line": "560",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5126,7 +5294,7 @@
   {
     "name": "FlatbufferConfigLoaderTest__LoadMultipleComponents",
     "file": "score/launch_manager/src/daemon/src/configuration/details/flatbuffer_config_loader_UT.cpp",
-    "line": "563",
+    "line": "608",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5140,7 +5308,7 @@
   {
     "name": "FlatbufferConfigLoaderTest__OptionalWatchdogAbsent",
     "file": "score/launch_manager/src/daemon/src/configuration/details/flatbuffer_config_loader_UT.cpp",
-    "line": "587",
+    "line": "632",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5154,7 +5322,7 @@
   {
     "name": "FlatbufferConfigLoaderTest__OptionalReadyConditionAbsent",
     "file": "score/launch_manager/src/daemon/src/configuration/details/flatbuffer_config_loader_UT.cpp",
-    "line": "597",
+    "line": "642",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5168,7 +5336,7 @@
   {
     "name": "FlatbufferConfigLoaderTest__LoadBufferFailsWithNoSuchFileReturnsFileNotFound",
     "file": "score/launch_manager/src/daemon/src/configuration/details/flatbuffer_config_loader_UT.cpp",
-    "line": "620",
+    "line": "665",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5182,7 +5350,7 @@
   {
     "name": "FlatbufferConfigLoaderTest__LoadBufferFailsWithPermissionDeniedReturnsInsufficientPermission",
     "file": "score/launch_manager/src/daemon/src/configuration/details/flatbuffer_config_loader_UT.cpp",
-    "line": "632",
+    "line": "677",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5196,7 +5364,7 @@
   {
     "name": "FlatbufferConfigLoaderTest__LoadBufferFailsWithGenericErrorReturnsGeneralError",
     "file": "score/launch_manager/src/daemon/src/configuration/details/flatbuffer_config_loader_UT.cpp",
-    "line": "644",
+    "line": "689",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5210,7 +5378,7 @@
   {
     "name": "FlatbufferConfigLoaderTest__CorruptedBufferReturnsInvalidFormat",
     "file": "score/launch_manager/src/daemon/src/configuration/details/flatbuffer_config_loader_UT.cpp",
-    "line": "656",
+    "line": "701",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5224,7 +5392,7 @@
   {
     "name": "FlatbufferConfigLoaderTest__WrongSchemaVersionReturnsUnsupportedVersion",
     "file": "score/launch_manager/src/daemon/src/configuration/details/flatbuffer_config_loader_UT.cpp",
-    "line": "666",
+    "line": "711",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5238,7 +5406,7 @@
   {
     "name": "FlatbufferConfigLoaderTest__MissingSchemaVersionReturnsInvalidFormat",
     "file": "score/launch_manager/src/daemon/src/configuration/details/flatbuffer_config_loader_UT.cpp",
-    "line": "680",
+    "line": "725",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5446,9 +5614,65 @@
     "FullyVerifies": null
   },
   {
+    "name": "AliveMonitorConfigTest__CapturesOnlySupervisedComponents",
+    "file": "score/launch_manager/src/daemon/src/alive_monitor/details/common/AliveMonitorConfig_UT.cpp",
+    "line": "64",
+    "result": "passed",
+    "repo_name": "local_repo",
+    "hash": "",
+    "url": "",
+    "TestType": "interface-test",
+    "DerivationTechnique": "boundary-values",
+    "result_text": "",
+    "PartiallyVerifies": null,
+    "FullyVerifies": null
+  },
+  {
+    "name": "AliveMonitorConfigTest__CopiesPerComponentFields",
+    "file": "score/launch_manager/src/daemon/src/alive_monitor/details/common/AliveMonitorConfig_UT.cpp",
+    "line": "88",
+    "result": "passed",
+    "repo_name": "local_repo",
+    "hash": "",
+    "url": "",
+    "TestType": "interface-test",
+    "DerivationTechnique": "boundary-values",
+    "result_text": "",
+    "PartiallyVerifies": null,
+    "FullyVerifies": null
+  },
+  {
+    "name": "AliveMonitorConfigTest__CopiesGlobalEvaluationCycle",
+    "file": "score/launch_manager/src/daemon/src/alive_monitor/details/common/AliveMonitorConfig_UT.cpp",
+    "line": "111",
+    "result": "passed",
+    "repo_name": "local_repo",
+    "hash": "",
+    "url": "",
+    "TestType": "interface-test",
+    "DerivationTechnique": "boundary-values",
+    "result_text": "",
+    "PartiallyVerifies": null,
+    "FullyVerifies": null
+  },
+  {
+    "name": "AliveMonitorConfigTest__ZeroEvaluationCycleAllowedWithoutSupervisedComponents",
+    "file": "score/launch_manager/src/daemon/src/alive_monitor/details/common/AliveMonitorConfig_UT.cpp",
+    "line": "120",
+    "result": "passed",
+    "repo_name": "local_repo",
+    "hash": "",
+    "url": "",
+    "TestType": "interface-test",
+    "DerivationTechnique": "boundary-values",
+    "result_text": "",
+    "PartiallyVerifies": null,
+    "FullyVerifies": null
+  },
+  {
     "name": "MonitorIfDaemonTest__GetInterfaceName_ReturnsNameGivenAtConstruction",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/ifappl/MonitorIfDaemon_UT.cpp",
-    "line": "176",
+    "line": "157",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5462,7 +5686,7 @@
   {
     "name": "MonitorIfDaemonTest__InitiallyInactive_CheckForNewData_DoesNotNotifyCheckpoint",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/ifappl/MonitorIfDaemon_UT.cpp",
-    "line": "184",
+    "line": "165",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5474,9 +5698,9 @@
     "FullyVerifies": null
   },
   {
-    "name": "MonitorIfDaemonTest__ProcessOffBeforeActivation_RemainsInactive",
+    "name": "MonitorIfDaemonTest__DeactivationBeforeActivation_RemainsInactive",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/ifappl/MonitorIfDaemon_UT.cpp",
-    "line": "196",
+    "line": "177",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5488,9 +5712,9 @@
     "FullyVerifies": null
   },
   {
-    "name": "MonitorIfDaemonTest__ProcessRunning_ActivatesMonitorOnNextCheckForNewData",
+    "name": "MonitorIfDaemonTest__ActivationEvent_ActivatesMonitorOnNextCheckForNewData",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/ifappl/MonitorIfDaemon_UT.cpp",
-    "line": "213",
+    "line": "194",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5502,23 +5726,9 @@
     "FullyVerifies": null
   },
   {
-    "name": "MonitorIfDaemonTest__ProcessStarting_AlsoActivatesMonitor",
+    "name": "MonitorIfDaemonTest__DeactivationEvent_DeactivatesMonitor_NoFurtherDataForwarded",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/ifappl/MonitorIfDaemon_UT.cpp",
-    "line": "231",
-    "result": "passed",
-    "repo_name": "local_repo",
-    "hash": "",
-    "url": "",
-    "TestType": "interface-test",
-    "DerivationTechnique": "explorative-testing",
-    "result_text": "",
-    "PartiallyVerifies": null,
-    "FullyVerifies": null
-  },
-  {
-    "name": "MonitorIfDaemonTest__ProcessOff_DeactivatesMonitor_NoFurtherDataForwarded",
-    "file": "score/launch_manager/src/daemon/src/alive_monitor/details/ifappl/MonitorIfDaemon_UT.cpp",
-    "line": "249",
+    "line": "212",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5532,7 +5742,7 @@
   {
     "name": "MonitorIfDaemonTest__Active_CheckpointDataForwarded",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/ifappl/MonitorIfDaemon_UT.cpp",
-    "line": "271",
+    "line": "234",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5546,7 +5756,7 @@
   {
     "name": "MonitorIfDaemonTest__Active_FutureTimestamp_NotForwardedInCurrentCycle",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/ifappl/MonitorIfDaemon_UT.cpp",
-    "line": "289",
+    "line": "252",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5560,7 +5770,7 @@
   {
     "name": "MonitorIfDaemonTest__Active_FutureTimestampCheckpoint_ConsumedInLaterCycle",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/ifappl/MonitorIfDaemon_UT.cpp",
-    "line": "303",
+    "line": "266",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5574,7 +5784,7 @@
   {
     "name": "MonitorIfDaemonTest__Active_NonMatchingCheckpointId_NotForwarded",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/ifappl/MonitorIfDaemon_UT.cpp",
-    "line": "322",
+    "line": "285",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5588,7 +5798,7 @@
   {
     "name": "MonitorIfDaemonTest__Active_MultipleCheckpointsInOneCycle_AllForwarded",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/ifappl/MonitorIfDaemon_UT.cpp",
-    "line": "339",
+    "line": "302",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5602,7 +5812,7 @@
   {
     "name": "MonitorIfDaemonTest__Active_TwoAttachedCheckpoints_RoutedByCheckpointId",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/ifappl/MonitorIfDaemon_UT.cpp",
-    "line": "356",
+    "line": "319",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5616,7 +5826,7 @@
   {
     "name": "MonitorIfDaemonTest__Active_OverflowDetected_TransitionsToInactiveOverflow",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/ifappl/MonitorIfDaemon_UT.cpp",
-    "line": "382",
+    "line": "345",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5630,7 +5840,7 @@
   {
     "name": "MonitorIfDaemonTest__InactiveOverflow_NoProcessRestart_DoesNotRepeatNotification",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/ifappl/MonitorIfDaemon_UT.cpp",
-    "line": "402",
+    "line": "365",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5644,7 +5854,7 @@
   {
     "name": "MonitorIfDaemonTest__InactiveOverflow_ProcessRestarts_PushesOverflowNotificationAgain",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/ifappl/MonitorIfDaemon_UT.cpp",
-    "line": "420",
+    "line": "383",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5658,7 +5868,7 @@
   {
     "name": "MonitorIfDaemonTest__InactiveOverflow_ProcessRestartFlag_ClearedAfterNotification",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/ifappl/MonitorIfDaemon_UT.cpp",
-    "line": "442",
+    "line": "405",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5938,7 +6148,7 @@
   {
     "name": "AliveSupervisionTest__AliveTransitionsOkToExpiredOnMissingHeartbeat",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/supervision/Alive_UT.cpp",
-    "line": "173",
+    "line": "152",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5952,7 +6162,7 @@
   {
     "name": "AliveSupervisionTest__AliveStaysOkWithCorrectHeartbeats",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/supervision/Alive_UT.cpp",
-    "line": "195",
+    "line": "174",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5966,7 +6176,7 @@
   {
     "name": "AliveSupervisionTest__AliveReportsEnqueueFailureWhenRingBufferFull",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/supervision/Alive_UT.cpp",
-    "line": "218",
+    "line": "197",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5980,7 +6190,7 @@
   {
     "name": "AliveSupervisionTest__AliveDebouncesThroughFailedBeforeExpired",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/supervision/Alive_UT.cpp",
-    "line": "238",
+    "line": "217",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5992,9 +6202,9 @@
     "FullyVerifies": null
   },
   {
-    "name": "AliveSupervisionTest__DeactivatesOnProcessSigterm",
+    "name": "AliveSupervisionTest__DeactivatesOnSupervisionDeactivation",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/supervision/Alive_UT.cpp",
-    "line": "263",
+    "line": "242",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -6006,37 +6216,9 @@
     "FullyVerifies": null
   },
   {
-    "name": "AliveSupervisionTest__DeactivatesOnProcessCrash",
+    "name": "AliveSupervisionTest__ReactivatesAfterDeactivation",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/supervision/Alive_UT.cpp",
-    "line": "279",
-    "result": "passed",
-    "repo_name": "local_repo",
-    "hash": "",
-    "url": "",
-    "TestType": "interface-test",
-    "DerivationTechnique": "explorative-testing ",
-    "result_text": "",
-    "PartiallyVerifies": null,
-    "FullyVerifies": null
-  },
-  {
-    "name": "AliveSupervisionTest__ReactivatesAfterCrash",
-    "file": "score/launch_manager/src/daemon/src/alive_monitor/details/supervision/Alive_UT.cpp",
-    "line": "296",
-    "result": "passed",
-    "repo_name": "local_repo",
-    "hash": "",
-    "url": "",
-    "TestType": "interface-test",
-    "DerivationTechnique": "explorative-testing ",
-    "result_text": "",
-    "PartiallyVerifies": null,
-    "FullyVerifies": null
-  },
-  {
-    "name": "AliveSupervisionTest__IgnoresIrrelevantProcessStates",
-    "file": "score/launch_manager/src/daemon/src/alive_monitor/details/supervision/Alive_UT.cpp",
-    "line": "321",
+    "line": "258",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -6050,63 +6232,7 @@
   {
     "name": "AliveSupervisionTest__MaxIndicationViolationExpires",
     "file": "score/launch_manager/src/daemon/src/alive_monitor/details/supervision/Alive_UT.cpp",
-    "line": "349",
-    "result": "passed",
-    "repo_name": "local_repo",
-    "hash": "",
-    "url": "",
-    "TestType": "interface-test",
-    "DerivationTechnique": "explorative-testing ",
-    "result_text": "",
-    "PartiallyVerifies": null,
-    "FullyVerifies": null
-  },
-  {
-    "name": "ProcessStateClient_UT__ProcessStateClient_ConstructReceiver_Succeeds",
-    "file": "score/launch_manager/src/daemon/src/process_state_client/process_state_client_ut.cpp",
-    "line": "43",
-    "result": "passed",
-    "repo_name": "local_repo",
-    "hash": "",
-    "url": "",
-    "TestType": "interface-test",
-    "DerivationTechnique": "explorative-testing ",
-    "result_text": "",
-    "PartiallyVerifies": null,
-    "FullyVerifies": null
-  },
-  {
-    "name": "ProcessStateClient_UT__ProcessStateClient_QueueOneProcess_Succeeds",
-    "file": "score/launch_manager/src/daemon/src/process_state_client/process_state_client_ut.cpp",
-    "line": "52",
-    "result": "passed",
-    "repo_name": "local_repo",
-    "hash": "",
-    "url": "",
-    "TestType": "interface-test",
-    "DerivationTechnique": "explorative-testing ",
-    "result_text": "",
-    "PartiallyVerifies": null,
-    "FullyVerifies": null
-  },
-  {
-    "name": "ProcessStateClient_UT__ProcessStateClient_QueueMaxNumberOfProcesses_Succeeds",
-    "file": "score/launch_manager/src/daemon/src/process_state_client/process_state_client_ut.cpp",
-    "line": "83",
-    "result": "passed",
-    "repo_name": "local_repo",
-    "hash": "",
-    "url": "",
-    "TestType": "interface-test",
-    "DerivationTechnique": "explorative-testing ",
-    "result_text": "",
-    "PartiallyVerifies": null,
-    "FullyVerifies": null
-  },
-  {
-    "name": "ProcessStateClient_UT__ProcessStateClient_QueueOneProcessTooMany_Fails",
-    "file": "score/launch_manager/src/daemon/src/process_state_client/process_state_client_ut.cpp",
-    "line": "117",
+    "line": "281",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
