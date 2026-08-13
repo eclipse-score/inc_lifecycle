@@ -14,8 +14,8 @@
 """Check that test doubles (mocks, stubs. etc.) follow our agreed naming convention.
 
 This script searches for test doubles and optionally fixes any doubles with non-conforming filenames.
-The script is designed to be compatible with precommit hooks, where the files to check are passed as
-parameters. The tool can be configured with a number of command line options, as detailed in help.
+This is designed to be compatible with precommit hooks, where the files to check are passed as
+parameters.
 
 Usage:
     python3 ./fix_test_doubles_naming_precommit.py [-h] [--dry-run] [filenames ...]
