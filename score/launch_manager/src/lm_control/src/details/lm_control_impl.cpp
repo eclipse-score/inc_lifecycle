@@ -13,8 +13,8 @@
 
 #include "lm_control_impl.hpp"
 
-#include <chrono>
 #include <iostream>
+#include <utility>
 
 // DEBUG helpers — remove once IPC delivery is confirmed stable.
 #define DBG_PROXY(msg) std::cout << "[LmControlImpl DEBUG] " << msg << std::endl
@@ -22,67 +22,78 @@
 namespace score::mw::lifecycle
 {
 
+namespace
+{
+constexpr std::size_t kActivationResultSampleCount = 8U;
+}  // namespace
+
 LmControlImpl::LmControlImpl(std::string_view instance_specifier) noexcept
-    : proxy_{}
-    , callback_{}
-    , callback_mutex_{}
 {
     auto specifier_result = score::mw::com::InstanceSpecifier::Create(std::string{instance_specifier});
     if (!specifier_result.has_value())
     {
         DBG_PROXY("InstanceSpecifier::Create failed for: " << instance_specifier);
-        return;
-    }
-    const auto specifier = std::move(specifier_result).value();
-
-    // Poll FindService until the LM skeleton is available or timeout expires.
-    const auto deadline = std::chrono::steady_clock::now() + kFindServiceTimeout;
-    while (std::chrono::steady_clock::now() < deadline)
-    {
-        auto find_result = LmControlProxy::FindService(specifier);
-        if (find_result.has_value() && !find_result.value().empty())
-        {
-            auto create_result = LmControlProxy::Create(find_result.value().front());
-            if (create_result.has_value())
-            {
-                proxy_.emplace(std::move(create_result).value());
-                DBG_PROXY("Proxy created successfully");
-                break;
-            }
-            else
-            {
-                DBG_PROXY("Proxy::Create failed");
-            }
-        }
-        std::this_thread::sleep_for(kFindServiceInterval);
-    }
-
-    if (!proxy_.has_value())
-    {
-        DBG_PROXY("FindService timed out — no skeleton found within " << kFindServiceTimeout.count() << "s");
+        init_error_ = ExecErrc::kInvalidArguments;
         return;
     }
 
-    // Subscribe to activation_result events — max 1 sample buffered.
-    // DEBUG: verify subscription succeeded and log state — remove once event delivery is confirmed stable.
-    {
-        auto subscribe_result = proxy_->activation_result.Subscribe(1U);
-        if (!subscribe_result.has_value())
-        {
-            DBG_PROXY("activation_result.Subscribe failed — GetNewSamples will always return nothing");
-            proxy_.reset();
-            return;
-        }
+    // Start asynchronous, background service discovery. The handler runs on a
+    // mw::com thread whenever availability changes; it wires up the proxy on the
+    // first matching instance. Construction succeeds even if the instance is not
+    // available yet — discovery keeps running until it appears.
+    auto start_result = LmControlProxy::StartFindService(
+        [this](score::mw::com::ServiceHandleContainer<LmControlProxy::HandleType> handles,
+               score::mw::com::FindServiceHandle find_handle) noexcept {
+            OnServiceFound(std::move(handles), find_handle);
+        },
+        std::move(specifier_result).value());
 
-        const auto state = proxy_->activation_result.GetSubscriptionState();
-        const char* state_str =
-            state == score::mw::com::SubscriptionState::kSubscribed         ? "kSubscribed" :
-            state == score::mw::com::SubscriptionState::kNotSubscribed       ? "kNotSubscribed" :
-            state == score::mw::com::SubscriptionState::kSubscriptionPending ? "kSubscriptionPending" :
-                                                                               "unknown";
-        // Expected: kSubscribed. kSubscriptionPending means the skeleton has not
-        // yet acknowledged — samples may arrive late or not at all.
-        DBG_PROXY("activation_result subscription state after Subscribe: " << state_str);
+    if (!start_result.has_value())
+    {
+        DBG_PROXY("StartFindService failed — no background discovery running");
+        init_error_ = ExecErrc::kCommunicationError;
+        return;
+    }
+
+    std::lock_guard<std::mutex> lock{mutex_};
+    // The handler may already have run (and stopped discovery) synchronously
+    // during StartFindService; only remember the handle if it is still active.
+    if (!find_service_stopped_)
+    {
+        find_handle_ = start_result.value();
+    }
+}
+
+void LmControlImpl::OnServiceFound(score::mw::com::ServiceHandleContainer<LmControlProxy::HandleType> handles,
+                                   score::mw::com::FindServiceHandle find_handle) noexcept
+{
+    std::lock_guard<std::mutex> lock{mutex_};
+
+    // Ignore "service went away" notifications and any callbacks after we are set up.
+    if (handles.empty() || proxy_.has_value())
+    {
+        return;
+    }
+
+    auto create_result = LmControlProxy::Create(handles.front());
+    if (!create_result.has_value())
+    {
+        DBG_PROXY("Proxy::Create failed");
+        return;
+    }
+    proxy_.emplace(std::move(create_result).value());
+    DBG_PROXY("Proxy created successfully");
+
+    // Subscribe to activation_result events. Buffer several samples so that
+    // multiple activations settled back-to-back on the skeleton side are all
+    // delivered rather than the latest overwriting earlier ones in a single
+    // consumer slot. Must not exceed the provider's numberOfSampleSlots.
+    auto subscribe_result = proxy_->activation_result.Subscribe(kActivationResultSampleCount);
+    if (!subscribe_result.has_value())
+    {
+        DBG_PROXY("activation_result.Subscribe failed — GetNewSamples will always return nothing");
+        proxy_.reset();
+        return;
     }
 
     proxy_->activation_result.SetReceiveHandler([this]() {
@@ -90,23 +101,38 @@ LmControlImpl::LmControlImpl(std::string_view instance_specifier) noexcept
     });
     DBG_PROXY("SetReceiveHandler registered");
 
-    // Looks like the Warmup call is not needed...
-    // Maybe the problem was sending the event from the
-    // LmControlServer::OnActivateRunTarget() --> skeleton side
-    // Maybe we need to send events from a separate thread...
-    // But why polling is not working???
-    //
-    // Warmup: call GetNewSamples once to signal to the skeleton that this proxy
-    // is actively reading. This triggers the skeleton to establish its reverse
-    // notification channel (LoLa skeleton→proxy socket) before the first event
-    // is sent, so the SetReceiveHandler notification arrives reliably.
-    //proxy_->activation_result.GetNewSamples(
-    //    [](score::mw::com::SamplePtr<ActivationResult>) noexcept {}, 1U);
-    //DBG_PROXY("Warmup GetNewSamples called");
+    // First matching instance is wired up — stop the ongoing discovery.
+    auto stop_result = LmControlProxy::StopFindService(find_handle);
+    if (!stop_result.has_value())
+    {
+        DBG_PROXY("StopFindService failed");
+    }
+    find_service_stopped_ = true;
+
+    // Publish the fully set-up proxy_ to method-caller threads.
+    connected_.store(true, std::memory_order_release);
 }
 
 LmControlImpl::~LmControlImpl() noexcept
 {
+    std::optional<score::mw::com::FindServiceHandle> handle_to_stop;
+    {
+        std::lock_guard<std::mutex> lock{mutex_};
+        if (!find_service_stopped_ && find_handle_.has_value())
+        {
+            handle_to_stop        = find_handle_;
+            find_service_stopped_ = true;
+        }
+    }
+    if (handle_to_stop.has_value())
+    {
+        auto stop_result = LmControlProxy::StopFindService(handle_to_stop.value());
+        if (!stop_result.has_value())
+        {
+            DBG_PROXY("StopFindService failed during shutdown");
+        }
+    }
+
     if (proxy_.has_value())
     {
         proxy_->activation_result.Unsubscribe();
@@ -116,17 +142,14 @@ LmControlImpl::~LmControlImpl() noexcept
 
 score::Result<void> LmControlImpl::activate_run_target(RunTargetName runTargetName, bool force)
 {
-    if (!proxy_.has_value())
+    if (!connected_.load(std::memory_order_acquire))
     {
         return score::MakeUnexpected(ExecErrc::kCommunicationError);
     }
 
     DBG_PROXY("activate_run_target: " << runTargetName << " force=" << force);
 
-    const ActivateRunTargetRequest request{
-        runTargetName,
-        force ? ActivationMode::kForced : ActivationMode::kQueued
-    };
+    const ActivateRunTargetRequest request{runTargetName, force ? ActivationMode::kForced : ActivationMode::kQueued};
 
     auto result = proxy_->activate_run_target(request);
     if (!result.has_value())
@@ -160,7 +183,7 @@ score::Result<void> LmControlImpl::register_run_target_activation_callback(Activ
 
 score::Result<RunTargetName> LmControlImpl::get_active_run_target()
 {
-    if (!proxy_.has_value())
+    if (!connected_.load(std::memory_order_acquire))
     {
         return score::MakeUnexpected(ExecErrc::kCommunicationError);
     }
@@ -205,7 +228,7 @@ void LmControlImpl::OnActivationResult()
                 DBG_PROXY("activation_result: no callback registered — sample dropped");
             }
         },
-        1U);
+        kActivationResultSampleCount);
 
     if (get_result.has_value() && get_result.value() > 0U)
     {

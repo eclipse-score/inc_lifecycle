@@ -21,9 +21,12 @@ score::Result<std::unique_ptr<ILmControl>> ILmControl::Create(
         std::string_view instance_specifier)
 {
     auto impl = std::make_unique<LmControlImpl>(instance_specifier);
-    if (!impl->IsConnected())
+    // Construction only fails for a malformed specifier or a failed StartFindService;
+    // a not-yet-available service instance is not an error (discovery continues in
+    // the background and method calls return kCommunicationError until it appears).
+    if (const auto init_error = impl->InitError(); init_error.has_value())
     {
-        return score::MakeUnexpected(ExecErrc::kCommunicationError);
+        return score::MakeUnexpected(init_error.value());
     }
     return impl;
 }
