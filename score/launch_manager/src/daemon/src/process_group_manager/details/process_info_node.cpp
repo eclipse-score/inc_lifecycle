@@ -12,6 +12,7 @@
  ********************************************************************************/
 
 #include "process_info_node.hpp"
+#include "score/launch_manager/src/daemon/src/configuration/component_config.hpp"
 #include "score/mw/launch_manager/common/log.hpp"
 #include "score/mw/launch_manager/osal/ipc_comms.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/safe_process_map.hpp"
@@ -38,6 +39,13 @@ ProcessInfoNode::ProcessInfoNode(
       process_interface_(process_interface),
       process_map_(std::move(process_map))
 {
+
+    if (config.component_properties.application_profile.application_type ==
+        configuration::ApplicationType::ReportingAndSupervised)
+    {
+        config_.deployment_config.environmental_variables.add(
+            "LCM_ALIVE_INTERFACE_PATH", "/lifecycle_health_" + config_.name);
+    }
 }
 
 IComponent::RequestResult ProcessInfoNode::tryReportCompletion(score::mw::lifecycle::ProcessState new_state)

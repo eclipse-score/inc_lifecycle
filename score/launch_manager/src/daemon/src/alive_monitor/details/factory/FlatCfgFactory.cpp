@@ -126,7 +126,7 @@ bool FlatCfgFactory::createAliveIfIpcs(std::vector<ifappl::CheckpointIpcServer>&
 
         for (const auto& comp : supervised_components_)
         {
-            const std::string pathInterface = score::mw::lifecycle::internal::aliveInterfacePath(comp.name);
+            const std::string pathInterface = aliveInterfacePath(comp.name);
             f_interfaceIpcs_r.emplace_back();
             const std::int32_t configuredUid = static_cast<std::int32_t>(comp.uid);
             isSuccess = initIpcServerWithUidBasedAccess(f_interfaceIpcs_r.back(), pathInterface, configuredUid);
