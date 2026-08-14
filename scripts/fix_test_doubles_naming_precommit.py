@@ -24,6 +24,7 @@ Example:
     python3 ./fix_test_doubles_naming_precommit.py --dry-run component_mock.cpp
 """
 
+from __future__ import annotations
 import logging
 import sys
 import argparse
@@ -39,7 +40,7 @@ class TestDoubleName(Enum):
     FAKE = "fake"
 
     @staticmethod
-    def from_path(path: Path) -> "TestDoubleName":
+    def from_path(path: Path) -> TestDoubleName:
         for double in TestDoubleName:
             if double.value in str(path):
                 return double
