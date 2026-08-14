@@ -14,8 +14,8 @@ load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("//tests/utils/bazel:integration.bzl", "integration_test")
 
 cc_binary(
-    name = "control_client_mock",
-    srcs = ["mock_control_client.cpp"],
+    name = "control_client_test_driver",
+    srcs = ["control_client_test_driver.cpp"],
     deps = [
         "//score/launch_manager:control_cc",
         "//score/launch_manager:lifecycle_cc",
@@ -39,7 +39,7 @@ integration_test(
     srcs = ["fallback_to_same_target_restarts.py"],
     binaries = [
         ":config",
-        ":control_client_mock",
+        ":control_client_test_driver",
         ":process_crashing_once",
         "//score/launch_manager",
     ],

@@ -42,9 +42,9 @@
         }
     },
     "components": {
-        "control_client_mock": {
+        "control_client_test_driver": {
             "component_properties": {
-                "binary_name": "control_client_mock",
+                "binary_name": "control_client_test_driver",
                 "application_profile": {
                     "application_type": "State_Manager",
                     "alive_supervision": {
@@ -56,7 +56,7 @@
                 "ready_timeout": 1.0,
                 "shutdown_timeout": 1.0,
                 "environmental_variables": {
-                    "PROCESSIDENTIFIER": "control_client_mock"
+                    "PROCESSIDENTIFIER": "control_client_test_driver"
                 }
             }
         },
@@ -78,12 +78,12 @@
     "run_targets": {
         "Startup": {
             "depends_on": [
-                "control_client_mock"
+                "control_client_test_driver"
             ]
         },
         "run_target_crashing_app_on_runtime": {
             "depends_on": [
-                "control_client_mock",
+                "control_client_test_driver",
                 "component_crashing_once"
             ],
             "recovery_action": {
@@ -102,7 +102,7 @@
     },
     "fallback_run_target": {
         "depends_on": [
-            "control_client_mock",
+            "control_client_test_driver",
             "component_crashing_once"
         ]
     }

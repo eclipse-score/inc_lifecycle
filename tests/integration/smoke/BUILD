@@ -14,8 +14,8 @@ load("@rules_cc//cc:defs.bzl", "cc_binary")
 load("//tests/utils/bazel:integration.bzl", "integration_test")
 
 cc_binary(
-    name = "control_daemon_mock",
-    srcs = ["mock_control_daemon.cpp"],
+    name = "control_client_test_driver",
+    srcs = ["control_client_test_driver.cpp"],
     data = [],
     deps = [
         "//score/launch_manager:control_cc",
@@ -40,7 +40,7 @@ integration_test(
     name = "smoke",
     srcs = ["smoke.py"],
     binaries = [
-        ":control_daemon_mock",
+        ":control_client_test_driver",
         ":gtest_process",
         "//score/launch_manager",
     ],

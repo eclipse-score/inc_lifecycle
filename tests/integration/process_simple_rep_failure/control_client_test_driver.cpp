@@ -18,12 +18,12 @@
 
 // Given a correct configuration with:
 //   - An initial Run Target named "Startup" containing component named
-//   "control_client_mock"
+//   "control_client_test_driver"
 //   - A Run Target named "run_target_app_does_report_krunning_in_time"
-//   containing "control_client_mock" and
+//   containing "control_client_test_driver" and
 //   "component_does_report_krunning_in_time"
 //   - A Run Target named "run_target_app_does_not_report_krunning_in_time"
-//   containing "control_client_mock" and
+//   containing "control_client_test_driver" and
 //   "component_does_not_report_krunning_in_time"
 
 TEST(RecoveryActionSimpleRepFailure, ControlClientMock)

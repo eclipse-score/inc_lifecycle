@@ -19,8 +19,8 @@ cc_library(
 )
 
 cc_binary(
-    name = "control_daemon_mock",
-    srcs = ["mock_control_daemon.cpp"],
+    name = "control_client_test_driver",
+    srcs = ["control_client_test_driver.cpp"],
     deps = [
         ":shutdown_signal_common",
         "//score/launch_manager:control_cc",
@@ -46,7 +46,7 @@ integration_test(
     name = "shutdown_signal",
     srcs = ["shutdown_signal.py"],
     binaries = [
-        ":control_daemon_mock",
+        ":control_client_test_driver",
         ":shutdown_signal_process",
         "//score/launch_manager",
     ],
