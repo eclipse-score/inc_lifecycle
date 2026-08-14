@@ -35,7 +35,7 @@ namespace saf
 namespace supervision
 {
 
-using mw::lifecycle::internal::configuration::ComponentAliveSupervision;
+using configuration::ComponentAliveSupervision;
 
 /// @brief Alive Supervision
 /// @details Alive Supervision contains the logic for health monitoring - Alive supervision
@@ -79,7 +79,9 @@ class Alive : public ISupervision,
     Alive& operator=(const Alive&) = delete;
 
     /// @brief Constructor
+    /// @param [in] id Id of the component to monitor
     /// @param [in] f_aliveCfg_r    Alive Supervision configuration structure
+    /// @param [in] recovery_client Client to notify in case of a supervision failure
     /// @warning    Constructor may throw std::exceptions
     explicit Alive(
         const IdentifierHash id,

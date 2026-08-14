@@ -55,10 +55,10 @@ void PhmDaemon::performCyclicTriggers(void)
     }
 }
 
-bool PhmDaemon::construct(const Config& config) noexcept(false)
+bool PhmDaemon::construct(const std::vector<configuration::ComponentConfig>& config) noexcept(false)
 {
-    const std::size_t supervised_components = std::count_if(
-        config.components().begin(), config.components().end(), [](const configuration::ComponentConfig& component) {
+    const std::size_t supervised_components =
+        std::count_if(config.begin(), config.end(), [](const configuration::ComponentConfig& component) {
             return component.component_properties.application_profile.alive_supervision.has_value();
         });
 
@@ -69,7 +69,7 @@ bool PhmDaemon::construct(const Config& config) noexcept(false)
 
     LM_LOG_DEBUG() << "Software Cluster Handler starts constructing workers";
 
-    for (const auto& comp : config.components())
+    for (const auto& comp : config)
     {
         if (!comp.component_properties.application_profile.alive_supervision.has_value())
         {

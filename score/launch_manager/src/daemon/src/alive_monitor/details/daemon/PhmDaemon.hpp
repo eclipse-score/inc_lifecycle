@@ -88,12 +88,13 @@ class PhmDaemon
     /// @brief Wraps the initialization steps of the PHM daemon
     /// (Constructing the workers, adjusting the cycle time, initialization of fixed step timer)
     /// @param[in] recovery_client Shared pointer to recovery client
+    /// @param[in] config Config holding alive monitor and component configuration
     /// @return See EInitCode definition
     EInitCode init(std::shared_ptr<RecoveryClient> recovery_client, const Config& config) noexcept(false)
     {
         recoveryClient = recovery_client;
 
-        if (!construct(config))
+        if (!construct(config.components()))
         {
             return EInitCode::kConstructFlatCfgFactoryFailed;
         }
@@ -195,9 +196,9 @@ class PhmDaemon
   private:
     /// @brief Create SwCluster objects & Invoke construction of worker objects
     /// @details Create the SwclusterHandler objects and the workers for the SwclusterHandler
-    /// @param[in] f_bufferConfig_r The buffer configuration used for worker construction
+    /// @param[in] config Config for all components
     /// @return bool true if workers creation succeeded, false otherwise
-    bool construct(const Config& config) noexcept(false);
+    bool construct(const std::vector<configuration::ComponentConfig>& config) noexcept(false);
 
     /// @brief Perform cyclic execution of Phm daemon
     /// @details Perform cyclic execution of Phm daemon functionalities, for e.g., evaluation of supervisions.
@@ -212,7 +213,7 @@ class PhmDaemon
     /// @brief Recovery interface to Launch Manager
     std::shared_ptr<RecoveryClient> recoveryClient;
 
-    /// @brief Vector of SwCluster handler
+    /// @brief Handler to construct and store objects needed for alive supervision
     SwClusterHandler swClusterHandler;
 
     /// @brief Observable Event Reader for PHM daemon

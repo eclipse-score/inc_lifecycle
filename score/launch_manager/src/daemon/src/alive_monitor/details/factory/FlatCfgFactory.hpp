@@ -47,7 +47,6 @@ class FlatCfgFactory : public IPhmFactory
 {
   public:
     /// @brief Constructor
-    /// @param [in] f_bufferConfig_r Buffer configuration used for constructing supervisions
     explicit FlatCfgFactory();
 
     /// @brief Destructor

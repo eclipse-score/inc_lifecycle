@@ -64,6 +64,7 @@ class SwClusterHandler
 {
   public:
     /// @brief Constructor
+    /// @param[in] factory Factory moved into the object to construct required alive supervision components
     explicit SwClusterHandler(std::unique_ptr<factory::IPhmFactory> factory);
 
     /// @brief Destroys the workers
@@ -87,13 +88,17 @@ class SwClusterHandler
     /// @brief No Move Assignment
     SwClusterHandler& operator=(SwClusterHandler&&) = delete;
 
+    /// @brief Allocate all the vectors needed to store alive supervision components
+    /// @param[in] size Number of supervised components
     void reserve(std::size_t size);
 
-    /// @brief Construct required worker objects for the Software Cluster
+    /// @brief Construct required worker objects for provided component
     /// @details Construct the interfaces, checkpoints, supervisions and recovery notifications
+    /// @param [in] id Identifier of the component
+    /// @param [in] component_config Alive supervision configuration for the component
+    /// @param [in] uid The configured uid of the component. Used for IPC access control
     /// @param [in] f_recoveryClient_r       Interface to the launch manager for recovery
     /// @param [in] f_processStateReader_r   Process state reader object for PHM daemon
-    /// @param [in] f_bufferConfig_r           Configuration settings for constructing workers
     /// @return                              Construction is successful (true), otherwise failure (false)
     bool constructWorker(
         const IdentifierHash& id,
