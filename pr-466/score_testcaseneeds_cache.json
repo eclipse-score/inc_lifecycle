@@ -3122,7 +3122,7 @@
     "FullyVerifies": null
   },
   {
-    "name": "ProcessInfoNodeStartupTest__ActivateAlreadyActiveNode_ReturnsSuccess",
+    "name": "ProcessInfoNodeStartupTest__SelfTerminating_TerminatedReadyCondition_ExitsBeforeMapInsert_ReturnsSuccess",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_info_node_UT.cpp",
     "line": "237",
     "result": "passed",
@@ -3136,9 +3136,23 @@
     "FullyVerifies": null
   },
   {
+    "name": "ProcessInfoNodeStartupTest__ActivateAlreadyActiveNode_ReturnsSuccess",
+    "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_info_node_UT.cpp",
+    "line": "262",
+    "result": "passed",
+    "repo_name": "local_repo",
+    "hash": "",
+    "url": "",
+    "TestType": "interface-test",
+    "DerivationTechnique": "equivalence-classes",
+    "result_text": "",
+    "PartiallyVerifies": null,
+    "FullyVerifies": null
+  },
+  {
     "name": "ProcessInfoNodeStartupCrashTest__ProcesssTerminated_OnWaitForkRunningTimeout",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_info_node_UT.cpp",
-    "line": "258",
+    "line": "283",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -3152,7 +3166,7 @@
   {
     "name": "ProcessInfoNodeStartupCrashTest__ReportingProcess_CrashesBeforeReady_NoRestarts",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_info_node_UT.cpp",
-    "line": "278",
+    "line": "303",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -3166,7 +3180,7 @@
   {
     "name": "ProcessInfoNodeStartupCrashTest__ReportingProcess_CrashesBeforeReady_WithRestartAttempts",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_info_node_UT.cpp",
-    "line": "303",
+    "line": "328",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -3180,7 +3194,7 @@
   {
     "name": "ProcessInfoNodeStartupCrashTest__NonReportingProcess_CrashesBeforeReady_NoRestarts",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_info_node_UT.cpp",
-    "line": "338",
+    "line": "363",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -3194,7 +3208,7 @@
   {
     "name": "ProcessInfoNodeStartupCrashTest__NonReportingProcess_CrashesBeforeReady_WithRestartAttempts",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_info_node_UT.cpp",
-    "line": "362",
+    "line": "387",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -3208,7 +3222,7 @@
   {
     "name": "ProcessInfoNodeStartupCrashTest__TimeoutThenSuccess_WithRestarts",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_info_node_UT.cpp",
-    "line": "391",
+    "line": "416",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -3222,7 +3236,7 @@
   {
     "name": "ProcessInfoNodeUnexpectedTerminationTest__ProcesssCrashed_AfterReadyCondition",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_info_node_UT.cpp",
-    "line": "422",
+    "line": "447",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -3236,7 +3250,7 @@
   {
     "name": "ProcessInfoNodeUnexpectedTerminationTest__SelfTerminatingProcess_ExitsWithoutTerminationRequest",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_info_node_UT.cpp",
-    "line": "436",
+    "line": "461",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -3250,7 +3264,7 @@
   {
     "name": "ProcessInfoNodeUnexpectedTerminationTest__SelfTerminating_TerminatedReadyCondition_CleanExit_ReturnsSuccess",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_info_node_UT.cpp",
-    "line": "453",
+    "line": "478",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -3264,7 +3278,7 @@
   {
     "name": "ProcessInfoNodeUnexpectedTerminationTest__SelfTerminating_CrashAfterReady_ReturnsErrorAfterReady",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_info_node_UT.cpp",
-    "line": "478",
+    "line": "503",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -3278,7 +3292,7 @@
   {
     "name": "ProcessInfoNodeDeactivationTest__CanTerminateNonSelfTerminatingProcess",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_info_node_UT.cpp",
-    "line": "501",
+    "line": "526",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -3292,7 +3306,7 @@
   {
     "name": "ProcessInfoNodeDeactivationTest__ProcessIgnoresSigterm_ForcedWithSigkill",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_info_node_UT.cpp",
-    "line": "564",
+    "line": "589",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -3306,7 +3320,7 @@
   {
     "name": "ProcessInfoNodeMoveTest__MoveConstruct_IdleNode_PreservesObservableState",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_info_node_UT.cpp",
-    "line": "528",
+    "line": "553",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -3320,7 +3334,7 @@
   {
     "name": "ProcessInfoNodeMoveTest__MoveConstruct_RunningNode_PreservesAtomicState",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_info_node_UT.cpp",
-    "line": "546",
+    "line": "571",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5910,7 +5924,7 @@
   {
     "name": "ConfigurationAdapterTest__GetOsProcessConfigurationInjectsAliveInterfaceForSupervised",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "230",
+    "line": "231",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5924,7 +5938,7 @@
   {
     "name": "ConfigurationAdapterTest__GetOsProcessConfigurationNoAliveInterfaceForNative",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "251",
+    "line": "252",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5938,7 +5952,7 @@
   {
     "name": "ConfigurationAdapterTest__GetOsProcessDependenciesMapsComponentDependsOn",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "268",
+    "line": "269",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5952,7 +5966,7 @@
   {
     "name": "ConfigurationAdapterTest__GetOsProcessDependenciesEmptyForComponentWithNoDeps",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "284",
+    "line": "285",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5966,7 +5980,7 @@
   {
     "name": "ConfigurationAdapterTest__GetNumberOfOsProcessesReturnsComponentCount",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "297",
+    "line": "298",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5980,7 +5994,7 @@
   {
     "name": "ConfigurationAdapterTest__GetSoftwareClusterReturnsDefault",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "307",
+    "line": "308",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5994,7 +6008,7 @@
   {
     "name": "ConfigurationAdapterTest__GetOsProcessConfigurationReturnsNulloptForInvalidIndex",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "317",
+    "line": "318",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -6008,7 +6022,7 @@
   {
     "name": "ConfigurationAdapterTest__GetOsProcessConfigurationReturnsNulloptForUnknownPG",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "326",
+    "line": "327",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -6022,7 +6036,7 @@
   {
     "name": "ConfigurationAdapterTest__OffStateReturnsProcessIndexesListEmpty",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "335",
+    "line": "336",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -6036,7 +6050,7 @@
   {
     "name": "ConfigurationAdapterReadyConditionTest__DependencyUsesTargetComponentReadyCondition",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "347",
+    "line": "348",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -6050,7 +6064,21 @@
   {
     "name": "ConfigurationAdapterReadyConditionTest__DependencyDefaultsToRunningWhenTargetHasNoReadyCondition",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "423",
+    "line": "424",
+    "result": "passed",
+    "repo_name": "local_repo",
+    "hash": "",
+    "url": "",
+    "TestType": "interface-test",
+    "DerivationTechnique": "explorative-testing",
+    "result_text": "",
+    "PartiallyVerifies": null,
+    "FullyVerifies": null
+  },
+  {
+    "name": "ConfigurationAdapterReadyConditionTest__ReadyOnTerminationUsesOwnReadyConditionNotDependencies",
+    "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
+    "line": "497",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -6064,7 +6092,7 @@
   {
     "name": "ConfigurationAdapterFallbackTest__FallbackRunTargetResolvesDependenciesRecursively",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "496",
+    "line": "577",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
