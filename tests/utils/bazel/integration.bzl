@@ -115,7 +115,7 @@ def integration_test(
     py_itf_test(
         name = name,
         srcs = srcs,
-        tags = [
+        tags = kwargs.pop("tags", []) + [
             "integration",
             "no-asan",  # The test container does not ship the sanitizer runtime; daemon fails to start.
         ],
@@ -134,7 +134,7 @@ def integration_test(
     py_itf_test(
         name = "{}_qemu".format(name),
         srcs = srcs,
-        tags = [
+        tags = kwargs.pop("tags", []) + [
             "exclusive",  # The QEMU plugin uses a hardcoded port so we can only run one test at a time.
             "integration",
             "no-asan",  # The test container does not ship the sanitizer runtime; daemon fails to start.

@@ -30,4 +30,5 @@ integration_test(
         "hm_logging.json",
         "logging.json",
     ],
+    tags = ["no-tsan"],
 )
