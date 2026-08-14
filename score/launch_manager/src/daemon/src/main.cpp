@@ -173,7 +173,7 @@ int main(int argc, const char* argv[])
             std::move(supervision_control_notifier),
             std::move(watchdog));
 
-        if (process_group_manager->initialize(*config_result))
+        if (process_group_manager->initialize(std::move(config_result).value()))
         {
             if (runLCMDaemon(*process_group_manager))
             {

@@ -54,7 +54,7 @@ ProcessGroupManager::ProcessGroupManager(
 {
 }
 
-bool ProcessGroupManager::initialize(const Config& config)
+bool ProcessGroupManager::initialize(Config&& config)
 {
     // setup signal handler
     em_cancelled.store(false);
@@ -80,10 +80,7 @@ bool ProcessGroupManager::initialize(const Config& config)
         return false;
     }
 
-    // Config is already initialized by ConfigBuilder, no separate init needed
-    // Move config into unique_ptr - Config is move-only
-    Config temp_config = std::move(const_cast<Config&>(config));
-    configuration_ = std::make_unique<Config>(std::move(temp_config));
+    configuration_ = std::make_unique<Config>(std::move(config));
 
     const std::size_t total_processes = configuration_->components().size();
 

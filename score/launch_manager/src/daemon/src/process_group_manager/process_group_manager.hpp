@@ -87,7 +87,7 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     /// Creates and initialises the shared memory for the nudge semaphore, always using FD #4,
     /// and stores a pointer to it.
     /// @return Returns true if initialization was successful, false otherwise.
-    bool initialize(const Config& config);
+    bool initialize(Config&& config);
 
     /// @brief De-initialises the process group manager
     /// deletes worker threads, worker jobs and the process map and then de-initialises the configuration manager
