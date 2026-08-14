@@ -104,13 +104,12 @@ bool ProcessGroupManager::initialize(Config&& config)
         return false;
     }
 
-    const auto& watchdog_config = configuration_->watchdog();
+    const auto watchdog_config = configuration_->takeWatchdog();
 
     // Watchdog config may not be available if no watchdog is configured
     if (watchdog_config.has_value())
     {
-        const auto& wc = watchdog_config.value();
-        if (!watchdog_->init(wc, score::mw::lifecycle::internal::kMainLoopCycleTimeNs))
+        if (!watchdog_->init(std::move(watchdog_config).value(), score::mw::lifecycle::internal::kMainLoopCycleTimeNs))
         {
             LM_LOG_ERROR() << "Watchdog initialization failed";
             return false;
@@ -205,7 +204,8 @@ bool ProcessGroupManager::initializeControlClientHandler()
 bool ProcessGroupManager::initializeProcessGroups()
 {
     graph_ = std::make_shared<Graph>(
-        configuration_->components().size() + configuration_->runTargets().size(),
+        // size is +1 for fallback run target
+        configuration_->components().size() + configuration_->runTargets().size() + 1,
         configuration_.get(),
         worker_jobs_,
         &process_interface_,

@@ -51,7 +51,7 @@ WatchdogImpl::WatchdogImpl(score::os::Ioctl& ioctl, score::os::Fcntl& fcntl, sco
 }
 
 bool WatchdogImpl::init(
-    const score::mw::lifecycle::internal::configuration::WatchdogConfig& watchdog_config,
+    const score::mw::lifecycle::internal::configuration::WatchdogConfig&& watchdog_config,
     std::int64_t cycle_time_ns) noexcept
 {
     bool isSuccess{true};

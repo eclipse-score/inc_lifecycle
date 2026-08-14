@@ -19,6 +19,7 @@
 #include <limits>
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "score/mw/launch_manager/configuration/config.hpp"
 #include "score/mw/launch_manager/watchdog/details/Watchdog.hpp"
@@ -233,11 +234,11 @@ TEST_F(WatchdogImplTest, WdgInit_FailsIfNotInIdleState)
     auto cfg = makeCfg("/dev/watchdog", 2000U, true /*canBeDeactivated*/, false /*needsMagicClose*/);
     auto wdg = makeWatchdog();
     expectFullEnable(cfg);
-    ASSERT_TRUE(wdg->init(cfg, kDefaultCycleTimeNs));
+    ASSERT_TRUE(wdg->init(std::move(cfg), kDefaultCycleTimeNs));
     ASSERT_TRUE(wdg->enable());
 
     auto cfg2 = makeCfg("/dev/watchdog_2", 2000U, true /*canBeDeactivated*/, false /*needsMagicClose*/);
-    EXPECT_FALSE(wdg->init(cfg2, kDefaultCycleTimeNs));
+    EXPECT_FALSE(wdg->init(std::move(cfg2), kDefaultCycleTimeNs));
 }
 
 TEST_F(WatchdogImplTest, WdgInit_FailsWatchdogTimeoutSmallerThenCycleTime)
@@ -253,7 +254,7 @@ TEST_F(WatchdogImplTest, WdgInit_FailsWatchdogTimeoutSmallerThenCycleTime)
     auto cfg = makeCfg("/dev/watchdog", timeoutMs, true /*canBeDeactivated*/, false /*needsMagicClose*/);
     auto wdg = makeWatchdog();
 
-    EXPECT_FALSE(wdg->init(cfg, cycleTimeNs));
+    EXPECT_FALSE(wdg->init(std::move(cfg), cycleTimeNs));
 }
 
 TEST_F(WatchdogImplTest, WdgInit_FailsIfTimeoutExceedsUint16Max)
@@ -269,7 +270,7 @@ TEST_F(WatchdogImplTest, WdgInit_FailsIfTimeoutExceedsUint16Max)
         makeCfg("/dev/watchdog", timeoutExceedingUint16Max, true /*canBeDeactivated*/, false /*needsMagicClose*/);
     auto wdg = makeWatchdog();
 
-    EXPECT_FALSE(wdg->init(cfg, kDefaultCycleTimeNs));
+    EXPECT_FALSE(wdg->init(std::move(cfg), kDefaultCycleTimeNs));
 }
 
 TEST_F(WatchdogImplTest, WdgInit_FailsIfTimeoutIsTooLarge)
@@ -282,7 +283,7 @@ TEST_F(WatchdogImplTest, WdgInit_FailsIfTimeoutIsTooLarge)
         true /*canBeDeactivated*/,
         false /*needsMagicClose*/);
     auto wdg = makeWatchdog();
-    EXPECT_FALSE(wdg->init(cfg, kDefaultCycleTimeNs));
+    EXPECT_FALSE(wdg->init(std::move(cfg), kDefaultCycleTimeNs));
 }
 
 TEST_F(WatchdogImplTest, WdgInit_FailsIfTimeoutIsTooSmall)
@@ -295,7 +296,7 @@ TEST_F(WatchdogImplTest, WdgInit_FailsIfTimeoutIsTooSmall)
         true /*canBeDeactivated*/,
         false /*needsMagicClose*/);
     auto wdg = makeWatchdog();
-    EXPECT_FALSE(wdg->init(cfg, kDefaultCycleTimeNs));
+    EXPECT_FALSE(wdg->init(std::move(cfg), kDefaultCycleTimeNs));
 }
 
 #ifndef __QNXNTO__
@@ -309,7 +310,7 @@ TEST_F(WatchdogImplTest, WdgInit_FailsIfTimeoutResolutionIsWrong)
     auto cfg = makeCfg("/dev/watchdog", 2123U, true /*canBeDeactivated*/, false /*needsMagicClose*/);
     auto wdg = makeWatchdog();
 
-    EXPECT_FALSE(wdg->init(cfg, kDefaultCycleTimeNs));
+    EXPECT_FALSE(wdg->init(std::move(cfg), kDefaultCycleTimeNs));
 }
 #endif
 
@@ -320,9 +321,9 @@ TEST_F(WatchdogImplTest, WdgInit_FailsIfDeviceAlreadyConfigured)
 
     auto cfg = makeCfg("/dev/watchdog", 2000U, true /*canBeDeactivated*/, false /*needsMagicClose*/);
     auto wdg = makeWatchdog();
-    ASSERT_TRUE(wdg->init(cfg, kDefaultCycleTimeNs));
+    ASSERT_TRUE(wdg->init(std::move(cfg), kDefaultCycleTimeNs));
 
-    EXPECT_FALSE(wdg->init(cfg, kDefaultCycleTimeNs));
+    EXPECT_FALSE(wdg->init(std::move(cfg), kDefaultCycleTimeNs));
     EXPECT_FALSE(wdg->init(
         makeCfg("/dev/watchdog_2", 2000U, true /*canBeDeactivated*/, false /*needsMagicClose*/), kDefaultCycleTimeNs));
 }
@@ -338,7 +339,8 @@ TEST_P(WatchdogImpl_UT_paramConfigName, WdgInit_SucceedsWithValidDeviceConfigura
     const std::uint32_t timeoutMs{GetParam()};
     auto cfg = makeCfg("/dev/watchdog", timeoutMs, true /*canBeDeactivated*/, false /*needsMagicClose*/);
     auto wdg = makeWatchdog();
-    EXPECT_TRUE(wdg->init(cfg, kDefaultCycleTimeNs)) << "Expected init() to succeed for timeout=" << timeoutMs << "ms";
+    EXPECT_TRUE(wdg->init(std::move(cfg), kDefaultCycleTimeNs))
+        << "Expected init() to succeed for timeout=" << timeoutMs << "ms";
 }
 
 INSTANTIATE_TEST_SUITE_P(
@@ -368,7 +370,7 @@ TEST_F(WatchdogImplTest, WdgEnable_FailsIfNotInIdleState)
     auto cfg = makeCfg("/dev/watchdog", 2000U, true /*canBeDeactivated*/, false /*needsMagicClose*/);
     auto wdg = makeWatchdog();
     expectFullEnable(cfg);
-    ASSERT_TRUE(wdg->init(cfg, kDefaultCycleTimeNs));
+    ASSERT_TRUE(wdg->init(std::move(cfg), kDefaultCycleTimeNs));
     ASSERT_TRUE(wdg->enable());
 
     EXPECT_FALSE(wdg->enable());
@@ -383,7 +385,7 @@ TEST_F(WatchdogImplTest, WdgEnable_DoesNotSetConfiguredTimeoutValue_WhenTimeoutA
 
     auto cfg = makeCfg("/dev/watchdog", 2000U, true /*canBeDeactivated*/, false /*needsMagicClose*/);
     auto wdg = makeWatchdog();
-    ASSERT_TRUE(wdg->init(cfg, kDefaultCycleTimeNs));
+    ASSERT_TRUE(wdg->init(std::move(cfg), kDefaultCycleTimeNs));
 
 #ifndef __QNXNTO__
     constexpr std::int32_t kMillisPerSecond = 1000U;
@@ -419,7 +421,7 @@ TEST_P(WatchdogImpl_UT_EnableFailure, WdgEnable_FailsAndStopsSequence)
 
     auto cfg = makeCfg("/dev/watchdog", 2000U, true /*canBeDeactivated*/, false /*needsMagicClose*/);
     auto wdg = makeWatchdog();
-    ASSERT_TRUE(wdg->init(cfg, kDefaultCycleTimeNs));
+    ASSERT_TRUE(wdg->init(std::move(cfg), kDefaultCycleTimeNs));
 
     expectEnableFailingAt(cfg, param.failingStep);
 
@@ -460,7 +462,7 @@ TEST_F(WatchdogImplTest, WdgEnable_FailsIfTimeoutValueIsAltered)
 
     auto cfg = makeCfg("/dev/watchdog", 30'000U, true /*canBeDeactivated*/, false /*needsMagicClose*/);
     auto wdg = makeWatchdog();
-    ASSERT_TRUE(wdg->init(cfg, kDefaultCycleTimeNs));
+    ASSERT_TRUE(wdg->init(std::move(cfg), kDefaultCycleTimeNs));
 
     EXPECT_CALL(*fcntlMock_, open(StrEq(cfg.device_file_path), _)).WillOnce(Return(OpenOk(1)));
     EXPECT_CALL(*ioctlMock_, ioctl(1, WDIOC_GETTIMEOUT, _)).WillOnce(SetOutParam(0));
@@ -482,7 +484,7 @@ TEST_F(WatchdogImplTest, WdgServiceWatchdog_NotInActivatedState)
 
     auto cfg = makeCfg("/dev/watchdog", 2000U, true /*canBeDeactivated*/, false /*needsMagicClose*/);
     auto wdg = makeWatchdog();
-    ASSERT_TRUE(wdg->init(cfg, kDefaultCycleTimeNs));
+    ASSERT_TRUE(wdg->init(std::move(cfg), kDefaultCycleTimeNs));
 
     EXPECT_CALL(*ioctlMock_, ioctl).Times(0);
     wdg->serviceWatchdog();
@@ -507,7 +509,7 @@ TEST_F(WatchdogImplTest, WdgServiceWatchdog_WithConfiguredDevice)
     auto wdg = makeWatchdog();
 
     expectFullEnable(cfg);
-    ASSERT_TRUE(wdg->init(cfg, kDefaultCycleTimeNs));
+    ASSERT_TRUE(wdg->init(std::move(cfg), kDefaultCycleTimeNs));
     ASSERT_TRUE(wdg->enable());
 
     EXPECT_CALL(*ioctlMock_, ioctl(1, WDIOC_KEEPALIVE, nullptr)).Times(1).WillOnce(Return(IoctlOk()));
@@ -527,7 +529,7 @@ TEST_F(WatchdogImplTest, WdgFireWatchdogReaction_FailsIfNotInActivatedState)
 
     auto cfg = makeCfg("/dev/watchdog", 2000U, true /*canBeDeactivated*/, false /*needsMagicClose*/);
     auto wdg = makeWatchdogFireMock();
-    ASSERT_TRUE(wdg->init(cfg, kDefaultCycleTimeNs));
+    ASSERT_TRUE(wdg->init(std::move(cfg), kDefaultCycleTimeNs));
 
     EXPECT_CALL(*ioctlMock_, ioctl(_, WDIOC_SETTIMEOUT, _)).Times(0);
     EXPECT_CALL(*wdg, waitForever).Times(0);
@@ -545,7 +547,7 @@ TEST_F(WatchdogImplTest, WdgFireWatchdogReaction_WithConfiguredDevice)
     auto wdg = makeWatchdogFireMock();
 
     expectFullEnable(cfg);
-    ASSERT_TRUE(wdg->init(cfg, kDefaultCycleTimeNs));
+    ASSERT_TRUE(wdg->init(std::move(cfg), kDefaultCycleTimeNs));
     ASSERT_TRUE(wdg->enable());
 
     EXPECT_CALL(*ioctlMock_, ioctl(1, WDIOC_SETTIMEOUT, _)).Times(1).WillOnce(Return(IoctlOk()));
@@ -563,7 +565,7 @@ TEST_F(WatchdogImplTest, WdgDisable_FailsIfNotInActivatedState)
 
     auto cfg = makeCfg("/dev/watchdog", 2000U, true /*canBeDeactivated*/, false /*needsMagicClose*/);
     auto wdg = makeWatchdog();
-    ASSERT_TRUE(wdg->init(cfg, kDefaultCycleTimeNs));
+    ASSERT_TRUE(wdg->init(std::move(cfg), kDefaultCycleTimeNs));
 
     EXPECT_CALL(*ioctlMock_, ioctl).Times(0);
     EXPECT_CALL(*unistdMock_, close).Times(0);
@@ -581,7 +583,7 @@ TEST_F(WatchdogImplTest, WdgDisable_DisablesOneDevice)
     auto wdg = makeWatchdog();
 
     expectFullEnable(cfg);
-    ASSERT_TRUE(wdg->init(cfg, kDefaultCycleTimeNs));
+    ASSERT_TRUE(wdg->init(std::move(cfg), kDefaultCycleTimeNs));
     ASSERT_TRUE(wdg->enable());
 
     expectDisable(cfg);
@@ -599,7 +601,7 @@ TEST_F(WatchdogImplTest, WdgDisable_WritesMagicCloseCharacterWhenRequired)
     auto wdg = makeWatchdog();
 
     expectFullEnable(cfg);
-    ASSERT_TRUE(wdg->init(cfg, kDefaultCycleTimeNs));
+    ASSERT_TRUE(wdg->init(std::move(cfg), kDefaultCycleTimeNs));
     ASSERT_TRUE(wdg->enable());
 
     expectDisable(cfg);
@@ -615,7 +617,7 @@ TEST_F(WatchdogImplTest, WdgDisable_IgnoresDevicesThatCannotBeDisabled)
     auto wdg = makeWatchdog();
 
     expectFullEnable(cfg);
-    ASSERT_TRUE(wdg->init(cfg, kDefaultCycleTimeNs));
+    ASSERT_TRUE(wdg->init(std::move(cfg), kDefaultCycleTimeNs));
     ASSERT_TRUE(wdg->enable());
 
     EXPECT_CALL(*ioctlMock_, ioctl).Times(0);

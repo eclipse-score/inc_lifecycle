@@ -39,6 +39,14 @@ cc_library(
 )
 
 cc_library(
+    name = "watchdog_config",
+    hdrs = ["watchdog_config.hpp"],
+    include_prefix = "score/mw/launch_manager/configuration",
+    strip_include_prefix = "/score/launch_manager/src/daemon/src/configuration",
+    visibility = ["//score:__subpackages__"],
+)
+
+cc_library(
     name = "recovery_action_config",
     hdrs = ["recovery_action_config.hpp"],
     include_prefix = "score/mw/launch_manager/configuration",
@@ -67,6 +75,7 @@ cc_library(
     visibility = ["//score:__subpackages__"],
     deps = [
         ":component_config",
+        ":watchdog_config",
         "@score_baselibs//score/language/futurecpp",
     ],
 )

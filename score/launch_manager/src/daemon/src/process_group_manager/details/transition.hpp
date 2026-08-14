@@ -24,6 +24,8 @@
 #include <bitset>
 #include <cstddef>
 #include <cstdint>
+#include <ios>
+#include <iostream>
 #include <iterator>
 #include <optional>
 #include <type_traits>
@@ -413,13 +415,7 @@ class Transition
             {
                 ++state_.pending;
 
-                // bad work around DON'T MERGE THIS
-                // something crazy is going on
-                bool target_has_deps = !graph_.dependsOn(target).empty();
-                bool should_push = !target_has_deps || allDependentsStopped(i);
-
-                // bool should_push = allDependentsStopped(i);
-                if (should_push)
+                if (allDependentsStopped(i))
                 {
                     state_.next_nodes.push(i);
                 }

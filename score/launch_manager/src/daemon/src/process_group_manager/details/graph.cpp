@@ -51,7 +51,7 @@ DependencyGraph<Graph::Component> CreateDependencyGraph(
     auto components = config->takeComponents();
     const auto num_of_components = components.size();
 
-    DependencyGraph<Graph::Component> graph(components.size() + run_targets.size());
+    DependencyGraph<Graph::Component> graph(components.size() + run_targets.size() + 1);
 
     // map component names to their graph index, needed for deps
     // (there is probably a better way of walking the graph)
@@ -138,7 +138,7 @@ DependencyGraph<Graph::Component> CreateDependencyGraph(
     {
         auto it = component_name_to_index.find(dep_name);
         LM_LOG_ERROR() << dep_name;
-        LM_LOG_ERROR() << "FALLBACK" << "HAS DEP TO " << dep_name;
+        LM_LOG_ERROR() << "FALLBACK" << fallback_index << "HAS DEP TO " << dep_name;
         SCORE_LANGUAGE_FUTURECPP_PRECONDITION_MESSAGE(
             it != component_name_to_index.end(), "RunTarget dependency not found in component list");
 
@@ -178,7 +178,6 @@ Graph::Graph(
       cancel_message_(),
       request_start_time_()
 {
-    LM_LOG_DEBUG() << "Creating graph with" << max_num_nodes << "nodes";
     last_state_manager_.process_index_ = 0xFFFFU;  // an invalid state manager
     last_state_manager_.process_group_index_ = 0xFFFFU;
     cancel_message_.request_or_response_ = ControlClientCode::kNotSet;

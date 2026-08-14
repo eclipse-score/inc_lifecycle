@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "score/mw/launch_manager/configuration/component_config.hpp"
+#include "score/mw/launch_manager/configuration/watchdog_config.hpp"
 
 namespace score::mw::lifecycle::internal::configuration
 {
@@ -44,14 +45,6 @@ struct FallbackRunTargetConfig
 struct AliveSupervisionConfig
 {
     std::uint32_t evaluation_cycle_ms{};
-};
-
-struct WatchdogConfig
-{
-    std::string device_file_path;
-    std::uint32_t max_timeout_ms{};
-    bool deactivate_on_shutdown{};
-    bool require_magic_close{};
 };
 
 class ConfigBuilder;
