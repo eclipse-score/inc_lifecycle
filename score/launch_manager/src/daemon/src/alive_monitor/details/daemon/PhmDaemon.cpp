@@ -72,6 +72,10 @@ bool PhmDaemon::construct(const Config& config) noexcept(false)
 
     const auto res =
         swClusterHandler.constructWorkers(std::move(component_configs), recoveryClient, processStateReader);
+    if (!res)
+    {
+        LM_LOG_ERROR() << "Software Cluster Handler is unable to construct the required worker objects.";
+    }
     return res;
 }
 

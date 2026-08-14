@@ -35,37 +35,49 @@ bool SwClusterHandler::constructWorkers(
     std::shared_ptr<mw::lifecycle::IRecoveryClient> f_recoveryClient_r,
     ifexm::ObservableEventReader& f_processStateReader_r) noexcept(false)
 {
-    bool isSuccess{false};
     factory::FlatCfgFactory flatCfgFactory{};
 
-    isSuccess = flatCfgFactory.init(component_config);
-    if (isSuccess)
+    LM_LOG_DEBUG() << "Software Cluster Handler starts constructing workers";
+
+    processStates.reserve(component_config.size());
+    aliveIfIpcs.reserve(component_config.size());
+    aliveInterfaces.reserve(component_config.size());
+    checkpoints.reserve(component_config.size());
+    aliveSupervisions.reserve(component_config.size());
+
+    for (const auto& component : component_config)
     {
-        LM_LOG_DEBUG() << "Software Cluster Handler starts constructing workers";
-        isSuccess = flatCfgFactory.createObservableEvents(processStates, f_processStateReader_r);
+        if (!flatCfgFactory.createObservableEvent(processStates, component.first, f_processStateReader_r))
+        {
+            return false;
+        }
+        // TODO: Need to get the real UID
+        if (!flatCfgFactory.createAliveIfIpc(aliveIfIpcs, component.first, 0))
+        {
+            return false;
+        }
+        if (!flatCfgFactory.createAliveIf(aliveInterfaces, aliveIfIpcs.back(), processStates.back()))
+        {
+            return false;
+        }
+        if (!flatCfgFactory.createSupervisionCheckpoint(
+                checkpoints, aliveInterfaces.back(), processStates.back(), component.first))
+        {
+            return false;
+        }
+        if (!flatCfgFactory.createAliveSupervision(
+                aliveSupervisions,
+                checkpoints.back(),
+                processStates.back(),
+                f_recoveryClient_r,
+                component.first,
+                component.second))
+        {
+            return false;
+        }
     }
-    if (isSuccess)
-    {
-        isSuccess = flatCfgFactory.createAliveIfIpcs(aliveIfIpcs);
-    }
-    if (isSuccess)
-    {
-        isSuccess = flatCfgFactory.createAliveIf(aliveInterfaces, aliveIfIpcs, processStates);
-    }
-    if (isSuccess)
-    {
-        isSuccess = flatCfgFactory.createSupervisionCheckpoints(checkpoints, aliveInterfaces, processStates);
-    }
-    if (isSuccess)
-    {
-        isSuccess =
-            flatCfgFactory.createAliveSupervisions(aliveSupervisions, checkpoints, processStates, f_recoveryClient_r);
-    }
-    if (isSuccess == false)
-    {
-        LM_LOG_ERROR() << "Software Cluster Handler is unable to construct the required worker objects.";
-    }
-    return isSuccess;
+
+    return true;
 }
 
 void SwClusterHandler::checkInterfaceForNewData(const timers::NanoSecondType f_syncTimestamp)

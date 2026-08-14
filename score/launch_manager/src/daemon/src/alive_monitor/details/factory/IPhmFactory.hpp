@@ -15,6 +15,8 @@
 #define IPHMFACTORY_HPP_INCLUDED
 
 #include "score/mw/launch_manager/alive_monitor/details/ifappl/DataStructures.hpp"
+#include "score/mw/launch_manager/common/identifier_hash.hpp"
+#include "score/mw/launch_manager/configuration/config.hpp"
 #include <vector>
 
 namespace score
@@ -53,6 +55,8 @@ class Alive;
 namespace factory
 {
 
+using ComponentAliveSupervision = configuration::ComponentAliveSupervision;
+
 /// @brief PHM Factory interface class
 /// @details Provides methods to create worker objects
 class IPhmFactory
@@ -79,14 +83,18 @@ class IPhmFactory
     /// @param [out] f_processStates_r      Vector of created Observable Events
     /// @param [in] f_processStateReader_r  Process state reader object for PHM daemon
     /// @return                             Object creation successful (true), otherwise failed (false)
-    virtual bool createObservableEvents(
-        std::vector<ifexm::ObservableEvent>& f_processStates_r,
-        ifexm::ObservableEventReader& f_processStateReader_r) = 0;
+    virtual bool createObservableEvent(
+        std::vector<ifexm::ObservableEvent>& events,
+        const IdentifierHash component_id,
+        ifexm::ObservableEventReader& event_reader_) = 0;
 
     /// @brief Create IPCs for Alive Interfaces
     /// @param [out] f_interfaceIpcs_r  Vector of created Alive Interface IPCs
     /// @return                         Object creation successful (true), otherwise failed (false)
-    virtual bool createAliveIfIpcs(std::vector<ifappl::CheckpointIpcServer>& f_interfaceIpcs_r) = 0;
+    virtual bool createAliveIfIpc(
+        std::vector<ifappl::CheckpointIpcServer>& servers,
+        const IdentifierHash component_id,
+        const uid_t uid) = 0;
 
     /// @brief Create Alive Interfaces
     /// @param [out] f_interfaces_r         Vector of created Alive Interfaces
@@ -94,9 +102,9 @@ class IPhmFactory
     /// @param [in,out] f_processStates_r   Vector of Observable Events
     /// @return                             Object creation successful (true), otherwise failed (false)
     virtual bool createAliveIf(
-        std::vector<ifappl::MonitorIfDaemon>& f_interfaces_r,
-        std::vector<ifappl::CheckpointIpcServer>& f_interfaceIpcs_r,
-        std::vector<ifexm::ObservableEvent>& f_processStates_r) = 0;
+        std::vector<ifappl::MonitorIfDaemon>& interfaces,
+        ifappl::CheckpointIpcServer& ipc_server,
+        ifexm::ObservableEvent& event) = 0;
 
     /// @brief Create Supervision Checkpoints
     /// @param [out] f_checkpoints_r    Vector of created Supervision Checkpoints
@@ -104,10 +112,11 @@ class IPhmFactory
     /// @param [in] f_processStates_r   Vector of ObservableEvents required for constructing the Checkpoint
     /// instances.
     /// @return                         Object creation successful (true), otherwise failed (false)
-    virtual bool createSupervisionCheckpoints(
-        std::vector<ifappl::Checkpoint>& f_checkpoints_r,
-        std::vector<ifappl::MonitorIfDaemon>& f_interfaces_r,
-        std::vector<ifexm::ObservableEvent>& f_processStates_r) = 0;
+    virtual bool createSupervisionCheckpoint(
+        std::vector<ifappl::Checkpoint>& checkpoints,
+        ifappl::MonitorIfDaemon& interface,
+        ifexm::ObservableEvent& event,
+        const IdentifierHash component_id) = 0;
 
     /// @brief Create alive supervision worker objects
     /// @param [out] f_alive_r              Vector of created alive supervision worker
@@ -115,11 +124,13 @@ class IPhmFactory
     /// @param [in,out] f_processStates_r   Vector of Observable Events
     /// @param [in] f_recoveryClient_r      Recovery interface invoked when a supervision expires
     /// @return                             Object creation successful (true), otherwise failed (false)
-    virtual bool createAliveSupervisions(
-        std::vector<supervision::Alive>& f_alive_r,
-        std::vector<ifappl::Checkpoint>& f_checkpoints_r,
-        std::vector<ifexm::ObservableEvent>& f_processStates_r,
-        std::shared_ptr<score::mw::lifecycle::IRecoveryClient> f_recoveryClient_r) = 0;
+    virtual bool createAliveSupervision(
+        std::vector<supervision::Alive>& supervisions,
+        ifappl::Checkpoint& checkpoint,
+        ifexm::ObservableEvent& event,
+        std::shared_ptr<IRecoveryClient> recovery_client,
+        const IdentifierHash component_id,
+        const ComponentAliveSupervision component_config) = 0;
 };
 
 }  // namespace factory
