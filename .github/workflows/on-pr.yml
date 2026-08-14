@@ -28,45 +28,70 @@ jobs:
       contents: read
     uses: eclipse-score/cicd-workflows/.github/workflows/on-pr.yml@on-pr/v0.0.0
 
+  # We don't use eclipse-score/cicd-workflows/.github/workflows/tests.yml
+  # because it is more resource efficient to build and test in the same job.
+  # Also the cache name in the template is not configurable.
   build:
-    name: Build ${{ matrix.bazel-config }}
+    name: Build and test ${{ matrix.name }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        bazel-config: [x86_64-linux, arm64-linux]
+        include:
+          - name: x86_64-linux
+            bazel-args: --config=x86_64-linux
+            build: true
+            test: true
+          - name: arm64-linux
+            bazel-args: --config=arm64-linux
+            build: true
+            test: false # Cannot run on x86_64
+          - name: asan_ubsan_lsan
+            bazel-args: --config=x86_64-linux --config=asan_ubsan_lsan
+            build: false # https://github.com/eclipse-score/lifecycle/issues/476
+            test: true
+          - name: tsan
+            bazel-args: --config=x86_64-linux --config=tsan
+            build: false # https://github.com/eclipse-score/lifecycle/issues/474
+            test: true
     permissions:
       contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
 
-      - name: Setup Bazel
-        uses: bazel-contrib/setup-bazel@0.19.0
+      - name: Setup Bazel with shared caching
+        uses: eclipse-score/cicd-actions/setup-bazel-cache@212bbf86267e9381da9d2daf962d12f6feafbc90
         with:
-          bazelisk-cache: true
-          disk-cache: ${{ github.workflow }}-${{ matrix.bazel-config }}
-          repository-cache: true
-          cache-save: ${{ github.event_name == 'push' }}
+          unique-cache-name: ${{ github.workflow }}-${{ github.job }}-${{ matrix.name }}
 
       - name: Build with Bazel
+        if: matrix.build
         run: |
-          bazel build --lockfile_mode=error --config ${{ matrix.bazel-config }} //score/... //examples/...
+          bazel build \
+            --lockfile_mode=error \
+            ${{ matrix.bazel-args }} \
+            //examples/... \
+            //score/...
 
-  test:
-    name: Test ${{ matrix.bazel-config }}
-    strategy:
-      fail-fast: false
-      matrix:
-        bazel-config: [x86_64-linux, arm64-linux]
-        # TODO: GitHub provides ARM servers but the workflow template does not allow to use them.
-        exclude:
-          - bazel-config: arm64-linux
-    uses: eclipse-score/cicd-workflows/.github/workflows/tests.yml@93aac16ada7d247bbb6ae926509ddea74cf5213a # v0.0.2
-    permissions:
-      contents: read
-    with:
-      bazel-target: 'test --lockfile_mode=error //score/... //tests/... //scripts/... --config=${{ matrix.bazel-config }}'
+      - name: Test with Bazel
+        if: matrix.test
+        run: |
+          bazel test \
+            --lockfile_mode=error \
+            ${{ matrix.bazel-args }} \
+            //examples/... \
+            //score/... \
+            //scripts/... \
+            //tests/...
+
+      - name: Upload test logs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: bazel-testlogs-${{ matrix.name }}-${{ github.run_id }}
+          path: bazel-testlogs/
+          retention-days: 7
 
   reference-integration:
     name: Reference integration
@@ -78,43 +103,6 @@ jobs:
       repo_runner_labels: 'ubuntu-latest'
       module_name: 'score_lifecycle_health'
       target_branch: 'main'
-
-  sanitizers:
-    name: ${{ matrix.name }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: ASAN + UBSAN + LSAN
-            bazel-config: asan_ubsan_lsan
-          - name: TSAN
-            bazel-config: tsan
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v7
-
-      - name: Setup Bazel
-        uses: bazel-contrib/setup-bazel@0.19.0
-        with:
-          bazelisk-cache: true
-          disk-cache: ${{ github.workflow }}-${{ matrix.bazel-config }}
-          repository-cache: true
-          cache-save: ${{ github.event_name == 'push' }}
-
-      - name: Run tests with sanitizers
-        run: |
-          bazel test --lockfile_mode=error --config=${{ matrix.bazel-config }} --config=x86_64-linux //score/... //tests/... --verbose_failures
-
-      - name: Upload test logs on failure
-        if: failure()
-        uses: actions/upload-artifact@v7
-        with:
-          name: bazel-testlogs-${{ matrix.bazel-config }}-${{ github.run_id }}
-          path: bazel-testlogs/
-          retention-days: 7
 
   clippy:
     name: Clippy
@@ -212,9 +200,7 @@ jobs:
     needs:
       - common
       - build
-      - test
       - reference-integration
-      - sanitizers
       - clippy
       - cpp-coverage
       - rust-coverage
