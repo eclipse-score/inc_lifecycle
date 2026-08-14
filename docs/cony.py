@@ -13,5 +13,8 @@
 
 project = "S-CORE Lifecycle"
 project_url = "https://eclipse-score.github.io/lifecycle/"
+version = "0.1"
 
 extensions = ["score_sphinx_bundle"]
+
+required_in_id = ["lifecycle"]
