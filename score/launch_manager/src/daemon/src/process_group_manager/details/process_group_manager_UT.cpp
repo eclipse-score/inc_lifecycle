@@ -92,8 +92,15 @@ Config makeMinimalConfig()
     std::vector<ComponentConfig> components;
     components.push_back(std::move(component));
 
+    // Shutdown always transitions to the "Off" run target, so the configuration must provide one.
+    RunTargetConfig off;
+    off.name = "Off";
+    off.description = "All components stopped";
+    off.transition_timeout_ms = 5000U;
+
     std::vector<RunTargetConfig> run_targets;
     run_targets.push_back(std::move(startup));
+    run_targets.push_back(std::move(off));
 
     return ConfigBuilder{}
         .setComponents(std::move(components))
@@ -164,7 +171,7 @@ class ProcessGroupManagerWatchdogTest : public Test
 TEST_F(ProcessGroupManagerWatchdogTest, GivenMinimalConfig_ExpectWatchdogMethodsCalledInSequence_WhenInitializeCalled)
 {
     // Given
-    const auto config = makeMinimalConfig();
+    auto config = makeMinimalConfig();
 
     // Expected
     InSequence sequence;
@@ -173,7 +180,7 @@ TEST_F(ProcessGroupManagerWatchdogTest, GivenMinimalConfig_ExpectWatchdogMethods
     EXPECT_CALL(*alive_monitor_thread_, stop()).Times(1);
 
     // When
-    auto initialize_result = process_group_manager_->initialize(config);
+    auto initialize_result = process_group_manager_->initialize(std::move(config));
 
     // Then
     EXPECT_TRUE(initialize_result);
@@ -182,7 +189,7 @@ TEST_F(ProcessGroupManagerWatchdogTest, GivenMinimalConfig_ExpectWatchdogMethods
 TEST_F(ProcessGroupManagerWatchdogTest, GivenMinimalConfig_ExpectWatchdogServicePerCycle_WhenRunCalled)
 {
     // Given
-    const auto config = makeMinimalConfig();
+    auto config = makeMinimalConfig();
 
     // Expected
     expectNormalStartup();
@@ -195,7 +202,7 @@ TEST_F(ProcessGroupManagerWatchdogTest, GivenMinimalConfig_ExpectWatchdogService
     EXPECT_CALL(*alive_monitor_thread_, stop()).Times(1);
 
     // When
-    ASSERT_TRUE(process_group_manager_->initialize(config));
+    ASSERT_TRUE(process_group_manager_->initialize(std::move(config)));
     auto run_result = process_group_manager_->run();
 
     // Then
@@ -205,7 +212,7 @@ TEST_F(ProcessGroupManagerWatchdogTest, GivenMinimalConfig_ExpectWatchdogService
 TEST_F(ProcessGroupManagerWatchdogTest, GivenMinimalConfig_ExpectWatchdogFired_WhenRecoveryClientOverflowsDuringRunCall)
 {
     // Given
-    const auto config = makeMinimalConfig();
+    auto config = makeMinimalConfig();
     // More than the component event queue can hold (capacity == number of OS processes * 3; makeMinimalConfig has a
     // single component)
     constexpr int kNumRecoveryRequests = 16;
@@ -220,7 +227,7 @@ TEST_F(ProcessGroupManagerWatchdogTest, GivenMinimalConfig_ExpectWatchdogFired_W
     EXPECT_CALL(*alive_monitor_thread_, stop()).Times(1);
 
     // When
-    ASSERT_TRUE(process_group_manager_->initialize(config));
+    ASSERT_TRUE(process_group_manager_->initialize(std::move(config)));
 
     // Deliver more recovery requests than the component event queue can hold,
     // forcing the queue to drop events and latch its sticky overflow flag.
@@ -240,7 +247,7 @@ TEST_F(ProcessGroupManagerWatchdogTest, GivenMinimalConfig_ExpectWatchdogFired_W
 TEST_F(ProcessGroupManagerWatchdogTest, GivenMinimalConfig_ExpectWatchdogDisabled_WhenDeinitializeCalled)
 {
     // Given
-    const auto config = makeMinimalConfig();
+    auto config = makeMinimalConfig();
 
     // Expected
     expectNormalStartup();
@@ -250,7 +257,7 @@ TEST_F(ProcessGroupManagerWatchdogTest, GivenMinimalConfig_ExpectWatchdogDisable
     EXPECT_CALL(*alive_monitor_thread_, stop()).Times(2);
 
     // When
-    ASSERT_TRUE(process_group_manager_->initialize(config));
+    ASSERT_TRUE(process_group_manager_->initialize(std::move(config)));
     process_group_manager_->deinitialize();
 }
 

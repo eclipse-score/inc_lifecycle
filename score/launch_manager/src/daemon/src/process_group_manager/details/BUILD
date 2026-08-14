@@ -156,18 +156,17 @@ cc_library(
     ],
 )
 
-# TODO fix later :)
-# lm_cc_test(
-#     name = "process_info_node_UT",
-#     srcs = ["process_info_node_UT.cpp"],
-#     deps = [
-#         ":process_info_node",
-#         ":safe_process_map",
-#         "//score/launch_manager/src/daemon/src/process_group_manager:mock_iprocess",
-#         "//score/launch_manager/src/daemon/src/supervision_control_client:mock_supervision_event_publisher",
-#         "@googletest//:gtest_main",
-#     ],
-# )
+lm_cc_test(
+    name = "process_info_node_UT",
+    srcs = ["process_info_node_UT.cpp"],
+    deps = [
+        ":process_info_node",
+        ":safe_process_map",
+        "//score/launch_manager/src/daemon/src/process_group_manager:mock_iprocess",
+        "//score/launch_manager/src/daemon/src/supervision_control_client:mock_supervision_event_publisher",
+        "@googletest//:gtest_main",
+    ],
+)
 
 cc_library(
     name = "run_target",
@@ -208,18 +207,17 @@ cc_library(
     ],
 )
 
-# TODO fix later :)
-# lm_cc_test(
-#     name = "graph_UT",
-#     srcs = ["graph_UT.cpp"],
-#     deps = [
-#         ":graph",
-#         "//score/launch_manager/src/daemon/src/process_group_manager:mock_iprocess",
-#         "//score/launch_manager/src/daemon/src/supervision_control_client:mock_supervision_event_publisher",
-#         "//score/launch_manager/src/daemon/src/configuration:config",
-#         "@googletest//:gtest_main",
-#     ],
-# )
+lm_cc_test(
+    name = "graph_UT",
+    srcs = ["graph_UT.cpp"],
+    deps = [
+        ":graph",
+        "//score/launch_manager/src/daemon/src/configuration:config",
+        "//score/launch_manager/src/daemon/src/process_group_manager:mock_iprocess",
+        "//score/launch_manager/src/daemon/src/supervision_control_client:mock_supervision_event_publisher",
+        "@googletest//:gtest_main",
+    ],
+)
 
 cc_library(
     name = "transition",
