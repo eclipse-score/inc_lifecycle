@@ -185,7 +185,7 @@ bazel_dep(name = "score_communication")
 git_override(
     module_name = "score_communication",
     commit = "bcafda8fff9a90bc9e32bf054ad94fb7a627b318",
-    remote = "git@github.com:eclipse-score/communication.git",
+    remote = "https://github.com/eclipse-score/communication.git",
 )
 
 # Hedron's Compile Commands Extractor for Bazel
