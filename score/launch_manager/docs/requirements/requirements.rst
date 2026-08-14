@@ -295,7 +295,7 @@ Launching Processes
 Conditional Launching
 =====================
 
-.. comp_req:: Conditionally launch of processes
+.. comp_req:: Configurable ready state
     :id: comp_req__launch_man__config_ready_cond
     :reqtype: Functional
     :security: NO
@@ -309,7 +309,7 @@ Conditional Launching
     shall be met before the component is considered to have reached its
     **ready state**.
 
-.. comp_req:: Conditionally launch of processes
+.. comp_req:: Dependency ordering
     :id: comp_req__launch_man__ready_cond
     :reqtype: Functional
     :security: NO
@@ -326,7 +326,7 @@ Conditional Launching
    wait for a release to get these.
    see https://github.com/eclipse-score/score/pull/3184
 
-.. comp_req:: Condition timeout
+.. comp_req:: Configurable activation timeout
     :id: comp_req__launch_man__total_wait_time_support
     :reqtype: Functional
     :security: NO
@@ -339,7 +339,7 @@ Conditional Launching
     The :term:`Launch Manager` shall support configuration of the maximum time
     an activation of a run target can take.
 
-.. comp_req:: Condition timeout
+.. comp_req:: Activation timeout
     :id: comp_req__launch_man__total_wait_time_fail
     :reqtype: Functional
     :security: NO
@@ -349,7 +349,7 @@ Conditional Launching
     :version: 1
     :satisfied_by: comp__lifecycle_launch_manager
 
-    If the activation of a run target exceeds the configured maximum time, then
+    If the activation of a run target exceeds the maximum time, then
     the :term:`Launch Manager` shall consider this activation as failed.
 
 .. comp_req:: Launched Process status
