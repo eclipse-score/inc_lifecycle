@@ -28,7 +28,7 @@ namespace score::mw::lifecycle::internal::saf::daemon
 PhmDaemon::PhmDaemon(OsClock& f_osClock, std::unique_ptr<ISupervisionControlReceiver> f_observable_event_receiver)
     : osClock{f_osClock},
       cycleTimer{&osClock},
-      swClusterHandler{},
+      swClusterHandler{std::make_unique<factory::FlatCfgFactory>()},
       processStateReader{std::move(f_observable_event_receiver)}
 {
     static_cast<void>(f_osClock);
@@ -57,9 +57,18 @@ void PhmDaemon::performCyclicTriggers(void)
 
 bool PhmDaemon::construct(const Config& config) noexcept(false)
 {
+    const std::size_t supervised_components = std::count_if(
+        config.components().begin(), config.components().end(), [](const configuration::ComponentConfig& component) {
+            return component.component_properties.application_profile.alive_supervision.has_value();
+        });
+
+    swClusterHandler.reserve(supervised_components);
+
     // In a later refactoring step, components will register their own alive supervision and provide their identifier.
-    // For now, we must construct this vector to link the id to the alive supervision
-    std::vector<std::pair<IdentifierHash, ComponentAliveSupervision>> component_configs;
+    // For now, we iterate through them all here.
+
+    LM_LOG_DEBUG() << "Software Cluster Handler starts constructing workers";
+
     for (const auto& comp : config.components())
     {
         if (!comp.component_properties.application_profile.alive_supervision.has_value())
@@ -67,16 +76,17 @@ bool PhmDaemon::construct(const Config& config) noexcept(false)
             continue;
         }
         const auto& alive = comp.component_properties.application_profile.alive_supervision.value();
-        component_configs.emplace_back(IdentifierHash{comp.name}, alive);
+        const auto name = IdentifierHash{comp.name};
+        const auto uid = comp.deployment_config.sandbox.uid;
+        if (!swClusterHandler.constructWorker(name, alive, uid, recoveryClient, processStateReader))
+        {
+
+            LM_LOG_ERROR() << "Software Cluster Handler is unable to construct the required worker objects.";
+            return false;
+        }
     }
 
-    const auto res =
-        swClusterHandler.constructWorkers(std::move(component_configs), recoveryClient, processStateReader);
-    if (!res)
-    {
-        LM_LOG_ERROR() << "Software Cluster Handler is unable to construct the required worker objects.";
-    }
-    return res;
+    return true;
 }
 
 }  // namespace score::mw::lifecycle::internal::saf::daemon

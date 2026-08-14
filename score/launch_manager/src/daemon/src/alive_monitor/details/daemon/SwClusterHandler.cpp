@@ -13,7 +13,6 @@
 
 #include "score/mw/launch_manager/alive_monitor/details/daemon/SwClusterHandler.hpp"
 #include "score/launch_manager/src/daemon/src/common/log.hpp"
-#include "score/mw/launch_manager/alive_monitor/details/factory/FlatCfgFactory.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifappl/Checkpoint.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifappl/MonitorIfDaemon.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/supervision/Alive.hpp"
@@ -21,60 +20,54 @@
 namespace score::mw::lifecycle::internal::saf::daemon
 {
 
-SwClusterHandler::SwClusterHandler()
-    : processStates{}, aliveIfIpcs{}, aliveInterfaces{}, checkpoints{}, aliveSupervisions{}
+SwClusterHandler::SwClusterHandler(std::unique_ptr<factory::IPhmFactory> factory)
+    : processStates{},
+      aliveIfIpcs{},
+      aliveInterfaces{},
+      checkpoints{},
+      aliveSupervisions{},
+      flatCfgFactory{std::move(factory)}
 {
 }
 
 SwClusterHandler::~SwClusterHandler() = default;
 
-/* RULECHECKER_comment(0, 3, check_max_cyclomatic_complexity, "Max cyclomatic complexity violation\
-   is tolerated for this function. ", true_no_defect) */
-bool SwClusterHandler::constructWorkers(
-    const std::vector<std::pair<IdentifierHash, ComponentAliveSupervision>>&& component_config,
+void SwClusterHandler::reserve(std::size_t size)
+{
+    processStates.reserve(size);
+    aliveIfIpcs.reserve(size);
+    aliveInterfaces.reserve(size);
+    checkpoints.reserve(size);
+    aliveSupervisions.reserve(size);
+}
+
+bool SwClusterHandler::constructWorker(
+    const IdentifierHash& id,
+    const ComponentAliveSupervision& component_config,
+    const uid_t uid,
     std::shared_ptr<mw::lifecycle::IRecoveryClient> f_recoveryClient_r,
     ifexm::ObservableEventReader& f_processStateReader_r) noexcept(false)
 {
-    factory::FlatCfgFactory flatCfgFactory{};
-
-    LM_LOG_DEBUG() << "Software Cluster Handler starts constructing workers";
-
-    processStates.reserve(component_config.size());
-    aliveIfIpcs.reserve(component_config.size());
-    aliveInterfaces.reserve(component_config.size());
-    checkpoints.reserve(component_config.size());
-    aliveSupervisions.reserve(component_config.size());
-
-    for (const auto& component : component_config)
+    if (!flatCfgFactory->createObservableEvent(processStates, id, f_processStateReader_r))
     {
-        if (!flatCfgFactory.createObservableEvent(processStates, component.first, f_processStateReader_r))
-        {
-            return false;
-        }
-        // TODO: Need to get the real UID
-        if (!flatCfgFactory.createAliveIfIpc(aliveIfIpcs, component.first, 0))
-        {
-            return false;
-        }
-        if (!flatCfgFactory.createAliveIf(aliveInterfaces, aliveIfIpcs.back(), processStates.back()))
-        {
-            return false;
-        }
-        if (!flatCfgFactory.createSupervisionCheckpoint(
-                checkpoints, aliveInterfaces.back(), processStates.back(), component.first))
-        {
-            return false;
-        }
-        if (!flatCfgFactory.createAliveSupervision(
-                aliveSupervisions,
-                checkpoints.back(),
-                processStates.back(),
-                f_recoveryClient_r,
-                component.first,
-                component.second))
-        {
-            return false;
-        }
+        return false;
+    }
+    if (!flatCfgFactory->createAliveIfIpc(aliveIfIpcs, id, uid))
+    {
+        return false;
+    }
+    if (!flatCfgFactory->createAliveIf(aliveInterfaces, aliveIfIpcs.back(), processStates.back()))
+    {
+        return false;
+    }
+    if (!flatCfgFactory->createSupervisionCheckpoint(checkpoints, aliveInterfaces.back(), processStates.back(), id))
+    {
+        return false;
+    }
+    if (!flatCfgFactory->createAliveSupervision(
+            aliveSupervisions, checkpoints.back(), processStates.back(), f_recoveryClient_r, id, component_config))
+    {
+        return false;
     }
 
     return true;

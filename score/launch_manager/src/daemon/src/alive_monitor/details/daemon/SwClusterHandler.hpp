@@ -14,6 +14,7 @@
 #ifndef SWCLUSTERHANDLER_HPP_INCLUDED
 #define SWCLUSTERHANDLER_HPP_INCLUDED
 
+#include "score/mw/launch_manager/alive_monitor/details/factory/IPhmFactory.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifappl/DataStructures.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ObservableEvent.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ObservableEventReader.hpp"
@@ -63,7 +64,7 @@ class SwClusterHandler
 {
   public:
     /// @brief Constructor
-    explicit SwClusterHandler();
+    explicit SwClusterHandler(std::unique_ptr<factory::IPhmFactory> factory);
 
     /// @brief Destroys the workers
     virtual ~SwClusterHandler();
@@ -86,15 +87,19 @@ class SwClusterHandler
     /// @brief No Move Assignment
     SwClusterHandler& operator=(SwClusterHandler&&) = delete;
 
+    void reserve(std::size_t size);
+
     /// @brief Construct required worker objects for the Software Cluster
     /// @details Construct the interfaces, checkpoints, supervisions and recovery notifications
     /// @param [in] f_recoveryClient_r       Interface to the launch manager for recovery
     /// @param [in] f_processStateReader_r   Process state reader object for PHM daemon
     /// @param [in] f_bufferConfig_r           Configuration settings for constructing workers
     /// @return                              Construction is successful (true), otherwise failure (false)
-    bool constructWorkers(
-        const std::vector<std::pair<IdentifierHash, ComponentAliveSupervision>>&& component_config,
-        std::shared_ptr<score::mw::lifecycle::IRecoveryClient> f_recoveryClient_r,
+    bool constructWorker(
+        const IdentifierHash& id,
+        const ComponentAliveSupervision& component_config,
+        const uid_t uid,
+        std::shared_ptr<mw::lifecycle::IRecoveryClient> f_recoveryClient_r,
         ifexm::ObservableEventReader& f_processStateReader_r) noexcept(false);
 
     /// @brief Perform cyclic execution
@@ -131,6 +136,8 @@ class SwClusterHandler
 
     /// Vector of Alive Supervisions
     std::vector<supervision::Alive> aliveSupervisions;
+
+    std::unique_ptr<factory::IPhmFactory> flatCfgFactory;
 };
 
 }  // namespace daemon
