@@ -48,7 +48,7 @@ def test_lm_control_ipc(target, setup_test, assert_test_results, remote_test_dir
 
     # Start the LM skeleton stub — runs in the background.
     logger.info("Starting lm_skeleton_stub")
-    lm_proc = target.execute_async(lm_stub, args=[lm_config], cwd=str(test_dir))
+    lm_proc = target.execute_async(lm_stub, args=["--service_instance_manifest", lm_config], cwd=str(test_dir))
 
     # Wait for the skeleton to offer the service.
     # ILmControl::Create polls for up to 2 s, so 3 s gives ample margin.

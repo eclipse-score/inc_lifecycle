@@ -13,15 +13,9 @@
 
 #include "lm_control_server.hpp"
 
-#include <chrono>
 #include <cstdlib>
-#include <iostream>
-#include <thread>
 
 #include "score/mw/launch_manager/common/log.hpp"
-
-// DEBUG helpers — remove once IPC delivery is confirmed stable.
-#define DBG_SKELETON(msg) std::cout<< "[LmControlServer DEBUG] " << msg << std::endl
 
 namespace score::mw::launch_manager::control
 {
@@ -32,8 +26,9 @@ constexpr std::string_view kDefaultInstanceSpecifier = "LaunchManager/StateManag
 constexpr const char*      kInstanceSpecifierEnvVar  = "SCORE_LCM_SKELETON_INSTANCE_SPECIFIER";
 }  // namespace
 
-LmControlServer::LmControlServer(std::string_view instance_specifier)
-    : instance_specifier_{instance_specifier.empty()
+LmControlServer::LmControlServer(IGraph& graph, std::string_view instance_specifier)
+    : graph_{graph}
+    , instance_specifier_{instance_specifier.empty()
                               ? (std::getenv(kInstanceSpecifierEnvVar) != nullptr
                                      ? std::getenv(kInstanceSpecifierEnvVar)
                                      : std::string{kDefaultInstanceSpecifier})
@@ -114,41 +109,20 @@ void LmControlServer::Shutdown()
 lifecycle::ActivateRunTargetResponse LmControlServer::OnActivateRunTarget(
         const lifecycle::ActivateRunTargetRequest& request)
 {
-    LM_LOG_INFO() << "LmControlServer: ActivateRunTarget stub — run_target="
-                  << request.run_target_name;
-    DBG_SKELETON("OnActivateRunTarget: run_target='" << request.run_target_name << "'");
+    LM_LOG_INFO() << "LmControlServer: ActivateRunTarget run_target=" << request.run_target_name;
 
-    // Send activation_result from a separate thread after a 1-second delay.
-    if (skeleton_.has_value())
+    const bool force      = (request.mode == lifecycle::ActivationMode::kForced);
+    const auto request_id = next_request_id_++;
+    const bool accepted   = graph_.enqueueRunTargetActivation(
+            RunTargetRequest{request.run_target_name, force, request_id});
+
+    if (!accepted)
     {
-        const auto run_target = request.run_target_name;
-        std::thread([this, run_target]() {
-            std::this_thread::sleep_for(std::chrono::seconds(1));
-
-            if (!skeleton_.has_value())
-            {
-                DBG_SKELETON("activation_result: skeleton gone before delayed Send");
-                return;
-            }
-
-            auto alloc = skeleton_->activation_result.Allocate();
-            if (!alloc.has_value())
-            {
-                DBG_SKELETON("activation_result.Allocate() failed — event not sent");
-                return;
-            }
-
-            alloc.value().Get()->activated_run_target = run_target;
-            alloc.value().Get()->activation_source =
-                lifecycle::RunTargetActivationSource::kStateManagerRequest;
-            DBG_SKELETON("activation_result.Send: run_target='" << run_target << "'");
-            skeleton_->activation_result.Send(std::move(alloc).value());
-            DBG_SKELETON("activation_result.Send: done");
-        }).detach();
-    }
-    else
-    {
-        DBG_SKELETON("OnActivateRunTarget: skeleton not available — event not sent");
+        LM_LOG_ERROR() << "LmControlServer: ActivateRunTarget rejected run_target="
+                       << request.run_target_name;
+        return lifecycle::ActivateRunTargetResponse{
+            lifecycle::RequestStatus::kRejected,
+            lifecycle::ExecErrc::kGeneralError};
     }
 
     return lifecycle::ActivateRunTargetResponse{
@@ -159,14 +133,44 @@ lifecycle::ActivateRunTargetResponse LmControlServer::OnActivateRunTarget(
 
 lifecycle::GetActiveRunTargetResponse LmControlServer::OnGetActiveRunTarget()
 {
-    LM_LOG_DEBUG() << "LmControlServer: GetActiveRunTarget stub";
-    DBG_SKELETON("OnGetActiveRunTarget: returning 'Running'");
+    const auto active = graph_.getActiveRunTarget();
+    if (!active.has_value())
+    {
+        LM_LOG_DEBUG() << "LmControlServer: GetActiveRunTarget — activation in progress";
+        return lifecycle::GetActiveRunTargetResponse{
+            lifecycle::QueryStatus::kNotAvailable,
+            lifecycle::RunTargetName{},
+            lifecycle::ExecErrc::kActivationInProgress};
+    }
 
+    LM_LOG_DEBUG() << "LmControlServer: GetActiveRunTarget — returning " << active.value();
     return lifecycle::GetActiveRunTargetResponse{
         lifecycle::QueryStatus::kAvailable,
-        lifecycle::RunTargetName{"Running"},
+        lifecycle::RunTargetName{active.value()},
         lifecycle::ExecErrc::kGeneralError  // unused when kAvailable
     };
+}
+
+void LmControlServer::activationCompleted(std::string_view runTarget, std::optional<std::int32_t> requestId)
+{
+    if (!skeleton_.has_value())
+    {
+        LM_LOG_ERROR() << "LmControlServer: activationCompleted — skeleton not available, event not sent";
+        return;
+    }
+
+    auto alloc = skeleton_->activation_result.Allocate();
+    if (!alloc.has_value())
+    {
+        LM_LOG_ERROR() << "LmControlServer: activationCompleted — Allocate() failed, event not sent";
+        return;
+    }
+
+    alloc.value().Get()->activated_run_target = lifecycle::RunTargetName{runTarget};
+    alloc.value().Get()->activation_source =
+        requestId.has_value() ? lifecycle::RunTargetActivationSource::kStateManagerRequest
+                               : lifecycle::RunTargetActivationSource::kRecoveryAction;
+    skeleton_->activation_result.Send(std::move(alloc).value());
 }
 
 }  // namespace score::mw::launch_manager::control

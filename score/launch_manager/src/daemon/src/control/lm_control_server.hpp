@@ -13,6 +13,7 @@
 #ifndef SCORE_MW_LAUNCH_MANAGER_CONTROL_LM_CONTROL_SERVER_HPP
 #define SCORE_MW_LAUNCH_MANAGER_CONTROL_LM_CONTROL_SERVER_HPP
 
+#include <cstdint>
 #include <optional>
 #include <string_view>
 
@@ -21,22 +22,50 @@
 namespace score::mw::launch_manager::control
 {
 
+/// @brief Internal request to activate a Run Target, correlated to its
+///        completion via requestId.
+struct RunTargetRequest
+{
+    lifecycle::RunTargetName runTargetName;
+    bool                     force;
+    std::int32_t             requestId;
+};
+
+/// @brief Abstraction over the process graph that LmControlServer delegates to.
+class IGraph
+{
+  public:
+    virtual ~IGraph() noexcept = default;
+
+    /// @return the currently active Run Target, or nullopt while an
+    ///         activation is in progress.
+    virtual std::optional<std::string_view> getActiveRunTarget() = 0;
+
+    /// @return true if the request was accepted/enqueued, false if rejected.
+    virtual bool enqueueRunTargetActivation(RunTargetRequest request) = 0;
+
+  protected:
+    IGraph()                         = default;
+    IGraph(const IGraph&)            = default;
+    IGraph& operator=(const IGraph&) = default;
+    IGraph(IGraph&&)                 = default;
+    IGraph& operator=(IGraph&&)      = default;
+};
+
 /// @brief Hosts the mw::com LmControl skeleton on the Launch Manager side.
 ///
 /// Offers the LmControlService over mw::com so that State Managers can call
-/// activate_run_target and get_active_run_target via the proxy.
-///
-/// @note [transitional] Handlers are stubs — they do not delegate to
-///       ProcessGroupManager. The activation result is sent immediately with
-///       the requested Run Target echoed back. Replace with real
-///       IGraphControl wiring in Stage 3.
+/// activate_run_target and get_active_run_target via the proxy. Delegates
+/// the actual Run Target querying and activation to an injected IGraph.
 class LmControlServer final
 {
   public:
+    /// @param graph               The graph to delegate Run Target queries and
+    ///                            activations to. Must outlive this instance.
     /// @param instance_specifier  The mw::com instance specifier for the
     ///                            skeleton. Reads SCORE_LCM_SKELETON_INSTANCE_SPECIFIER
     ///                            from the environment if empty.
-    explicit LmControlServer(std::string_view instance_specifier = {});
+    explicit LmControlServer(IGraph& graph, std::string_view instance_specifier = {});
 
     ~LmControlServer() noexcept;
 
@@ -52,14 +81,24 @@ class LmControlServer final
     /// @brief Stop offering the service and destroy the skeleton.
     void Shutdown();
 
+    /// @brief Notify that a Run Target activation has settled. Sends the
+    ///        activation_result event to all subscribed proxies.
+    /// @param runTarget  The Run Target the graph settled on.
+    /// @param requestId  The id of the request that triggered this activation,
+    ///                   or nullopt if the activation was not tied to a
+    ///                   specific request (e.g. a recovery action).
+    void activationCompleted(std::string_view runTarget, std::optional<std::int32_t> requestId);
+
   private:
     lifecycle::ActivateRunTargetResponse OnActivateRunTarget(
             const lifecycle::ActivateRunTargetRequest& request);
 
     lifecycle::GetActiveRunTargetResponse OnGetActiveRunTarget();
 
-    std::string instance_specifier_;
-    std::optional<lifecycle::LmControlSkeleton> skeleton_;
+    IGraph&                                      graph_;
+    std::string                                  instance_specifier_;
+    std::optional<lifecycle::LmControlSkeleton>  skeleton_;
+    std::int32_t                                 next_request_id_{0};
 };
 
 }  // namespace score::mw::launch_manager::control
