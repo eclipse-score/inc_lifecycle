@@ -29,7 +29,10 @@ pkg_tar(
 oci_image(
     name = "image",
     base = "@debian-test-runtime",
-    target_compatible_with = ["@platforms//os:linux"],
+    target_compatible_with = [
+        "@platforms//cpu:x86_64",
+        "@platforms//os:linux",
+    ],
     tars = [":ecu_logging_config_layer"],
 )
 
@@ -37,7 +40,10 @@ oci_load(
     name = "x86_64-linux",
     image = ":image",
     repo_tags = ["score_itf_examples:latest"],
-    target_compatible_with = ["@platforms//os:linux"],
+    target_compatible_with = [
+        "@platforms//cpu:x86_64",
+        "@platforms//os:linux",
+    ],
     visibility = [
         "//examples:__subpackages__",
         "//tests:__subpackages__",

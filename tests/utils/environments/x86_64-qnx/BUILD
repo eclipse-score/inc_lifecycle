@@ -32,7 +32,10 @@ qnx_ifs(
     name = "qemu_image",
     srcs = [":logging_config.json"],
     build_file = ":init.build",
-    target_compatible_with = ["@platforms//os:qnx"],
+    target_compatible_with = [
+        "@platforms//cpu:x86_64",
+        "@platforms//os:qnx",
+    ],
     visibility = [
         "//examples:__subpackages__",
         "//tests:__subpackages__",

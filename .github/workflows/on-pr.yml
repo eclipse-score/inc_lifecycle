@@ -28,13 +28,17 @@ jobs:
       contents: read
     uses: eclipse-score/cicd-workflows/.github/workflows/on-pr.yml@on-pr/v0.0.0
 
-  build:
-    name: Build ${{ matrix.bazel-config }}
-    runs-on: ubuntu-latest
+  build-and-test:
+    name: Build and test ${{ matrix.bazel-config }}
+    runs-on: ${{ matrix.runs-on }}
     strategy:
       fail-fast: false
       matrix:
-        bazel-config: [x86_64-linux, arm64-linux]
+        include:
+          - bazel-config: x86_64-linux
+            runs-on: ubuntu-24.04
+          - bazel-config: arm64-linux
+            runs-on: ubuntu-24.04-arm
     permissions:
       contents: read
     steps:
@@ -51,22 +55,23 @@ jobs:
 
       - name: Build with Bazel
         run: |
-          bazel build --lockfile_mode=error --config ${{ matrix.bazel-config }} //score/... //examples/...
+          bazel build \
+            --lockfile_mode=error \
+            --config=${{ matrix.bazel-config }} \
+            --host_platform=@score_bazel_platforms//:${{ matrix.bazel-config }} \
+            //examples/... \
+            //score/...
 
-  test:
-    name: Test ${{ matrix.bazel-config }}
-    strategy:
-      fail-fast: false
-      matrix:
-        bazel-config: [x86_64-linux, arm64-linux]
-        # TODO: GitHub provides ARM servers but the workflow template does not allow to use them.
-        exclude:
-          - bazel-config: arm64-linux
-    uses: eclipse-score/cicd-workflows/.github/workflows/tests.yml@93aac16ada7d247bbb6ae926509ddea74cf5213a # v0.0.2
-    permissions:
-      contents: read
-    with:
-      bazel-target: 'test --lockfile_mode=error //score/... //tests/... //scripts/... --config=${{ matrix.bazel-config }}'
+      - name: Test with Bazel
+        run: |
+          bazel test \
+            --lockfile_mode=error \
+            --config=${{ matrix.bazel-config }} \
+            --host_platform=@score_bazel_platforms//:${{ matrix.bazel-config }} \
+            //examples/... \
+            //score/... \
+            //scripts/... \
+            //tests/...
 
   reference-integration:
     name: Reference integration
@@ -211,8 +216,7 @@ jobs:
     name: Ready to merge
     needs:
       - common
-      - build
-      - test
+      - build-and-test
       - reference-integration
       - sanitizers
       - clippy

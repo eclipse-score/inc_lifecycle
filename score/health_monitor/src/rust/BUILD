@@ -11,7 +11,8 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-load("@rules_rust//rust:defs.bzl", "miri_test", "rust_library", "rust_static_library", "rust_test")
+load("@rules_rust//rust:defs.bzl", "rust_library", "rust_static_library", "rust_test")
+load("@score_rules_rust//rust:defs.bzl", "miri_test")
 
 COMMON_RUST_DEPS = [
     "@score_baselibs//src/containers:containers",
@@ -128,8 +129,14 @@ miri_test(
         "no-asan",
     ],
     target_compatible_with = select({
-        "//config:unit_qemu": ["@platforms//os:linux"],
-        "//config:unit_host": ["@platforms//os:linux"],
+        "//config:unit_qemu": [
+            "@platforms//cpu:x86_64",
+            "@platforms//os:linux",
+        ],
+        "//config:unit_host": [
+            "@platforms//cpu:x86_64",
+            "@platforms//os:linux",
+        ],
         "//conditions:default": ["@platforms//:incompatible"],
     }),
 )
