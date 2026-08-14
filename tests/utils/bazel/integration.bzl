@@ -84,6 +84,7 @@ def integration_test(
         "//conditions:default": [],
     })
     final_args = kwargs.pop("args", []) + [
+        "-p attribute_plugin",
         "--score-test-binary-path=$(locations :environment)",
         "--score-test-remote-directory={}/tests/{}".format(install_prefix, name),
     ] + select({
