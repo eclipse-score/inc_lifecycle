@@ -37,7 +37,7 @@ class LmControlIPCTest : public ::testing::Test
     std::unique_ptr<ILmControl> lm_;
 };
 
-TEST_F(LmControlIPCTest, CallingAPI)
+TEST_F(LmControlIPCTest, LmControlAPI)
 {
     TEST_STEP("GetActiveRunTarget returns Running")
     {
@@ -88,6 +88,36 @@ TEST_F(LmControlIPCTest, CallingAPI)
         ASSERT_EQ(future.wait_for(std::chrono::seconds(1)), std::future_status::ready);
         EXPECT_EQ(name.value(), "Recovery");
         EXPECT_EQ(source.value(), RunTargetActivationSource::kRecoveryAction);
+    }
+
+    TEST_STEP("Can call ActivateRunTarget multiple times and get multiple callbacks")
+    {
+        std::vector<RunTargetName> names;
+        std::vector<RunTargetActivationSource> sources;
+        std::promise<void> sync_promise;
+        auto future = sync_promise.get_future();
+
+        lm_->register_run_target_activation_callback(
+            [&sync_promise, &names, &sources](RunTargetActivationSource s, RunTargetName n) {
+                sources.push_back(s);
+                names.push_back(n);
+                if (names.size() == 2)
+                {
+                    sync_promise.set_value();
+                }
+            });
+
+        auto result1 = lm_->activate_run_target("Running1");
+        ASSERT_TRUE(result1.has_value());
+
+        auto result2 = lm_->activate_run_target("Running2");
+        ASSERT_TRUE(result2.has_value());
+
+        ASSERT_EQ(future.wait_for(std::chrono::seconds(1)), std::future_status::ready);
+        EXPECT_EQ(names[0], "Running1");
+        EXPECT_EQ(sources[0], RunTargetActivationSource::kStateManagerRequest);
+        EXPECT_EQ(names[1], "Running2");
+        EXPECT_EQ(sources[1], RunTargetActivationSource::kStateManagerRequest);
     }
 }
 

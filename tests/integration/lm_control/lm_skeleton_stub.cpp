@@ -60,10 +60,10 @@ class StubGraph final : public IGraph
 
     /// @brief Settle all queued activations. Must be called from the main loop.
     ///
-    /// Simulates a recovery action: activating "FailRunning" is treated as a
-    /// failure that the graph recovers from by settling on "Recovery" instead,
-    /// reported with no requestId so activationCompleted attributes it to
-    /// RunTargetActivationSource::kRecoveryAction.
+    /// Simulates a recovery action: activating a Run Target whose name starts
+    /// with "Fail" is treated as a failure that the graph recovers from by
+    /// settling on "Recovery" instead, reported with no requestId so
+    /// activationCompleted attributes it to RunTargetActivationSource::kRecoveryAction.
     void processRequests()
     {
         std::vector<RunTargetRequest> requests;
@@ -79,7 +79,7 @@ class StubGraph final : public IGraph
                 continue;
             }
 
-            if (request.runTargetName.as_string_view() == "FailRunning")
+            if (request.runTargetName.as_string_view().rfind("Fail", 0) == 0)
             {
                 server_->activationCompleted("Recovery", std::nullopt);
             }
@@ -105,7 +105,7 @@ int main(int argc, const char* argv[])
 {
     if (argc < 2)
     {
-        std::cerr << "Usage: lm_skeleton_stub <mw_com_config.json>\n";
+        std::cerr << "Usage: lm_skeleton_stub --service_instance_manifest <mw_com_config.json>\n";
         return 1;
     }
 

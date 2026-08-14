@@ -46,8 +46,8 @@
           "events": [
             {
               "eventName": "ActivationResult",
-              "numberOfSampleSlots": 1,
-              "maxSubscribers": 5
+              "numberOfSampleSlots": 8,
+              "maxSubscribers": 1
             }
           ],
           "methods": [
