@@ -90,13 +90,19 @@ LmControlImpl::LmControlImpl(std::string_view instance_specifier) noexcept
     });
     DBG_PROXY("SetReceiveHandler registered");
 
+    // Looks like the Warmup call is not needed...
+    // Maybe the problem was sending the event from the
+    // LmControlServer::OnActivateRunTarget() --> skeleton side
+    // Maybe we need to send events from a separate thread...
+    // But why polling is not working???
+    //
     // Warmup: call GetNewSamples once to signal to the skeleton that this proxy
     // is actively reading. This triggers the skeleton to establish its reverse
     // notification channel (LoLa skeleton→proxy socket) before the first event
     // is sent, so the SetReceiveHandler notification arrives reliably.
-    proxy_->activation_result.GetNewSamples(
-        [](score::mw::com::SamplePtr<ActivationResult>) noexcept {}, 1U);
-    DBG_PROXY("Warmup GetNewSamples called");
+    //proxy_->activation_result.GetNewSamples(
+    //    [](score::mw::com::SamplePtr<ActivationResult>) noexcept {}, 1U);
+    //DBG_PROXY("Warmup GetNewSamples called");
 }
 
 LmControlImpl::~LmControlImpl() noexcept
