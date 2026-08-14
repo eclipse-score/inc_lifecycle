@@ -22,8 +22,8 @@ repos:
         pass_filenames: false
       - id: test-doubles-naming-fix
         name: Check and fix test double file names
-        entry: python3 ./scripts/fix_test_doubles_naming_precommit.py
-        language: system
+        entry: ./scripts/fix_test_doubles_naming_precommit.py
+        language: python
         files: '\.(cc|cpp|h|hpp)$'
         pass_filenames: true
   - repo: https://github.com/pocc/pre-commit-hooks

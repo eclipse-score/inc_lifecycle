@@ -39,7 +39,7 @@ class TestDoubleName(Enum):
     FAKE = "fake"
 
     @staticmethod
-    def from_path(path: Path):
+    def from_path(path: Path) -> "TestDoubleName":
         for double in TestDoubleName:
             if double.value in str(path):
                 return double
@@ -58,16 +58,6 @@ class RenameOperation:
 
     source: Path
     target: Path
-
-
-def split_name_and_extension(path: Path) -> tuple[str, str]:
-    """
-    Split a path into a file name and file extension.
-    """
-    suffix = "".join(path.suffixes)
-    if suffix:
-        return path.name[: -len(suffix)], suffix
-    return path.name, ""
 
 
 def normalize_base_name(old_name: str) -> str:
@@ -91,7 +81,7 @@ def build_target_name(path: Path) -> Path | None:
     """
     Create a path containing the corrected name of the test double
     """
-    filename, extension = split_name_and_extension(path)
+    filename, extension = path.stem, path.suffix
     test_double_name = TestDoubleName.from_path(path).value
 
     base = normalize_base_name(filename)
@@ -144,6 +134,12 @@ def define_operations(filenames: list[str]) -> list[RenameOperation]:
         if has_multiple_double_names(path):
             raise ValueError(
                 f"Invalid file name {path} contains multiple double names."
+            )
+
+        # Error if there is more than one file extension
+        if len(path.suffixes) > 1:
+            raise ValueError(
+                f"More than one file extension found for test double {path}. Fix this!"
             )
 
         target_name = build_target_name(path)
