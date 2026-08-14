@@ -46,6 +46,7 @@ cc_library(
     ],
     deps = [
         "//score/launch_manager:error",
+        "//score/launch_manager/src/daemon/src/common:log",
         "@score_baselibs//score/result",
         "@score_communication//score/mw/com",
     ],

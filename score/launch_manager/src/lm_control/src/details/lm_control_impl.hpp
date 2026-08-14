@@ -18,15 +18,15 @@
 #include <optional>
 #include <string_view>
 
-#include "score/mw/lifecycle/ilm_control.hpp"
 #include "lm_control_service.h"
+#include "score/mw/lifecycle/ilm_control.hpp"
 
 namespace score::mw::lifecycle
 {
 
-/// @brief Real mw::com proxy-based implementation of ILmControl.
+/// @brief mw::com proxy-based implementation of ILmControl.
 ///
-/// Connects to the Launch Manager's LmControlSkeleton via mw::com SHM transport.
+/// Connects to the Launch Manager's LmControlSkeleton via mw::com.
 /// Construction starts an asynchronous service discovery (StartFindService) that
 /// keeps searching for the instance in the background. Construction itself
 /// succeeds as long as the instance specifier is valid and StartFindService was
@@ -39,18 +39,14 @@ class LmControlImpl final : public ILmControl
     ~LmControlImpl() noexcept override;
 
     /// @brief Error that occurred during construction, or nullopt on success.
-    ///
-    /// Populated only when the instance specifier was malformed
-    /// (kInvalidArguments) or the mw::com StartFindService call failed
-    /// (kCommunicationError). A missing service instance is not an error here —
-    /// discovery keeps running in the background.
-    std::optional<ExecErrc> InitError() const noexcept { return init_error_; }
+    std::optional<ExecErrc> getInitError() const noexcept
+    {
+        return init_error_;
+    }
 
-    score::Result<void> activate_run_target(RunTargetName runTargetName,
-                                             bool force = false) override;
+    score::Result<void> activate_run_target(RunTargetName runTargetName, bool force = false) override;
 
-    score::Result<void> register_run_target_activation_callback(
-            ActivationCallback callback) override;
+    score::Result<void> register_run_target_activation_callback(ActivationCallback callback) override;
 
     score::Result<RunTargetName> get_active_run_target() override;
 
@@ -58,9 +54,10 @@ class LmControlImpl final : public ILmControl
     /// @brief Invoked by mw::com whenever service availability changes. On the
     ///        first matching instance it creates the proxy, subscribes to
     ///        activation results, and stops the ongoing discovery.
-    void OnServiceFound(score::mw::com::ServiceHandleContainer<LmControlProxy::HandleType> handles,
-                        score::mw::com::FindServiceHandle find_handle) noexcept;
-    void OnActivationResult();
+    void onServiceFound(
+        score::mw::com::ServiceHandleContainer<LmControlProxy::HandleType> handles,
+        score::mw::com::FindServiceHandle find_handle) noexcept;
+    void onActivationResult();
 
     // Error captured during construction (nullopt on success).
     std::optional<ExecErrc> init_error_;

@@ -17,14 +17,11 @@
 namespace score::mw::lifecycle
 {
 
-score::Result<std::unique_ptr<ILmControl>> ILmControl::Create(
-        std::string_view instance_specifier)
+score::Result<std::unique_ptr<ILmControl>> ILmControl::Create(std::string_view instance_specifier)
 {
     auto impl = std::make_unique<LmControlImpl>(instance_specifier);
-    // Construction only fails for a malformed specifier or a failed StartFindService;
-    // a not-yet-available service instance is not an error (discovery continues in
-    // the background and method calls return kCommunicationError until it appears).
-    if (const auto init_error = impl->InitError(); init_error.has_value())
+    const auto init_error = impl->getInitError();
+    if (init_error)
     {
         return score::MakeUnexpected(init_error.value());
     }

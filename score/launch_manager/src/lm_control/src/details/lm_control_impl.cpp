@@ -13,11 +13,9 @@
 
 #include "lm_control_impl.hpp"
 
-#include <iostream>
 #include <utility>
 
-// DEBUG helpers — remove once IPC delivery is confirmed stable.
-#define DBG_PROXY(msg) std::cout << "[LmControlImpl DEBUG] " << msg << std::endl
+#include "score/mw/launch_manager/common/log.hpp"
 
 namespace score::mw::lifecycle
 {
@@ -32,25 +30,22 @@ LmControlImpl::LmControlImpl(std::string_view instance_specifier) noexcept
     auto specifier_result = score::mw::com::InstanceSpecifier::Create(std::string{instance_specifier});
     if (!specifier_result.has_value())
     {
-        DBG_PROXY("InstanceSpecifier::Create failed for: " << instance_specifier);
+        LM_LOG_ERROR() << "LmControlImpl: InstanceSpecifier::Create failed for: " << instance_specifier;
         init_error_ = ExecErrc::kInvalidArguments;
         return;
     }
 
-    // Start asynchronous, background service discovery. The handler runs on a
-    // mw::com thread whenever availability changes; it wires up the proxy on the
-    // first matching instance. Construction succeeds even if the instance is not
-    // available yet — discovery keeps running until it appears.
     auto start_result = LmControlProxy::StartFindService(
-        [this](score::mw::com::ServiceHandleContainer<LmControlProxy::HandleType> handles,
-               score::mw::com::FindServiceHandle find_handle) noexcept {
-            OnServiceFound(std::move(handles), find_handle);
+        [this](
+            score::mw::com::ServiceHandleContainer<LmControlProxy::HandleType> handles,
+            score::mw::com::FindServiceHandle find_handle) noexcept {
+            onServiceFound(std::move(handles), find_handle);
         },
         std::move(specifier_result).value());
 
     if (!start_result.has_value())
     {
-        DBG_PROXY("StartFindService failed — no background discovery running");
+        LM_LOG_ERROR() << "LmControlImpl: StartFindService failed — no background discovery running";
         init_error_ = ExecErrc::kCommunicationError;
         return;
     }
@@ -64,8 +59,9 @@ LmControlImpl::LmControlImpl(std::string_view instance_specifier) noexcept
     }
 }
 
-void LmControlImpl::OnServiceFound(score::mw::com::ServiceHandleContainer<LmControlProxy::HandleType> handles,
-                                   score::mw::com::FindServiceHandle find_handle) noexcept
+void LmControlImpl::onServiceFound(
+    score::mw::com::ServiceHandleContainer<LmControlProxy::HandleType> handles,
+    score::mw::com::FindServiceHandle find_handle) noexcept
 {
     std::lock_guard<std::mutex> lock{mutex_};
 
@@ -78,34 +74,30 @@ void LmControlImpl::OnServiceFound(score::mw::com::ServiceHandleContainer<LmCont
     auto create_result = LmControlProxy::Create(handles.front());
     if (!create_result.has_value())
     {
-        DBG_PROXY("Proxy::Create failed");
+        LM_LOG_ERROR() << "LmControlImpl: Proxy::Create failed";
         return;
     }
     proxy_.emplace(std::move(create_result).value());
-    DBG_PROXY("Proxy created successfully");
+    LM_LOG_INFO() << "LmControlImpl: proxy created successfully";
 
-    // Subscribe to activation_result events. Buffer several samples so that
-    // multiple activations settled back-to-back on the skeleton side are all
-    // delivered rather than the latest overwriting earlier ones in a single
-    // consumer slot. Must not exceed the provider's numberOfSampleSlots.
     auto subscribe_result = proxy_->activation_result.Subscribe(kActivationResultSampleCount);
     if (!subscribe_result.has_value())
     {
-        DBG_PROXY("activation_result.Subscribe failed — GetNewSamples will always return nothing");
+        LM_LOG_ERROR() << "LmControlImpl: activation_result.Subscribe failed — GetNewSamples will always return nothing";
         proxy_.reset();
         return;
     }
 
     proxy_->activation_result.SetReceiveHandler([this]() {
-        OnActivationResult();
+        onActivationResult();
     });
-    DBG_PROXY("SetReceiveHandler registered");
+    LM_LOG_DEBUG() << "LmControlImpl: SetReceiveHandler registered";
 
     // First matching instance is wired up — stop the ongoing discovery.
     auto stop_result = LmControlProxy::StopFindService(find_handle);
     if (!stop_result.has_value())
     {
-        DBG_PROXY("StopFindService failed");
+        LM_LOG_ERROR() << "LmControlImpl: StopFindService failed";
     }
     find_service_stopped_ = true;
 
@@ -120,7 +112,7 @@ LmControlImpl::~LmControlImpl() noexcept
         std::lock_guard<std::mutex> lock{mutex_};
         if (!find_service_stopped_ && find_handle_.has_value())
         {
-            handle_to_stop        = find_handle_;
+            handle_to_stop = find_handle_;
             find_service_stopped_ = true;
         }
     }
@@ -129,14 +121,14 @@ LmControlImpl::~LmControlImpl() noexcept
         auto stop_result = LmControlProxy::StopFindService(handle_to_stop.value());
         if (!stop_result.has_value())
         {
-            DBG_PROXY("StopFindService failed during shutdown");
+            LM_LOG_ERROR() << "LmControlImpl: StopFindService failed during shutdown";
         }
     }
 
     if (proxy_.has_value())
     {
         proxy_->activation_result.Unsubscribe();
-        DBG_PROXY("Unsubscribed and destroyed proxy");
+        LM_LOG_DEBUG() << "LmControlImpl: unsubscribed and destroyed proxy";
     }
 }
 
@@ -147,25 +139,25 @@ score::Result<void> LmControlImpl::activate_run_target(RunTargetName runTargetNa
         return score::MakeUnexpected(ExecErrc::kCommunicationError);
     }
 
-    DBG_PROXY("activate_run_target: " << runTargetName << " force=" << force);
+    LM_LOG_DEBUG() << "LmControlImpl: activate_run_target: " << runTargetName << " force=" << force;
 
     const ActivateRunTargetRequest request{runTargetName, force ? ActivationMode::kForced : ActivationMode::kQueued};
 
     auto result = proxy_->activate_run_target(request);
     if (!result.has_value())
     {
-        DBG_PROXY("activate_run_target: proxy method call failed");
+        LM_LOG_ERROR() << "LmControlImpl: activate_run_target: proxy method call failed";
         return score::MakeUnexpected(ExecErrc::kCommunicationError);
     }
 
     const auto& response = *result.value();
     if (response.status == RequestStatus::kRejected)
     {
-        DBG_PROXY("activate_run_target: rejected by LM");
+        LM_LOG_DEBUG() << "LmControlImpl: activate_run_target: rejected by LM";
         return score::MakeUnexpected(response.rejection_reason);
     }
 
-    DBG_PROXY("activate_run_target: accepted by LM");
+    LM_LOG_DEBUG() << "LmControlImpl: activate_run_target: accepted by LM";
     return {};
 }
 
@@ -177,7 +169,7 @@ score::Result<void> LmControlImpl::register_run_target_activation_callback(Activ
     }
     std::lock_guard<std::mutex> lock{callback_mutex_};
     callback_ = std::move(callback);
-    DBG_PROXY("Activation callback registered");
+    LM_LOG_DEBUG() << "LmControlImpl: activation callback registered";
     return {};
 }
 
@@ -188,31 +180,32 @@ score::Result<RunTargetName> LmControlImpl::get_active_run_target()
         return score::MakeUnexpected(ExecErrc::kCommunicationError);
     }
 
-    DBG_PROXY("get_active_run_target: calling proxy");
+    LM_LOG_DEBUG() << "LmControlImpl: get_active_run_target: calling proxy";
 
     auto result = proxy_->get_active_run_target();
     if (!result.has_value())
     {
-        DBG_PROXY("get_active_run_target: proxy method call failed");
+        LM_LOG_ERROR() << "LmControlImpl: get_active_run_target: proxy method call failed";
         return score::MakeUnexpected(ExecErrc::kCommunicationError);
     }
 
     const auto& response = *result.value();
     if (response.status == QueryStatus::kNotAvailable)
     {
-        DBG_PROXY("get_active_run_target: LM reports kActivationInProgress");
+        LM_LOG_DEBUG() << "LmControlImpl: get_active_run_target: LM reports kActivationInProgress";
         return score::MakeUnexpected(response.rejection_reason);
     }
 
-    DBG_PROXY("get_active_run_target: returned '" << response.run_target << "'");
+    LM_LOG_DEBUG() << "LmControlImpl: get_active_run_target: returned '" << response.run_target << "'";
     return response.run_target;
 }
 
-void LmControlImpl::OnActivationResult()
+void LmControlImpl::onActivationResult()
 {
     auto get_result = proxy_->activation_result.GetNewSamples(
         [this](score::mw::com::SamplePtr<ActivationResult> sample) noexcept {
-            DBG_PROXY("activation_result received: run_target='" << sample->activated_run_target << "'");
+            LM_LOG_DEBUG() << "LmControlImpl: activation_result received: run_target='"
+                           << sample->activated_run_target << "'";
             ActivationCallback cb;
             {
                 std::lock_guard<std::mutex> lock{callback_mutex_};
@@ -221,18 +214,18 @@ void LmControlImpl::OnActivationResult()
             if (cb)
             {
                 cb(sample->activation_source, sample->activated_run_target);
-                DBG_PROXY("activation_result: user callback invoked");
+                LM_LOG_DEBUG() << "LmControlImpl: activation_result: user callback invoked";
             }
             else
             {
-                DBG_PROXY("activation_result: no callback registered — sample dropped");
+                LM_LOG_WARN() << "LmControlImpl: activation_result: no callback registered — sample dropped";
             }
         },
         kActivationResultSampleCount);
 
     if (get_result.has_value() && get_result.value() > 0U)
     {
-        DBG_PROXY("GetNewSamples: processed " << get_result.value() << " sample(s)");
+        LM_LOG_DEBUG() << "LmControlImpl: GetNewSamples: processed " << get_result.value() << " sample(s)";
     }
 }
 
