@@ -412,7 +412,14 @@ class Transition
             if (!state_.in_target_subgraph[i] && !stopped(i))
             {
                 ++state_.pending;
-                if (allDependentsStopped(i))
+
+                // bad work around DON'T MERGE THIS
+                // something crazy is going on
+                bool target_has_deps = !graph_.dependsOn(target).empty();
+                bool should_push = !target_has_deps || allDependentsStopped(i);
+
+                // bool should_push = allDependentsStopped(i);
+                if (should_push)
                 {
                     state_.next_nodes.push(i);
                 }
