@@ -84,22 +84,22 @@ lm_cc_test(
 )
 
 alias(
-    name = "applicationcontext_mock_cc",
-    actual = "//score/launch_manager/src/lifecycle_client:applicationcontext_mock",
+    name = "mock_applicationcontext_cc",
+    actual = "//score/launch_manager/src/lifecycle_client:mock_applicationcontext",
 )
 
 cc_library(
-    name = "lifecycle_mock_cc",
+    name = "mock_lifecycle_cc",
     testonly = True,
     deps = [
-        "//score/launch_manager/src/lifecycle_client:lifecycle_mock",
-        "//score/launch_manager/src/lifecycle_client:report_running_mock",
+        "//score/launch_manager/src/lifecycle_client:mock_lifecycle",
+        "//score/launch_manager/src/lifecycle_client:mock_report_running",
     ],
 )
 
 alias(
-    name = "report_running_mock_cc",
-    actual = "//score/launch_manager/src/lifecycle_client:report_running_mock",
+    name = "mock_report_running_cc",
+    actual = "//score/launch_manager/src/lifecycle_client:mock_report_running",
 )
 
 # BEGIN: Fine granular targets only needed for testing purposes

@@ -46,7 +46,7 @@ cc_library(
 )
 
 cc_library(
-    name = "ialive_monitor_thread_mock",
+    name = "mock_ialive_monitor_thread",
     testonly = True,
     hdrs = ["mock_alive_monitor_thread.hpp"],
     include_prefix = "score/mw/launch_manager/process_group_manager",

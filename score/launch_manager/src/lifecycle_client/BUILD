@@ -150,7 +150,7 @@ cc_library(
 )
 
 cc_library(
-    name = "applicationcontext_mock",
+    name = "mock_applicationcontext",
     testonly = True,
     srcs = [
         "src/mock_applicationcontext.cpp",
@@ -170,7 +170,7 @@ cc_library(
 )
 
 cc_library(
-    name = "mw_lifecycle_manager_mock",
+    name = "mock_mw_lifecycle_manager",
     testonly = True,
     srcs = [
         "src/mock_mwlifecyclemanager.cpp",
@@ -190,7 +190,7 @@ cc_library(
 )
 
 cc_library(
-    name = "lifecycle_mock",
+    name = "mock_lifecycle",
     testonly = True,
     srcs = [
         "src/mock_lifecyclemanager.cpp",
@@ -205,9 +205,9 @@ cc_library(
     strip_include_prefix = "/score/launch_manager/src/lifecycle_client/src",
     visibility = ["//score/launch_manager:__subpackages__"],
     deps = [
-        ":applicationcontext_mock",
         ":lifecyclemanager",
-        ":mw_lifecycle_manager_mock",
+        ":mock_applicationcontext",
+        ":mock_mw_lifecycle_manager",
         "@googletest//:gtest",
         "@score_baselibs//score/os/utils:signal",
         "@score_baselibs//score/os/utils/mocklib:signal_mock",
@@ -215,7 +215,7 @@ cc_library(
 )
 
 cc_library(
-    name = "report_running_mock",
+    name = "mock_report_running",
     testonly = True,
     srcs = ["src/mock_report_running.cpp"],
     hdrs = [
@@ -236,7 +236,7 @@ lm_cc_test(
     srcs = ["src/lifecycle_mocks_UT.cpp"],
     deps = [
         ":runapplication",
-        "//score/launch_manager:lifecycle_mock_cc",
+        "//score/launch_manager:mock_lifecycle_cc",
         "@googletest//:gtest_main",
     ],
 )
@@ -245,7 +245,7 @@ lm_cc_test(
     name = "runapplication_UT",
     srcs = ["src/runapplication_UT.cpp"],
     deps = [
-        ":lifecycle_mock",
+        ":mock_lifecycle",
         ":runapplication",
         "@googletest//:gtest_main",
     ],
