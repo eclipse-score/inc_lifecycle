@@ -10,7 +10,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 cc_library(
     name = "lm_control_service",
@@ -29,11 +29,10 @@ cc_library(
     name = "lm_control",
     srcs = [
         "src/details/ilm_control.cpp",
-        "src/details/lm_control_impl.cpp",
-        "src/details/lm_control_impl.hpp",
-        "src/details/lm_control_service.h",
     ],
     hdrs = [
+        "src/details/lm_control_impl.hpp",
+        "src/details/lm_control_service.h",
         "src/fixed_string.hpp",
         "src/ilm_control.hpp",
         "src/run_target_activation_source.hpp",
@@ -48,6 +47,44 @@ cc_library(
         "//score/launch_manager:error",
         "//score/launch_manager/src/daemon/src/common:log",
         "@score_baselibs//score/result",
+        "@score_communication//score/mw/com",
+    ],
+)
+
+# ---------------------------------------------------------------------------
+# Unit test: BasicLmControlImpl driven through a fake proxy injected at compile
+# time. Lives next to the implementation it covers. No mw::com runtime, shared
+# memory, or manifest required.
+# ---------------------------------------------------------------------------
+
+cc_test(
+    name = "lm_control_impl_UT",
+    srcs = ["src/details/lm_control_impl_UT.cpp"],
+    deps = [
+        ":lm_control",
+        "//score/launch_manager:error",
+        "@googletest//:gtest_main",
+        "@score_baselibs//score/result",
+        "@score_communication//score/mw/com",
+    ],
+)
+
+# ---------------------------------------------------------------------------
+# Unit test: ILmControl::Create factory. Runs against a mw::com runtime
+# initialized from the shared manifest; no provider skeleton is required.
+# ---------------------------------------------------------------------------
+
+cc_test(
+    name = "ilm_control_UT",
+    srcs = ["src/details/ilm_control_UT.cpp"],
+    args = [
+        "--service_instance_manifest",
+        "$(location src/details/test_lm_mw_com_config.json)",
+    ],
+    data = ["src/details/test_lm_mw_com_config.json"],
+    deps = [
+        ":lm_control",
+        "@googletest//:gtest",
         "@score_communication//score/mw/com",
     ],
 )

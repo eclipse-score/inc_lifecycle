@@ -157,7 +157,7 @@ class ILmControl
     ///
     /// @error kActivationInProgress Launch Manager is currently executing a Run Target
     ///                              activation and thus there is no single Run Target active.
-    /// @error kCommunicationError         Connection with Launch Manager cannot be established
+    /// @error kCommunicationError   Connection with Launch Manager cannot be established
     ///                              and information about active Run Target cannot be retrieved.
     virtual score::Result<RunTargetName> get_active_run_target() = 0;
 

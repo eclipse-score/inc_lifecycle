@@ -12,20 +12,19 @@
  ********************************************************************************/
 
 #include "score/mw/lifecycle/ilm_control.hpp"
-#include "lm_control_impl.hpp"
+#include "score/mw/lifecycle/details/lm_control_impl.hpp"
 
 namespace score::mw::lifecycle
 {
 
 score::Result<std::unique_ptr<ILmControl>> ILmControl::Create(std::string_view instance_specifier)
 {
-    auto impl = std::make_unique<LmControlImpl>(instance_specifier);
-    const auto init_error = impl->getInitError();
-    if (init_error)
+    auto impl_result = LmControlImpl::Create(instance_specifier);
+    if (!impl_result.has_value())
     {
-        return score::MakeUnexpected(init_error.value());
+        return score::MakeUnexpected<std::unique_ptr<ILmControl>>(impl_result.error());
     }
-    return impl;
+    return std::move(impl_result).value();
 }
 
 }  // namespace score::mw::lifecycle
