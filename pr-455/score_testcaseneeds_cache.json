@@ -2844,7 +2844,7 @@
   {
     "name": "ProcessGroupManagerWatchdogTest__GivenMinimalConfig_ExpectWatchdogMethodsCalledInSequence_WhenInitializeCalled",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_group_manager_UT.cpp",
-    "line": "171",
+    "line": "172",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2858,7 +2858,7 @@
   {
     "name": "ProcessGroupManagerWatchdogTest__GivenMinimalConfig_ExpectWatchdogServicePerCycle_WhenRunCalled",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_group_manager_UT.cpp",
-    "line": "189",
+    "line": "190",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2872,7 +2872,7 @@
   {
     "name": "ProcessGroupManagerWatchdogTest__GivenMinimalConfig_ExpectWatchdogFired_WhenRecoveryClientOverflowsDuringRunCall",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_group_manager_UT.cpp",
-    "line": "212",
+    "line": "210",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2886,7 +2886,7 @@
   {
     "name": "ProcessGroupManagerWatchdogTest__GivenMinimalConfig_ExpectWatchdogDisabled_WhenDeinitializeCalled",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/process_group_manager_UT.cpp",
-    "line": "247",
+    "line": "244",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5070,7 +5070,7 @@
   {
     "name": "FlatbufferConfigLoaderTest__LoadSingleComponent",
     "file": "score/launch_manager/src/daemon/src/configuration/details/flatbuffer_config_loader_UT.cpp",
-    "line": "205",
+    "line": "203",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5084,7 +5084,7 @@
   {
     "name": "FlatbufferConfigLoaderTest__LoadRunTargets",
     "file": "score/launch_manager/src/daemon/src/configuration/details/flatbuffer_config_loader_UT.cpp",
-    "line": "273",
+    "line": "271",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5096,9 +5096,9 @@
     "FullyVerifies": null
   },
   {
-    "name": "FlatbufferConfigLoaderTest__ConfiguredOffRunTargetIsNotDuplicated",
+    "name": "FlatbufferConfigLoaderTest__ConfiguredOffRunTargetIsLoadedVerbatim",
     "file": "score/launch_manager/src/daemon/src/configuration/details/flatbuffer_config_loader_UT.cpp",
-    "line": "304",
+    "line": "300",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5112,7 +5112,7 @@
   {
     "name": "FlatbufferConfigLoaderTest__LoadFallbackRunTarget",
     "file": "score/launch_manager/src/daemon/src/configuration/details/flatbuffer_config_loader_UT.cpp",
-    "line": "326",
+    "line": "322",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5126,7 +5126,7 @@
   {
     "name": "FlatbufferConfigLoaderTest__LoadAliveSupervision",
     "file": "score/launch_manager/src/daemon/src/configuration/details/flatbuffer_config_loader_UT.cpp",
-    "line": "354",
+    "line": "350",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5140,7 +5140,7 @@
   {
     "name": "FlatbufferConfigLoaderTest__LoadWatchdog",
     "file": "score/launch_manager/src/daemon/src/configuration/details/flatbuffer_config_loader_UT.cpp",
-    "line": "374",
+    "line": "370",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5154,7 +5154,7 @@
   {
     "name": "FlatbufferConfigLoaderTest__LoadRestartRecoveryAction",
     "file": "score/launch_manager/src/daemon/src/configuration/details/flatbuffer_config_loader_UT.cpp",
-    "line": "404",
+    "line": "400",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5168,7 +5168,7 @@
   {
     "name": "FlatbufferConfigLoaderTest__LoadSwitchRunTargetAction",
     "file": "score/launch_manager/src/daemon/src/configuration/details/flatbuffer_config_loader_UT.cpp",
-    "line": "439",
+    "line": "435",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5182,7 +5182,7 @@
   {
     "name": "FlatbufferConfigLoaderTest__LoadSandbox",
     "file": "score/launch_manager/src/daemon/src/configuration/details/flatbuffer_config_loader_UT.cpp",
-    "line": "458",
+    "line": "454",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5196,7 +5196,7 @@
   {
     "name": "FlatbufferConfigLoaderTest__LoadComponentAliveSupervision",
     "file": "score/launch_manager/src/daemon/src/configuration/details/flatbuffer_config_loader_UT.cpp",
-    "line": "512",
+    "line": "508",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5210,7 +5210,7 @@
   {
     "name": "FlatbufferConfigLoaderTest__LoadEnvironmentalVariables",
     "file": "score/launch_manager/src/daemon/src/configuration/details/flatbuffer_config_loader_UT.cpp",
-    "line": "543",
+    "line": "539",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5224,7 +5224,7 @@
   {
     "name": "FlatbufferConfigLoaderTest__LoadMultipleComponents",
     "file": "score/launch_manager/src/daemon/src/configuration/details/flatbuffer_config_loader_UT.cpp",
-    "line": "591",
+    "line": "587",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5238,7 +5238,7 @@
   {
     "name": "FlatbufferConfigLoaderTest__OptionalWatchdogAbsent",
     "file": "score/launch_manager/src/daemon/src/configuration/details/flatbuffer_config_loader_UT.cpp",
-    "line": "615",
+    "line": "611",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5252,7 +5252,7 @@
   {
     "name": "FlatbufferConfigLoaderTest__OptionalReadyConditionAbsent",
     "file": "score/launch_manager/src/daemon/src/configuration/details/flatbuffer_config_loader_UT.cpp",
-    "line": "625",
+    "line": "621",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5266,7 +5266,7 @@
   {
     "name": "FlatbufferConfigLoaderTest__LoadBufferFailsWithNoSuchFileReturnsFileNotFound",
     "file": "score/launch_manager/src/daemon/src/configuration/details/flatbuffer_config_loader_UT.cpp",
-    "line": "648",
+    "line": "644",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5280,7 +5280,7 @@
   {
     "name": "FlatbufferConfigLoaderTest__LoadBufferFailsWithPermissionDeniedReturnsInsufficientPermission",
     "file": "score/launch_manager/src/daemon/src/configuration/details/flatbuffer_config_loader_UT.cpp",
-    "line": "660",
+    "line": "656",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5294,7 +5294,7 @@
   {
     "name": "FlatbufferConfigLoaderTest__LoadBufferFailsWithGenericErrorReturnsGeneralError",
     "file": "score/launch_manager/src/daemon/src/configuration/details/flatbuffer_config_loader_UT.cpp",
-    "line": "672",
+    "line": "668",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5308,7 +5308,7 @@
   {
     "name": "FlatbufferConfigLoaderTest__CorruptedBufferReturnsInvalidFormat",
     "file": "score/launch_manager/src/daemon/src/configuration/details/flatbuffer_config_loader_UT.cpp",
-    "line": "684",
+    "line": "680",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5322,7 +5322,7 @@
   {
     "name": "FlatbufferConfigLoaderTest__WrongSchemaVersionReturnsUnsupportedVersion",
     "file": "score/launch_manager/src/daemon/src/configuration/details/flatbuffer_config_loader_UT.cpp",
-    "line": "694",
+    "line": "690",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5336,7 +5336,7 @@
   {
     "name": "FlatbufferConfigLoaderTest__MissingSchemaVersionReturnsInvalidFormat",
     "file": "score/launch_manager/src/daemon/src/configuration/details/flatbuffer_config_loader_UT.cpp",
-    "line": "708",
+    "line": "704",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
