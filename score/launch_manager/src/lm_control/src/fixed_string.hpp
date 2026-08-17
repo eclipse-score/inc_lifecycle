@@ -364,7 +364,7 @@ bool operator!=(const FixedString<N>& lhs, const FixedString<M>& rhs) noexcept
 template <typename Stream, std::size_t MaxLength>
 Stream& operator<<(Stream& os, const FixedString<MaxLength>& fs)
 {
-    return os << fs.data();
+    return os << fs.as_string_view();
 }
 
 }  // namespace score::mw::lifecycle

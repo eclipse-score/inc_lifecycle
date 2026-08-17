@@ -93,12 +93,12 @@ class ExecErrorDomain final : public score::result::ErrorDomain
     }
 };
 
-constexpr ExecErrorDomain g_ExecErrorDomain{};
+/// @brief The single ExecErrorDomain instance every ExecErrc-based Error refers to.
+inline constexpr ExecErrorDomain g_ExecErrorDomain{};
 
 constexpr score::result::Error MakeError(ExecErrc code, const std::string_view user_message = "") noexcept
 {
     return score::result::Error{static_cast<score::result::ErrorCode>(code), g_ExecErrorDomain, user_message};
-    ;
 }
 
 }  // namespace score::mw::lifecycle
