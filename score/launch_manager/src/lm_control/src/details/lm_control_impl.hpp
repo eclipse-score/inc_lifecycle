@@ -13,7 +13,6 @@
 #ifndef SCORE_MW_LIFECYCLE_LM_CONTROL_IMPL_HPP
 #define SCORE_MW_LIFECYCLE_LM_CONTROL_IMPL_HPP
 
-#include <atomic>
 #include <cstddef>
 #include <memory>
 #include <mutex>
@@ -168,7 +167,8 @@ class BasicLmControlImpl final : public ILmControl
 
     score::Result<void> activate_run_target(RunTargetName runTargetName, bool force = false) override
     {
-        if (!connected_.load(std::memory_order_acquire))
+        auto* const proxy = connectedProxy();
+        if (proxy == nullptr)
         {
             return score::MakeUnexpected(ExecErrc::kCommunicationError);
         }
@@ -178,7 +178,7 @@ class BasicLmControlImpl final : public ILmControl
         const ActivateRunTargetRequest request{
             runTargetName, force ? ActivationMode::kForced : ActivationMode::kQueued};
 
-        auto result = proxy_->activate_run_target(request);
+        auto result = proxy->activate_run_target(request);
         if (!result.has_value())
         {
             LM_LOG_ERROR() << "LmControl: activate_run_target: proxy method call failed with error:" << result.error();
@@ -208,12 +208,13 @@ class BasicLmControlImpl final : public ILmControl
 
     score::Result<RunTargetName> get_active_run_target() override
     {
-        if (!connected_.load(std::memory_order_acquire))
+        auto* const proxy = connectedProxy();
+        if (proxy == nullptr)
         {
             return score::MakeUnexpected(ExecErrc::kCommunicationError);
         }
 
-        auto result = proxy_->get_active_run_target();
+        auto result = proxy->get_active_run_target();
         if (!result.has_value())
         {
             LM_LOG_ERROR() << "LmControl: get_active_run_target: proxy method call failed with error:"
@@ -239,6 +240,13 @@ class BasicLmControlImpl final : public ILmControl
 
     /// @brief Allow to read small number of samples at once
     static constexpr std::size_t kActivationResultSampleCount = 4U;
+
+    /// @brief Returns the proxy instance or nullptr if not connected
+    ProxyType* connectedProxy() noexcept
+    {
+        std::lock_guard<std::mutex> lock{mutex_};
+        return proxy_.has_value() ? &proxy_.value() : nullptr;
+    }
 
     /// @brief Invoked by mw::com whenever service availability changes. On the
     ///        first matching instance it creates the proxy, subscribes to
@@ -267,9 +275,6 @@ class BasicLmControlImpl final : public ILmControl
 
         // First matching instance is wired up — stop the ongoing discovery.
         stopDiscovery(find_handle);
-
-        // Publish the fully set-up proxy_ to method-caller threads.
-        connected_.store(true, std::memory_order_release);
     }
 
     /// @brief Create the proxy for the discovered instance and publish it into proxy_.
@@ -403,15 +408,11 @@ class BasicLmControlImpl final : public ILmControl
     // Error captured during construction (nullopt on success).
     std::optional<ExecErrc> init_error_;
 
-    // Guards proxy_ setup and the service discovery handles.
+    // Guards proxy_ and the service discovery handles.
     std::mutex mutex_;
     std::optional<ProxyType> proxy_;
     std::optional<FindServiceHandle> find_handle_;
     bool find_service_stopped_{false};
-
-    // Publishes the fully set-up proxy_ to method-caller threads. Read with
-    // acquire ordering in the API methods, set with release once proxy_ is ready.
-    std::atomic<bool> connected_{false};
 
     ActivationCallback callback_;
     std::mutex callback_mutex_;
