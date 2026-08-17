@@ -13,22 +13,6 @@
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
 cc_library(
-    name = "lm_control_server",
-    srcs = ["lm_control_server.cpp"],
-    hdrs = ["lm_control_server.hpp"],
-    include_prefix = "score/mw/launch_manager/control",
-    strip_include_prefix = "/score/launch_manager/src/daemon/src/control",
-    visibility = [
-        "//score/launch_manager/src/daemon:__pkg__",
-        "//tests:__subpackages__",
-    ],
-    deps = [
-        "//score/launch_manager/src/daemon/src/common:log",
-        "//score/launch_manager/src/lm_control:lm_control_service",
-    ],
-)
-
-cc_library(
     name = "control_client_channel",
     srcs = [
         "control_client_channel.cpp",
