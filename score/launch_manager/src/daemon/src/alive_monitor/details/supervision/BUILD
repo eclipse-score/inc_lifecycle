@@ -51,6 +51,7 @@ lm_cc_test(
     srcs = ["Alive_UT.cpp"],
     deps = [
         ":alive",
+        "//score/launch_manager/src/daemon/src/common:constants",
         "@googletest//:gtest_main",
     ],
 )

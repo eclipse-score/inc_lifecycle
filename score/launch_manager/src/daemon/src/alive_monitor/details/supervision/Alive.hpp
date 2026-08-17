@@ -87,7 +87,8 @@ class Alive : public ISupervision,
         const IdentifierHash id,
         const ComponentAliveSupervision& f_aliveCfg_r,
         const std::shared_ptr<IRecoveryClient> recovery_client,
-        saf::ifappl::Checkpoint& checkpoint_r) noexcept(false);
+        saf::ifappl::Checkpoint& checkpoint_r,
+        const uint16_t bufferSize) noexcept(false);
 
     /// @brief Destructor
     /* RULECHECKER_comment(0, 3, check_min_instructions, "Default destructor is not provided\

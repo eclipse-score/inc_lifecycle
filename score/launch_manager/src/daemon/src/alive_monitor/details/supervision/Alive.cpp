@@ -28,7 +28,8 @@ Alive::Alive(
     const IdentifierHash id,
     const ComponentAliveSupervision& f_aliveCfg_r,
     const std::shared_ptr<IRecoveryClient> recovery_client,
-    saf::ifappl::Checkpoint& checkpoint_r)
+    saf::ifappl::Checkpoint& checkpoint_r,
+    const uint16_t bufferSize)
     : ISupervision(id),
       k_aliveReferenceCycle(timers::TimeConversion::convertMilliSecToNanoSec(f_aliveCfg_r.reporting_cycle_ms)),
       k_minAliveIndications(f_aliveCfg_r.min_indications.value_or(0)),
@@ -38,7 +39,7 @@ Alive::Alive(
       k_failedSupervisionCyclesTolerance(f_aliveCfg_r.failed_cycles_tolerance),
       recoveryClient_p(recovery_client),
       processIdentifier_(id),
-      timeSortingUpdateEventBuffer(common::TimeSortingBuffer<TimeSortedUpdateEvent>(100U))
+      timeSortingUpdateEventBuffer(common::TimeSortingBuffer<TimeSortedUpdateEvent>(bufferSize))
 {
     checkpoint_r.attachObserver(*this);
     SCORE_LANGUAGE_FUTURECPP_PRECONDITION_PRD_MESSAGE(

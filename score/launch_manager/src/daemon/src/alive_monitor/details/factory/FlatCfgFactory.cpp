@@ -28,6 +28,7 @@
 #include "score/mw/launch_manager/alive_monitor/details/timers/TimeConversion.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
 #include "score/mw/launch_manager/common/alive_interface_path.hpp"
+#include "score/mw/launch_manager/common/constants.hpp"
 #include "score/mw/launch_manager/common/identifier_hash.hpp"
 
 namespace score::mw::lifecycle::internal::saf::factory
@@ -169,7 +170,8 @@ bool FlatCfgFactory::createAliveSupervision(
 {
     try
     {
-        auto& alive = supervisions.emplace_back(component_id, component_config, recovery_client, checkpoint);
+        auto& alive = supervisions.emplace_back(
+            component_id, component_config, recovery_client, checkpoint, kDefaultAliveSupCheckpointBufferElements);
 
         event.attachObserver(alive);
 

@@ -20,6 +20,7 @@
 #include "score/mw/launch_manager/alive_monitor/details/ifappl/Checkpoint.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ObservableEvent.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/supervision/Alive.hpp"
+#include "score/mw/launch_manager/common/constants.hpp"
 #include "score/mw/launch_manager/common/identifier_hash.hpp"
 #include "score/mw/launch_manager/recovery_client/irecovery_client.h"
 
@@ -105,7 +106,11 @@ struct AliveFixture
         cfg.reporting_cycle_ms = bld.reportingCycleMs;
 
         alive = std::make_unique<score::mw::lifecycle::internal::saf::supervision::Alive>(
-            kProcessIdentifier, cfg, mockClient, checkpoint);
+            kProcessIdentifier,
+            cfg,
+            mockClient,
+            checkpoint,
+            score::mw::lifecycle::internal::kDefaultAliveSupCheckpointBufferElements);
         processState.attachObserver(*alive);
     }
 
