@@ -290,15 +290,24 @@ class BasicLmControlImpl final : public ILmControl
     }
 
     /// @brief Ready and forwards all pending activation-result samples.
+    /// @details The callback is copied once here rather than once per sample: a registration
+    ///          racing with a running drain takes effect from the next handler invocation on,
+    ///          never mid-drain.
     /// @pre The caller holds sample_processing_mutex_.
     void readActivationEvents()
     {
+        const ActivationCallback callback = currentCallback();
+        if (!callback)
+        {
+            LM_LOG_WARN() << "LmControl: activation_result: no callback registered — samples dropped";
+        }
+
         std::size_t processed = 0U;
         for (;;)
         {
             const auto get_result = proxy_->activation_result.GetNewSamples(
-                [this](const auto& sample) noexcept {
-                    forwardSample(sample);
+                [&callback](const auto& sample) noexcept {
+                    forwardSample(callback, sample);
                 },
                 kActivationResultSampleCount);
             if (!get_result.has_value())
@@ -319,29 +328,32 @@ class BasicLmControlImpl final : public ILmControl
         LM_LOG_DEBUG() << "LmControl: GetNewSamples: processed" << processed << "sample(s)";
     }
 
-    /// @brief Forwards a single activation-result sample to the registered callback.
+    /// @brief Returns a copy of the currently registered callback, empty if there is none.
+    /// @details Copied out under the lock so that the caller can invoke it after unlocking:
+    ///          holding callback_mutex_ across the invocation would deadlock a callback that
+    ///          re-registers itself.
+    ActivationCallback currentCallback() noexcept
+    {
+        std::lock_guard<std::mutex> lock{callback_mutex_};
+        return callback_;
+    }
+
+    /// @brief Forwards a single activation-result sample to the given callback.
     /// @details The sample parameter is intentionally a template: in production it
     ///          is a score::mw::com::SamplePtr<ActivationResult>, while a fake proxy
     ///          in tests can hand in any pointer-like sample. Nothing here depends
     ///          on the concrete mw::com sample type.
+    /// @param[in] callback The callback to invoke, may be empty in which case the sample is dropped.
+    /// @param[in] sample   The received activation result.
     template <typename SamplePtrType>
-    void forwardSample(const SamplePtrType& sample) noexcept
+    static void forwardSample(const ActivationCallback& callback, const SamplePtrType& sample) noexcept
     {
         LM_LOG_DEBUG() << "LmControl: activation_result received: run_target=" << sample->activated_run_target
                        << "source=" << toStringView(sample->activation_source);
-        ActivationCallback cb;
+        if (callback)
         {
-            std::lock_guard<std::mutex> lock{callback_mutex_};
-            cb = callback_;
-        }
-        if (cb)
-        {
-            cb(sample->activation_source, sample->activated_run_target);
+            callback(sample->activation_source, sample->activated_run_target);
             LM_LOG_DEBUG() << "LmControl: activation_result: user callback invoked";
-        }
-        else
-        {
-            LM_LOG_WARN() << "LmControl: activation_result: no callback registered — sample dropped";
         }
     }
 

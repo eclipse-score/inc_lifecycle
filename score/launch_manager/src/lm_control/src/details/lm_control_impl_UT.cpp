@@ -273,8 +273,7 @@ class LmControlUT : public ::testing::Test
 TEST_F(LmControlUT, InvalidSpecifierIsRejectedByInit)
 {
     RecordProperty(
-        "Description",
-        "init() with an empty instance specifier returns kInvalidArguments and never starts discovery.");
+        "Description", "init() with an empty instance specifier returns kInvalidArguments and never starts discovery.");
 
     EXPECT_CALL(mock_, StartFindService(_)).Times(0);
 

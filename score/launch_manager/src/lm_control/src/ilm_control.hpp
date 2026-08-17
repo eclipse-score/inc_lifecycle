@@ -131,17 +131,13 @@ class ILmControl
     /// Only a single subscriber is supported. The expected usage is
     /// register-once during setup, leaving the callback in place until
     /// the ILmControl instance is destroyed. Re-registration is
-    /// supported defensively (a second call overrides the previous
-    /// setting) but callers that re-register must be prepared to
-    /// handle kCallbackInProgress (transient, retry). There is no
-    /// un-register path; empty callbacks are rejected.
+    /// supported defensively: a second call overrides the previous
+    /// setting. There is no un-register path; empty callbacks are rejected.
     ///
     /// @param[in] callback The callback to invoke when Run Target activation finishes.
     ///
     /// @returns void on success.
     ///
-    /// @error kCallbackInProgress A new callback cannot be registered because the
-    ///                            current callback is still executing. Retry after it returns.
     /// @error kInvalidArguments   The callback is empty.
     virtual score::Result<void> register_run_target_activation_callback(ActivationCallback callback) = 0;
 
