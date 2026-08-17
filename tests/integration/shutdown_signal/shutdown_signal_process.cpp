@@ -27,7 +27,7 @@ namespace
 /// gone, since no code runs after SIGKILL) and then blocks forever instead of
 /// terminating. Because it never self-terminates, the Launch Manager must
 /// escalate to SIGKILL to shut it down; the recorded PID then lets
-/// control_daemon_mock confirm that the process is truly gone.
+/// control_client_test_driver confirm that the process is truly gone.
 void shutdownSignalHandler(int /*signum*/)
 {
     // getpid()/open()/write()/pause() are all async-signal-safe, so this is safe

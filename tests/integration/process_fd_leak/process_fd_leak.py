@@ -37,4 +37,6 @@ def test_process_fd_leak(target, setup_test, assert_test_results, remote_test_di
     )
 
     # That the process is started and an XML file is produced verifies feat_req__lifecycle__launch_support
-    assert_test_results({"native.xml", "control_client.xml", "reporting.xml"})
+    assert_test_results(
+        {"native.xml", "control_client_test_driver.xml", "reporting.xml"}
+    )

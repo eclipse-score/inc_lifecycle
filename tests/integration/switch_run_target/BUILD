@@ -20,8 +20,8 @@ cc_library(
 )
 
 cc_binary(
-    name = "control_client_mock",
-    srcs = ["mock_control_client.cpp"],
+    name = "control_client_test_driver",
+    srcs = ["control_client_test_driver.cpp"],
     deps = [
         ":switch_run_target_common",
         "//score/launch_manager:control_cc",
@@ -75,7 +75,7 @@ integration_test(
         ":component_b",
         ":component_d",
         ":component_e",
-        ":control_client_mock",
+        ":control_client_test_driver",
         "//score/launch_manager",
     ],
     config = ":switch_run_target.json",

@@ -14,8 +14,8 @@ load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("//tests/utils/bazel:integration.bzl", "integration_test")
 
 cc_binary(
-    name = "control_client_mock",
-    srcs = ["mock_control_client.cpp"],
+    name = "control_client_test_driver",
+    srcs = ["control_client_test_driver.cpp"],
     deps = [
         "//score/launch_manager:control_cc",
         "//score/launch_manager:lifecycle_cc",
@@ -38,7 +38,7 @@ integration_test(
     name = "process_simple_rep_failure",
     srcs = ["process_simple_rep_failure.py"],
     binaries = [
-        ":control_client_mock",
+        ":control_client_test_driver",
         ":process_simple_reporting",
         "//score/launch_manager",
         "//tests/utils/test_helper:verification_process",

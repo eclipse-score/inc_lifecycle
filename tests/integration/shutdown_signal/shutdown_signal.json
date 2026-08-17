@@ -21,7 +21,7 @@
     "components": {
         "control_daemon": {
             "component_properties": {
-                "binary_name": "control_daemon_mock",
+                "binary_name": "control_client_test_driver",
                 "application_profile": {
                     "application_type": "State_Manager",
                     "alive_supervision": {
