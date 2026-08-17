@@ -17,7 +17,7 @@
 #include <score/mw/lifecycle/control_client.h>
 #include <score/mw/lifecycle/report_running.h>
 
-TEST(CrashOnStartup, ControlClientMock)
+TEST(CrashOnStartup, ControlClientTestDriver)
 {
     score::mw::lifecycle::ControlClient client;
 
