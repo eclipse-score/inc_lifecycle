@@ -308,20 +308,37 @@ TEST_F(LmControlUT, MethodsFailWhileNotYetConnected)
     EXPECT_EQ(get.error(), ExecErrc::kCommunicationError);
 }
 
-TEST_F(LmControlUT, DiscoverySubscribesSetsHandlerAndStopsFinding)
+TEST_F(LmControlUT, DiscoveryCreatesProxySubscribesAndSetsHandler)
 {
     RecordProperty(
         "Description",
-        "On discovering the service, the SUT creates the proxy, subscribes to activation results, sets the "
-        "receive handler, and stops discovery.");
+        "On discovering the service, the SUT creates the proxy, subscribes to activation results and sets the "
+        "receive handler.");
 
     EXPECT_CALL(mock_, CreateProxy());
     EXPECT_CALL(mock_, Subscribe(4U));  // must match kActivationResultSampleCount
     EXPECT_CALL(mock_, SetReceiveHandler(_));
-    EXPECT_CALL(mock_, StopFindService());
 
     auto sut = MakeConnected();
     EXPECT_TRUE(receive_handler_);
+}
+
+TEST_F(LmControlUT, DiscoveryKeepsRunningAfterConnect)
+{
+    RecordProperty(
+        "Description",
+        "Connecting does not stop the discovery search; it keeps running until the instance is destroyed.");
+
+    EXPECT_CALL(mock_, StopFindService()).Times(0);
+
+    auto sut = MakeConnected();
+    // A further notification while already connected must not stop discovery either.
+    ConnectService();
+    EXPECT_TRUE(sut->get_active_run_target().has_value());
+
+    // Verify while the instance is still alive - the destructor is what stops discovery, and it
+    // is covered by DestructorStopsDiscoveryWhenNeverConnected / DestructorUnsubscribesWhenConnected.
+    ::testing::Mock::VerifyAndClearExpectations(&mock_);
 }
 
 TEST_F(LmControlUT, EmptyHandlesAreIgnored)
@@ -361,8 +378,8 @@ TEST_F(LmControlUT, SynchronousDiscoveryDuringConstructionStopsFindingOnce)
         handler(score::mw::com::ServiceHandleContainer<FakeHandle>{FakeHandle{}}, FakeFindHandle{});
         return score::Result<FakeFindHandle>{FakeFindHandle{}};
     }));
-    // Discovery is stopped exactly once (during construction), never again in the destructor,
-    // because construction observed a set proxy_ and therefore never stored the handle.
+    // Discovery is stopped exactly once, by the destructor. The synchronous handler leaves the
+    // search untouched, so the constructor can store the handle unconditionally.
     EXPECT_CALL(mock_, StopFindService()).Times(1);
 
     auto sut = MakeLmControl();
@@ -400,18 +417,18 @@ TEST_F(LmControlUT, ProxyCreateFailureLeavesInstanceDisconnected)
     EXPECT_FALSE(sut->get_active_run_target().has_value());
 }
 
-TEST_F(LmControlUT, StopFindServiceFailureOnConnectIsTolerated)
+TEST_F(LmControlUT, StopFindServiceFailureOnDestructionIsTolerated)
 {
     RecordProperty(
         "Description",
-        "A StopFindService failure on connect is only logged; the instance still becomes fully connected.");
+        "A StopFindService failure while tearing down is only logged; destruction still completes cleanly.");
 
     EXPECT_CALL(mock_, StopFindService()).WillOnce(Return(score::MakeUnexpected(ExecErrc::kInvalidArguments)));
 
-    auto sut = MakeConnected();
-
-    // The failure is only logged; the instance is fully connected.
-    EXPECT_TRUE(sut->get_active_run_target().has_value());
+    {
+        auto sut = MakeConnected();
+        EXPECT_TRUE(sut->get_active_run_target().has_value());
+    }  // The failure inside the destructor is only logged.
 }
 
 // ---------------------------------------------------------------------------

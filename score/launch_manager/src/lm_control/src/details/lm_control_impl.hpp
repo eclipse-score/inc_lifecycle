@@ -116,8 +116,8 @@ class BasicLmControlImpl final : public ILmControl
         }
 
         auto start_result = Traits::StartFindService(
-            [this](score::mw::com::ServiceHandleContainer<HandleType> handles, FindServiceHandle find_handle) noexcept {
-                onServiceFound(std::move(handles), find_handle);
+            [this](score::mw::com::ServiceHandleContainer<HandleType> handles, FindServiceHandle) noexcept {
+                onServiceFound(std::move(handles));
             },
             std::move(specifier_result).value());
 
@@ -128,28 +128,20 @@ class BasicLmControlImpl final : public ILmControl
             return;
         }
 
-        std::lock_guard<std::mutex> lock{mutex_};
-        // The handler may already have run synchronously during StartFindService. It stops the
-        // search as soon as it has a proxy, so a set proxy_ means the handle is already spent.
-        if (!proxy_.has_value())
-        {
-            find_handle_ = start_result.value();
-        }
+        find_handle_ = start_result.value();
     }
 
     ~BasicLmControlImpl() noexcept override
     {
-        // Claim the handle under the lock, but issue the stop outside it: called from outside a
-        // FindServiceHandler, StopFindService blocks until in-flight handlers have returned, and
-        // those handlers need mutex_ themselves — stopping under the lock would deadlock.
-        std::optional<FindServiceHandle> handle_to_stop;
+        // Stop discovery first: once StopFindService returns, onServiceFound() can no longer run,
+        // so the remaining teardown races nothing.
+        if (find_handle_.has_value())
         {
-            std::lock_guard<std::mutex> lock{mutex_};
-            handle_to_stop = std::exchange(find_handle_, std::nullopt);
-        }
-        if (handle_to_stop.has_value())
-        {
-            stopFindService(handle_to_stop.value());
+            const auto stop_result = Traits::StopFindService(find_handle_.value());
+            if (!stop_result.has_value())
+            {
+                LM_LOG_ERROR() << "LmControl: StopFindService failed with error:" << stop_result.error();
+            }
         }
 
         if (proxy_.has_value())
@@ -242,12 +234,9 @@ class BasicLmControlImpl final : public ILmControl
         return proxy_.has_value() ? &proxy_.value() : nullptr;
     }
 
-    /// @brief Invoked by mw::com whenever service availability changes. On the
-    ///        first matching instance it creates the proxy, subscribes to
-    ///        activation results, and stops the ongoing discovery.
-    void onServiceFound(
-        score::mw::com::ServiceHandleContainer<HandleType> handles,
-        FindServiceHandle find_handle) noexcept
+    /// @brief Invoked by mw::com whenever service availability changes. On the first matching
+    ///        instance it creates the proxy and subscribes to activation results.
+    void onServiceFound(score::mw::com::ServiceHandleContainer<HandleType> handles) noexcept
     {
         std::lock_guard<std::mutex> lock{mutex_};
 
@@ -257,18 +246,10 @@ class BasicLmControlImpl final : public ILmControl
             return;
         }
 
-        if (!createProxy(handles.front()))
+        if (createProxy(handles.front()))
         {
-            return;
+            static_cast<void>(subscribeToActivationResults());
         }
-
-        if (!subscribeToActivationResults())
-        {
-            return;
-        }
-
-        // First matching instance is wired up — stop the ongoing discovery.
-        stopDiscovery(find_handle);
     }
 
     /// @brief Create the proxy for the discovered instance and publish it into proxy_.
@@ -304,25 +285,6 @@ class BasicLmControlImpl final : public ILmControl
             onActivationResult();
         });
         return true;
-    }
-
-    /// @brief Stop the ongoing service discovery now that an instance is wired up.
-    /// @pre Caller holds mutex_
-    void stopDiscovery(const FindServiceHandle& find_handle) noexcept
-    {
-        // Hand over the handle before stopping: the destructor stops whatever is left in find_handle_.
-        find_handle_.reset();
-        stopFindService(find_handle);
-    }
-
-    /// @brief Issue StopFindService and log a failure. Holds no state of its own.
-    static void stopFindService(const FindServiceHandle& find_handle) noexcept
-    {
-        const auto stop_result = Traits::StopFindService(find_handle);
-        if (!stop_result.has_value())
-        {
-            LM_LOG_ERROR() << "LmControl: StopFindService failed with error:" << stop_result.error();
-        }
     }
 
     /// @brief mw::com receive handler for the activation_result event.
@@ -413,8 +375,8 @@ class BasicLmControlImpl final : public ILmControl
     std::mutex mutex_;
     std::optional<ProxyType> proxy_;
 
-    // Non-empty exactly while a discovery search is running that we are responsible for stopping.
-    // Whoever stops the search clears it, so it can never be stopped twice.
+    // Handle of the running discovery search, stopped by the destructor. Written once by the
+    // constructor and never touched again, so it needs no lock.
     std::optional<FindServiceHandle> find_handle_;
 
     ActivationCallback callback_;
