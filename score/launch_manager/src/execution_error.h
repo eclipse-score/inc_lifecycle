@@ -42,10 +42,8 @@ enum class ExecErrc : score::result::ErrorCode
     kCycleOverrun = 13,             ///< Deterministic activation cycle time exceeded
     kActivationInProgress =
         14,  ///< A Run Target activation is already in progress; no single Run Target is currently active
-    kCallbackInProgress = 15,   ///< A new callback cannot be registered because a previously registered callback is
-                                ///< currently being executed
-    kRequestQueueIsFull = 16,   ///< The activation request queue is full; the request was discarded
-    kRunTargetDoesntExist = 17  ///< The requested Run Target name does not exist in the current configuration
+    kRequestQueueIsFull = 15,   ///< The activation request queue is full; the request was discarded
+    kRunTargetDoesntExist = 16  ///< The requested Run Target name does not exist in the current configuration
 };
 
 class ExecErrorDomain final : public score::result::ErrorDomain
@@ -85,8 +83,6 @@ class ExecErrorDomain final : public score::result::ErrorDomain
                 return "Deterministic activation cycle time exceeded";
             case ExecErrc::kActivationInProgress:
                 return "A Run Target activation is already in progress; no single Run Target is currently active";
-            case ExecErrc::kCallbackInProgress:
-                return "A new callback cannot be registered because the current callback is still executing";
             case ExecErrc::kRequestQueueIsFull:
                 return "The activation request queue is full; the request was discarded";
             case ExecErrc::kRunTargetDoesntExist:

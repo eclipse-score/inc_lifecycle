@@ -11,16 +11,6 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-/// @file
-/// @brief Unit test for the ILmControl::Create factory in ilm_control.cpp.
-///
-/// ILmControl::Create builds the production BasicLmControlImpl wired to the real
-/// mw::com proxy, so there is no compile-time seam here. The test therefore runs
-/// against a mw::com runtime initialized from the manifest passed on the command
-/// line via --service_instance_manifest (see main()); a valid specifier only
-/// needs StartFindService to succeed (background discovery), so no provider
-/// skeleton is required for Create() to hand back a usable instance.
-
 #include <gtest/gtest.h>
 
 #include <string>

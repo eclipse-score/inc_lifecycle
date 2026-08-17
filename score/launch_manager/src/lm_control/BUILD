@@ -13,19 +13,6 @@
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 cc_library(
-    name = "lm_control_service",
-    hdrs = ["src/details/lm_control_service.h"],
-    include_prefix = "score/mw/lifecycle",
-    strip_include_prefix = "/score/launch_manager/src/lm_control/src/details",
-    visibility = ["//score:__subpackages__"],
-    deps = [
-        "//score/launch_manager:error",
-        "//score/launch_manager/src/lm_control:lm_control",
-        "@score_communication//score/mw/com",
-    ],
-)
-
-cc_library(
     name = "lm_control",
     srcs = [
         "src/details/ilm_control.cpp",
@@ -51,12 +38,6 @@ cc_library(
     ],
 )
 
-# ---------------------------------------------------------------------------
-# Unit test: BasicLmControlImpl driven through a fake proxy injected at compile
-# time. Lives next to the implementation it covers. No mw::com runtime, shared
-# memory, or manifest required.
-# ---------------------------------------------------------------------------
-
 cc_test(
     name = "lm_control_impl_UT",
     srcs = ["src/details/lm_control_impl_UT.cpp"],
@@ -68,11 +49,6 @@ cc_test(
         "@score_communication//score/mw/com",
     ],
 )
-
-# ---------------------------------------------------------------------------
-# Unit test: ILmControl::Create factory. Runs against a mw::com runtime
-# initialized from the shared manifest; no provider skeleton is required.
-# ---------------------------------------------------------------------------
 
 cc_test(
     name = "ilm_control_UT",

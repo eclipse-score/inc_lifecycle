@@ -89,6 +89,7 @@ class ILmControl
     /// @returns A unique_ptr to the ILmControl instance on success.
     ///
     /// @error kInvalidArguments instance_specifier is empty or malformed.
+    /// @error kCommunicationError     The Launch Manager service could not be reached.
     static score::Result<std::unique_ptr<ILmControl>> Create(std::string_view instance_specifier);
 
     /// @brief Virtual destructor for safe deletion through this interface.
