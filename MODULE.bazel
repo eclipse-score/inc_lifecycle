@@ -176,18 +176,7 @@ oci.pull(
 use_repo(oci, "debian-test-runtime", "debian-test-runtime_linux_amd64")
 
 bazel_dep(name = "score_baselibs", version = "0.2.10")
-git_override(
-    module_name = "score_baselibs",
-    commit = "2daf5b88111d8f6e7f5516f240d4eacc67ceb361",
-    remote = "https://github.com/eclipse-score/baselibs.git",
-)
-
-bazel_dep(name = "score_communication")
-git_override(
-    module_name = "score_communication",
-    commit = "bcafda8fff9a90bc9e32bf054ad94fb7a627b318",
-    remote = "https://github.com/eclipse-score/communication.git",
-)
+bazel_dep(name = "score_communication", version = "0.3.0")
 
 # Hedron's Compile Commands Extractor for Bazel
 # https://github.com/hedronvision/bazel-compile-commands-extractor
