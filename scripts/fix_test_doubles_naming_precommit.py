@@ -66,16 +66,16 @@ def normalize_base_name(old_name: str) -> str:
     Remove the first occurrence of a test double name from a filename
     """
     double_name = TestDoubleName.to_regex_alternation()
-    # Match the double name only when it sits between separators (`_`/`-`) or
+    # Match the double name only when it sits between separators (`_`) or
     # the start/end of the string, so e.g. "mockable" is left alone. The two
     # boundary groups are captured so a shared separator (e.g. the "_" in
     # "foo_mock_bar") is preserved rather than consumed twice; the double
     # name itself (group 2) is dropped by omitting it from the replacement.
-    base = re.sub(rf"(?i)(^|[_-]){double_name}($|[_-])", r"\1\3", old_name, count=1)
+    base = re.sub(rf"(?i)(^|[_]){double_name}($|[_])", r"\1\3", old_name, count=1)
     # Collapse any doubled-up separator left behind (e.g. "foo__bar") and
     # trim a leading/trailing one (e.g. from "mock_foo" or "foo_mock").
-    base = re.sub(r"[_-]{2,}", "_", base)
-    return base.strip("_-")
+    base = re.sub(r"[_]{2,}", "_", base)
+    return base.strip("_")
 
 
 def build_target_name(path: Path) -> Path | None:
