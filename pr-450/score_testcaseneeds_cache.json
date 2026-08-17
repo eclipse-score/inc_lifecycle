@@ -6694,7 +6694,7 @@
   {
     "name": "test_lm_shutdown",
     "file": "../_main/tests/integration/lm_shutdown_during_switch_to_off/lm_shutdown_during_switch_to_off.py",
-    "line": "67",
+    "line": "18",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -6806,7 +6806,7 @@
   {
     "name": "test_lm_shutdown",
     "file": "../_main/tests/integration/lm_shutdown_during_rt_switch/lm_shutdown_during_rt_switch.py",
-    "line": "67",
+    "line": "18",
     "result": "passed",
     "repo_name": null,
     "hash": null,
