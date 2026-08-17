@@ -181,6 +181,7 @@ git_override(
     commit = "2daf5b88111d8f6e7f5516f240d4eacc67ceb361",
     remote = "https://github.com/eclipse-score/baselibs.git",
 )
+
 bazel_dep(name = "score_communication")
 git_override(
     module_name = "score_communication",

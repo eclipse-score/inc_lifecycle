@@ -64,4 +64,3 @@ cc_test(
         "@score_communication//score/mw/com",
     ],
 )
-
