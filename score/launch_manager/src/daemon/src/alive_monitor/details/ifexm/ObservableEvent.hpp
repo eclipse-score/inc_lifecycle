@@ -62,7 +62,7 @@ class ObservableEvent : public saf::common::Observable<ObservableEvent>
     ~ObservableEvent() override = default;
 
     /// @brief Event to observe
-    SupervisionEvent event;
+    SupervisionEvent event{};
 
     /// @brief Push Data
     /// @details Push supervision event related information, which shall be distributed to observers.
