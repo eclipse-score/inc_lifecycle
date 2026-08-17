@@ -47,7 +47,7 @@ def integration_test(
     pkg_files(
         name = "binaries",
         srcs = binaries,
-        attributes = pkg_attributes(mode = "0755"),
+        attributes = pkg_attributes(mode = "0555"),
         prefix = "tests/{}".format(name),
     )
 
@@ -65,6 +65,7 @@ def integration_test(
         name = "files",
         srcs = all_files,
         prefix = "tests/{}".format(name),
+        attributes = pkg_attributes(mode = "0400"),
     )
 
     pkg_tar(name = "environment", srcs = [":binaries", ":files"])
