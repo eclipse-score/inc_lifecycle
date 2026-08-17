@@ -361,8 +361,8 @@ TEST_F(LmControlUT, SynchronousDiscoveryDuringConstructionStopsFindingOnce)
         handler(score::mw::com::ServiceHandleContainer<FakeHandle>{FakeHandle{}}, FakeFindHandle{});
         return score::Result<FakeFindHandle>{FakeFindHandle{}};
     }));
-    // Discovery is stopped exactly once (during construction), never again in the
-    // destructor, because construction observed find_service_stopped_ == true.
+    // Discovery is stopped exactly once (during construction), never again in the destructor,
+    // because construction observed a set proxy_ and therefore never stored the handle.
     EXPECT_CALL(mock_, StopFindService()).Times(1);
 
     auto sut = MakeLmControl();
