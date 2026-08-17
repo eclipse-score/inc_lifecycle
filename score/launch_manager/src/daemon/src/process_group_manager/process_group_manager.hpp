@@ -59,8 +59,6 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     using WorkerQueue =
         MPMCConcurrentQueue<std::optional<ComponentTask>, static_cast<std::size_t>(ProcessLimits::kMaxProcesses)>;
 
-    using Config = score::mw::lifecycle::internal::configuration::Config;
-
   public:
     /// @brief Constructs a new ProcessGroupManager object.
     ///
@@ -74,20 +72,20 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     /// @param watchdog A unique pointer to an IWatchdogIf instance serviced during the main loop. May be nullptr in
     /// legacy configuration where no watchdog is wired.
     ProcessGroupManager(
+        configuration::Config&& config,
         std::unique_ptr<IAliveMonitorThread> alive_monitor_thread,
         std::shared_ptr<IRecoveryClient> recovery_client,
         std::unique_ptr<score::mw::lifecycle::ISupervisionControlNotifier> supervision_control_notifier,
         std::unique_ptr<score::mw::lifecycle::internal::watchdog::IWatchdogIf> watchdog);
 
     /// @brief Initializes the process group manager.
-    /// Loads the flat configuration through ConfigurationManager.
     /// Sets up a signal handler for SIGINT and SIGTERM so that the main loop of
     /// the run() method will be exited in the event of those signals
     /// Creates the process map, worker threads and worker job queues.
     /// Creates and initialises the shared memory for the nudge semaphore, always using FD #4,
     /// and stores a pointer to it.
     /// @return Returns true if initialization was successful, false otherwise.
-    bool initialize(Config&& config);
+    bool initialize();
 
     /// @brief De-initialises the process group manager
     /// deletes worker threads, worker jobs and the process map and then de-initialises the configuration manager
@@ -264,7 +262,7 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     bool initializeControlClientHandler();
 
     /// @brief The configuration object associated with the ProcessGroupManager.
-    std::unique_ptr<score::mw::lifecycle::internal::configuration::Config> configuration_;
+    configuration::Config configuration_;
 
     /// @brief The process interface object associated with the ProcessGroupManager.
     osal::ProcessLauncher process_interface_;

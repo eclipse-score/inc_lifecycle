@@ -61,7 +61,7 @@ class GraphTest : public ::testing::Test
         // (fixture-specific) config is in place.
         graph_ = std::make_unique<Graph>(
             10U,
-            &config_.value(),
+            config_.value(),
             job_queue_,
             &process_interface_,
             mock_process_map,

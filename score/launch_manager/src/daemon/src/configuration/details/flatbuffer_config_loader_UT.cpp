@@ -196,9 +196,7 @@ TEST_F(FlatbufferConfigLoaderTest, LoadMinimalConfig)
     ASSERT_THAT(result.has_value(), IsTrue());
     EXPECT_THAT(result->initialRunTarget(), Eq("Startup"));
     EXPECT_THAT(result->components().empty(), IsTrue());
-    // The loader always guarantees an "Off" run target, even for an otherwise empty run target list.
-    ASSERT_THAT(result->runTargets().size(), Eq(1U));
-    EXPECT_THAT(result->runTargets()[0].name, Eq(kOffRunTargetName));
+    EXPECT_THAT(result->runTargets().empty(), IsTrue());
     EXPECT_THAT(result->watchdog().has_value(), IsFalse());
 }
 
@@ -288,9 +286,7 @@ TEST_F(FlatbufferConfigLoaderTest, LoadRunTargets)
     auto result = loadBuffer(buildConfigWithRunTargets(fbb, rts));
 
     ASSERT_THAT(result.has_value(), IsTrue());
-    // The configured run target plus the "Off" run target appended by the loader.
-    ASSERT_THAT(result->runTargets().size(), Eq(2U));
-    EXPECT_THAT(result->runTargets()[1].name, Eq(kOffRunTargetName));
+    ASSERT_THAT(result->runTargets().size(), Eq(1U));
 
     const auto& target = result->runTargets()[0];
     EXPECT_THAT(target.name, Eq("Startup"));
@@ -301,9 +297,9 @@ TEST_F(FlatbufferConfigLoaderTest, LoadRunTargets)
     EXPECT_THAT(target.recovery_action.run_target, Eq("SafeState"));
 }
 
-TEST_F(FlatbufferConfigLoaderTest, ConfiguredOffRunTargetIsNotDuplicated)
+TEST_F(FlatbufferConfigLoaderTest, ConfiguredOffRunTargetIsLoadedVerbatim)
 {
-    RecordProperty("Description", "An explicitly configured \"Off\" run target is kept as-is and not appended twice.");
+    RecordProperty("Description", "An explicitly configured \"Off\" run target is loaded like any other run target.");
 
     ::flatbuffers::FlatBufferBuilder fbb;
 

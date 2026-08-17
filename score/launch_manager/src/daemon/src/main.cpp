@@ -11,13 +11,14 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
+#include <fcntl.h>
 #include <unistd.h>
 #include <cstring>
 #include <iostream>
-
-#include "score/mw/launch_manager/common/log.hpp"
+#include <memory>
 
 #include "score/mw/launch_manager/alive_monitor/details/daemon/AliveMonitorImpl.hpp"
+#include "score/mw/launch_manager/common/log.hpp"
 #include "score/mw/launch_manager/configuration/flatbuffer_config_loader.hpp"
 #include "score/mw/launch_manager/process_group_manager/alive_monitor_thread.hpp"
 #include "score/mw/launch_manager/process_group_manager/process_group_manager.hpp"
@@ -26,6 +27,7 @@
 #include "score/mw/launch_manager/watchdog/WatchdogFactory.hpp"
 
 using namespace std;
+using namespace score::mw::lifecycle;
 using namespace score::mw::lifecycle::internal;
 
 /// @brief Runs the LCM daemon.
@@ -148,7 +150,7 @@ int main(int argc, const char* argv[])
         //     return EXIT_FAILURE;
         // }
 
-        score::mw::lifecycle::internal::configuration::FlatbufferConfigLoader config_loader;
+        configuration::FlatbufferConfigLoader config_loader;
         auto config_result = config_loader.load(config_path);
         if (!config_result.has_value())
         {
@@ -156,24 +158,28 @@ int main(int argc, const char* argv[])
             return EXIT_FAILURE;
         }
         LM_LOG_DEBUG() << "Launch Manager Started !!!!";
-        std::shared_ptr<score::mw::lifecycle::IRecoveryClient> recoveryClient{
-            std::make_shared<score::mw::lifecycle::RecoveryClient>()};
-        auto supervision_control_notifier =
-            std::make_unique<score::mw::lifecycle::internal::SupervisionControlNotifier>();
-        std::unique_ptr<score::mw::lifecycle::internal::saf::daemon::IAliveMonitor> healthMonitor{
-            std::make_unique<score::mw::lifecycle::internal::saf::daemon::AliveMonitorImpl>(
-                recoveryClient, supervision_control_notifier->constructReceiver(), *config_result)};
-        std::unique_ptr<score::mw::lifecycle::internal::IAliveMonitorThread> aliveMonitorThread{
-            std::make_unique<score::mw::lifecycle::internal::AliveMonitorThread>(std::move(healthMonitor))};
 
-        auto watchdog = score::mw::lifecycle::internal::watchdog::createWatchdog();
+        std::shared_ptr<IRecoveryClient> recoveryClient{std::make_shared<RecoveryClient>()};
+
+        auto supervision_control_notifier = std::make_unique<SupervisionControlNotifier>();
+
+        // currently this is copying the config.
+        std::unique_ptr<saf::daemon::IAliveMonitor> healthMonitor{std::make_unique<saf::daemon::AliveMonitorImpl>(
+            recoveryClient, supervision_control_notifier->constructReceiver(), *config_result)};
+        static_cast<void>(config_result.value().takeAliveSupervision());
+
+        std::unique_ptr<IAliveMonitorThread> aliveMonitorThread{
+            std::make_unique<AliveMonitorThread>(std::move(healthMonitor))};
+
+        auto watchdog = watchdog::createWatchdog();
         auto process_group_manager = std::make_unique<ProcessGroupManager>(
+            std::move(config_result).value(),
             std::move(aliveMonitorThread),
             recoveryClient,
             std::move(supervision_control_notifier),
             std::move(watchdog));
 
-        if (process_group_manager->initialize(std::move(config_result).value()))
+        if (process_group_manager->initialize())
         {
             if (runLCMDaemon(*process_group_manager))
             {

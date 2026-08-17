@@ -38,11 +38,12 @@ void ProcessGroupManager::cancel()
 }
 
 ProcessGroupManager::ProcessGroupManager(
+    configuration::Config&& config,
     std::unique_ptr<IAliveMonitorThread> alive_monitor_thread,
     std::shared_ptr<IRecoveryClient> recovery_client,
     std::unique_ptr<score::mw::lifecycle::ISupervisionControlNotifier> supervision_control_notifier,
     std::unique_ptr<score::mw::lifecycle::internal::watchdog::IWatchdogIf> watchdog)
-    : configuration_(),
+    : configuration_(std::move(config)),
       process_interface_(),
       process_map_(nullptr),
       thread_pool_(nullptr),
@@ -54,7 +55,7 @@ ProcessGroupManager::ProcessGroupManager(
 {
 }
 
-bool ProcessGroupManager::initialize(Config&& config)
+bool ProcessGroupManager::initialize()
 {
     // setup signal handler
     em_cancelled.store(false);
@@ -80,9 +81,7 @@ bool ProcessGroupManager::initialize(Config&& config)
         return false;
     }
 
-    configuration_ = std::make_unique<Config>(std::move(config));
-
-    const std::size_t total_processes = configuration_->components().size();
+    const std::size_t total_processes = configuration_.components().size();
 
     if (total_processes > static_cast<uint32_t>(ProcessLimits::kMaxProcesses))
     {
@@ -104,7 +103,7 @@ bool ProcessGroupManager::initialize(Config&& config)
         return false;
     }
 
-    const auto watchdog_config = configuration_->takeWatchdog();
+    const auto watchdog_config = configuration_.takeWatchdog();
 
     // Watchdog config may not be available if no watchdog is configured
     if (watchdog_config.has_value())
@@ -204,9 +203,9 @@ bool ProcessGroupManager::initializeControlClientHandler()
 bool ProcessGroupManager::initializeProcessGroups()
 {
     graph_ = std::make_shared<Graph>(
-        // size is +1 for fallback run target
-        configuration_->components().size() + configuration_->runTargets().size() + 1,
-        configuration_.get(),
+        // size is +2 for fallback + off
+        configuration_.components().size() + configuration_.runTargets().size() + 2,
+        configuration_,
         worker_jobs_,
         &process_interface_,
         process_map_,
@@ -296,10 +295,7 @@ bool ProcessGroupManager::run()
 
 void ProcessGroupManager::processComponentEvents()
 {
-    if (!graph_)
-    {
-        return;
-    }
+    SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(bool(graph_), "Graph not initialized");
 
     while (auto event = event_queue_->getNextEvent())
     {
@@ -317,22 +313,16 @@ void ProcessGroupManager::processComponentEvents()
 bool ProcessGroupManager::startInitialTransition()
 {
     LM_LOG_DEBUG() << "=============STARTING MAINPG STARTUP STATE============";
-    if (!graph_)
-    {
-        return false;
-    }
+    SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(bool(graph_), "Graph not initialized");
     // Convert string_view to IdentifierHash
-    const std::string initial_target{configuration_->initialRunTarget()};
+    const std::string initial_target{configuration_.initialRunTarget()};
     graph_->startInitialTransition(IdentifierHash(initial_target));
     return true;
 }
 
 void ProcessGroupManager::allProcessGroupsOff()
 {
-    if (!graph_)
-    {
-        return;
-    }
+    SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(bool(graph_), "Graph not initialized");
 
     // Wait for process group state to change while actively draining shutdown events.
     // SupervisionFailure is intentionally ignored here so recovery transitions do not
@@ -489,12 +479,10 @@ void ProcessGroupManager::controlClientRequests(Graph& pg)
                        << static_cast<int>(scc->request().request_or_response_) << ") re state"
                        << scc->request().process_group_state_.pg_state_name_;
 
-        LM_LOG_DEBUG() << "HERER++++++++";
         // Now process the request
         switch (scc->request().request_or_response_)
         {
             case ControlClientCode::kSetStateRequest:
-                LM_LOG_DEBUG() << "HERER++++++++";
                 processStateTransition(scc);
                 break;
 
@@ -536,16 +524,12 @@ void ProcessGroupManager::controlClientRequests(Graph& pg)
 
 void ProcessGroupManager::handleRecoveryRequest(const IdentifierHash& process_identifier)
 {
-    if (!graph_)
-    {
-        LM_LOG_ERROR() << "handleRecoveryRequest: No graph available";
-        return;
-    }
+    SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(bool(graph_), "Graph not initialized");
 
-    // TODO: Determine recovery state from configuration
-    // For now, transition to fallback run target
     const IdentifierHash old_state = graph_->getProcessGroupState();
-    const IdentifierHash recovery_state("fallback");  // TODO: Get from configuration
+    // the fallback state doesn't have a name in the config, so we use
+    // "fallback", it doesn't actually matter...
+    const IdentifierHash recovery_state("fallback");
     const GraphState graph_state = graph_->getState();
 
     LM_LOG_DEBUG() << "handleRecoveryRequest: Processing recovery request for process " << process_identifier
@@ -660,7 +644,7 @@ void ProcessGroupManager::processGetInitialMachineStateTransitionResult(ControlC
 void ProcessGroupManager::processValidateFunctionStateID(ControlClientChannelP scc)
 {
     // Check if the requested state name matches any run target
-    const auto& run_targets = configuration_->runTargets();
+    const auto& run_targets = configuration_.runTargets();
     const auto& requested_state_name = scc->request().process_group_state_.pg_state_name_;
 
     bool found = std::any_of(run_targets.begin(), run_targets.end(), [&requested_state_name](const auto& rt) {

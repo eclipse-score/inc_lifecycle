@@ -149,6 +149,7 @@ class ProcessGroupManagerWatchdogTest : public Test
         watchdog_ = watchdog.get();
 
         process_group_manager_ = std::make_unique<ProcessGroupManager>(
+            makeMinimalConfig(),
             std::move(alive_monitor_thread),
             std::move(recovery_client),
             std::move(supervision_control_notifier),
@@ -171,7 +172,7 @@ class ProcessGroupManagerWatchdogTest : public Test
 TEST_F(ProcessGroupManagerWatchdogTest, GivenMinimalConfig_ExpectWatchdogMethodsCalledInSequence_WhenInitializeCalled)
 {
     // Given
-    auto config = makeMinimalConfig();
+    // The minimal configuration is handed to the ProcessGroupManager on construction, in SetUp().
 
     // Expected
     InSequence sequence;
@@ -180,7 +181,7 @@ TEST_F(ProcessGroupManagerWatchdogTest, GivenMinimalConfig_ExpectWatchdogMethods
     EXPECT_CALL(*alive_monitor_thread_, stop()).Times(1);
 
     // When
-    auto initialize_result = process_group_manager_->initialize(std::move(config));
+    auto initialize_result = process_group_manager_->initialize();
 
     // Then
     EXPECT_TRUE(initialize_result);
@@ -188,9 +189,6 @@ TEST_F(ProcessGroupManagerWatchdogTest, GivenMinimalConfig_ExpectWatchdogMethods
 
 TEST_F(ProcessGroupManagerWatchdogTest, GivenMinimalConfig_ExpectWatchdogServicePerCycle_WhenRunCalled)
 {
-    // Given
-    auto config = makeMinimalConfig();
-
     // Expected
     expectNormalStartup();
     // Call cancel() to exit the run() loop after at least one cycle of serviceWatchdog() is called
@@ -202,7 +200,7 @@ TEST_F(ProcessGroupManagerWatchdogTest, GivenMinimalConfig_ExpectWatchdogService
     EXPECT_CALL(*alive_monitor_thread_, stop()).Times(1);
 
     // When
-    ASSERT_TRUE(process_group_manager_->initialize(std::move(config)));
+    ASSERT_TRUE(process_group_manager_->initialize());
     auto run_result = process_group_manager_->run();
 
     // Then
@@ -212,7 +210,6 @@ TEST_F(ProcessGroupManagerWatchdogTest, GivenMinimalConfig_ExpectWatchdogService
 TEST_F(ProcessGroupManagerWatchdogTest, GivenMinimalConfig_ExpectWatchdogFired_WhenRecoveryClientOverflowsDuringRunCall)
 {
     // Given
-    auto config = makeMinimalConfig();
     // More than the component event queue can hold (capacity == number of OS processes * 3; makeMinimalConfig has a
     // single component)
     constexpr int kNumRecoveryRequests = 16;
@@ -227,7 +224,7 @@ TEST_F(ProcessGroupManagerWatchdogTest, GivenMinimalConfig_ExpectWatchdogFired_W
     EXPECT_CALL(*alive_monitor_thread_, stop()).Times(1);
 
     // When
-    ASSERT_TRUE(process_group_manager_->initialize(std::move(config)));
+    ASSERT_TRUE(process_group_manager_->initialize());
 
     // Deliver more recovery requests than the component event queue can hold,
     // forcing the queue to drop events and latch its sticky overflow flag.
@@ -246,9 +243,6 @@ TEST_F(ProcessGroupManagerWatchdogTest, GivenMinimalConfig_ExpectWatchdogFired_W
 
 TEST_F(ProcessGroupManagerWatchdogTest, GivenMinimalConfig_ExpectWatchdogDisabled_WhenDeinitializeCalled)
 {
-    // Given
-    auto config = makeMinimalConfig();
-
     // Expected
     expectNormalStartup();
     // We are explicitly calling deinitialize() in this test for readability,
@@ -257,7 +251,7 @@ TEST_F(ProcessGroupManagerWatchdogTest, GivenMinimalConfig_ExpectWatchdogDisable
     EXPECT_CALL(*alive_monitor_thread_, stop()).Times(2);
 
     // When
-    ASSERT_TRUE(process_group_manager_->initialize(std::move(config)));
+    ASSERT_TRUE(process_group_manager_->initialize());
     process_group_manager_->deinitialize();
 }
 

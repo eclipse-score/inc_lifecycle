@@ -153,7 +153,7 @@ class Graph final
     /// @param max_num_nodes Maximum number of nodes this graph can hold.
     Graph(
         uint32_t max_num_nodes,
-        configuration::Config* configuration,
+        configuration::Config& configuration,
         std::shared_ptr<WorkerQueue> job_queue,
         osal::IProcess* process_interface,
         std::shared_ptr<SafeProcessMapInserter> process_map,
@@ -349,7 +349,7 @@ class Graph final
     mutable std::mutex requested_state_mutex_{};
 
     /// @brief Config pointer to set up graph nodes
-    configuration::Config* configuration_;
+    configuration::Config& configuration_;
 
     /// @brief Queue to push component tasks to
     std::shared_ptr<WorkerQueue> job_queue_;
@@ -367,10 +367,10 @@ class Graph final
     ITransitionResultPublisher* transition_result_receiver_;
 
     /// @brief The state manager node for this process group
-    ControlClientID last_state_manager_;
+    ControlClientID last_state_manager_{};
 
     /// @brief The last execution error set on an unexpected termination
-    uint32_t last_execution_error_;
+    uint32_t last_execution_error_{0U};
 
     /// @brief Set the true if this is the MainPG and this is the initial state transition
     bool is_initial_state_transition_{false};
@@ -385,13 +385,13 @@ class Graph final
     ControlClientCode abort_code_{ControlClientCode::kNotSet};
 
     /// @brief The message to send when a transition is cancelled
-    ControlClientMessage cancel_message_;
+    ControlClientMessage cancel_message_{};
 
     /// @brief Constant for Off state.
     IdentifierHash off_state_{"Off"};
 
     /// @brief Stores the timestamp based on the system clock when starting a request
-    std::chrono::time_point<std::chrono::steady_clock> request_start_time_;
+    std::chrono::time_point<std::chrono::steady_clock> request_start_time_{};
 
     /// @brief Stop token generator for transitions.
     score::cpp::stop_source stop_source_;

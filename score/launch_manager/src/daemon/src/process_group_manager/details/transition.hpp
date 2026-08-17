@@ -24,13 +24,10 @@
 #include <bitset>
 #include <cstddef>
 #include <cstdint>
-#include <ios>
-#include <iostream>
 #include <iterator>
 #include <optional>
 #include <type_traits>
 #include <utility>
-#include <variant>
 #include <vector>
 
 namespace score::mw::lifecycle
@@ -414,7 +411,6 @@ class Transition
             if (!state_.in_target_subgraph[i] && !stopped(i))
             {
                 ++state_.pending;
-
                 if (allDependentsStopped(i))
                 {
                     state_.next_nodes.push(i);

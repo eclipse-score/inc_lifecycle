@@ -39,22 +39,31 @@ namespace configuration = score::mw::lifecycle::internal::configuration;
 /// @param supervision_event_publisher Publisher for supervision events.
 /// @param process_interface Interface for OS process operations.
 /// @param process_map Map for tracking process PIDs.
+/// @param run_target_map Map to keep the translation between IDHash to Index
 /// @return A populated dependency graph with all components and run targets.
 DependencyGraph<Graph::Component> CreateDependencyGraph(
-    configuration::Config* config,
+    configuration::Config& config,
     ISupervisionEventPublisher& supervision_event_publisher,
     osal::IProcess* process_interface,
     std::shared_ptr<SafeProcessMapInserter> process_map,
     std::unordered_map<std::size_t, GraphIndex>& run_target_map)
 {
-    const auto& run_targets = config->runTargets();
-    auto components = config->takeComponents();
-    const auto num_of_components = components.size();
+    // this is a temporary (bad) implementation, all shall be cleandup
+    // on https://github.com/eclipse-score/lifecycle/issues/463
+    // making the dep_graph a hash map would make this much cleaner as we
+    // wouldn't have to keep track of stuff...
+    const std::vector<configuration::RunTargetConfig> run_targets = config.takeRunTargets();
+    std::vector<configuration::ComponentConfig> components = config.takeComponents();
 
-    DependencyGraph<Graph::Component> graph(components.size() + run_targets.size() + 1);
+    // the Off and fallback run targets are special.
+    // Off can be configred by the user and would mean we need +1 but
+    // over-reserving is ok.
+    // fallback is always created.
+    const std::size_t graph_size = components.size() + run_targets.size() + 2U;
+
+    DependencyGraph<Graph::Component> graph(graph_size);
 
     // map component names to their graph index, needed for deps
-    // (there is probably a better way of walking the graph)
     std::unordered_map<std::string, GraphIndex> component_name_to_index;
 
     // store dependency information before moving components
@@ -65,15 +74,16 @@ DependencyGraph<Graph::Component> CreateDependencyGraph(
         component_dependencies.push_back(std::move(component_config.component_properties.depends_on));
     }
 
-    // insert all components and build the <name, index> map
+    // need a counter to keep track of the inserted elements
     std::size_t graph_index = 0;
-    for (; graph_index < components.size(); ++graph_index)
+
+    for (std::size_t component_i = 0; component_i < components.size(); graph_index++, component_i++)
     {
-        const auto component_name = components[graph_index].name;
+        const auto component_name = components[component_i].name;
 
         const auto index = graph.emplace(
             std::in_place_type<ProcessInfoNode>,
-            std::move(components[graph_index]),
+            std::move(components[component_i]),
             static_cast<uint32_t>(graph_index),
             supervision_event_publisher,
             process_interface,
@@ -83,7 +93,6 @@ DependencyGraph<Graph::Component> CreateDependencyGraph(
         component_name_to_index[component_name] = index;
 
         // all of this relies on graphindex having sequential indexes
-        // TODO use IdHash later...
         SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(
             index == graph_index, "Component graph indices must match component order");
     }
@@ -91,54 +100,63 @@ DependencyGraph<Graph::Component> CreateDependencyGraph(
     LM_LOG_DEBUG() << "Created" << components.size() << "component nodes";
 
     // do the component dependencies
-    for (std::size_t i = 0; i < component_dependencies.size(); ++i)
+    for (std::size_t comp_dep_i = 0; comp_dep_i < component_dependencies.size(); ++comp_dep_i)
     {
-        for (const auto& dep_name : component_dependencies[i])
+        for (const auto& dep_name : component_dependencies[comp_dep_i])
         {
             auto it = component_name_to_index.find(dep_name);
             SCORE_LANGUAGE_FUTURECPP_PRECONDITION_MESSAGE(
                 it != component_name_to_index.end(), "Component dependency not found in component list");
 
-            graph.addDependency(i, it->second);
+            graph.addDependency(comp_dep_i, it->second);
         }
     }
 
-    // create run_targets and do their dependencies
-    for (const auto& run_target_config : run_targets)
+    bool off_rt_defined = false;
+    // create run_targets
+    for (std::size_t run_target_i = 0; run_target_i < run_targets.size(); run_target_i++, graph_index++)
     {
         auto index = graph.emplace(std::in_place_type<RunTarget>, graph_index);
-        graph_index++;
-        LM_LOG_DEBUG() << "Created RunTarget node:" << run_target_config.name << "at index" << index;
+        const auto& run_target = run_targets[run_target_i];
+        LM_LOG_DEBUG() << "Created RunTarget node:" << run_target.name << "at index" << index;
 
         SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(
-            index == graph_index - 1, "Component graph indices must match component order");
+            index == graph_index, "Component graph indices must match component order");
 
-        component_name_to_index[run_target_config.name] = index;
-        run_target_map.insert({IdentifierHash{run_target_config.name}.data(), index});
+        off_rt_defined |= bool(run_target.name == "Off");
+        component_name_to_index[run_target.name] = index;
+        run_target_map.insert({IdentifierHash{run_target.name}.data(), index});
     };
 
-    for (std::size_t i = 0; i < run_targets.size(); ++i)
+    for (std::size_t run_target_i = 0; run_target_i < run_targets.size(); ++run_target_i)
     {
-        for (const auto& dep_name : run_targets[i].depends_on)
+        for (const auto& dep_name : run_targets[run_target_i].depends_on)
         {
             auto it = component_name_to_index.find(dep_name);
-            LM_LOG_ERROR() << run_targets[i].name << "HAS DEP TO " << dep_name;
+            LM_LOG_ERROR() << run_targets[run_target_i].name << "has dep to " << dep_name;
             SCORE_LANGUAGE_FUTURECPP_PRECONDITION_MESSAGE(
                 it != component_name_to_index.end(), "RunTarget dependency not found in component list");
 
-            graph.addDependency(num_of_components + i, it->second);
+            graph.addDependency(components.size() + run_target_i, it->second);
         }
     }
 
+    // handle the off target
+    if (!off_rt_defined)
+    {
+        auto off_index = graph.emplace(std::in_place_type<RunTarget>, graph.size());
+        run_target_map.insert({IdentifierHash{"Off"}.data(), off_index});
+    }
+
+    // handle the fallback target
     auto fallback_index = graph.emplace(std::in_place_type<RunTarget>, graph.size());
     run_target_map.insert({IdentifierHash{"fallback"}.data(), fallback_index});
 
-    LM_LOG_ERROR() << "FALLBACK at index:" << fallback_index;
-    for (const auto& dep_name : config->fallbackRunTarget().depends_on)
+    LM_LOG_DEBUG() << "fallback at index:" << fallback_index;
+    for (const auto& dep_name : config.fallbackRunTarget().depends_on)
     {
         auto it = component_name_to_index.find(dep_name);
-        LM_LOG_ERROR() << dep_name;
-        LM_LOG_ERROR() << "FALLBACK" << fallback_index << "HAS DEP TO " << dep_name;
+        LM_LOG_DEBUG() << "fallback" << fallback_index << "has dep to " << dep_name;
         SCORE_LANGUAGE_FUTURECPP_PRECONDITION_MESSAGE(
             it != component_name_to_index.end(), "RunTarget dependency not found in component list");
 
@@ -154,7 +172,7 @@ DependencyGraph<Graph::Component> CreateDependencyGraph(
 
 Graph::Graph(
     uint32_t max_num_nodes,
-    configuration::Config* configuration,
+    configuration::Config& configuration,
     std::shared_ptr<WorkerQueue> job_queue,
     osal::IProcess* process_interface,
     std::shared_ptr<SafeProcessMapInserter> process_map,
@@ -163,20 +181,12 @@ Graph::Graph(
     : nodes_(max_num_nodes),
       transition_builder_(nodes_),
       state_(GraphState::kSuccess),
-      requested_state_(),
       configuration_(configuration),
       job_queue_(job_queue),
       process_interface_(process_interface),
       process_map_(process_map),
       supervision_event_publisher_(supervision_event_publisher),
-      transition_result_receiver_(transition_result_receiver),
-      last_state_manager_(),
-      last_execution_error_(0U),
-      is_initial_state_transition_(false),
-      pending_state_(""),
-      event_(ControlClientCode::kNotSet),
-      cancel_message_(),
-      request_start_time_()
+      transition_result_receiver_(transition_result_receiver)
 {
     last_state_manager_.process_index_ = 0xFFFFU;  // an invalid state manager
     last_state_manager_.process_group_index_ = 0xFFFFU;
@@ -200,57 +210,35 @@ int32_t Graph::getRunTargetIndex(IdentifierHash pg_state) const
     return static_cast<int32_t>(it->second);
 }
 
-bool Graph::setState(GraphState new_state)
+bool Graph::setState(const GraphState new_state)
 {
     GraphState old_state = getState();
-    // Notice that this is a private method and by design the states can't be out of range
-    // if( old_state > GraphState::kUndefinedState ||
-    //    new_state > GraphState::kUndefinedState )
-    //{
-    //    LM_LOG_ERROR() << "Incorrect state transition:" << static_cast<int>( old_state ) << "to"
-    //                   << static_cast<int>( new_state );
-    //}
-    // else
+    const GraphState target_state = state_results[static_cast<uint8_t>(new_state)][static_cast<uint8_t>(old_state)];
+
+    state_ = target_state;
+
+    const bool become_transition = old_state != GraphState::kInTransition && target_state == GraphState::kInTransition;
+    const bool coming_from_transition =
+        target_state != GraphState::kInTransition && old_state == GraphState::kInTransition;
+
+    if (become_transition)
     {
-        score::cpp::span<const GraphState> line{state_results[static_cast<uint8_t>(new_state)]};
-        GraphState target_state = new_state;
-
-        while (old_state != target_state)
-        {
-            // coverity[autosar_cpp14_a5_2_5_violation:FALSE] Line is an array of graphstates from state_results. There
-            // are no nullptrs inside state_results so a indexing without a check is allowed.
-            target_state =
-                line.data()[static_cast<uint8_t>(old_state)];  // score::cpp::span does not implement operator[]
-
-            state_ = target_state;
-
-            if (target_state == GraphState::kInTransition && old_state != GraphState::kInTransition)
-            {
-                stop_source_ = score::cpp::stop_source{};
-            }
-            else if (target_state != GraphState::kInTransition && old_state == GraphState::kInTransition)
-            {
-                // If we've left the transition state, we should stop any continuing jobs
-                static_cast<void>(stop_source_.request_stop());
-            }
-
-            old_state = target_state;
-
-            if (new_state == GraphState::kSuccess)
-            {
-                // get state transition end time stamp
-                auto request_end_time = std::chrono::steady_clock::now();
-
-                // log state transition duration
-                auto timeDiff =
-                    std::chrono::duration_cast<std::chrono::milliseconds>(request_end_time - getRequestStartTime());
-
-                LM_LOG_INFO() << "Completed the request for PG" << getProcessGroupName() << "to State"
-                              << getProcessGroupState() << "in" << timeDiff.count() << "ms";
-            }
-        }
+        stop_source_ = score::cpp::stop_source{};
     }
-    return state_ == new_state;
+    else if (coming_from_transition)
+    {
+        // we should stop any continuing jobs
+        static_cast<void>(stop_source_.request_stop());
+    }
+
+    if (new_state == GraphState::kSuccess)
+    {
+        auto request_end_time = std::chrono::steady_clock::now();
+        auto timeDiff = std::chrono::duration_cast<std::chrono::milliseconds>(request_end_time - getRequestStartTime());
+        LM_LOG_INFO() << "Completed the request for PG" << getProcessGroupName() << "to State" << getProcessGroupState()
+                      << "in" << timeDiff.count() << "ms";
+    }
+    return target_state == new_state;
 }
 
 void Graph::updateRunTargetInPlace(RunTarget& run_target, ComponentTaskType task_type)

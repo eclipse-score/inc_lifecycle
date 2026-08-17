@@ -52,7 +52,9 @@ IComponent::RequestResult ProcessInfoNode::tryReportCompletion(score::mw::lifecy
 {
     ProcessState desired_state{};
 
-    SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(config_.component_properties.ready_condition.has_value() == true, "ADS");
+    SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(
+        config_.component_properties.ready_condition.has_value() == true,
+        "component has no ready condition, config should have created a default one");
     auto ready_condition = config_.component_properties.ready_condition.value();
 
     switch (ready_condition.process_state)

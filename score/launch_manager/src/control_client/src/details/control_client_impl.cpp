@@ -334,8 +334,6 @@ score::concurrency::InterruptibleFuture<void> ControlClientImpl::SetState(
 {
     score::concurrency::InterruptibleFuture<void> retVal_{};
 
-    std::cout << "Setting state " << pg_name << pg_state << std::endl;
-
     if (nullptr != ipc_channel_)
     {
         score::mw::lifecycle::internal::ControlClientMessage msg;
