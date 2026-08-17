@@ -14,6 +14,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <cstddef>
 #include <functional>
 #include <memory>
@@ -71,9 +72,18 @@ struct FakeActivationEvent
 {
     MwComMock* mock;
 
+    // Mirrors mw::com: a single GetNewSamples() call never hands out more than the
+    // max_sample_count agreed in Subscribe(), no matter how large the backlog is.
+    std::size_t subscribed_max_count{0U};
+
     score::Result<void> Subscribe(std::size_t max_sample_count)
     {
-        return mock->Subscribe(max_sample_count);
+        auto result = mock->Subscribe(max_sample_count);
+        if (result.has_value())
+        {
+            subscribed_max_count = max_sample_count;
+        }
+        return result;
     }
 
     void SetReceiveHandler(std::function<void()> handler)
@@ -94,17 +104,21 @@ struct FakeActivationEvent
     template <typename Callback>
     score::Result<std::size_t> GetNewSamples(Callback&& callback, std::size_t max_count)
     {
-        auto samples_result = mock->GetNewSamples(max_count);
+        const std::size_t effective_max_count = std::min(max_count, subscribed_max_count);
+        auto samples_result = mock->GetNewSamples(effective_max_count);
         if (!samples_result.has_value())
         {
             return score::MakeUnexpected(ExecErrc::kCommunicationError);
         }
         auto samples = std::move(samples_result).value();
-        for (auto& sample : samples)
+
+        // Uphold the mw::com contract even if a test stubs a larger batch than requested.
+        const std::size_t delivered = std::min(samples.size(), effective_max_count);
+        for (std::size_t i = 0U; i < delivered; ++i)
         {
-            callback(&sample);
+            callback(&samples[i]);
         }
-        return samples.size();
+        return delivered;
     }
 };
 
@@ -184,6 +198,18 @@ GetActiveRunTargetResponse Available(RunTargetName name)
     return GetActiveRunTargetResponse{QueryStatus::kAvailable, name, ExecErrc::kGeneralError};
 }
 
+/// @brief Builds a batch of activation results, one per run target name.
+std::vector<ActivationResult> MakeSamples(std::initializer_list<std::string_view> run_target_names)
+{
+    std::vector<ActivationResult> samples{};
+    samples.reserve(run_target_names.size());
+    for (const auto name : run_target_names)
+    {
+        samples.push_back(ActivationResult{RunTargetName{name}, RunTargetActivationSource::kStateManagerRequest});
+    }
+    return samples;
+}
+
 class LmControlUT : public ::testing::Test
 {
   protected:
@@ -229,9 +255,9 @@ class LmControlUT : public ::testing::Test
     /// @brief Build a successfully-constructed (but not yet connected) SUT.
     std::unique_ptr<LmControlImplType> MakeLmControl()
     {
-        auto result = LmControlImplType::Create(kValidSpecifier);
-        EXPECT_TRUE(result.has_value());
-        return std::move(result).value();
+        auto sut = std::make_unique<LmControlImplType>();
+        EXPECT_TRUE(sut->init(kValidSpecifier).has_value());
+        return sut;
     }
 
     /// @brief Build an already-connected SUT using the fixture defaults.
@@ -251,39 +277,46 @@ class LmControlUT : public ::testing::Test
 // Construction / discovery lifecycle
 // ---------------------------------------------------------------------------
 
-TEST_F(LmControlUT, InvalidSpecifierYieldsInitError)
+TEST_F(LmControlUT, InvalidSpecifierIsRejectedByInit)
 {
     RecordProperty(
         "Description",
-        "Create() with an empty instance specifier returns kInvalidArguments and never starts discovery.");
+        "init() with an empty instance specifier returns kInvalidArguments and never starts discovery.");
 
     EXPECT_CALL(mock_, StartFindService(_)).Times(0);
 
-    auto result = LmControlImplType::Create("");
+    LmControlImplType sut{};
+    const auto result = sut.init("");
     ASSERT_FALSE(result.has_value());
     EXPECT_EQ(result.error(), ExecErrc::kInvalidArguments);
 }
 
-TEST_F(LmControlUT, StartFindServiceFailureYieldsInitError)
+TEST_F(LmControlUT, StartFindServiceFailureIsReportedByInit)
 {
-    RecordProperty("Description", "When StartFindService fails, Create() returns kCommunicationError.");
+    RecordProperty(
+        "Description",
+        "When StartFindService fails, init() returns kCommunicationError and the instance can be destroyed "
+        "without stopping a search it never started.");
 
     EXPECT_CALL(mock_, StartFindService(_)).WillOnce(Return(score::MakeUnexpected(ExecErrc::kCommunicationError)));
+    EXPECT_CALL(mock_, StopFindService()).Times(0);
+    EXPECT_CALL(mock_, Unsubscribe()).Times(0);
 
-    auto result = LmControlImplType::Create(kValidSpecifier);
+    LmControlImplType sut{};
+    const auto result = sut.init(kValidSpecifier);
     ASSERT_FALSE(result.has_value());
     EXPECT_EQ(result.error(), ExecErrc::kCommunicationError);
 }
 
-TEST_F(LmControlUT, ConstructionStartsBackgroundDiscovery)
+TEST_F(LmControlUT, InitStartsBackgroundDiscovery)
 {
     RecordProperty(
-        "Description", "Create() with a valid specifier starts asynchronous service discovery via StartFindService.");
+        "Description", "init() with a valid specifier starts asynchronous service discovery via StartFindService.");
 
     EXPECT_CALL(mock_, StartFindService(_));
 
-    auto result = LmControlImplType::Create(kValidSpecifier);
-    EXPECT_TRUE(result.has_value());
+    LmControlImplType sut{};
+    EXPECT_TRUE(sut.init(kValidSpecifier).has_value());
     EXPECT_TRUE(find_handler_);
 }
 
@@ -583,6 +616,37 @@ TEST_F(LmControlUT, ActivationResultInvokesRegisteredCallback)
     ASSERT_TRUE(name.has_value());
     EXPECT_EQ(name.value(), "Recovery");
     EXPECT_EQ(source.value(), RunTargetActivationSource::kRecoveryAction);
+}
+
+TEST_F(LmControlUT, ActivationResultBacklogExceedingSubscriptionIsDrainedInSeveralCalls)
+{
+    RecordProperty(
+        "Description",
+        "A backlog larger than the subscribed max_sample_count is drained with repeated GetNewSamples calls, "
+        "each requesting only the still-missing remainder, and every sample is forwarded exactly once.");
+
+    auto sut = MakeConnected();
+
+    std::vector<RunTargetName> received{};
+    ASSERT_TRUE(sut->register_run_target_activation_callback([&](RunTargetActivationSource, RunTargetName n) {
+                       received.push_back(n);
+                   })
+                    .has_value());
+
+    // Six pending samples, but Subscribe(kActivationResultSampleCount == 4) caps a single
+    // GetNewSamples call at four, so the drain loop has to come back for the remaining two.
+    EXPECT_CALL(mock_, GetNumNewSamplesAvailable()).WillOnce(Return(score::Result<std::size_t>{6U}));
+    EXPECT_CALL(mock_, GetNewSamples(4U)).WillOnce(Invoke([](std::size_t) {
+        return score::Result<std::vector<ActivationResult>>{MakeSamples({"T0", "T1", "T2", "T3"})};
+    }));
+    EXPECT_CALL(mock_, GetNewSamples(2U)).WillOnce(Invoke([](std::size_t) {
+        return score::Result<std::vector<ActivationResult>>{MakeSamples({"T4", "T5"})};
+    }));
+
+    ASSERT_TRUE(receive_handler_);
+    receive_handler_();
+
+    EXPECT_THAT(received, ::testing::ElementsAre("T0", "T1", "T2", "T3", "T4", "T5"));
 }
 
 TEST_F(LmControlUT, ActivationResultWithoutCallbackIsDroppedSafely)

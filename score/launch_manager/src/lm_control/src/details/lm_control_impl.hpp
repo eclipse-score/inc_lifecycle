@@ -14,7 +14,6 @@
 #define SCORE_MW_LIFECYCLE_LM_CONTROL_IMPL_HPP
 
 #include <cstddef>
-#include <memory>
 #include <mutex>
 #include <optional>
 #include <string>
@@ -70,12 +69,11 @@ struct MwComProxyTraits
 
 /// @brief mw::com proxy-based implementation of ILmControl.
 ///
-/// Connects to the Launch Manager via mw::com.
-/// Construction starts an asynchronous service discovery that
-/// keeps searching for the instance in the background. Construction itself
-/// succeeds as long as the instance specifier is valid and there is no error
-//  setting up the service discovery; the proxy may only become available later.
-//  Until it does, method calls return kCommunicationError.
+/// Connects to the Launch Manager via mw::com. Construction yields an inert, unconnected
+/// object; init() then starts an asynchronous service discovery that keeps searching for
+/// the instance in the background. init() succeeds as long as the instance specifier is
+/// valid and the service discovery could be started; the proxy may only become available
+/// later. Until it does, method calls return kCommunicationError.
 ///
 /// @tparam Traits  Binds the class to a proxy implementation. Defaults to
 ///                 MwComProxyTraits (the real mw::com proxy). Tests inject a
@@ -85,34 +83,25 @@ template <typename Traits = MwComProxyTraits>
 class BasicLmControlImpl final : public ILmControl
 {
   public:
-    /// @brief Create a fully initialized instance, or return the construction error.
-    /// @param[in] instance_specifier  The mw::com instance specifier identifying
-    ///                                the Launch Manager service. Must be a
-    ///                                non-empty, valid specifier string. An empty
-    ///                                or malformed value yields kInvalidArguments.
-    /// @return The ready-to-use instance, or the error that prevented setup.
-    static score::Result<std::unique_ptr<BasicLmControlImpl>> Create(std::string_view instance_specifier) noexcept
-    {
-        auto instance = std::make_unique<BasicLmControlImpl>(instance_specifier);
-        if (instance->init_error_.has_value())
-        {
-            return score::MakeUnexpected(instance->init_error_.value());
-        }
-        return instance;
-    }
+    /// @brief Creates an inert, unconnected instance. Call init() to put it to use.
+    BasicLmControlImpl() noexcept = default;
 
-    /// @brief Construct an instance and start asynchronous service discovery.
-    /// @note Prefer Create(): This constructor is
-    ///       public only so std::make_unique can build the object inside Create().
-    explicit BasicLmControlImpl(std::string_view instance_specifier) noexcept
+    /// @brief Validate the instance specifier and start the asynchronous service discovery.
+    /// @param[in] instance_specifier  The mw::com instance specifier identifying the Launch
+    ///                                Manager service. Must be a non-empty, valid specifier
+    ///                                string.
+    /// @pre Must be called exactly once, before any other method.
+    /// @return void once discovery is running, or the error that prevented setup.
+    /// @error kInvalidArguments    instance_specifier is empty or malformed.
+    /// @error kCommunicationError  the service discovery could not be started.
+    score::Result<void> init(std::string_view instance_specifier) noexcept
     {
         auto specifier_result = score::mw::com::InstanceSpecifier::Create(std::string{instance_specifier});
         if (!specifier_result.has_value())
         {
             LM_LOG_ERROR() << "LmControl: Invalid instance specifier" << instance_specifier
                            << "Error: " << specifier_result.error();
-            init_error_ = ExecErrc::kInvalidArguments;
-            return;
+            return score::MakeUnexpected(ExecErrc::kInvalidArguments);
         }
 
         auto start_result = Traits::StartFindService(
@@ -124,11 +113,11 @@ class BasicLmControlImpl final : public ILmControl
         if (!start_result.has_value())
         {
             LM_LOG_ERROR() << "LmControl: StartFindService failed with error" << start_result.error();
-            init_error_ = ExecErrc::kCommunicationError;
-            return;
+            return score::MakeUnexpected(ExecErrc::kCommunicationError);
         }
 
         find_handle_ = start_result.value();
+        return {};
     }
 
     ~BasicLmControlImpl() noexcept override
@@ -291,6 +280,9 @@ class BasicLmControlImpl final : public ILmControl
     /// @details mw::com may invoke this concurrently with itself. Since proxy-event
     ///          API calls must not run concurrently on the same event, the handler
     ///          is serialized against itself
+    /// @note Deliberately a separate mutex from mutex_, not a reuse of it: this path invokes the
+    ///       user activation callback, which is free to call back into activate_run_target() and
+    ///       therefore into mutex_. Guarding both with one non-recursive mutex would deadlock.
     void onActivationResult()
     {
         std::lock_guard<std::mutex> processing_lock{sample_processing_mutex_};
@@ -309,15 +301,16 @@ class BasicLmControlImpl final : public ILmControl
     }
 
     /// @brief Reads and forwards up to pending_samples_count pending activation-result samples.
+    /// @details The loop is required as there may be more samples available than are read with a single GetNewSamples()
+    /// call.
     /// @pre The caller holds sample_processing_mutex_.
-    void readActivationEvents(std::size_t pending_samples_count)
+    void readActivationEvents(const std::size_t pending_samples_count)
     {
         std::size_t remaining = pending_samples_count;
-        std::size_t processed = 0U;
         while (remaining > 0U)
         {
-            auto get_result = proxy_->activation_result.GetNewSamples(
-                [this](auto sample) noexcept {
+            const auto get_result = proxy_->activation_result.GetNewSamples(
+                [this](const auto& sample) noexcept {
                     forwardSample(sample);
                 },
                 remaining);
@@ -327,19 +320,18 @@ class BasicLmControlImpl final : public ILmControl
                 break;
             }
 
-            const auto received = get_result.value();
-            if (received == 0U)
+            if (get_result.value() == 0U)
             {
                 // Nothing retrievable despite a positive snapshot — stop rather
                 // than spin; any arriving new samples re-trigger the handler.
                 break;
             }
 
-            processed += received;
-            remaining -= std::min(remaining, received);
+            // Cannot underflow: GetNewSamples() never hands out more than the requested maximum.
+            remaining -= get_result.value();
         }
 
-        LM_LOG_DEBUG() << "LmControl: GetNewSamples: processed" << processed << "sample(s)";
+        LM_LOG_DEBUG() << "LmControl: GetNewSamples: processed" << pending_samples_count - remaining << "sample(s)";
     }
 
     /// @brief Forwards a single activation-result sample to the registered callback.
@@ -367,9 +359,6 @@ class BasicLmControlImpl final : public ILmControl
             LM_LOG_WARN() << "LmControl: activation_result: no callback registered — sample dropped";
         }
     }
-
-    // Error captured during construction (nullopt on success).
-    std::optional<ExecErrc> init_error_;
 
     // Guards proxy_ and the service discovery handle.
     std::mutex mutex_;
