@@ -60,7 +60,6 @@ class MwComMock
     MOCK_METHOD(score::Result<void>, Subscribe, (std::size_t max_sample_count));
     MOCK_METHOD(void, SetReceiveHandler, (std::function<void()> handler));
     MOCK_METHOD(void, Unsubscribe, ());
-    MOCK_METHOD(score::Result<std::size_t>, GetNumNewSamplesAvailable, ());
     MOCK_METHOD((score::Result<std::vector<ActivationResult>>), GetNewSamples, (std::size_t max_count));
 
     MOCK_METHOD(score::Result<ActivateRunTargetResponse>, ActivateRunTarget, (const ActivateRunTargetRequest& request));
@@ -94,11 +93,6 @@ struct FakeActivationEvent
     void Unsubscribe()
     {
         mock->Unsubscribe();
-    }
-
-    score::Result<std::size_t> GetNumNewSamplesAvailable()
-    {
-        return mock->GetNumNewSamplesAvailable();
     }
 
     template <typename Callback>
@@ -228,7 +222,6 @@ class LmControlUT : public ::testing::Test
         ON_CALL(mock_, CreateProxy()).WillByDefault(Return(score::Result<void>{}));
         ON_CALL(mock_, Subscribe(_)).WillByDefault(Return(score::Result<void>{}));
         ON_CALL(mock_, SetReceiveHandler(_)).WillByDefault(SaveArg<0>(&receive_handler_));
-        ON_CALL(mock_, GetNumNewSamplesAvailable()).WillByDefault(Return(score::Result<std::size_t>{0U}));
         ON_CALL(mock_, GetNewSamples(_)).WillByDefault(Invoke([](std::size_t) {
             return score::Result<std::vector<ActivationResult>>{std::vector<ActivationResult>{}};
         }));
@@ -603,7 +596,6 @@ TEST_F(LmControlUT, ActivationResultInvokesRegisteredCallback)
                    })
                     .has_value());
 
-    EXPECT_CALL(mock_, GetNumNewSamplesAvailable()).WillOnce(Return(score::Result<std::size_t>{1U}));
     EXPECT_CALL(mock_, GetNewSamples(_)).WillOnce(Invoke([](std::size_t) {
         std::vector<ActivationResult> samples;
         samples.push_back(ActivationResult{RunTargetName{"Recovery"}, RunTargetActivationSource::kRecoveryAction});
@@ -622,8 +614,8 @@ TEST_F(LmControlUT, ActivationResultBacklogExceedingSubscriptionIsDrainedInSever
 {
     RecordProperty(
         "Description",
-        "A backlog larger than the subscribed max_sample_count is drained with repeated GetNewSamples calls, "
-        "each requesting only the still-missing remainder, and every sample is forwarded exactly once.");
+        "A backlog larger than the subscribed max_sample_count is drained with repeated GetNewSamples calls "
+        "until a batch smaller than the maximum signals an empty queue; every sample is forwarded exactly once.");
 
     auto sut = MakeConnected();
 
@@ -633,20 +625,39 @@ TEST_F(LmControlUT, ActivationResultBacklogExceedingSubscriptionIsDrainedInSever
                    })
                     .has_value());
 
-    // Six pending samples, but Subscribe(kActivationResultSampleCount == 4) caps a single
-    // GetNewSamples call at four, so the drain loop has to come back for the remaining two.
-    EXPECT_CALL(mock_, GetNumNewSamplesAvailable()).WillOnce(Return(score::Result<std::size_t>{6U}));
-    EXPECT_CALL(mock_, GetNewSamples(4U)).WillOnce(Invoke([](std::size_t) {
-        return score::Result<std::vector<ActivationResult>>{MakeSamples({"T0", "T1", "T2", "T3"})};
-    }));
-    EXPECT_CALL(mock_, GetNewSamples(2U)).WillOnce(Invoke([](std::size_t) {
-        return score::Result<std::vector<ActivationResult>>{MakeSamples({"T4", "T5"})};
-    }));
+    // Nine pending samples, but Subscribe(kActivationResultSampleCount == 4) caps every single
+    // GetNewSamples call at four: two full batches, then a short one that ends the drain.
+    EXPECT_CALL(mock_, GetNewSamples(4U))
+        .WillOnce(Invoke([](std::size_t) {
+            return score::Result<std::vector<ActivationResult>>{MakeSamples({"T0", "T1", "T2", "T3"})};
+        }))
+        .WillOnce(Invoke([](std::size_t) {
+            return score::Result<std::vector<ActivationResult>>{MakeSamples({"T4", "T5", "T6", "T7"})};
+        }))
+        .WillOnce(Invoke([](std::size_t) {
+            return score::Result<std::vector<ActivationResult>>{MakeSamples({"T8"})};
+        }));
 
     ASSERT_TRUE(receive_handler_);
     receive_handler_();
 
-    EXPECT_THAT(received, ::testing::ElementsAre("T0", "T1", "T2", "T3", "T4", "T5"));
+    EXPECT_THAT(received, ::testing::ElementsAre("T0", "T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8"));
+}
+
+TEST_F(LmControlUT, ActivationResultDrainStopsOnEmptyBatch)
+{
+    RecordProperty(
+        "Description",
+        "A receive handler firing with nothing retrievable issues exactly one GetNewSamples call and does not spin.");
+
+    auto sut = MakeConnected();
+
+    EXPECT_CALL(mock_, GetNewSamples(4U)).WillOnce(Invoke([](std::size_t) {
+        return score::Result<std::vector<ActivationResult>>{std::vector<ActivationResult>{}};
+    }));
+
+    ASSERT_TRUE(receive_handler_);
+    receive_handler_();
 }
 
 TEST_F(LmControlUT, ActivationResultWithoutCallbackIsDroppedSafely)
@@ -656,7 +667,6 @@ TEST_F(LmControlUT, ActivationResultWithoutCallbackIsDroppedSafely)
 
     auto sut = MakeConnected();
 
-    EXPECT_CALL(mock_, GetNumNewSamplesAvailable()).WillOnce(Return(score::Result<std::size_t>{1U}));
     EXPECT_CALL(mock_, GetNewSamples(_)).WillOnce(Invoke([](std::size_t) {
         std::vector<ActivationResult> samples;
         samples.push_back(ActivationResult{RunTargetName{"Running"}, RunTargetActivationSource::kStateManagerRequest});
@@ -674,7 +684,6 @@ TEST_F(LmControlUT, ActivationResultGetNewSamplesFailureIsTolerated)
 
     auto sut = MakeConnected();
 
-    EXPECT_CALL(mock_, GetNumNewSamplesAvailable()).WillOnce(Return(score::Result<std::size_t>{1U}));
     EXPECT_CALL(mock_, GetNewSamples(_)).WillOnce(Return(score::MakeUnexpected(ExecErrc::kCommunicationError)));
 
     ASSERT_TRUE(receive_handler_);
@@ -698,7 +707,6 @@ TEST_F(LmControlUT, LatestRegisteredCallbackWins)
                    })
                     .has_value());
 
-    EXPECT_CALL(mock_, GetNumNewSamplesAvailable()).WillOnce(Return(score::Result<std::size_t>{1U}));
     EXPECT_CALL(mock_, GetNewSamples(_)).WillOnce(Invoke([](std::size_t) {
         std::vector<ActivationResult> samples;
         samples.push_back(ActivationResult{RunTargetName{"Running"}, RunTargetActivationSource::kStateManagerRequest});

@@ -286,52 +286,37 @@ class BasicLmControlImpl final : public ILmControl
     void onActivationResult()
     {
         std::lock_guard<std::mutex> processing_lock{sample_processing_mutex_};
-
-        // First get the number of samples available.
-        // This way we can have a bounded loop to retrieve all samples.
-        // Relying purely on the return of GetNewSamples() would yield a possibly unbounded loop.
-        auto available_result = proxy_->activation_result.GetNumNewSamplesAvailable();
-        if (!available_result.has_value())
-        {
-            LM_LOG_ERROR() << "LmControl: GetNumNewSamplesAvailable failed with error:" << available_result.error();
-            return;
-        }
-
-        readActivationEvents(available_result.value());
+        readActivationEvents();
     }
 
-    /// @brief Reads and forwards up to pending_samples_count pending activation-result samples.
-    /// @details The loop is required as there may be more samples available than are read with a single GetNewSamples()
-    /// call.
+    /// @brief Ready and forwards all pending activation-result samples.
     /// @pre The caller holds sample_processing_mutex_.
-    void readActivationEvents(const std::size_t pending_samples_count)
+    void readActivationEvents()
     {
-        std::size_t remaining = pending_samples_count;
-        while (remaining > 0U)
+        std::size_t processed = 0U;
+        for (;;)
         {
             const auto get_result = proxy_->activation_result.GetNewSamples(
                 [this](const auto& sample) noexcept {
                     forwardSample(sample);
                 },
-                remaining);
+                kActivationResultSampleCount);
             if (!get_result.has_value())
             {
                 LM_LOG_ERROR() << "LmControl: GetNewSamples failed with error:" << get_result.error();
                 break;
             }
 
-            if (get_result.value() == 0U)
+            processed += get_result.value();
+
+            // All samples consumed, if the batch was smaller than the max.
+            if (get_result.value() < kActivationResultSampleCount)
             {
-                // Nothing retrievable despite a positive snapshot — stop rather
-                // than spin; any arriving new samples re-trigger the handler.
                 break;
             }
-
-            // Cannot underflow: GetNewSamples() never hands out more than the requested maximum.
-            remaining -= get_result.value();
         }
 
-        LM_LOG_DEBUG() << "LmControl: GetNewSamples: processed" << pending_samples_count - remaining << "sample(s)";
+        LM_LOG_DEBUG() << "LmControl: GetNewSamples: processed" << processed << "sample(s)";
     }
 
     /// @brief Forwards a single activation-result sample to the registered callback.
