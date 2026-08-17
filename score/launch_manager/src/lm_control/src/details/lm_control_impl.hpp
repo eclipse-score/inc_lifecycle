@@ -104,7 +104,7 @@ class BasicLmControlImpl final : public ILmControl
             return score::MakeUnexpected(ExecErrc::kInvalidArguments);
         }
 
-        auto start_result = Traits::StartFindService(
+        const auto start_result = Traits::StartFindService(
             [this](score::mw::com::ServiceHandleContainer<HandleType> handles, FindServiceHandle) noexcept {
                 onServiceFound(std::move(handles));
             },
@@ -153,7 +153,7 @@ class BasicLmControlImpl final : public ILmControl
         const ActivateRunTargetRequest request{
             runTargetName, force ? ActivationMode::kForced : ActivationMode::kQueued};
 
-        auto result = proxy->activate_run_target(request);
+        const auto result = proxy->activate_run_target(request);
         if (!result.has_value())
         {
             LM_LOG_ERROR() << "LmControl: activate_run_target: proxy method call failed with error:" << result.error();
@@ -189,7 +189,7 @@ class BasicLmControlImpl final : public ILmControl
             return score::MakeUnexpected(ExecErrc::kCommunicationError);
         }
 
-        auto result = proxy->get_active_run_target();
+        const auto result = proxy->get_active_run_target();
         if (!result.has_value())
         {
             LM_LOG_ERROR() << "LmControl: get_active_run_target: proxy method call failed with error:"
@@ -262,7 +262,7 @@ class BasicLmControlImpl final : public ILmControl
     /// @return true on success; on failure proxy_ is reset so we stay unconnected.
     bool subscribeToActivationResults() noexcept
     {
-        auto subscribe_result = proxy_->activation_result.Subscribe(kActivationResultSampleCount);
+        const auto subscribe_result = proxy_->activation_result.Subscribe(kActivationResultSampleCount);
         if (!subscribe_result.has_value())
         {
             LM_LOG_ERROR() << "LmControl: activation_result.Subscribe failed with error:" << subscribe_result.error();
@@ -270,9 +270,16 @@ class BasicLmControlImpl final : public ILmControl
             return false;
         }
 
-        proxy_->activation_result.SetReceiveHandler([this]() {
+        const auto receivehandler_result = proxy_->activation_result.SetReceiveHandler([this]() {
             onActivationResult();
         });
+        if (!receivehandler_result.has_value())
+        {
+            LM_LOG_ERROR() << "LmControl: activation_result.SetReceiveHandler failed with error:"
+                           << receivehandler_result.error();
+            proxy_.reset();
+            return false;
+        }
         return true;
     }
 

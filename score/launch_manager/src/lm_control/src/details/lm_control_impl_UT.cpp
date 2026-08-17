@@ -58,7 +58,7 @@ class MwComMock
     MOCK_METHOD(score::Result<void>, CreateProxy, ());
 
     MOCK_METHOD(score::Result<void>, Subscribe, (std::size_t max_sample_count));
-    MOCK_METHOD(void, SetReceiveHandler, (std::function<void()> handler));
+    MOCK_METHOD(score::Result<void>, SetReceiveHandler, (std::function<void()> handler));
     MOCK_METHOD(void, Unsubscribe, ());
     MOCK_METHOD((score::Result<std::vector<ActivationResult>>), GetNewSamples, (std::size_t max_count));
 
@@ -85,9 +85,9 @@ struct FakeActivationEvent
         return result;
     }
 
-    void SetReceiveHandler(std::function<void()> handler)
+    score::Result<void> SetReceiveHandler(std::function<void()> handler)
     {
-        mock->SetReceiveHandler(std::move(handler));
+        return mock->SetReceiveHandler(std::move(handler));
     }
 
     void Unsubscribe()
@@ -221,7 +221,8 @@ class LmControlUT : public ::testing::Test
         ON_CALL(mock_, StopFindService()).WillByDefault(Return(score::Result<void>{}));
         ON_CALL(mock_, CreateProxy()).WillByDefault(Return(score::Result<void>{}));
         ON_CALL(mock_, Subscribe(_)).WillByDefault(Return(score::Result<void>{}));
-        ON_CALL(mock_, SetReceiveHandler(_)).WillByDefault(SaveArg<0>(&receive_handler_));
+        ON_CALL(mock_, SetReceiveHandler(_))
+            .WillByDefault(DoAll(SaveArg<0>(&receive_handler_), Return(score::Result<void>{})));
         ON_CALL(mock_, GetNewSamples(_)).WillByDefault(Invoke([](std::size_t) {
             return score::Result<std::vector<ActivationResult>>{std::vector<ActivationResult>{}};
         }));
@@ -419,6 +420,22 @@ TEST_F(LmControlUT, SubscribeFailureLeavesInstanceDisconnected)
         "kCommunicationError.");
 
     EXPECT_CALL(mock_, Subscribe(_)).WillOnce(Return(score::MakeUnexpected(ExecErrc::kCommunicationError)));
+
+    auto sut = MakeConnected();
+
+    auto get = sut->get_active_run_target();
+    ASSERT_FALSE(get.has_value());
+    EXPECT_EQ(get.error(), ExecErrc::kCommunicationError);
+}
+
+TEST_F(LmControlUT, SetReceiveHandlerFailureLeavesInstanceDisconnected)
+{
+    RecordProperty(
+        "Description",
+        "When installing the receive handler fails during discovery, the instance stays disconnected and method "
+        "calls return kCommunicationError.");
+
+    EXPECT_CALL(mock_, SetReceiveHandler(_)).WillOnce(Return(score::MakeUnexpected(ExecErrc::kCommunicationError)));
 
     auto sut = MakeConnected();
 
