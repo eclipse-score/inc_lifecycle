@@ -14,8 +14,8 @@ load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 load("//tests/utils/bazel:unit_test.bzl", "lm_cc_test")
 
 cc_library(
-    name = "workerthread",
-    hdrs = ["workerthread.hpp"],
+    name = "thread_pool",
+    hdrs = ["thread_pool.hpp"],
     include_prefix = "score/mw/launch_manager/common/concurrency",
     strip_include_prefix = "/score/launch_manager/src/daemon/src/common/concurrency",
     visibility = ["//score:__subpackages__"],

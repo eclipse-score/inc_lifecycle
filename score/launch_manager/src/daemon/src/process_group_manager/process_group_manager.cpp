@@ -44,7 +44,7 @@ ProcessGroupManager::ProcessGroupManager(
     : configuration_(),
       process_interface_(),
       process_map_(nullptr),
-      worker_threads_(nullptr),
+      thread_pool_(nullptr),
       worker_jobs_(nullptr),
       num_process_groups_(0U),
       process_groups_(),
@@ -155,7 +155,7 @@ void ProcessGroupManager::deinitialize()
     configuration_.deinitialize();
     process_groups_.clear();
 
-    worker_threads_.reset();
+    thread_pool_.reset();
     worker_jobs_.reset();
     process_map_.reset();
 }
@@ -289,7 +289,7 @@ void ProcessGroupManager::createProcessComponentsObjects(std::size_t total_proce
     worker_jobs_ = std::make_shared<WorkerQueue>();
 
     LM_LOG_DEBUG() << "Creating worker threads...";
-    worker_threads_ = std::make_unique<WorkerThread<ComponentTask>>(
+    thread_pool_ = std::make_unique<ThreadPool<ComponentTask>>(
         worker_jobs_, static_cast<uint32_t>(ProcessLimits::kNumWorkerThreads), *process_monitor_);
 }
 
@@ -460,7 +460,7 @@ void ProcessGroupManager::allProcessGroupsOff()
     if (!waitForStateCompletion(GraphState::kInTransition, 1000))
     {
         LM_LOG_ERROR() << "NOTE: Transition to Off state timed out";
-        worker_threads_->stop();
+        thread_pool_->stop();
 
         for (auto& pg : process_groups_)
         {

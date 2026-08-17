@@ -19,7 +19,7 @@
 #include <memory>
 
 #include "score/mw/launch_manager/common/concurrency/mpmc_concurrent_queue.hpp"
-#include "score/mw/launch_manager/common/concurrency/workerthread.hpp"
+#include "score/mw/launch_manager/common/concurrency/thread_pool.hpp"
 #include "score/mw/launch_manager/common/constants.hpp"
 #include "score/mw/launch_manager/common/identifier_hash.hpp"
 #include "score/mw/launch_manager/configuration/config.hpp"
@@ -287,7 +287,7 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     std::shared_ptr<SafeProcessMap> process_map_;
 
     /// @brief Unique pointer to the worker threads handling ProcessInfoNode jobs.
-    std::unique_ptr<WorkerThread<ComponentTask>> worker_threads_;
+    std::unique_ptr<ThreadPool<ComponentTask>> thread_pool_;
 
     /// @brief Shared pointer to the job queue for ProcessInfoNode jobs.
     std::shared_ptr<WorkerQueue> worker_jobs_;
