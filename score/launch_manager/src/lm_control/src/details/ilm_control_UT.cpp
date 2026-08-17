@@ -65,11 +65,3 @@ TEST_F(ILmControlUT, ReturnsInitErrorForInvalidSpecifier)
 
 }  // namespace
 }  // namespace score::mw::lifecycle
-
-/// Usage: ilm_control_UT --service_instance_manifest <path-to-mw-com-config.json>
-int main(int argc, char** argv)
-{
-    ::testing::InitGoogleTest(&argc, argv);
-    score::mw::com::runtime::InitializeRuntime(argc, const_cast<const char**>(argv));
-    return RUN_ALL_TESTS();
-}
