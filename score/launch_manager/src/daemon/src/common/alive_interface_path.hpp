@@ -14,8 +14,12 @@
 #ifndef ALIVE_INTERFACE_PATH_HPP_INCLUDED
 #define ALIVE_INTERFACE_PATH_HPP_INCLUDED
 
+#include "score/assert.hpp"
 #include "score/mw/launch_manager/common/identifier_hash.hpp"
+#include <charconv>
+#include <array>
 #include <string>
+#include <string_view>
 
 namespace score
 {
@@ -27,14 +31,16 @@ namespace internal
 /// Returns the IPC socket path for the alive monitoring interface of a component.
 inline std::string aliveInterfacePath(const IdentifierHash& component_name)
 {
-    const std::lock_guard<std::mutex> lock(IdentifierHash::get_registry_mutex());
-    const auto& reg = IdentifierHash::get_registry();
-    const auto it = reg.find(component_name.data());
-    if (it != reg.end())
-    {
-        return "/lifecycle_health_" + it->second;
-    }
-    return "/lifecycle_health_" + std::to_string(component_name.data());
+    // The maximum number of digits in a string representation of a uint64_t, +1 for a null terminator
+    constexpr std::size_t kMaxNumberLength = 21;
+    std::array<char, kMaxNumberLength> buf{};
+    std::to_chars_result result = std::to_chars(buf.begin(), buf.end(), component_name.data());
+    SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(
+        result.ec == std::errc(), "to_chars failed, meaning the hash was converted to more than 20 characters!");
+
+    std::string_view number(buf.begin(), result.ptr - buf.begin());
+
+    return "/lifecycle_health_" + std::string{number};
 }
 
 }  // namespace internal
