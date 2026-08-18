@@ -146,7 +146,7 @@ static constexpr GraphState state_results[][static_cast<uint>(GraphState::kUndef
 class Graph final
 {
   public:
-    /// @brief All possible implementation of a Component.
+    /// @brief All currently supported component implementations.
     using Component = std::variant<ProcessInfoNode, RunTarget>;
 
     /// @brief Constructor to initialize a Graph object.

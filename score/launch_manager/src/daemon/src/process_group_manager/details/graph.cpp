@@ -31,9 +31,6 @@ namespace score::mw::lifecycle::internal
 namespace
 {
 
-using namespace score::mw::lifecycle::internal;
-namespace configuration = score::mw::lifecycle::internal::configuration;
-
 /// @brief Creates a dependency graph from the configuration.
 /// @param config The configuration containing components and run targets.
 /// @param supervision_event_publisher Publisher for supervision events.
@@ -133,7 +130,7 @@ DependencyGraph<Graph::Component> CreateDependencyGraph(
         for (const auto& dep_name : run_targets[run_target_i].depends_on)
         {
             auto it = component_name_to_index.find(dep_name);
-            LM_LOG_ERROR() << run_targets[run_target_i].name << "has dep to " << dep_name;
+            LM_LOG_DEBUG() << run_targets[run_target_i].name << "has dep to " << dep_name;
             SCORE_LANGUAGE_FUTURECPP_PRECONDITION_MESSAGE(
                 it != component_name_to_index.end(), "RunTarget dependency not found in component list");
 

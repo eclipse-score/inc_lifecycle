@@ -83,7 +83,7 @@ class ProcessLauncher final : public IProcess
     /// @param config the configuration to use
     /// @return kFail if any operation fails, kSuccess otherwise
     static OsalReturnType setSchedulingAndSecurity(
-        const score::mw::lifecycle::internal::configuration::ComponentConfig& config);
+        const score::mw::lifecycle::internal::configuration::Sandbox& config);
 
     ///@brief Atomic counter for shared memory names
     std::atomic_uint32_t shm_name_counter = {0};

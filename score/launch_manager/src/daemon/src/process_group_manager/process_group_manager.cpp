@@ -134,7 +134,6 @@ void ProcessGroupManager::deinitialize()
     os_handler_.reset();
     process_monitor_.reset();
     alive_monitor_thread_->stop();
-    // No deinitialize needed - Config destructor handles cleanup
     graph_.reset();
 
     thread_pool_.reset();
@@ -312,11 +311,9 @@ void ProcessGroupManager::processComponentEvents()
 
 bool ProcessGroupManager::startInitialTransition()
 {
-    LM_LOG_DEBUG() << "=============STARTING MAINPG STARTUP STATE============";
+    LM_LOG_DEBUG() << "=============STARTING STARTUP STATE============";
     SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(bool(graph_), "Graph not initialized");
-    // Convert string_view to IdentifierHash
-    const std::string initial_target{configuration_.initialRunTarget()};
-    graph_->startInitialTransition(IdentifierHash(initial_target));
+    graph_->startInitialTransition(IdentifierHash{configuration_.initialRunTarget()});
     return true;
 }
 
@@ -697,10 +694,9 @@ void ProcessGroupManager::processGroupHandler(Graph& pg)
 
             ProcessGroupStateID recovery_state;
             recovery_state.pg_name_ = pg.getProcessGroupName();
-            // TODO: Determine recovery state from configuration
-            recovery_state.pg_state_name_ = IdentifierHash("fallback");  // TODO: Get from configuration
+            recovery_state.pg_state_name_ = IdentifierHash("fallback");
 
-            LM_LOG_WARN() << "Problem discovered, activating recovery state: " << recovery_state.pg_state_name_;
+            LM_LOG_WARN() << "Problem discovered, activating recovery state:" << recovery_state.pg_state_name_;
 
             // no point checking errors here...
             // nobody requested this transition, so there is nowhere to communicate an error

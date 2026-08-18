@@ -135,24 +135,24 @@ void handleComms(score::mw::lifecycle::internal::osal::ChildProcessConfig& param
 }
 
 /// @details The implementation should be async signal safe.
-void changeCurrentWorkingDirectory(const score::mw::lifecycle::internal::configuration::ComponentConfig& config)
+void changeCurrentWorkingDirectory(const score::mw::lifecycle::internal::configuration::DeploymentConfig& config)
 {
     // working_dir is set by configuration, so it should always be valid.
     // If not, chdir will fail anyway and we will log an error and exit.
-    if (-1 == chdir(config.deployment_config.working_dir.c_str()))
+    if (-1 == chdir(config.working_dir.c_str()))
     {
-        static_cast<void>(signal_safe_log_errno(errno, "chdir(", config.deployment_config.working_dir, ") failed."));
+        static_cast<void>(signal_safe_log_errno(errno, "chdir(", config.working_dir, ") failed."));
         sysexit(EXIT_FAILURE);
     }
 }
 
 /// @details The implementation should be async signal safe.
-void implementMemoryResourceLimits(const score::mw::lifecycle::internal::configuration::ComponentConfig& config)
+void implementMemoryResourceLimits(const score::mw::lifecycle::internal::configuration::Sandbox& config)
 {
-    if (config.deployment_config.sandbox.max_memory_usage.has_value())
+    if (config.max_memory_usage.has_value())
     {
-        setLimit(RLIMIT_DATA, config.deployment_config.sandbox.max_memory_usage.value(), "RLIMIT_DATA");
-        setLimit(RLIMIT_AS, config.deployment_config.sandbox.max_memory_usage.value(), "RLIMIT_AS");
+        setLimit(RLIMIT_DATA, config.max_memory_usage.value(), "RLIMIT_DATA");
+        setLimit(RLIMIT_AS, config.max_memory_usage.value(), "RLIMIT_AS");
     }
 
     // Stack limit - not in new config, skip
@@ -162,23 +162,21 @@ void implementMemoryResourceLimits(const score::mw::lifecycle::internal::configu
     // Using setrlimit, this imposes a maximum time that a process will run for, which might not be
     // what you intend? Probably you'll want a maximum time in a time-slice, but you don't get that
     // with limits set by setrlimit...
-    if (config.deployment_config.sandbox.max_cpu_usage.has_value())
+    if (config.max_cpu_usage.has_value())
     {
-        setLimit(RLIMIT_CPU, config.deployment_config.sandbox.max_cpu_usage.value(), "RLIMIT_CPU");
+        setLimit(RLIMIT_CPU, config.max_cpu_usage.value(), "RLIMIT_CPU");
     }
 }
 
 /// @details The implementation should be async signal safe.
-void changeSecurityPolicy(const score::mw::lifecycle::internal::configuration::ComponentConfig& config)
+void changeSecurityPolicy(const score::mw::lifecycle::internal::configuration::Sandbox& config)
 {
-    if (config.deployment_config.sandbox.security_policy.has_value() &&
-        !config.deployment_config.sandbox.security_policy.value().empty())
+    if (config.security_policy.has_value() && !config.security_policy.value().empty())
     {
-        if (score::mw::lifecycle::internal::osal::setSecurityPolicy(
-                config.deployment_config.sandbox.security_policy.value().c_str()) != 0)
+        if (score::mw::lifecycle::internal::osal::setSecurityPolicy(config.security_policy.value().c_str()) != 0)
         {
-            static_cast<void>(signal_safe_log_errno(
-                errno, "changeSecurityPolicy(", config.deployment_config.sandbox.security_policy.value(), ") failed"));
+            static_cast<void>(
+                signal_safe_log_errno(errno, "changeSecurityPolicy(", config.security_policy.value(), ") failed"));
             sysexit(EXIT_FAILURE);
         }
     }
@@ -383,7 +381,7 @@ bool ProcessLauncher::initializeSemaphores(IpcCommsP shared_block)
 
 /// @details The implementation should be async signal safe.
 OsalReturnType ProcessLauncher::setSchedulingAndSecurity(
-    const score::mw::lifecycle::internal::configuration::ComponentConfig& config)
+    const score::mw::lifecycle::internal::configuration::Sandbox& config)
 {
     OsalReturnType retval = OsalReturnType::kSuccess;
 
@@ -396,30 +394,30 @@ OsalReturnType ProcessLauncher::setSchedulingAndSecurity(
     // Set scheduling policy with sched_setscheduler
     sched_param sch_param{};
 
-    sch_param.sched_priority = config.deployment_config.sandbox.scheduling_priority;
+    sch_param.sched_priority = config.scheduling_priority;
 
-    if (sch_param.sched_priority < sched_get_priority_min(config.deployment_config.sandbox.scheduling_policy))
+    if (sch_param.sched_priority < sched_get_priority_min(config.scheduling_policy))
     {
         static_cast<void>(signal_safe_log(
             "Scheduling priority ",
             sch_param.sched_priority,
             " is below minimum for policy ",
-            config.deployment_config.sandbox.scheduling_policy,
+            config.scheduling_policy,
             ", setting to minimum"));
-        sch_param.sched_priority = sched_get_priority_min(config.deployment_config.sandbox.scheduling_policy);
+        sch_param.sched_priority = sched_get_priority_min(config.scheduling_policy);
     }
-    else if (sch_param.sched_priority > sched_get_priority_max(config.deployment_config.sandbox.scheduling_policy))
+    else if (sch_param.sched_priority > sched_get_priority_max(config.scheduling_policy))
     {
         static_cast<void>(signal_safe_log(
             "Scheduling priority ",
             sch_param.sched_priority,
             " is above maximum for policy ",
-            config.deployment_config.sandbox.scheduling_policy,
+            config.scheduling_policy,
             ", setting to maximum"));
-        sch_param.sched_priority = sched_get_priority_max(config.deployment_config.sandbox.scheduling_policy);
+        sch_param.sched_priority = sched_get_priority_max(config.scheduling_policy);
     }
 
-    if (-1 == sched_setscheduler(0, config.deployment_config.sandbox.scheduling_policy, &sch_param))
+    if (-1 == sched_setscheduler(0, config.scheduling_policy, &sch_param))
     {
         static_cast<void>(signal_safe_log_errno(errno, "sched_setscheduler() failed"));
         retval = OsalReturnType::kFail;
@@ -433,27 +431,26 @@ OsalReturnType ProcessLauncher::setSchedulingAndSecurity(
     // }
 
     // Set group ID
-    if (-1 == setgid(config.deployment_config.sandbox.gid))
+    if (-1 == setgid(config.gid))
     {
-        static_cast<void>(signal_safe_log_errno(errno, "setgid(", config.deployment_config.sandbox.gid, ") failed"));
+        static_cast<void>(signal_safe_log_errno(errno, "setgid(", config.gid, ") failed"));
         retval = OsalReturnType::kFail;
     }
     // Set supplementary group ids
-    size_t supplementary_gids_number = config.deployment_config.sandbox.supplementary_group_ids.size();
+    size_t supplementary_gids_number = config.supplementary_group_ids.size();
 
     // Note: the type of the first parameter of setgroups() differs in Linux and QNX, so we use osal
     if (supplementary_gids_number > 0 &&
-        -1 ==
-            osal::setgroups(supplementary_gids_number, config.deployment_config.sandbox.supplementary_group_ids.data()))
+        -1 == osal::setgroups(supplementary_gids_number, config.supplementary_group_ids.data()))
     {
         static_cast<void>(signal_safe_log_errno(errno, "setgroups() failed"));
         retval = OsalReturnType::kFail;
     }
 
     // Set user ID
-    if (-1 == setuid(config.deployment_config.sandbox.uid))
+    if (-1 == setuid(config.uid))
     {
-        static_cast<void>(signal_safe_log_errno(errno, "setuid(", config.deployment_config.sandbox.uid, ") failed"));
+        static_cast<void>(signal_safe_log_errno(errno, "setuid(", config.uid, ") failed"));
         retval = OsalReturnType::kFail;
     }
 
@@ -465,14 +462,14 @@ void ProcessLauncher::handleChildProcess(ChildProcessConfig& param)
 {
     handleComms(param);
 
-    if (OsalReturnType::kSuccess != setSchedulingAndSecurity(param.config))
+    if (OsalReturnType::kSuccess != setSchedulingAndSecurity(param.config.deployment_config.sandbox))
     {
         sysexit(EXIT_FAILURE);
     }
 
-    changeCurrentWorkingDirectory(param.config);
-    implementMemoryResourceLimits(param.config);
-    changeSecurityPolicy(param.config);
+    changeCurrentWorkingDirectory(param.config.deployment_config);
+    implementMemoryResourceLimits(param.config.deployment_config.sandbox);
+    changeSecurityPolicy(param.config.deployment_config.sandbox);
 
     // Build executable path
     std::string executable_path =
