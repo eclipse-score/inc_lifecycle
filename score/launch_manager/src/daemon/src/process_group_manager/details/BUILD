@@ -163,7 +163,6 @@ cc_library(
         ":safe_process_map",
         "//score/launch_manager/src/daemon/src/common:alive_interface_path",
         "//score/launch_manager/src/daemon/src/configuration:component_config",
-        "//score/launch_manager/src/daemon/src/control:control_client_channel",
         "//score/launch_manager/src/daemon/src/osal:ifile_waiter",
         "//score/launch_manager/src/daemon/src/osal:ipc_comms",
         "//score/launch_manager/src/daemon/src/osal:semaphore",
@@ -212,16 +211,15 @@ cc_library(
         ":component_of",
         ":component_task",
         ":dependency_graph",
-        ":itransition_result_publisher",
         ":process_handling",
         ":process_info_node",
         ":run_target",
         ":safe_process_map",
         ":transition",
         "//score/launch_manager/src/daemon/src/common:identifier_hash",
+        "//score/launch_manager/src/daemon/src/common:process_group_state_id",
         "//score/launch_manager/src/daemon/src/common/concurrency:mpmc_concurrent_queue",
         "//score/launch_manager/src/daemon/src/configuration:config",
-        "//score/launch_manager/src/daemon/src/control:control_client_channel",
         "//score/launch_manager/src/daemon/src/osal:semaphore",
         "//score/launch_manager/src/daemon/src/process_group_manager:iprocess",
     ],
@@ -373,7 +371,6 @@ cc_library(
     deps = [
         "//score/launch_manager/src/daemon/src/common:log",
         "//score/launch_manager/src/daemon/src/common:signal_safe_log",
-        "//score/launch_manager/src/daemon/src/control:control_client_channel",
         "//score/launch_manager/src/daemon/src/osal:ipc_comms",
         "//score/launch_manager/src/daemon/src/osal:security_policy",
         "//score/launch_manager/src/daemon/src/osal:set_affinity",
@@ -414,16 +411,5 @@ lm_cc_test(
         ":icomponent",
         ":transition",
         "@googletest//:gtest_main",
-    ],
-)
-
-cc_library(
-    name = "itransition_result_publisher",
-    hdrs = ["itransition_result_publisher.hpp"],
-    include_prefix = "score/mw/launch_manager/process_group_manager/details",
-    strip_include_prefix = "/score/launch_manager/src/daemon/src/process_group_manager/details",
-    visibility = ["//score/launch_manager/src/daemon/src/process_group_manager:__pkg__"],
-    deps = [
-        "//score/launch_manager/src/daemon/src/control:control_client_channel",
     ],
 )

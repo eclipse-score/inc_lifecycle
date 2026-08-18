@@ -23,11 +23,9 @@
 #include "score/mw/launch_manager/common/constants.hpp"
 #include "score/mw/launch_manager/common/identifier_hash.hpp"
 #include "score/mw/launch_manager/configuration/config.hpp"
-#include "score/mw/launch_manager/control/control_client_channel.hpp"
 #include "score/mw/launch_manager/osal/wait_for_file.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/component_event_queue.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/graph.hpp"
-#include "score/mw/launch_manager/process_group_manager/details/itransition_result_publisher.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/os_handler.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/process_info_node.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/process_launcher.hpp"
@@ -55,7 +53,7 @@ namespace score::mw::lifecycle::internal
 ///     configured by integrator. Interaction with OSAL to start and stop processes. Interaction with OSAL to discover
 ///     when processes terminated in an unexpected way. Fulfilling PG State transitions requests from SM, as well as
 ///     informing SM about unexpected problems (for example process crashes).
-class ProcessGroupManager final : public ITransitionResultPublisher
+class ProcessGroupManager final
 {
     using WorkerQueue =
         MPMCConcurrentQueue<std::optional<ComponentTask>, static_cast<std::size_t>(ProcessLimits::kMaxProcesses)>;
@@ -94,8 +92,8 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     void deinitialize();
 
     /// @brief Self-initiates the state transition to MainPG::Startup (Machine State Startup), then enters
-    /// and remains in a loop polling state managers and process groups using the `controlClientHandler()`
-    /// and `processGroupHandler()` methods until SIGINT or SIGTERM is received, then transitions all the
+    /// and remains in a loop polling state managers and process groups using the
+    /// `processGroupHandler()` methods until SIGINT or SIGTERM is received, then transitions all the
     /// process groups to the "Off" state before returning. Each time a piece of work is serviced, wait on
     /// the semaphore so as not to consume cpu cycles unduly.
     /// @return Returns true if the process group manager ran successfully, false otherwise.
@@ -111,16 +109,6 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     /// @param process_id The identifier of the process
     /// @return nullptr if the node does not exist, otherwise a pointer to the corresponding node.
     ProcessInfoNode* getProcessInfoNode(uint32_t pg_index, IdentifierHash process_id);
-
-    /// @brief set the initial machine group state change result, called by graph when the transition completes
-    /// @param result the result to save; it can only be saved once
-    void setInitialStateTransitionResult(ControlClientCode result) override;
-
-    /// @brief Send a response message to a Control Client
-    /// @param msg the message to send, containing the Control Client id as the address to send it
-    /// @return true when either no error or the state manager no longer exists, false when the state manager had not
-    /// read the previous response
-    bool sendResponse(ControlClientMessage msg);
 
     /// @brief Gets the process interface.
     /// @return Pointer to the OSAL process interface.
@@ -140,35 +128,6 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     const IdentifierHash recovery_state_{"fallback"};
 
   private:
-    /// @brief Perform the function of Control Client handler
-    /// @details (a) check for requests from any state manager processes in this process group\n
-    /// (b) check to see if the process group has a pending response to send to a state manager
-    /// @param pg Reference of the process group to check
-    void controlClientHandler(Graph& pg);
-
-    /// @brief Check for requests from any state managers in this process group
-    /// @details If there is a request, process it and acknowledge the request with the
-    /// correct response code for success or error. Any state managers in the
-    /// process group may be found by following the links, starting at node0.
-    /// It's always necessary to check the Control Client channel pointer for validity,
-    /// as a process may terminate at any point, invalidating the pointer.
-    /// finally, check to see if the state manager is expecting any responses about the result of the
-    /// initial state transition, and if it is, it is able to accept a message and the transition result
-    /// is available, send it.
-    /// @note The requesting state manager must be saved in the process group that
-    /// a valid request is given for.
-    /// @param pg Reference of the process group (Graph) to check for state managers
-    void controlClientRequests(Graph& pg);
-
-    /// @brief Check for any responses to send to the state manager(s) for this process group
-    /// @note If there is a pending event and a response may be sent, then a message is created
-    /// for that event. If the cancel message has a code other than 'kNotSet', then the cancel
-    /// message will also be sent.
-    /// @note If a response is not sent, because the message buffer is full, then it is left
-    /// pending to be checked the next time around the loop.
-    /// @param pg Reference of the process group (Graph) to check for pending responses
-    void controlClientResponses(Graph& pg);
-
     /// @brief Handle a single recovery request emitted by Alive supervision.
     void handleRecoveryRequest(const IdentifierHash& process_identifier);
 
@@ -196,28 +155,8 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     /// @return true if the initial transition was started, false otherwise
     bool startInitialTransition();
 
-    /// @brief Process a state transition request\n
-    /// @details Retrieve a pointer to the graph for the process group with the given name. \n
-    /// If the pointer is null:\n
-    ///     set the request code in the message to `kSetStateInvalidArguments` \n
-    /// else:\n
-    ///     if the process group is already in transition to the required state:\n
-    ///         call the `cancel()` method of the graph
-    ///         set the request code in the message to `kSetStateTransitionToSameState`\n
-    ///     else if the process group is in transition to some other state:\n
-    ///         call the `setPendingState()` method of the graph to set the new required state,\n
-    ///         call the `cancel()` method of the graph and\n
-    ///         set the request code of the message to `kSetStateSuccess`\n
-    ///     else if the process group is already in the requested state:\n
-    ///         set the request code of the message to `kSetStateAlreadyInState`\n
-    ///     else:\n
-    ///         call the `setPendingState()` method of the graph to set the new required state and\n
-    ///         set the request code of the message to `kSetStateSuccess`\n
-    ///     call the `setStateManager()` method of the graph to record the originating Control Client\n
-    /// @note If `kSetStateSuccess` is returned, state manager will expect a response later that
-    /// will set the promise, otherwise state manager will be able to set the promise immediately.
-    /// @param scc pointer to Control Client channel
-    void processStateTransition(ControlClientChannelP scc);
+    /// @brief Process a state transition request
+    void processStateTransition();
 
     /// @brief process a get execution error request
     /// @details If the process group given in the `process_group_state_` exists:\n
@@ -228,8 +167,7 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     ///         set the request code of the message to `kExecutionErrorRequestFailed`\n
     /// else:\n
     ///     set the request code of the message to `kExecutionErrorInvalidArguments`
-    /// @param scc pointer to Control Client channel
-    void processGetExecutionError(ControlClientChannelP scc);
+    void processGetExecutionError();
 
     /// @brief process a request to get the initial machine state transition result
     /// @details if `graph_` is a null pointer:\n
@@ -237,8 +175,7 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     /// else:\n
     ///     wait for `initial_state_transition_result_` to be not equal to `kInitialMachineStateNotSet`\n
     ///     set the request code of the message to be equal to `initial_state_transition_result_`
-    /// @param scc pointer to Control Client channel
-    void processGetInitialMachineStateTransitionResult(ControlClientChannelP scc);
+    void processGetInitialMachineStateTransitionResult();
 
     /// @brief Send all process groups to the "Off" state
     /// @details cancel any Graph for a process group not in the "Off" state, wait for up to 2 seconds for all graphs
@@ -255,9 +192,6 @@ class ProcessGroupManager final : public ITransitionResultPublisher
 
     /// @brief Creates process component objects, including the job queue and worker threads.
     void createProcessComponentsObjects(std::size_t total_processes);
-
-    /// @brief Initializes the Control Client handler.
-    bool initializeControlClientHandler();
 
     /// @brief The configuration object associated with the ProcessGroupManager.
     configuration::Config configuration_;
@@ -276,9 +210,6 @@ class ProcessGroupManager final : public ITransitionResultPublisher
 
     /// @brief Shared pointer to the job queue for ProcessInfoNode jobs.
     std::shared_ptr<WorkerQueue> worker_jobs_;
-
-    /// @brief The result of the initial state transition
-    std::atomic<ControlClientCode> initial_state_transition_result_{ControlClientCode::kInitialMachineStateNotSet};
 
     /// @brief Pointer to the gaph.
     std::shared_ptr<Graph> graph_{nullptr};

@@ -24,7 +24,6 @@
 
 #include "score/mw/launch_manager/common/log.hpp"
 #include "score/mw/launch_manager/common/signal_safe_log.hpp"
-#include "score/mw/launch_manager/control/control_client_channel.hpp"
 #include "score/mw/launch_manager/osal/ipc_comms.hpp"
 #include "score/mw/launch_manager/osal/security_policy.hpp"
 #include "score/mw/launch_manager/osal/set_affinity.hpp"
@@ -88,7 +87,6 @@ void handleComms(score::mw::lifecycle::internal::osal::ChildProcessConfig& param
 {
     // kNoComms !fd3 & !fd4
     // kReporting  fd3 & !fd4
-    // kControlClient  fd3 & fd4
     if (!param.shared_block)
     {
         // kNoComms, fds are CLOEXEC
@@ -98,7 +96,7 @@ void handleComms(score::mw::lifecycle::internal::osal::ChildProcessConfig& param
     param.fd = dup2(param.fd, param.shared_block->sync_fd);  // always make sure we are using fd=3
     param.shared_block->pid_ = getpid();                     // Store pid for check at client end
 
-    // It must be ensured that sync_fd (f3) and control_client_handler_nudge_fd (fd4) remain open depending on
+    // It must be ensured that sync_fd (f3) remains open depending on
     // the communication type. Flag FD_CLOEXEC is cleared conditionally to ensure that the
     // respective file descriptor remains open after the execve call.
     switch (param.shared_block->comms_type_)
@@ -108,19 +106,6 @@ void handleComms(score::mw::lifecycle::internal::osal::ChildProcessConfig& param
             break;
         case CommsType::kReporting:
             if (-1 == fcntl(IpcCommsSync::sync_fd, F_SETFD, 0))
-            {
-                static_cast<void>(signal_safe_log_errno(errno, "fcntl at line ", __LINE__, " failed"));
-                sysexit(EXIT_FAILURE);
-            }
-            close(IpcCommsSync::control_client_handler_nudge_fd);
-            break;
-        case CommsType::kControlClient:
-            if (-1 == fcntl(IpcCommsSync::sync_fd, F_SETFD, 0))
-            {
-                static_cast<void>(signal_safe_log_errno(errno, "fcntl at line ", __LINE__, " failed"));
-                sysexit(EXIT_FAILURE);
-            }
-            if (-1 == fcntl(IpcCommsSync::control_client_handler_nudge_fd, F_SETFD, 0))
             {
                 static_cast<void>(signal_safe_log_errno(errno, "fcntl at line ", __LINE__, " failed"));
                 sysexit(EXIT_FAILURE);
@@ -271,10 +256,6 @@ bool ProcessLauncher::setupComms(IpcCommsP& block, int& fd, const configuration:
     const auto app_type = config.component_properties.application_profile.application_type;
 
     size_t length = sizeof(IpcCommsSync);
-    if (configuration::ApplicationType::StateManager == app_type)
-    {
-        length += sizeof(ControlClientChannel);
-    }
 
     constexpr std::string_view kShmNamePrefix{"/ipc_shared_mem"};
     std::array<char, static_cast<std::size_t>(ProcessLimits::maxLocalBuffSize)> shm_name{};
@@ -313,8 +294,7 @@ bool ProcessLauncher::setupComms(IpcCommsP& block, int& fd, const configuration:
         return false;
     }
 
-    block = (configuration::ApplicationType::StateManager == app_type) ? initializeControlClient(fd, config)
-                                                                       : IpcCommsSync::getCommsObject(fd);
+    block = IpcCommsSync::getCommsObject(fd);
     if (!block)
     {
         return false;
@@ -323,9 +303,6 @@ bool ProcessLauncher::setupComms(IpcCommsP& block, int& fd, const configuration:
     // Map application type to CommsType for backward compatibility
     switch (app_type)
     {
-        case configuration::ApplicationType::StateManager:
-            block->comms_type_ = CommsType::kControlClient;
-            break;
         case configuration::ApplicationType::Native:
             block->comms_type_ = CommsType::kNoComms;
             break;
@@ -344,22 +321,6 @@ bool ProcessLauncher::setupComms(IpcCommsP& block, int& fd, const configuration:
     }
 
     return true;
-}
-
-IpcCommsP ProcessLauncher::initializeControlClient(int& fd, const configuration::ComponentConfig& config)
-{
-    LM_LOG_DEBUG() << "Initialize the control client for" << config.name << " process";
-    /* Initialise the control client communications */
-    IpcCommsP shared_block = nullptr;
-    ControlClientChannelP scc = ControlClientChannel::initializeControlClientChannel(fd, &shared_block);
-    if (!scc)
-    {
-        LM_LOG_ERROR() << "Failed to obtain ControlClientChannel for " << config.name
-                       << ": initializeControlClientChannel returned nullptr";
-        return nullptr;  // Caller will see shared_block maybe null and treat as failure later.
-    }
-    scc->initialize();
-    return shared_block;
 }
 
 bool ProcessLauncher::initializeSemaphores(IpcCommsP shared_block)

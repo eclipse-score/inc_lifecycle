@@ -33,7 +33,6 @@ TEST(ControlClientFDs, FindOpenFDs)
     {
         auto open_fds = get_fds();
         EXPECT_TRUE(filter_fd(open_fds, std::regex("/dev/shm/ipc_shared_mem[0-9]+")));
-        EXPECT_TRUE(filter_fd(open_fds, std::regex("/dev/shm/_nudge~._.~me_")));
         std::ostringstream oss;
         oss << open_fds;
         EXPECT_TRUE(open_fds.empty()) << "Found open files!\n" << oss.str();
@@ -45,7 +44,6 @@ TEST(ControlClientFDs, FindOpenFDs)
     {
         auto open_fds = get_fds();
         EXPECT_TRUE(filter_fd(open_fds, std::regex("/dev/shm/ipc_shared_mem[0-9]+")));
-        EXPECT_TRUE(filter_fd(open_fds, std::regex("/dev/shm/_nudge~._.~me_")));
         std::ostringstream oss;
         oss << open_fds;
         EXPECT_TRUE(open_fds.empty()) << "Found open files!\n" << oss.str();
@@ -57,7 +55,6 @@ TEST(ControlClientFDs, FindOpenFDs)
     {
         auto open_fds = get_fds();
         EXPECT_TRUE(filter_fd(open_fds, std::regex("/dev/shm/ipc_shared_mem[0-9]+")));
-        EXPECT_TRUE(filter_fd(open_fds, std::regex("/dev/shm/_nudge~._.~me_")));
         std::ostringstream oss;
         oss << open_fds;
         EXPECT_TRUE(open_fds.empty()) << "Found open files!\n" << oss.str();

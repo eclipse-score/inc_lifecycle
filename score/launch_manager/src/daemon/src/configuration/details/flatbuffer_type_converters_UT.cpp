@@ -156,8 +156,7 @@ INSTANTIATE_TEST_SUITE_P(
         ApplicationTypeTestParam{
             fb::ApplicationType::Reporting_And_Supervised,
             ApplicationType::ReportingAndSupervised,
-            "ReportingAndSupervised"},
-        ApplicationTypeTestParam{fb::ApplicationType::State_Manager, ApplicationType::StateManager, "StateManager"}),
+            "ReportingAndSupervised"}),
     [](const ::testing::TestParamInfo<ApplicationTypeTestParam>& info) {
         return info.param.name;
     });

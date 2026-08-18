@@ -118,19 +118,14 @@ Graph::Graph(
     uint32_t max_num_nodes,
     configuration::Config& configuration,
     std::shared_ptr<WorkerQueue> job_queue,
-    ProcessHandling process_handling,
-    ITransitionResultPublisher* transition_result_receiver)
+    ProcessHandling process_handling)
     : nodes_(max_num_nodes),
       transition_builder_(nodes_),
       state_(GraphState::kSuccess),
       configuration_(configuration),
       job_queue_(job_queue),
-      process_handling_(std::move(process_handling)),
-      transition_result_receiver_(transition_result_receiver)
+      process_handling_(std::move(process_handling))
 {
-    last_state_manager_.process_identifier_ = IdentifierHash{""};  // an invalid state manager
-    last_state_manager_.process_group_index_ = 0xFFFFU;
-    cancel_message_.request_or_response_ = ControlClientCode::kNotSet;
     CreateDependencyGraph(nodes_, configuration_, process_handling_, off_state_transition_timeout_);
 }
 
@@ -224,7 +219,6 @@ void Graph::finalizeTransitionSuccess()
     if (is_initial_state_transition_)
     {
         is_initial_state_transition_ = false;
-        transition_result_receiver_->setInitialStateTransitionResult(ControlClientCode::kInitialMachineStateSuccess);
 
         // RULECHECKER_comment(1, 3, check_c_style_cast, "This is the definition provided by the OS and does
         // a C-style cast.", true)
@@ -234,7 +228,6 @@ void Graph::finalizeTransitionSuccess()
                        << (static_cast<double>(clock()) / (static_cast<double>(CLOCKS_PER_SEC) / 1000.0)) << "ms";
     }
     setState(GraphState::kSuccess);
-    setPendingEvent(ControlClientCode::kSetStateSuccess);
 }
 
 void Graph::tryQueueNode(ComponentTask task)
@@ -304,7 +297,6 @@ void Graph::startInitialTransition(IdentifierHash pg_state)
     if (!startTransition(pg_state))
     {
         is_initial_state_transition_ = false;
-        transition_result_receiver_->setInitialStateTransitionResult(ControlClientCode::kInitialMachineStateFailed);
     }
 }
 
@@ -399,7 +391,6 @@ void Graph::handleNonTransitionExecution(GraphState current_state)
     if (is_initial_state_transition_)
     {
         is_initial_state_transition_ = false;
-        transition_result_receiver_->setInitialStateTransitionResult(ControlClientCode::kInitialMachineStateFailed);
         // RULECHECKER_comment(1, 3, check_c_style_cast, "This is the definition provided by the OS and does a C-style
         // cast.", true) coverity[cert_err33_c_violation:INTENTIONAL] Does not matter if clock() gives a weird value in
         // debug messages.
@@ -416,17 +407,9 @@ void Graph::handleNonTransitionExecution(GraphState current_state)
     }
 
     setState(GraphState::kUndefinedState);
-    if (current_state == GraphState::kAborting)
-    {
-        setPendingEvent(abort_code_);
-    }
-    else
-    {
-        ControlClientChannel::nudgeControlClientHandler();
-    }
 }
 
-void Graph::abort(uint32_t code, IComponent::ComponentError reason)
+void Graph::abort(uint32_t code, [[maybe_unused]] IComponent::ComponentError reason)  // TODO: Use reason
 {
     if (!setState(GraphState::kAborting))
     {
@@ -434,26 +417,11 @@ void Graph::abort(uint32_t code, IComponent::ComponentError reason)
         return;
     }
     last_execution_error_ = code;
-    switch (reason)
-    {
-        case IComponent::ComponentError::kErrorAfterReady:
-            abort_code_ = ControlClientCode::kFailedUnexpectedTermination;
-            break;
-        case IComponent::ComponentError::kErrorBeforeReady:
-            abort_code_ = ControlClientCode::kFailedUnexpectedTerminationOnEnter;
-            break;
-        default:
-            abort_code_ = ControlClientCode::kSetStateFailed;
-            break;
-    }
 }
 
 void Graph::cancel()
 {
-    if (setState(GraphState::kCancelled))
-    {
-        setPendingEvent(ControlClientCode::kSetStateCancelled);
-    }
+    setState(GraphState::kCancelled);
 
     if (jobs_in_progress_ > 0)
     {
@@ -477,24 +445,6 @@ void Graph::forceKillProcesses()
             }
         }
     }
-}
-
-void Graph::updateCancelMessage()
-{
-    ControlClientCode code = getPendingEvent();
-
-    if (code != ControlClientCode::kNotSet)
-    {
-        cancel_message_.process_group_state_ = requested_state_;
-        cancel_message_.originating_control_client_ = last_state_manager_;
-        cancel_message_.request_or_response_ = code;
-        clearPendingEvent(code);
-    }
-}
-
-void Graph::setStateManager(ControlClientID& control_client_id)
-{
-    last_state_manager_ = control_client_id;
 }
 
 ProcessInfoNode* Graph::getProcessInfoNode(IdentifierHash process_index)
@@ -521,30 +471,6 @@ IdentifierHash Graph::getProcessGroupState()
 {
     std::lock_guard<std::mutex> lock(requested_state_mutex_);
     return requested_state_.pg_state_name_;
-}
-
-const ProcessInfoNode* Graph::findControlClient()
-{
-    auto* pin = getProcessInfoNode(getStateManager().process_identifier_);
-    if (pin && pin->getControlClientChannel())
-    {
-        return pin;
-    }
-
-    for (const auto [id, node] : nodes_)
-    {
-        if (const auto* process = std::get_if<ProcessInfoNode>(&node); process && process->getControlClientChannel())
-        {
-            return process;
-        }
-    }
-
-    return nullptr;
-}
-
-ControlClientID Graph::getStateManager()
-{
-    return last_state_manager_;
 }
 
 uint32_t Graph::getLastExecutionError()
@@ -574,30 +500,6 @@ IdentifierHash Graph::setPendingState(IdentifierHash new_state)
 IdentifierHash Graph::getPendingState()
 {
     return pending_state_;
-}
-
-ControlClientCode Graph::getPendingEvent()
-{
-    return event_;
-}
-
-void Graph::clearPendingEvent(ControlClientCode expected)
-{
-    if (event_ == expected)
-    {
-        event_ = ControlClientCode::kNotSet;
-    }
-}
-
-void Graph::setPendingEvent(ControlClientCode event)
-{
-    event_ = event;
-    ControlClientChannel::nudgeControlClientHandler();
-}
-
-ControlClientMessage& Graph::getCancelMessage()
-{
-    return cancel_message_;
 }
 
 std::string_view Graph::toString(GraphState state)

@@ -38,12 +38,6 @@ class MockProcessMap : public SafeProcessMapInserter
     MOCK_METHOD(SafeProcessMapReturnType, insertIfNotTerminated, (osal::ProcessID key, IComponent* object), (override));
 };
 
-class MockTransitionResultPublisher : public ITransitionResultPublisher
-{
-  public:
-    MOCK_METHOD(void, setInitialStateTransitionResult, (ControlClientCode result), (override));
-};
-
 class GraphTest : public ::testing::Test
 {
   protected:
@@ -63,8 +57,7 @@ class GraphTest : public ::testing::Test
             10U,
             config_.value(),
             job_queue_,
-            ProcessHandling{mock_supervision_event_publisher_, &process_interface_, mock_process_map},
-            &mock_transition_result_publisher_);
+            ProcessHandling{mock_supervision_event_publisher_, &process_interface_, mock_process_map});
     }
 
     virtual void SetConfig()
@@ -184,7 +177,6 @@ class GraphTest : public ::testing::Test
     StrictMock<osal::MockIProcess> process_interface_{};
     std::shared_ptr<MockProcessMap> mock_process_map = std::make_shared<MockProcessMap>();
     NiceMock<MockSupervisionEventPublisher> mock_supervision_event_publisher_{};
-    MockTransitionResultPublisher mock_transition_result_publisher_{};
     std::unique_ptr<Graph> graph_{};
 
     static constexpr std::string_view pg_string{"MainPG"};
@@ -274,10 +266,6 @@ TEST_F(GraphInitialTransitionTest, nothingToDo)
 {
     RecordProperty("Description", "Test that the initial transition to an empty run target succeeds immediately");
 
-    EXPECT_CALL(
-        mock_transition_result_publisher_,
-        setInitialStateTransitionResult(ControlClientCode::kInitialMachineStateSuccess));
-
     graph_->startInitialTransition(IdentifierHash{startup.name});
 
     EXPECT_EQ(graph_->getState(), GraphState::kSuccess);
@@ -286,10 +274,6 @@ TEST_F(GraphInitialTransitionTest, nothingToDo)
 TEST_F(GraphInitialTransitionTest, jobFailure)
 {
     RecordProperty("Description", "Test that startInitialTransition() sends the correct result due to a failing job");
-
-    EXPECT_CALL(
-        mock_transition_result_publisher_,
-        setInitialStateTransitionResult(ControlClientCode::kInitialMachineStateFailed));
 
     graph_->startInitialTransition(IdentifierHash{run_target_name(0)});
 
@@ -306,10 +290,6 @@ TEST_F(GraphInitialTransitionTest, cancel)
     RecordProperty(
         "Description", "Test that startInitialTransition() sends the correct result when the transition is cancelled");
 
-    EXPECT_CALL(
-        mock_transition_result_publisher_,
-        setInitialStateTransitionResult(ControlClientCode::kInitialMachineStateFailed));
-
     graph_->startInitialTransition(IdentifierHash{run_target_name(0)});
 
     graph_->cancel();
@@ -319,21 +299,6 @@ TEST_F(GraphInitialTransitionTest, cancel)
     graph_->handleComponentEvent(ActivationSuccessful{IdentifierHash{process_name(0)}});
 
     EXPECT_EQ(graph_->getState(), GraphState::kUndefinedState);
-}
-
-TEST_F(GraphInitialTransitionTest, unrecognizedRunTarget)
-{
-    RecordProperty(
-        "Description",
-        "Regression test for #542: startInitialTransition() with a run target name that doesn't exist in "
-        "the graph's configuration must still report kInitialMachineStateFailed, instead of leaving the "
-        "initial transition result unreported.");
-
-    EXPECT_CALL(
-        mock_transition_result_publisher_,
-        setInitialStateTransitionResult(ControlClientCode::kInitialMachineStateFailed));
-
-    graph_->startInitialTransition(IdentifierHash{"NotARealRunTarget"});
 }
 
 class GraphOffTransitionTest : public GraphTest
@@ -523,7 +488,6 @@ TEST_F(GraphHandleComponentEventTest, failureFollowedBySuccessFails)
     graph_->handleComponentEvent(ActivationSuccessful{second_job->value().component.get().getIdentifier()});
 
     EXPECT_EQ(graph_->getState(), GraphState::kUndefinedState);
-    EXPECT_EQ(graph_->getPendingEvent(), ControlClientCode::kFailedUnexpectedTerminationOnEnter);
 }
 
 TEST_F(GraphHandleComponentEventTest, unexpectedTerminationDuringSuccess)
@@ -577,8 +541,6 @@ TEST_F(GraphHandleComponentEventTest, unexpectedTerminationDuringTransition)
     const auto second_job = job_queue_->pop();
     executeJobSuccessfully(second_job->value());
     graph_->handleComponentEvent(ActivationSuccessful{second_job->value().component.get().getIdentifier()});
-
-    EXPECT_EQ(graph_->getPendingEvent(), ControlClientCode::kFailedUnexpectedTermination);
 }
 
 class GraphTransitionFailuresTest : public GraphTest
@@ -635,7 +597,6 @@ TEST_F(GraphCancelTest, cancelsOngoingTransition)
     graph_->handleComponentEvent(JobSkipped{IdentifierHash{process_name(0)}});
 
     EXPECT_TRUE(job->value().stop_token.stop_requested());
-    EXPECT_EQ(graph_->getPendingEvent(), ControlClientCode::kSetStateCancelled);
     EXPECT_EQ(graph_->getState(), GraphState::kUndefinedState);
 }
 
@@ -730,30 +691,10 @@ TEST_F(GraphUtilitiesTest, gettersSetters)
 {
     RecordProperty("Description", "Test that basic getters return the value the setter sets");
 
-    ControlClientID state_manager = {};
-    state_manager.process_identifier_ = IdentifierHash{"123"};
-    graph_->setStateManager(state_manager);
-    EXPECT_EQ(graph_->getStateManager().process_identifier_, state_manager.process_identifier_);
-
     const IdentifierHash pending_state{"Pending"};
     const auto previous_pending_state = graph_->getPendingState();
     EXPECT_EQ(graph_->setPendingState(pending_state), previous_pending_state);
     EXPECT_EQ(graph_->getPendingState(), pending_state);
-
-    const ControlClientCode pending_event = ControlClientCode::kSetStateAlreadyInState;
-    graph_->setPendingEvent(pending_event);
-    EXPECT_EQ(graph_->getPendingEvent(), pending_event);
-    graph_->clearPendingEvent(ControlClientCode::kFailedUnexpectedTermination);
-    // Does not clear because expected doesn't match
-    EXPECT_EQ(graph_->getPendingEvent(), pending_event);
-    graph_->clearPendingEvent(pending_event);
-    // Now cleared
-    EXPECT_EQ(graph_->getPendingEvent(), ControlClientCode::kNotSet);
-
-    const ControlClientCode cancel_event = ControlClientCode::kSetStateCancelled;
-    graph_->setPendingEvent(cancel_event);
-    graph_->updateCancelMessage();
-    EXPECT_EQ(graph_->getCancelMessage().request_or_response_, cancel_event);
 
     const auto before_time = std::chrono::steady_clock::now();
     graph_->setRequestStartTime();

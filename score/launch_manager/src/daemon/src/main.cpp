@@ -131,13 +131,11 @@ int main(int argc, const char* argv[])
                 return EXIT_FAILURE;
         }
     }
-    // reserve files descriptor osal::IpcCommsSync::sync_fd (fd3) and
-    // osal::IpcCommsSync::control_client_handler_nudge_fd (fd4) for communication tpyes: kNoComms !fd3 & !fd4
+    // reserve files descriptor osal::IpcCommsSync::sync_fd (fd3)
+    // for communication tpyes: kNoComms !fd3 & !fd4
     // kReporting  fd3 & !fd4
-    // kControlClient  fd3 & fd4
     // the file descriptors are closed inside the handleComms function.
     reserveFD(osal::IpcCommsSync::sync_fd);
-    reserveFD(osal::IpcCommsSync::control_client_handler_nudge_fd);
 
     int exit_code = EXIT_FAILURE;
 
@@ -199,7 +197,6 @@ int main(int argc, const char* argv[])
     }
 
     close(osal::IpcCommsSync::sync_fd);
-    close(osal::IpcCommsSync::control_client_handler_nudge_fd);
 
     LM_LOG_INFO() << "Launch Manager completed with exit code value:" << exit_code;
 
