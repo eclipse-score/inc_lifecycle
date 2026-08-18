@@ -124,7 +124,7 @@ class MonitorIfDaemon : public common::Observer<ifexm::ObservableEvent>
 
     /// @brief Push a single checkpoint to observers
     /// @param[in] f_elem_r The checkpoint to push to observers
-    void pushCheckpointToObservers(CheckpointBufferElement& f_elem_r);
+    void pushCheckpointToObservers(const CheckpointBufferElement& f_elem_r);
 
     /// Internal states for instances of this class
     enum class EInternalState : std::uint8_t

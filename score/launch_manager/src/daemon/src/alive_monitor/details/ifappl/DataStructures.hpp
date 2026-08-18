@@ -28,21 +28,22 @@ namespace saf
 namespace ifappl
 {
 
-/// Maximum number of Checkpoints to be stored in IPC channel
+/// @brief Maximum number of Checkpoints to be stored in IPC channel
 /// @todo Implement logic to determine the number of checkpoint entries
 /// that an Alive instance can report between two cycles
 /// of AliveMonitor.
 // coverity[autosar_cpp14_a0_1_1_violation] value is referenced in multiple files, but depending on build package.
 constexpr uint16_t k_maxCheckpointBufferElements{512U};
 
-/// Variable data exchange buffer: For every report of checkpoint,
+/// @brief Variable data exchange buffer: For every report of checkpoint,
 /// one new instance of the below structure is created and stored
 /// in the shared memory
 /* RULECHECKER_comment(0,17, check_member_function_in_struct, "Member fuctions \
 required for Vector and IPC APIs", true_no_defect) */
 struct CheckpointBufferElement final
 {
-    internal::saf::timers::NanoSecondType timestamp{0U};  ///< Timestamp
+    /// @brief Timestamp of the checkpoint
+    internal::saf::timers::NanoSecondType timestamp{0U};
 
     /// @brief Default constructor needed for storage in vector
     CheckpointBufferElement() = default;

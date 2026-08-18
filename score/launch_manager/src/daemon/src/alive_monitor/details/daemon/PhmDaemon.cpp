@@ -11,6 +11,8 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
+#include <algorithm>
+
 #include "score/mw/launch_manager/alive_monitor/details/daemon/PhmDaemon.hpp"
 
 #include "score/mw/launch_manager/alive_monitor/details/factory/FlatCfgFactory.hpp"

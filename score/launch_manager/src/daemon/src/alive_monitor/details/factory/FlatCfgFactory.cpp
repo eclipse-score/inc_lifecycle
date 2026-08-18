@@ -139,7 +139,7 @@ bool FlatCfgFactory::createAliveIf(
 bool FlatCfgFactory::createSupervisionCheckpoint(
     std::vector<ifappl::Checkpoint>& checkpoints,
     ifappl::MonitorIfDaemon& interface,
-    ifexm::ObservableEvent& event,
+    const ifexm::ObservableEvent& event,
     const IdentifierHash component_id)
 {
     try
@@ -164,7 +164,7 @@ bool FlatCfgFactory::createAliveSupervision(
     std::vector<supervision::Alive>& supervisions,
     ifappl::Checkpoint& checkpoint,
     ifexm::ObservableEvent& event,
-    std::shared_ptr<IRecoveryClient> recovery_client,
+    const std::shared_ptr<IRecoveryClient> recovery_client,
     const IdentifierHash component_id,
     const ComponentAliveSupervision component_config)
 {

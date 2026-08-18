@@ -53,7 +53,8 @@ class Checkpoint : public saf::common::Observable<Checkpoint>
     /// @param [in] f_checkpointCfgName_p       Name of the corresponding configured supervision checkpoint container
     /// @param [in] f_processState_p            The process that is reporting this checkpoint
     /// @throws std::bad_alloc in case of insufficient memory for string allocation
-    Checkpoint(const char* const f_checkpointCfgName_p, const ifexm::ObservableEvent* f_processState_p) noexcept(false);
+    Checkpoint(const std::string_view f_checkpointCfgName_p, const ifexm::ObservableEvent* f_processState_p) noexcept(
+        false);
 
     /// @brief Default Move Constructor
     /// Cannot be noexcept, since the base class move constructor is not noexcept

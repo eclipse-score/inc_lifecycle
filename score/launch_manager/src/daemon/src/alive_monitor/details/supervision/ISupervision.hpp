@@ -41,9 +41,8 @@ class ISupervision
     ISupervision() = delete;
 
     /// @brief Constructor
-    /// @param [in] f_supervisionConfigName_p       Unique name set by configuration
-    /// @warning    Constructor may throw std::exceptions
-    explicit ISupervision(const IdentifierHash f_supervisionConfigName_p) noexcept(false);
+    /// @param [in] f_supervisionConfigName_p       Unique hashed name set by configuration
+    explicit ISupervision(const IdentifierHash f_supervisionConfigName_p) noexcept(true);
 
     /// @brief Default destructor
     /* RULECHECKER_comment(0, 3, check_min_instructions, "Default destructor is not provided\
@@ -58,7 +57,7 @@ class ISupervision
     virtual void evaluate(const timers::NanoSecondType f_syncTimestamp) = 0;
 
     /// @brief Get the name of the configuration element for the corresponding supervision container
-    /// @return std::string_view   View over the name of the corresponding supervision configuration container
+    /// @return The hashed name of the corresponding supervision configuration container
     IdentifierHash getConfigName(void) const noexcept;
 
   protected:

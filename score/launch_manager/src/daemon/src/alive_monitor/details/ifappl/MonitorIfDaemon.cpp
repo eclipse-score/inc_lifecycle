@@ -118,7 +118,7 @@ void MonitorIfDaemon::handleOverflow()
     status = EInternalState::kInactiveOverflow;
 }
 
-void MonitorIfDaemon::pushCheckpointToObservers(CheckpointBufferElement& f_elem_r)
+void MonitorIfDaemon::pushCheckpointToObservers(const CheckpointBufferElement& f_elem_r)
 {
     for (auto& observer : checkpointObservers)
     {

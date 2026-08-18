@@ -17,7 +17,7 @@ namespace score::mw::lifecycle::internal::saf::ifappl
 {
 
 Checkpoint::Checkpoint(
-    const char* const f_checkpointCfgName_p,
+    const std::string_view f_checkpointCfgName_p,
     const ifexm::ObservableEvent* f_processState_p) noexcept(false)
     : Observable<Checkpoint>(),
       k_configName(f_checkpointCfgName_p),
