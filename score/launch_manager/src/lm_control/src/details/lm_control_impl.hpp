@@ -24,6 +24,8 @@
 #include "score/mw/lifecycle/details/lm_control_service.h"
 #include "score/mw/lifecycle/ilm_control.hpp"
 
+#include <score/assert.hpp>
+
 namespace score::mw::lifecycle
 {
 
@@ -96,6 +98,8 @@ class BasicLmControlImpl final : public ILmControl
     /// @error kCommunicationError  the service discovery could not be started.
     score::Result<void> init(std::string_view instance_specifier) noexcept
     {
+        SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(!find_handle_.has_value(), "LmControl::init() called more than once");
+
         auto specifier_result = score::mw::com::InstanceSpecifier::Create(std::string{instance_specifier});
         if (!specifier_result.has_value())
         {
@@ -200,7 +204,8 @@ class BasicLmControlImpl final : public ILmControl
         const auto& response = *result.value();
         if (response.status == QueryStatus::kNotAvailable)
         {
-            LM_LOG_DEBUG() << "LmControl: get_active_run_target: LM reports kActivationInProgress";
+            LM_LOG_DEBUG() << "LmControl: get_active_run_target: Status not available, reason:"
+                           << response.rejection_reason;
             return score::MakeUnexpected(response.rejection_reason);
         }
 
@@ -242,10 +247,12 @@ class BasicLmControlImpl final : public ILmControl
     }
 
     /// @brief Create the proxy for the discovered instance and publish it into proxy_.
-    /// @pre Caller holds mutex_.
+    /// @pre Caller holds mutex_ and proxy_ is empty.
     /// @return true if the proxy was created, false on error (proxy_ left empty).
     bool createProxy(const HandleType& handle) noexcept
     {
+        SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(!proxy_.has_value(), "proxy already created");
+
         auto create_result = Traits::Create(handle);
         if (!create_result.has_value())
         {
@@ -253,7 +260,7 @@ class BasicLmControlImpl final : public ILmControl
             return false;
         }
         proxy_.emplace(std::move(create_result).value());
-        LM_LOG_INFO() << "LmControl: proxy created successfully";
+        LM_LOG_DEBUG() << "LmControl: proxy created successfully";
         return true;
     }
 
@@ -262,6 +269,8 @@ class BasicLmControlImpl final : public ILmControl
     /// @return true on success; on failure proxy_ is reset so we stay unconnected.
     bool subscribeToActivationResults() noexcept
     {
+        SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(proxy_.has_value(), "proxy must not be null");
+
         const auto subscribe_result = proxy_->activation_result.Subscribe(kActivationResultSampleCount);
         if (!subscribe_result.has_value())
         {
@@ -297,12 +306,11 @@ class BasicLmControlImpl final : public ILmControl
     }
 
     /// @brief Ready and forwards all pending activation-result samples.
-    /// @details The callback is copied once here rather than once per sample: a registration
-    ///          racing with a running drain takes effect from the next handler invocation on,
-    ///          never mid-drain.
-    /// @pre The caller holds sample_processing_mutex_.
+    /// @pre The caller holds sample_processing_mutex_ and proxy_ has a value.
     void readActivationEvents()
     {
+        SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(proxy_.has_value(), "proxy must not be null");
+
         const ActivationCallback callback = currentCallback();
         if (!callback)
         {
@@ -364,12 +372,12 @@ class BasicLmControlImpl final : public ILmControl
         }
     }
 
-    // Guards proxy_ and the service discovery handle.
+    // Guards proxy_
     std::mutex mutex_;
     std::optional<ProxyType> proxy_;
 
-    // Handle of the running discovery search, stopped by the destructor. Written once by the
-    // constructor and never touched again, so it needs no lock.
+    // Handle of the running discovery search, stopped by the destructor. Written once by init()
+    // and never touched again, so it needs no lock.
     std::optional<FindServiceHandle> find_handle_;
 
     ActivationCallback callback_;

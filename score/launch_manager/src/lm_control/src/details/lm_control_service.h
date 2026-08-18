@@ -28,8 +28,7 @@ namespace score::mw::lifecycle
 
 /// @brief Controls how an activation request interacts with any in-progress activation.
 ///
-/// Mirrors the `force` parameter of `ILmControl::activate_run_target`. The
-/// underlying storage is `uint8_t` to keep the wire representation compact.
+/// @details Mirrors the `force` parameter of `ILmControl::activate_run_target`.
 enum class ActivationMode : uint8_t
 {
     kQueued = 0,  ///< Queue this request behind any in-progress activation.
@@ -44,7 +43,7 @@ struct ActivateRunTargetRequest
     RunTargetName run_target_name;
 
     /// @brief Whether to queue or force this activation.
-    ActivationMode mode;
+    ActivationMode mode{ActivationMode::kQueued};
 };
 
 /// @brief Indicates whether the request was accepted or rejected by the Launch Manager.
@@ -61,10 +60,10 @@ enum class RequestStatus : uint8_t
 struct ActivateRunTargetResponse
 {
     /// @brief Whether the Launch Manager accepted or rejected the request.
-    RequestStatus status;
+    RequestStatus status{RequestStatus::kRejected};
 
     /// @brief Reason for rejection. Only meaningful when status == RequestStatus::kRejected.
-    ExecErrc rejection_reason;
+    ExecErrc rejection_reason{ExecErrc::kGeneralError};
 };
 
 // ============================================================================
@@ -74,15 +73,15 @@ struct ActivateRunTargetResponse
 /// @brief Indicates whether the Launch Manager can provide the currently active Run Target.
 enum class QueryStatus : uint8_t
 {
-    kAvailable = 0,     ///< A settled Run Target exists; see the run_target field.
-    kNotAvailable = 1,  ///< No settled Run Target; an activation is in progress.
+    kAvailable = 0,     ///< An active Run Target exists; see the run_target field.
+    kNotAvailable = 1,  ///< No active Run Target; an activation is in progress.
 };
 
 /// @brief Synchronous response to a get_active_run_target query.
 struct GetActiveRunTargetResponse
 {
-    /// @brief Whether a settled Run Target is currently available.
-    QueryStatus status;
+    /// @brief Whether an active Run Target is currently available.
+    QueryStatus status{QueryStatus::kNotAvailable};
 
     /// @brief The currently active Run Target.
     ///        Only meaningful when status == QueryStatus::kAvailable.
@@ -91,26 +90,25 @@ struct GetActiveRunTargetResponse
     /// @brief Reason the active Run Target is not available.
     ///        Only meaningful when status == QueryStatus::kNotAvailable.
     ///        Expected value: kActivationInProgress.
-    ExecErrc rejection_reason;
+    ExecErrc rejection_reason{ExecErrc::kGeneralError};
 };
 
 // ============================================================================
 // activation_result event
 // ============================================================================
 
-/// @brief Event sent by the Launch Manager when a Run Target activation settles.
+/// @brief Event sent by the Launch Manager when a Run Target activation completes.
 ///
-/// Sent to all subscribers regardless of which State Manager originated the request.
 /// Activation always resolves into some Run Target — it cannot fail at the graph
-/// level. The settled Run Target may differ from the one originally requested if a
+/// level. The activated Run Target may differ from the one originally requested if a
 /// preempting request or recovery action redirected the transition.
 struct ActivationResult
 {
-    /// @brief The Run Target the Launch Manager settled on.
+    /// @brief The Run Target the Launch Manager activated.
     RunTargetName activated_run_target;
 
     /// @brief What caused this activation to occur.
-    RunTargetActivationSource activation_source;
+    RunTargetActivationSource activation_source{RunTargetActivationSource::kStateManagerRequest};
 };
 
 // ============================================================================
@@ -118,11 +116,6 @@ struct ActivationResult
 // ============================================================================
 
 /// @brief mw::com service definition for the Launch Manager control interface.
-///
-/// The State Manager holds a `LmControlProxy` and calls `activate_run_target`
-/// and `get_active_run_target`. The Launch Manager holds a `LmControlSkeleton`,
-/// registers handlers for those methods, and fires `activation_result` events
-/// on Run Target settling.
 template <typename Trait>
 class LmControlService : public Trait::Base
 {
@@ -147,10 +140,7 @@ class LmControlService : public Trait::Base
     /// activation_result event and retry if needed.
     typename Trait::template Method<GetActiveRunTargetResponse()> get_active_run_target{*this, "GetActiveRunTarget"};
 
-    /// @brief Event fired by the Launch Manager when a Run Target activation settles.
-    ///
-    /// All connected proxies receive this event. Each subscriber's registered
-    /// ActivationCallback is invoked with the settled Run Target and source.
+    /// @brief Event fired by the Launch Manager when a Run Target activation completes.
     typename Trait::template Event<ActivationResult> activation_result{*this, "ActivationResult"};
 };
 

@@ -14,6 +14,8 @@
 #ifndef SCORE_MW_LIFECYCLE_RUN_TARGET_ACTIVATION_SOURCE_HPP
 #define SCORE_MW_LIFECYCLE_RUN_TARGET_ACTIVATION_SOURCE_HPP
 
+#include <cstdint>
+
 namespace score::mw::lifecycle
 {
 
@@ -25,7 +27,7 @@ namespace score::mw::lifecycle
 /// @note Activation cannot fail and always resolves into some
 ///       Run Target. This enum describes *why* it resolved,
 ///       not whether it succeeded.
-enum class RunTargetActivationSource
+enum class RunTargetActivationSource : std::uint8_t
 {
     /// @brief Activation was explicitly requested by a State Manager.
     kStateManagerRequest = 0,
