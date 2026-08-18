@@ -11,7 +11,7 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#include "score/mw/launch_manager/alive_monitor/details/daemon/SwClusterHandler.hpp"
+#include "score/mw/launch_manager/alive_monitor/details/daemon/SupervisionManager.hpp"
 #include "score/launch_manager/src/daemon/src/common/log.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifappl/Checkpoint.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifappl/MonitorIfDaemon.hpp"
@@ -20,7 +20,7 @@
 namespace score::mw::lifecycle::internal::saf::daemon
 {
 
-SwClusterHandler::SwClusterHandler(std::unique_ptr<factory::IPhmFactory> factory)
+SupervisionManager::SupervisionManager(std::unique_ptr<factory::IPhmFactory> factory)
     : processStates{},
       aliveIfIpcs{},
       aliveInterfaces{},
@@ -30,9 +30,9 @@ SwClusterHandler::SwClusterHandler(std::unique_ptr<factory::IPhmFactory> factory
 {
 }
 
-SwClusterHandler::~SwClusterHandler() = default;
+SupervisionManager::~SupervisionManager() = default;
 
-void SwClusterHandler::reserve(std::size_t size)
+void SupervisionManager::reserve(std::size_t size)
 {
     processStates.reserve(size);
     aliveIfIpcs.reserve(size);
@@ -41,7 +41,7 @@ void SwClusterHandler::reserve(std::size_t size)
     aliveSupervisions.reserve(size);
 }
 
-bool SwClusterHandler::constructWorker(
+bool SupervisionManager::constructWorker(
     const IdentifierHash& id,
     const ComponentAliveSupervision& component_config,
     const uid_t uid,
@@ -73,7 +73,7 @@ bool SwClusterHandler::constructWorker(
     return true;
 }
 
-void SwClusterHandler::checkInterfaceForNewData(const timers::NanoSecondType f_syncTimestamp)
+void SupervisionManager::checkInterfaceForNewData(const timers::NanoSecondType f_syncTimestamp)
 {
     for (auto& aliveInterface : aliveInterfaces)
     {
@@ -81,7 +81,7 @@ void SwClusterHandler::checkInterfaceForNewData(const timers::NanoSecondType f_s
     }
 }
 
-void SwClusterHandler::evaluateSupervisions(const timers::NanoSecondType f_syncTimestamp)
+void SupervisionManager::evaluateSupervisions(const timers::NanoSecondType f_syncTimestamp)
 {
     for (auto& alive : aliveSupervisions)
     {
@@ -89,7 +89,7 @@ void SwClusterHandler::evaluateSupervisions(const timers::NanoSecondType f_syncT
     }
 }
 
-bool SwClusterHandler::hasAnyRecoveryEnqueueFailed() const noexcept
+bool SupervisionManager::hasAnyRecoveryEnqueueFailed() const noexcept
 {
     for (const auto& alive : aliveSupervisions)
     {
@@ -101,7 +101,7 @@ bool SwClusterHandler::hasAnyRecoveryEnqueueFailed() const noexcept
     return false;
 }
 
-void SwClusterHandler::performCyclicTriggers(const timers::NanoSecondType f_syncTimestamp)
+void SupervisionManager::performCyclicTriggers(const timers::NanoSecondType f_syncTimestamp)
 {
     checkInterfaceForNewData(f_syncTimestamp);
     evaluateSupervisions(f_syncTimestamp);

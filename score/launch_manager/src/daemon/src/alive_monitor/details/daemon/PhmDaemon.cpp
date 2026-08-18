@@ -30,7 +30,7 @@ namespace score::mw::lifecycle::internal::saf::daemon
 PhmDaemon::PhmDaemon(OsClock& f_osClock, std::unique_ptr<ISupervisionControlReceiver> f_observable_event_receiver)
     : osClock{f_osClock},
       cycleTimer{&osClock},
-      swClusterHandler{std::make_unique<factory::FlatCfgFactory>()},
+      supervisionManager{std::make_unique<factory::FlatCfgFactory>()},
       processStateReader{std::move(f_observable_event_receiver)}
 {
     static_cast<void>(f_osClock);
@@ -48,7 +48,7 @@ void PhmDaemon::performCyclicTriggers(void)
 
     if (processStateReader.distributeChanges(syncTimestamp))
     {
-        swClusterHandler.performCyclicTriggers(syncTimestamp);
+        supervisionManager.performCyclicTriggers(syncTimestamp);
     }
     else
     {
@@ -64,12 +64,12 @@ bool PhmDaemon::construct(const std::vector<configuration::ComponentConfig>& con
             return component.component_properties.application_profile.alive_supervision.has_value();
         });
 
-    swClusterHandler.reserve(supervised_components);
+    supervisionManager.reserve(supervised_components);
 
     // In a later refactoring step, components will register their own alive supervision and provide their identifier.
     // For now, we iterate through them all here.
 
-    LM_LOG_DEBUG() << "Software Cluster Handler starts constructing workers";
+    LM_LOG_DEBUG() << "Supervision manager starts constructing workers";
 
     for (const auto& comp : config)
     {
@@ -80,10 +80,10 @@ bool PhmDaemon::construct(const std::vector<configuration::ComponentConfig>& con
         const auto& alive = comp.component_properties.application_profile.alive_supervision.value();
         const auto name = IdentifierHash{comp.name};
         const auto uid = comp.deployment_config.sandbox.uid;
-        if (!swClusterHandler.constructWorker(name, alive, uid, recoveryClient, processStateReader))
+        if (!supervisionManager.constructWorker(name, alive, uid, recoveryClient, processStateReader))
         {
 
-            LM_LOG_ERROR() << "Software Cluster Handler is unable to construct the required worker objects.";
+            LM_LOG_ERROR() << "Supervision manager is unable to construct the required worker objects.";
             return false;
         }
     }

@@ -20,7 +20,7 @@
 
 #include "score/launch_manager/src/daemon/src/common/log.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/daemon/PhmDaemonConfig.hpp"
-#include "score/mw/launch_manager/alive_monitor/details/daemon/SwClusterHandler.hpp"
+#include "score/mw/launch_manager/alive_monitor/details/daemon/SupervisionManager.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ObservableEventReader.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/CycleTimeValidator.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/CycleTimer.hpp"
@@ -214,7 +214,7 @@ class PhmDaemon
     std::shared_ptr<RecoveryClient> recoveryClient;
 
     /// @brief Handler to construct and store objects needed for alive supervision
-    SwClusterHandler swClusterHandler;
+    SupervisionManager supervisionManager;
 
     /// @brief Observable Event Reader for PHM daemon
     ObservableEventReader processStateReader;

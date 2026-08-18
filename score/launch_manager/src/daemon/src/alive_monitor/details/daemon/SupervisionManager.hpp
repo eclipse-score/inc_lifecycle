@@ -56,25 +56,24 @@ namespace daemon
 using mw::lifecycle::internal::configuration::AliveSupervisionConfig;
 using mw::lifecycle::internal::configuration::ComponentAliveSupervision;
 
-/// @brief Software Cluster Handler wraps the full PHM Supervision and Recovery Notification functionality for one
-///        Software Cluster.
-/// @details This class requests construction of all required objects to do the Supervisions and Recovery Notifications
-///          for a given Software Cluster. It also provides an abstracted interface to trigger the cyclic evaluation.
-class SwClusterHandler
+/// @brief Supervision manager wraps the full PHM Supervision and Recovery Notification functionality.
+/// @details This class requests construction of all required objects to do the Supervisions and Recovery Notifications.
+/// It also provides an abstract interface to trigger the cyclic evaluation.
+class SupervisionManager
 {
   public:
     /// @brief Constructor
     /// @param[in] factory Factory moved into the object to construct required alive supervision components
-    explicit SwClusterHandler(std::unique_ptr<factory::IPhmFactory> factory);
+    explicit SupervisionManager(std::unique_ptr<factory::IPhmFactory> factory);
 
     /// @brief Destroys the workers
-    virtual ~SwClusterHandler();
+    virtual ~SupervisionManager();
 
     /// @brief No Copy Constructor
-    SwClusterHandler(const SwClusterHandler&) = delete;
+    SupervisionManager(const SupervisionManager&) = delete;
 
     /// @brief No Copy Assignment
-    SwClusterHandler& operator=(const SwClusterHandler&) = delete;
+    SupervisionManager& operator=(const SupervisionManager&) = delete;
 
     /// @brief Move Constructor
     /* RULECHECKER_comment(0, 7, check_min_instructions, "Default constructor is not provided\
@@ -83,10 +82,10 @@ class SwClusterHandler
        the member initializer", false) */
     /* RULECHECKER_comment(0, 46, check_copy_in_move_constructor, "The default move constructor invokes parameterised\
        constructor internally. This invokes std::string copy construction", true_no_defect) */
-    SwClusterHandler(SwClusterHandler&&) = default;
+    SupervisionManager(SupervisionManager&&) = default;
 
     /// @brief No Move Assignment
-    SwClusterHandler& operator=(SwClusterHandler&&) = delete;
+    SupervisionManager& operator=(SupervisionManager&&) = delete;
 
     /// @brief Allocate all the vectors needed to store alive supervision components
     /// @param[in] size Number of supervised components
@@ -108,7 +107,7 @@ class SwClusterHandler
         ifexm::ObservableEventReader& f_processStateReader_r) noexcept(false);
 
     /// @brief Perform cyclic execution
-    /// @details Perform cyclic execution required for supervision of the Software Cluster
+    /// @details Perform cyclic execution required for alive supervision
     /// @param [in] f_syncTimestamp   Timestamp for cyclic synchronization
     void performCyclicTriggers(const timers::NanoSecondType f_syncTimestamp);
 

@@ -22,8 +22,8 @@ cc_library(
 
 cc_library(
     name = "sw_cluster_handler",
-    srcs = ["SwClusterHandler.cpp"],
-    hdrs = ["SwClusterHandler.hpp"],
+    srcs = ["SupervisionManager.cpp"],
+    hdrs = ["SupervisionManager.hpp"],
     include_prefix = "score/mw/launch_manager/alive_monitor/details/daemon",
     strip_include_prefix = "/score/launch_manager/src/daemon/src/alive_monitor/details/daemon",
     visibility = ["//score/launch_manager/src/daemon/src/alive_monitor:__subpackages__"],
