@@ -262,8 +262,7 @@ TEST_F(FlatbufferConfigLoaderTest, LoadSingleComponent)
     EXPECT_THAT(comp.component_properties.depends_on[0], Eq("other_comp"));
     ASSERT_THAT(comp.component_properties.process_arguments.size(), Eq(1U));
     EXPECT_THAT(comp.component_properties.process_arguments[0], Eq("--verbose"));
-    ASSERT_THAT(comp.component_properties.ready_condition.has_value(), IsTrue());
-    EXPECT_THAT(*comp.component_properties.ready_condition, VariantWith<ProcessState>(Eq(ProcessState::Running)));
+    EXPECT_THAT(comp.component_properties.ready_condition, VariantWith<ProcessState>(Eq(ProcessState::Running)));
     EXPECT_THAT(comp.deployment_config.ready_timeout_ms, Eq(1500U));
     EXPECT_THAT(comp.deployment_config.shutdown_timeout_ms, Eq(2500U));
     EXPECT_THAT(comp.deployment_config.bin_dir, Eq("/opt/bin"));
@@ -308,9 +307,8 @@ TEST_F(FlatbufferConfigLoaderTest, LoadSingleComponentWithFileState)
     ASSERT_THAT(result->components().size(), Eq(1U));
 
     const auto& comp = result->components()[0];
-    ASSERT_THAT(comp.component_properties.ready_condition.has_value(), IsTrue());
     EXPECT_THAT(
-        *comp.component_properties.ready_condition,
+        comp.component_properties.ready_condition,
         VariantWith<FileState>(
             FieldsAre(Eq("/tmp/ready"), Eq(FileExistenceState::Exists), Eq(std::chrono::milliseconds{10}))));
 }
@@ -667,7 +665,8 @@ TEST_F(FlatbufferConfigLoaderTest, OptionalWatchdogAbsent)
 
 TEST_F(FlatbufferConfigLoaderTest, OptionalReadyConditionAbsent)
 {
-    RecordProperty("Description", "When no ready_condition is present on a component, it is nullopt.");
+    RecordProperty(
+        "Description", "When no ready_condition is present on a component, it defaults to ProcessState::Running.");
 
     ::flatbuffers::FlatBufferBuilder fbb;
 
@@ -681,7 +680,9 @@ TEST_F(FlatbufferConfigLoaderTest, OptionalReadyConditionAbsent)
     auto result = loadBuffer(buildConfigWithComponents(fbb, comps));
 
     ASSERT_THAT(result.has_value(), IsTrue());
-    EXPECT_THAT(result->components()[0].component_properties.ready_condition.has_value(), IsFalse());
+    EXPECT_THAT(
+        result->components()[0].component_properties.ready_condition,
+        VariantWith<ProcessState>(Eq(ProcessState::Running)));
 }
 
 // ============================================================================

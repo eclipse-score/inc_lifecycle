@@ -66,8 +66,8 @@ score::cpp::expected<TargetT, IConfigLoader::Error> validateRange(int64_t value,
 [[nodiscard]] ApplicationType convertApplicationType(fb::ApplicationType fb_type);
 /// @brief Converts a FlatBuffer ProcessState enum to the config ProcessState.
 [[nodiscard]] ProcessState convertProcessState(fb::ProcessState fb_state);
-/// @brief Converts a FlatBuffer FileState struct to the config equivalent.
-std::optional<FileState> convertFileState(const fb::FileState* fb_fs);
+/// @brief Converts a FlatBuffer FileState table to the config equivalent, or nullopt if absent.
+[[nodiscard]] score::cpp::expected<FileState, IConfigLoader::Error> convertFileState(const fb::FileState& fb_fs);
 /// @brief Converts a FlatBuffer FileExistenceState enum to the config equivalent.
 [[nodiscard]] FileExistenceState convertFileExistenceState(fb::FileExistenceState fb_state);
 /// @brief Converts a FlatBuffer SchedulingPolicy enum to a POSIX scheduling policy constant.
@@ -105,8 +105,9 @@ std::optional<FileState> convertFileState(const fb::FileState* fb_fs);
 /// @brief Converts a FlatBuffer ApplicationProfile to the config equivalent.
 [[nodiscard]] score::cpp::expected<ApplicationProfile, IConfigLoader::Error> convertApplicationProfile(
     const fb::ApplicationProfile* fb_ap);
-/// @brief Converts a FlatBuffer ReadyCondition to the config equivalent.
-[[nodiscard]] std::optional<ReadyCondition> convertReadyCondition(const fb::ReadyCondition* fb_rc);
+/// @brief Converts a FlatBuffer ReadyCondition to the config equivalent, or nullopt if not configured.
+[[nodiscard]] score::cpp::expected<ReadyCondition, IConfigLoader::Error> convertReadyCondition(
+    const fb::ReadyCondition* fb_rc);
 /// @brief Converts a FlatBuffer ComponentProperties to the config equivalent.
 [[nodiscard]] score::cpp::expected<ComponentProperties, IConfigLoader::Error> convertComponentProperties(
     const fb::ComponentProperties* fb_cp);
