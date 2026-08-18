@@ -5238,7 +5238,7 @@
   {
     "name": "ConfigurationAdapterTest__GetListOfProcessGroupsReturnsSingleImplicitGroup",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "129",
+    "line": "130",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5252,7 +5252,7 @@
   {
     "name": "ConfigurationAdapterTest__GetMainPGStartupStateMapsToInitialRunTarget",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "142",
+    "line": "143",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5266,7 +5266,7 @@
   {
     "name": "ConfigurationAdapterTest__GetNameOfOffStateMapsToMainPGOff",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "154",
+    "line": "155",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5280,7 +5280,7 @@
   {
     "name": "ConfigurationAdapterTest__GetNameOfRecoveryStateMapsToFallbackRunTarget",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "163",
+    "line": "164",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5294,7 +5294,7 @@
   {
     "name": "ConfigurationAdapterTest__GetProcessIndexesListResolvesRunTargetDependencies",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "172",
+    "line": "173",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5308,7 +5308,7 @@
   {
     "name": "ConfigurationAdapterTest__GetProcessIndexesListResolvesTransitiveDependencies",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "187",
+    "line": "188",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5322,7 +5322,7 @@
   {
     "name": "ConfigurationAdapterTest__GetOsProcessConfigurationMapsComponentFields",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "208",
+    "line": "209",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5336,7 +5336,7 @@
   {
     "name": "ConfigurationAdapterTest__GetOsProcessConfigurationInjectsAliveInterfaceForSupervised",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "230",
+    "line": "231",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5350,7 +5350,7 @@
   {
     "name": "ConfigurationAdapterTest__GetOsProcessConfigurationNoAliveInterfaceForNative",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "251",
+    "line": "253",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5364,7 +5364,7 @@
   {
     "name": "ConfigurationAdapterTest__GetOsProcessDependenciesMapsComponentDependsOn",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "268",
+    "line": "270",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5378,7 +5378,7 @@
   {
     "name": "ConfigurationAdapterTest__GetOsProcessDependenciesEmptyForComponentWithNoDeps",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "284",
+    "line": "286",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5392,7 +5392,7 @@
   {
     "name": "ConfigurationAdapterTest__GetNumberOfOsProcessesReturnsComponentCount",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "297",
+    "line": "299",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5406,7 +5406,7 @@
   {
     "name": "ConfigurationAdapterTest__GetSoftwareClusterReturnsDefault",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "307",
+    "line": "309",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5420,7 +5420,7 @@
   {
     "name": "ConfigurationAdapterTest__GetOsProcessConfigurationReturnsNulloptForInvalidIndex",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "317",
+    "line": "319",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5434,7 +5434,7 @@
   {
     "name": "ConfigurationAdapterTest__GetOsProcessConfigurationReturnsNulloptForUnknownPG",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "326",
+    "line": "328",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5448,7 +5448,7 @@
   {
     "name": "ConfigurationAdapterTest__OffStateReturnsProcessIndexesListEmpty",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "335",
+    "line": "337",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5462,7 +5462,7 @@
   {
     "name": "ConfigurationAdapterReadyConditionTest__DependencyUsesTargetComponentReadyCondition",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "347",
+    "line": "349",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5476,7 +5476,7 @@
   {
     "name": "ConfigurationAdapterReadyConditionTest__DependencyDefaultsToRunningWhenTargetHasNoReadyCondition",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "423",
+    "line": "425",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -5490,7 +5490,7 @@
   {
     "name": "ConfigurationAdapterFallbackTest__FallbackRunTargetResolvesDependenciesRecursively",
     "file": "score/launch_manager/src/daemon/src/configuration/configuration_adapter_UT.cpp",
-    "line": "496",
+    "line": "498",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -6176,7 +6176,7 @@
   {
     "name": "test_sandbox_options",
     "file": "tests/integration/sandbox_options/sandbox_options.py",
-    "line": "30",
+    "line": "113",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
