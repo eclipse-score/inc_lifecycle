@@ -10,6 +10,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
+#include "score/mw/launch_manager/common/alive_interface_path.hpp"
 #include "score/mw/launch_manager/configuration/config.hpp"
 #include "score/mw/launch_manager/configuration/configuration_adapter.hpp"
 
@@ -236,10 +237,11 @@ TEST_F(ConfigurationAdapterTest, GetOsProcessConfigurationInjectsAliveInterfaceF
     ASSERT_TRUE(result.has_value());
     const auto* os_proc = *result;
 
+    const std::string path = aliveInterfacePath(IdentifierHash{"comp_a"});
     bool found = false;
     for (size_t i = 0; os_proc->startup_config_.envp_[i] != nullptr; ++i)
     {
-        if (std::string(os_proc->startup_config_.envp_[i]) == "LCM_ALIVE_INTERFACE_PATH=/lifecycle_health_comp_a")
+        if (std::string(os_proc->startup_config_.envp_[i]) == ("LCM_ALIVE_INTERFACE_PATH=" + path))
         {
             found = true;
             break;
