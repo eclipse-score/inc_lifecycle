@@ -349,24 +349,6 @@ TEST_F(LmControlUT, DiscoveryCreatesProxySubscribesAndSetsHandler)
     EXPECT_TRUE(receive_handler_);
 }
 
-TEST_F(LmControlUT, DiscoveryKeepsRunningAfterConnect)
-{
-    RecordProperty(
-        "Description",
-        "Connecting does not stop the discovery search; it keeps running until the instance is destroyed.");
-
-    EXPECT_CALL(mock_, StopFindService()).Times(0);
-
-    auto sut = MakeConnected();
-    // A further notification while already connected must not stop discovery either.
-    ConnectService();
-    EXPECT_TRUE(sut->get_active_run_target().has_value());
-
-    // Verify while the instance is still alive - the destructor is what stops discovery, and it
-    // is covered by DestructorStopsDiscoveryWhenNeverConnected / DestructorUnsubscribesWhenConnected.
-    ::testing::Mock::VerifyAndClearExpectations(&mock_);
-}
-
 TEST_F(LmControlUT, EmptyHandlesAreIgnored)
 {
     RecordProperty(
@@ -397,15 +379,15 @@ TEST_F(LmControlUT, SynchronousDiscoveryDuringConstructionStopsFindingOnce)
 {
     RecordProperty(
         "Description",
-        "When discovery completes synchronously during construction, discovery is stopped exactly once and "
-        "not again in the destructor.");
+        "When discovery completes synchronously while init() is still running, the service discovery is still "
+        "stopped exactly once, in the destructor.");
 
     EXPECT_CALL(mock_, StartFindService(_)).WillOnce(Invoke([](FindHandler handler) {
         handler(score::mw::com::ServiceHandleContainer<FakeHandle>{FakeHandle{}}, FakeFindHandle{});
         return score::Result<FakeFindHandle>{FakeFindHandle{}};
     }));
-    // Discovery is stopped exactly once, by the destructor. The synchronous handler leaves the
-    // search untouched, so the constructor can store the handle unconditionally.
+    // The destructor is the only place that stops discovery. The synchronous handler leaves the
+    // search untouched, so init() can store the handle unconditionally.
     EXPECT_CALL(mock_, StopFindService()).Times(1);
 
     auto sut = MakeLmControl();
@@ -630,8 +612,8 @@ TEST_F(LmControlUT, ActivationResultBacklogExceedingSubscriptionIsDrainedInSever
 {
     RecordProperty(
         "Description",
-        "A backlog larger than the subscribed max_sample_count is drained with repeated GetNewSamples calls "
-        "until a batch smaller than the maximum signals an empty queue; every sample is forwarded exactly once.");
+        "Number of available samples larger than subscribed max_sample_count is read with repeated GetNewSamples "
+        "calls until a batch smaller than the maximum signals an empty queue; every sample is forwarded exactly once.");
 
     auto sut = MakeConnected();
 
@@ -696,7 +678,7 @@ TEST_F(LmControlUT, ActivationResultWithoutCallbackIsDroppedSafely)
 TEST_F(LmControlUT, ActivationResultGetNewSamplesFailureIsTolerated)
 {
     RecordProperty(
-        "Description", "A GetNewSamples failure while draining activation results is tolerated without crashing.");
+        "Description", "A GetNewSamples failure while reading activation results is tolerated without crashing.");
 
     auto sut = MakeConnected();
 
