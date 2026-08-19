@@ -11,8 +11,8 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#ifndef WORKER_THREAD_HPP_INCLUDED
-#define WORKER_THREAD_HPP_INCLUDED
+#ifndef THREAD_POOL_HPP_INCLUDED
+#define THREAD_POOL_HPP_INCLUDED
 
 #include "score/mw/launch_manager/common/concurrency/mpmc_concurrent_queue.hpp"
 #include "score/mw/launch_manager/common/constants.hpp"
@@ -30,30 +30,30 @@ namespace score::mw::lifecycle::internal
 /// from an MPMCConcurrentQueue until the pool is stopped or destructed.
 /// @tparam T The type of items stored in the queue (as std::shared_ptr<T>).
 template <class T>
-class WorkerThread final
+class ThreadPool final
 {
     using Queue = MPMCConcurrentQueue<std::optional<T>, static_cast<std::size_t>(ProcessLimits::kMaxProcesses)>;
 
   public:
-    /// @brief Constructs a WorkerThread pool with the specified number of threads.
+    /// @brief Constructs a ThreadPool with the specified number of threads.
     ///
     /// @param queue The MpmcQueue from which threads will take work items.
     /// @param num_threads Number of threads in the pool.
     /// @param component_controller_ The controller to delegate work to.
-    WorkerThread(std::shared_ptr<Queue> queue, uint32_t num_threads, IComponentController& component_controller)
+    ThreadPool(std::shared_ptr<Queue> queue, uint32_t num_threads, IComponentController& component_controller)
         : the_job_queue_(queue), component_controller_(component_controller)
     {
         worker_threads_.reserve(num_threads);
         for (uint32_t i = 0U; i < num_threads; ++i)
         {
             static_cast<void>(i);
-            worker_threads_.emplace_back(std::make_unique<std::thread>(&WorkerThread::run, this));
+            worker_threads_.emplace_back(std::make_unique<std::thread>(&ThreadPool::run, this));
         }
     }
 
     /// @brief Destructor.
     /// Requests stop and joins all worker threads.
-    ~WorkerThread()
+    ~ThreadPool()
     {
         stop();
         for (auto& thread : worker_threads_)
@@ -67,16 +67,16 @@ class WorkerThread final
 
     // Rule of five
     /// @brief Copy constructor is deleted to prevent copying.
-    WorkerThread(const WorkerThread&) = delete;
+    ThreadPool(const ThreadPool&) = delete;
 
     /// @brief Copy assignment operator is deleted to prevent copying.
-    WorkerThread& operator=(const WorkerThread&) = delete;
+    ThreadPool& operator=(const ThreadPool&) = delete;
 
     /// @brief Move constructor is deleted to prevent moving.
-    WorkerThread(WorkerThread&&) = delete;
+    ThreadPool(ThreadPool&&) = delete;
 
     /// @brief Move assignment operator is deleted to prevent moving.
-    WorkerThread& operator=(WorkerThread&&) = delete;
+    ThreadPool& operator=(ThreadPool&&) = delete;
 
     /// @brief Requests all worker threads to stop.
     /// Calls stop() on the queue, which unblocks all threads waiting in pop().
@@ -117,4 +117,4 @@ class WorkerThread final
 
 }  // namespace score::mw::lifecycle::internal
 
-#endif  // WORKER_THREAD_HPP_INCLUDED
+#endif  // THREAD_POOL_HPP_INCLUDED

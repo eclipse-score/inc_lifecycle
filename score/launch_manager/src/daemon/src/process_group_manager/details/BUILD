@@ -331,11 +331,11 @@ lm_cc_test(
     deps = [
         "//score/launch_manager/src/daemon/src/configuration:config",
         "//score/launch_manager/src/daemon/src/process_group_manager",
-        "//score/launch_manager/src/daemon/src/process_group_manager:ialive_monitor_thread_mock",
-        "//score/launch_manager/src/daemon/src/recovery_client:recovery_client_mock",
+        "//score/launch_manager/src/daemon/src/process_group_manager:mock_ialive_monitor_thread",
+        "//score/launch_manager/src/daemon/src/recovery_client:mock_recovery_client",
         "//score/launch_manager/src/daemon/src/supervision_control_client:isupervision_control_notifier",
         "//score/launch_manager/src/daemon/src/supervision_control_client:mock_supervision_control_notifier",
-        "//score/launch_manager/src/daemon/src/watchdog:i_watchdog_if_mock",
+        "//score/launch_manager/src/daemon/src/watchdog:mock_i_watchdog_if",
         "@googletest//:gtest_main",
     ],
 )

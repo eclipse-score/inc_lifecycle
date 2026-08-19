@@ -110,9 +110,9 @@ See the [demo scenario](examples/demo_verification) for an example.
 **Mocks**
 
 ```
-//score/launch_manager:applicationcontext_mock_cc
-//score/launch_manager:lifecycle_mock_cc
-//score/launch_manager:report_running_mock_cc
+//score/launch_manager:mock_applicationcontext_cc
+//score/launch_manager:mock_lifecycle_cc
+//score/launch_manager:mock_report_running_cc
 ```
 
 ## Documentation

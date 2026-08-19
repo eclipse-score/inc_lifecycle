@@ -44,10 +44,10 @@ cc_binary(
 )
 
 cc_binary(
-    name = "control_client",
+    name = "control_client_test_driver",
     srcs = [
         "common.hpp",
-        "control_client.cpp",
+        "control_client_test_driver.cpp",
         "get_fds.hpp",
     ],
     target_compatible_with = ["@platforms//os:linux"],
@@ -64,7 +64,7 @@ integration_test(
     name = "process_fd_leak",
     srcs = ["process_fd_leak.py"],
     binaries = [
-        ":control_client",
+        ":control_client_test_driver",
         ":native",
         ":reporting",
         "//score/launch_manager",

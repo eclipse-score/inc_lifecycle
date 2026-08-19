@@ -20,8 +20,8 @@
 #include <thread>
 
 // Given a correct configuration with:
-//   - An initial Run Target named "Startup" containing "control_client_mock"
-//   - A Run Target named "run_target_crashing_app_on_runtime" containing "control_client_mock" and
+//   - An initial Run Target named "Startup" containing "control_client_test_driver"
+//   - A Run Target named "run_target_crashing_app_on_runtime" containing "control_client_test_driver" and
 //     "component_crashing_once"
 
 TEST(FallbackToSameTargetRestarts, ControlClientMock)

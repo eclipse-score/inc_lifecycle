@@ -42,4 +42,6 @@ def test_process_crash_monitoring(
         timeout_s=10.0,
     )
 
-    assert_test_results({"mock_control_client.xml", "process_crashing_on_runtime.xml"})
+    assert_test_results(
+        {"control_client_test_driver.xml", "process_crashing_on_runtime.xml"}
+    )

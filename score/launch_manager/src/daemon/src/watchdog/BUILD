@@ -48,7 +48,7 @@ lm_cc_test(
 )
 
 cc_library(
-    name = "i_watchdog_if_mock",
+    name = "mock_i_watchdog_if",
     testonly = True,
     hdrs = ["mock_IWatchdogIf.hpp"],
     include_prefix = "score/mw/launch_manager/watchdog",

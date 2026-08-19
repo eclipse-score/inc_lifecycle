@@ -33,7 +33,7 @@ cc_library(
 )
 
 cc_library(
-    name = "recovery_client_mock",
+    name = "mock_recovery_client",
     testonly = True,
     hdrs = ["mock_irecovery_client.h"],
     include_prefix = "score/mw/launch_manager/recovery_client",

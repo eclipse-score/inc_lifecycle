@@ -46,7 +46,7 @@ cc_library(
 )
 
 cc_library(
-    name = "ialive_monitor_thread_mock",
+    name = "mock_ialive_monitor_thread",
     testonly = True,
     hdrs = ["mock_alive_monitor_thread.hpp"],
     include_prefix = "score/mw/launch_manager/process_group_manager",
@@ -83,7 +83,7 @@ cc_library(
         ":iprocess",
         "//score/launch_manager/src/daemon/src/common:identifier_hash",
         "//score/launch_manager/src/daemon/src/common/concurrency:mpmc_concurrent_queue",
-        "//score/launch_manager/src/daemon/src/common/concurrency:workerthread",
+        "//score/launch_manager/src/daemon/src/common/concurrency:thread_pool",
         "//score/launch_manager/src/daemon/src/configuration:config",
         "//score/launch_manager/src/daemon/src/configuration:configuration_adapter",
         "//score/launch_manager/src/daemon/src/control:control_client_channel",

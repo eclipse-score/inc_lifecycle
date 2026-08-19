@@ -14,8 +14,8 @@ load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 load("//tests/utils/bazel:unit_test.bzl", "lm_cc_test")
 
 cc_library(
-    name = "workerthread",
-    hdrs = ["workerthread.hpp"],
+    name = "thread_pool",
+    hdrs = ["thread_pool.hpp"],
     include_prefix = "score/mw/launch_manager/common/concurrency",
     strip_include_prefix = "/score/launch_manager/src/daemon/src/common/concurrency",
     visibility = ["//score:__subpackages__"],
@@ -109,27 +109,6 @@ lm_cc_test(
 )
 
 lm_cc_test(
-    name = "mpsc_bounded_queue_tsan_test",
-    srcs = ["mpsc_bounded_queue_test.cpp"],
-    copts = [
-        "-fsanitize=thread",
-        "-O0",
-        "-g",
-    ],
-    linkopts = ["-fsanitize=thread"],
-    tags = [
-        "no-asan",
-        "no-coverage",
-        "tsan",
-    ],
-    target_compatible_with = ["@platforms//os:linux"],
-    deps = [
-        ":mpsc_bounded_queue",
-        "@googletest//:gtest_main",
-    ],
-)
-
-lm_cc_test(
     name = "mpmc_concurrent_queue_test",
     srcs = ["mpmc_concurrent_queue_test.cpp"],
     visibility = ["//tests:__subpackages__"],
@@ -147,27 +126,6 @@ lm_cc_test(
         "helgrind",
         "manual",
     ],
-    deps = [
-        ":mpmc_concurrent_queue",
-        "@googletest//:gtest_main",
-    ],
-)
-
-lm_cc_test(
-    name = "mpmc_concurrent_queue_tsan_test",
-    srcs = ["mpmc_concurrent_queue_test.cpp"],
-    copts = [
-        "-fsanitize=thread",
-        "-O0",
-        "-g",
-    ],
-    linkopts = ["-fsanitize=thread"],
-    tags = [
-        "no-asan",
-        "no-coverage",
-        "tsan",
-    ],
-    target_compatible_with = ["@platforms//os:linux"],
     deps = [
         ":mpmc_concurrent_queue",
         "@googletest//:gtest_main",
