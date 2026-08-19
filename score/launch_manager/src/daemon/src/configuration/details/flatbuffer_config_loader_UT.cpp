@@ -277,7 +277,8 @@ TEST_F(FlatbufferConfigLoaderTest, LoadSingleComponentWithFileState)
 
     auto app_profile = fb::CreateApplicationProfile(fbb, fb::ApplicationType::Native, false /*is_self_terminating*/);
     auto bin_name = fbb.CreateString("my_binary");
-    auto file_state = fb::CreateFileStateDirect(fbb, "/tmp/ready", fb::FileExistenceState::Exists);
+    auto file_state =
+        fb::CreateFileStateDirect(fbb, "/tmp/ready", fb::FileExistenceState::Exists, 0.01 /*polling_interval*/);
     auto ready_cond = fb::CreateReadyCondition(fbb, std::nullopt, file_state);
     auto comp_props = fb::CreateComponentProperties(
         fbb, bin_name, app_profile, 0 /*depends_on*/, 0 /*process_arguments*/, ready_cond);

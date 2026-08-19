@@ -59,8 +59,8 @@ enum class FileExistenceState : uint8_t
 struct FileState
 {
     std::string file_path;
-    FileExistenceState state{FileExistenceState::Exists};
-    std::chrono::milliseconds polling_interval{10};
+    FileExistenceState state;
+    std::chrono::milliseconds polling_interval;
 };
 
 enum class ProcessState : std::uint8_t

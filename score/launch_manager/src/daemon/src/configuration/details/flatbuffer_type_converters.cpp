@@ -312,6 +312,9 @@ score::cpp::expected<FileState, IConfigLoader::Error> convertFileState(const fb:
 {
     SCORE_LANGUAGE_FUTURECPP_ASSERT_PRD_MESSAGE(
         fb_fs.file_path(), "FileState::file_path must never be nullptr as it is required in the schema");
+    SCORE_LANGUAGE_FUTURECPP_ASSERT_PRD_MESSAGE(
+        fb_fs.polling_interval() != 0.0,
+        "No FileState::polling_interval is configured, this should have been defaulted with the script.");
 
     auto polling_interval_ms = secondsToMs(fb_fs.polling_interval());
     if (!polling_interval_ms.has_value())
