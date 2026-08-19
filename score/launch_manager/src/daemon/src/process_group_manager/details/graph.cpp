@@ -210,7 +210,6 @@ void Graph::queueReadyNodes()
 {
     // Range-for consumes the frontier via the transition's iterator (nextReady()); RunTarget
     // completions reported inside the loop append successors that this same iteration picks up.
-    LM_LOG_DEBUG() << "Queued Nodes";
     for (const auto [node, action] : *current_transition_)
     {
         const ComponentTaskType task_type =
@@ -310,7 +309,6 @@ void Graph::startTransition(IdentifierHash pg_state)
     queueReadyNodes();
     if (current_transition_->isFinished())
     {
-        LM_LOG_DEBUG() << "Finsihed?";
         finalizeTransitionSuccess();
     }
 }

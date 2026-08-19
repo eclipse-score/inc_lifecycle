@@ -32,11 +32,14 @@
 #include "score/mw/launch_manager/osal/sys_exit.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/process_launcher.hpp"
 #include "score/mw/launch_manager/process_group_manager/iprocess.hpp"
+#include <charconv>
+#include <array>
 #include <cerrno>
 #include <csignal>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <iterator>
 
 constexpr int kPidZero = 0;  // This value is used to check if the process ID (uses pid_t) is valid or not.
 constexpr int kPosixSuccess = 0;
@@ -265,79 +268,82 @@ OsalReturnType ProcessLauncher::startProcess(
 
 bool ProcessLauncher::setupComms(IpcCommsP& block, int& fd, const configuration::ComponentConfig& config)
 {
-    bool comms_result = true;
-    char shm_name[static_cast<uint32_t>(ProcessLimits::maxLocalBuffSize)];
-    size_t length = sizeof(IpcCommsSync);
+    const auto app_type = config.component_properties.application_profile.application_type;
 
-    auto app_type = config.component_properties.application_profile.application_type;
+    size_t length = sizeof(IpcCommsSync);
     if (configuration::ApplicationType::StateManager == app_type)
     {
         length += sizeof(ControlClientChannel);
     }
 
-    static_cast<void>(snprintf(
-        shm_name, static_cast<uint32_t>(ProcessLimits::maxLocalBuffSize), "/ipc_shared_mem%u", shm_name_counter++));
+    constexpr std::string_view kShmNamePrefix{"/ipc_shared_mem"};
+    std::array<char, static_cast<std::size_t>(ProcessLimits::maxLocalBuffSize)> shm_name{};
+    static_cast<void>(kShmNamePrefix.copy(shm_name.data(), kShmNamePrefix.size()));
 
-    fd = shm_open(shm_name, O_CREAT | O_EXCL | O_RDWR, 0U);
+    char* const counter_first = std::next(shm_name.data(), static_cast<std::ptrdiff_t>(kShmNamePrefix.size()));
+    // The last byte is excluded from the conversion range so that it keeps the zero from the value
+    // initialization above, which guarantees a null-terminated name for shm_open().
+    char* const counter_last = std::next(shm_name.data(), static_cast<std::ptrdiff_t>(shm_name.size() - 1U));
 
+    const auto conversion = std::to_chars(counter_first, counter_last, shm_name_counter++);
+    if (conversion.ec != std::errc{})
+    {
+        LM_LOG_ERROR() << "Shared memory name truncated: the local buffer is too small for the shared memory "
+                          "object name.";
+        return false;
+    }
+    *conversion.ptr = '\0';
+
+    fd = shm_open(shm_name.data(), O_CREAT | O_EXCL | O_RDWR, 0U);
     if (fd < 0)
     {
-        std::string executable_path = config.deployment_config.bin_dir + "/" + config.component_properties.binary_name;
-        LM_LOG_ERROR() << "shm_open failed:" << executable_path
+        LM_LOG_ERROR() << "shm_open failed:" << config.deployment_config.bin_dir << "/"
+                       << config.component_properties.binary_name
                        << "Unable to open shared memory object. Error:" << errno_message(errno);
-        comms_result = false;
+        return false;
     }
-    else
+
+    shm_unlink(shm_name.data());
+
+    if (-1 == ftruncate(fd, static_cast<int>(length)))
     {
-        shm_unlink(shm_name);
-
-        if (ftruncate(fd, static_cast<int>(length)))  // failure -1
-        {
-            comms_result = false;
-            std::string executable_path =
-                config.deployment_config.bin_dir + "/" + config.component_properties.binary_name;
-            LM_LOG_ERROR() << "ftruncate failed:" << executable_path
-                           << "Unable to set size of shared memory file descriptor. Error:" << errno_message(errno);
-        }
-
-        if (app_type == configuration::ApplicationType::StateManager)
-        {
-            block = initializeControlClient(fd, config);
-        }
-        else
-        {
-            block = IpcCommsSync::getCommsObject(fd);
-        }
-        if (block)
-        {
-            // Map application type to CommsType for backward compatibility
-            if (app_type == configuration::ApplicationType::StateManager)
-            {
-                block->comms_type_ = CommsType::kControlClient;
-            }
-            else if (app_type == configuration::ApplicationType::Native)
-            {
-                block->comms_type_ = CommsType::kNoComms;
-            }
-            else
-            {
-                block->comms_type_ = CommsType::kReporting;
-            }
-
-            if (!initializeSemaphores(block))
-            {
-                LM_LOG_ERROR() << "Semaphore init failed:" << config.name
-                               << "Unable to initialize send_sync or reply_sync semaphore.";
-                comms_result = false;
-            }
-        }
-        else
-        {
-            comms_result = false;
-        }
+        LM_LOG_ERROR() << "ftruncate failed:" << config.deployment_config.bin_dir << "/"
+                       << config.component_properties.binary_name
+                       << "Unable to set size of shared memory file descriptor. Error:" << errno_message(errno);
+        return false;
     }
 
-    return comms_result;
+    block = (configuration::ApplicationType::StateManager == app_type) ? initializeControlClient(fd, config)
+                                                                       : IpcCommsSync::getCommsObject(fd);
+    if (!block)
+    {
+        return false;
+    }
+
+    // Map application type to CommsType for backward compatibility
+    switch (app_type)
+    {
+        case configuration::ApplicationType::StateManager:
+            block->comms_type_ = CommsType::kControlClient;
+            break;
+        case configuration::ApplicationType::Native:
+            block->comms_type_ = CommsType::kNoComms;
+            break;
+        case configuration::ApplicationType::Reporting:
+        case configuration::ApplicationType::ReportingAndSupervised:
+        default:
+            block->comms_type_ = CommsType::kReporting;
+            break;
+    }
+
+    if (!initializeSemaphores(block))
+    {
+        LM_LOG_ERROR() << "Semaphore init failed:" << config.name
+                       << "Unable to initialize send_sync or reply_sync semaphore.";
+        return false;
+    }
+
+    return true;
 }
 
 IpcCommsP ProcessLauncher::initializeControlClient(int& fd, const configuration::ComponentConfig& config)
