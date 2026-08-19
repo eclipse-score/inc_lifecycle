@@ -18,8 +18,8 @@
 #include "score/mw/launch_manager/common/identifier_hash.hpp"
 #include <charconv>
 #include <array>
+#include <limits>
 #include <string>
-#include <string_view>
 
 namespace score
 {
@@ -32,7 +32,7 @@ namespace internal
 inline std::string aliveInterfacePath(const IdentifierHash& component_name)
 {
     // The maximum number of digits in a string representation of a uint64_t, +1 for a null terminator
-    constexpr std::size_t kMaxNumberLength = 21;
+    constexpr std::size_t kMaxNumberLength = std::numeric_limits<std::uint64_t>::digits10 + 1;
     std::array<char, kMaxNumberLength> buf{};
     std::to_chars_result result = std::to_chars(buf.begin(), buf.end(), component_name.data());
     SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(

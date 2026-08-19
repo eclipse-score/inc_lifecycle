@@ -78,7 +78,7 @@ bool PhmDaemon::construct(const std::vector<configuration::ComponentConfig>& con
             continue;
         }
         const auto& alive = comp.component_properties.application_profile.alive_supervision.value();
-        const auto name = IdentifierHash{comp.name};
+        const IdentifierHash name{comp.name};
         const auto uid = comp.deployment_config.sandbox.uid;
         if (!supervisionManager.constructWorker(name, alive, uid, recoveryClient, processStateReader))
         {
