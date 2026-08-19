@@ -13,6 +13,7 @@
 
 #include "process_info_node.hpp"
 #include "score/launch_manager/src/daemon/src/configuration/component_config.hpp"
+#include "score/mw/launch_manager/common/alive_interface_path.hpp"
 #include "score/mw/launch_manager/common/log.hpp"
 #include "score/mw/launch_manager/osal/ipc_comms.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/safe_process_map.hpp"
@@ -40,7 +41,7 @@ ProcessInfoNode::ProcessInfoNode(
         configuration::ApplicationType::ReportingAndSupervised)
     {
         config_.deployment_config.environmental_variables.add(
-            "LCM_ALIVE_INTERFACE_PATH", "/lifecycle_health_" + config_.name);
+            "LCM_ALIVE_INTERFACE_PATH", aliveInterfacePath(config_.name));
     }
     if (config_.deployment_config.ready_recovery_action.has_value())
     {
