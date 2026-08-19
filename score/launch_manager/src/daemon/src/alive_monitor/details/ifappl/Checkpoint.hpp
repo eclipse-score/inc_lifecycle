@@ -50,11 +50,9 @@ class Checkpoint : public saf::common::Observable<Checkpoint>
     Checkpoint& operator=(Checkpoint&&) = delete;
 
     /// @brief Constructor
-    /// @param [in] f_checkpointCfgName_p       Name of the corresponding configured supervision checkpoint container
     /// @param [in] f_processState_p            The process that is reporting this checkpoint
     /// @throws std::bad_alloc in case of insufficient memory for string allocation
-    Checkpoint(const std::string_view f_checkpointCfgName_p, const ifexm::ObservableEvent* f_processState_p) noexcept(
-        false);
+    explicit Checkpoint(const ifexm::ObservableEvent* f_processState_p) noexcept(false);
 
     /// @brief Default Move Constructor
     /// Cannot be noexcept, since the base class move constructor is not noexcept
@@ -87,18 +85,11 @@ class Checkpoint : public saf::common::Observable<Checkpoint>
     /// @return     Data loss event occurred (true)
     bool getDataLossEvent(void) const noexcept(true);
 
-    /// @brief Get the configuration name of the corresponding SupervisionCheckpoint
-    /// @return     Name of the corresponding SupervisionCheckpoint (configuration element)
-    std::string_view getConfigName(void) const noexcept(true);
-
     /// @brief Return the process that is reporting this checkpoint
     /// @return observable event
     const ifexm::ObservableEvent* getProcess(void) const noexcept(true);
 
   private:
-    /// @brief Name of the corresponding configured SupervisionCheckpoint
-    const std::string k_configName;
-
     /// @brief The process that is reporting this checkpoint
     const ifexm::ObservableEvent* processState;
 

@@ -52,7 +52,6 @@ class MockRecoveryClient : public score::mw::lifecycle::IRecoveryClient
 struct AliveFixture
 {
     inline static const score::mw::lifecycle::IdentifierHash kProcessId{"42U"};
-    static constexpr char kCheckpointName[] = "test_cp";
 
     struct Builder
     {
@@ -97,7 +96,7 @@ struct AliveFixture
 
     std::unique_ptr<score::mw::lifecycle::internal::saf::supervision::Alive> alive;
 
-    explicit AliveFixture(const Builder& bld) : processState(kProcessId), checkpoint(kCheckpointName, &processState)
+    explicit AliveFixture(const Builder& bld) : processState(kProcessId), checkpoint(&processState)
     {
         ComponentAliveSupervision cfg{};
         cfg.min_indications = bld.minIndications;

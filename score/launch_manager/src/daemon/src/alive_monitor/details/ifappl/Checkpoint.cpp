@@ -16,14 +16,8 @@
 namespace score::mw::lifecycle::internal::saf::ifappl
 {
 
-Checkpoint::Checkpoint(
-    const std::string_view f_checkpointCfgName_p,
-    const ifexm::ObservableEvent* f_processState_p) noexcept(false)
-    : Observable<Checkpoint>(),
-      k_configName(f_checkpointCfgName_p),
-      processState(f_processState_p),
-      isDataLossEvent(false),
-      timestamp(0U)
+Checkpoint::Checkpoint(const ifexm::ObservableEvent* f_processState_p) noexcept(false)
+    : Observable<Checkpoint>(), processState(f_processState_p), isDataLossEvent(false), timestamp(0U)
 {
     static_cast<void>(0U);
 }
@@ -54,11 +48,6 @@ void Checkpoint::setDataLossEvent(const bool f_isDataLossEvent) noexcept(true)
 bool Checkpoint::getDataLossEvent(void) const noexcept(true)
 {
     return isDataLossEvent;
-}
-
-std::string_view Checkpoint::getConfigName(void) const noexcept(true)
-{
-    return k_configName;
 }
 
 const ifexm::ObservableEvent* Checkpoint::getProcess(void) const noexcept(true)

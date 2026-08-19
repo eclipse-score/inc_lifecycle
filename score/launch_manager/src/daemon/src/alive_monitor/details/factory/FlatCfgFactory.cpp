@@ -144,11 +144,10 @@ bool FlatCfgFactory::createSupervisionCheckpoint(
 {
     try
     {
-        const std::string checkpointCfgName = std::to_string(component_id.data()) + "_checkpoint";
-        auto& checkpoint = checkpoints.emplace_back(checkpointCfgName.c_str(), &event);
+        auto& checkpoint = checkpoints.emplace_back(&event);
         interface.attachCheckpoint(checkpoint);
 
-        LM_LOG_DEBUG() << "Successfully created supervision checkpoint:" << checkpoint.getConfigName();
+        LM_LOG_DEBUG() << "Successfully created supervision checkpoint for component:" << component_id;
 
         return true;
     }

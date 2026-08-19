@@ -47,7 +47,6 @@ class CheckpointMock : public common::Observer<ifappl::Checkpoint>
 
 struct MonitorIfDaemonFixture
 {
-    static constexpr std::string_view kCheckpointName = "test_cp";
     inline static const IdentifierHash kProcessId{"test_proc"};
     static constexpr std::string_view kInterfaceName = "test_interface";
 
@@ -58,10 +57,7 @@ struct MonitorIfDaemonFixture
     CheckpointMock checkpointMock;
 
     MonitorIfDaemonFixture()
-        : processState(kProcessId),
-          checkpoint(kCheckpointName.data(), &processState),
-          ipcServer{},
-          monitor(ipcServer, kInterfaceName.data())
+        : processState(kProcessId), checkpoint(&processState), ipcServer{}, monitor(ipcServer, kInterfaceName.data())
     {
         processState.attachObserver(monitor);
         monitor.attachCheckpoint(checkpoint);
