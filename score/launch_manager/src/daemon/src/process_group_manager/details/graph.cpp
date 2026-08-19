@@ -36,7 +36,8 @@ namespace
 /// @param process_handling The interfaces used to start, stop and report on the OS processes.
 /// @param run_target_map Map to keep the translation between IDHash to Index
 /// @return A populated dependency graph with all components and run targets.
-DependencyGraph<Graph::Component> CreateDependencyGraph(
+void CreateDependencyGraph(
+    DependencyGraph<Graph::Component>& graph,
     configuration::Config& config,
     ProcessHandling process_handling,
     std::unordered_map<std::size_t, GraphIndex>& run_target_map)
@@ -47,12 +48,6 @@ DependencyGraph<Graph::Component> CreateDependencyGraph(
     // wouldn't have to keep track of stuff...
     std::vector<configuration::RunTargetConfig> run_targets = config.takeRunTargets();
     std::vector<configuration::ComponentConfig> components = config.takeComponents();
-
-    // the Off and fallback run targets are special.
-    // Off can be configred by the user and would mean we need +1 but
-    // over-reserving is ok.
-    // fallback is always created.
-    DependencyGraph<Graph::Component> graph(components.size() + run_targets.size() + 2U);
 
     // map node names to their graph index, needed for deps
     std::unordered_map<std::string, GraphIndex> name_to_index;
@@ -120,8 +115,6 @@ DependencyGraph<Graph::Component> CreateDependencyGraph(
     }
 
     LM_LOG_DEBUG() << "Created dependency graph with" << graph.size() << "total nodes";
-
-    return graph;
 }
 
 }  // anonymous namespace
@@ -143,7 +136,7 @@ Graph::Graph(
     last_state_manager_.process_index_ = 0xFFFFU;  // an invalid state manager
     last_state_manager_.process_group_index_ = 0xFFFFU;
     cancel_message_.request_or_response_ = ControlClientCode::kNotSet;
-    nodes_ = CreateDependencyGraph(configuration_, process_handling_, run_targets_);
+    CreateDependencyGraph(nodes_, configuration_, process_handling_, run_targets_);
 }
 
 Graph::~Graph()
