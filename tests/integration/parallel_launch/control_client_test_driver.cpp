@@ -41,15 +41,15 @@ bool wait_for_file(const std::filesystem::path& file, std::chrono::seconds timeo
 }
 }  // namespace
 
-TEST(ParallelLaunch, ControlClientDriver)
+TEST(ParallelLaunch, ControlClientTestDriver)
 {
     score::mw::lifecycle::ControlClient client;
 
     ASSERT_TRUE(check_clean({test_end_location}));
+
     for (const auto id : kComponentIds)
     {
-        ASSERT_FALSE(std::filesystem::exists("start_" + std::string{id}));
-        ASSERT_FALSE(std::filesystem::exists("running_" + std::string{id}));
+        ASSERT_TRUE(check_clean({"start_" + std::string{id}, "running_" + std::string{id}}));
     }
 
     TEST_STEP("Report running")
@@ -65,12 +65,13 @@ TEST(ParallelLaunch, ControlClientDriver)
                                         << result.error().Message();
     }
 
+    // Activate Run Target Startup again, to be sure that the termination of all components has been finished and the
+    // files and its timestamps can be evaluated in the next test step.
     TEST_STEP("Activate Startup run target again")
     {
         score::cpp::stop_token stop_token;
         auto result = client.ActivateRunTarget("Startup").Get(stop_token);
-        EXPECT_TRUE(result.has_value()) << "Activating target run_target_parallel_launch failed: "
-                                        << result.error().Message();
+        EXPECT_TRUE(result.has_value()) << "Activating target Startup failed: " << result.error().Message();
     }
 
     TEST_STEP("Verify all components started before any reported running")
