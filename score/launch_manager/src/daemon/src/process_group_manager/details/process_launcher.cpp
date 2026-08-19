@@ -263,34 +263,28 @@ OsalReturnType ProcessLauncher::startProcess(
     return result;
 }
 
-bool ProcessLauncher::setupComms(
-    IpcCommsP& block,
-    int& fd,
-    const score::mw::lifecycle::internal::configuration::ComponentConfig& config)
+bool ProcessLauncher::setupComms(IpcCommsP& block, int& fd, const configuration::ComponentConfig& config)
 {
     bool comms_result = true;
-    char shm_name[static_cast<uint32_t>(score::mw::lifecycle::internal::ProcessLimits::maxLocalBuffSize)];
+    char shm_name[static_cast<uint32_t>(ProcessLimits::maxLocalBuffSize)];
     size_t length = sizeof(IpcCommsSync);
 
     auto app_type = config.component_properties.application_profile.application_type;
-    if (score::mw::lifecycle::internal::configuration::ApplicationType::StateManager == app_type)
+    if (configuration::ApplicationType::StateManager == app_type)
     {
         length += sizeof(ControlClientChannel);
     }
 
     static_cast<void>(snprintf(
-        shm_name,
-        static_cast<uint32_t>(score::mw::lifecycle::internal::ProcessLimits::maxLocalBuffSize),
-        "/ipc_shared_mem%u",
-        shm_name_counter++));
+        shm_name, static_cast<uint32_t>(ProcessLimits::maxLocalBuffSize), "/ipc_shared_mem%u", shm_name_counter++));
 
     fd = shm_open(shm_name, O_CREAT | O_EXCL | O_RDWR, 0U);
 
     if (fd < 0)
     {
         std::string executable_path = config.deployment_config.bin_dir + "/" + config.component_properties.binary_name;
-        LM_LOG_ERROR() << "shm_open failed:" << executable_path << "Unable to open shared memory object. Error:"
-                       << score::mw::lifecycle::internal::errno_message(errno);
+        LM_LOG_ERROR() << "shm_open failed:" << executable_path
+                       << "Unable to open shared memory object. Error:" << errno_message(errno);
         comms_result = false;
     }
     else
@@ -303,11 +297,10 @@ bool ProcessLauncher::setupComms(
             std::string executable_path =
                 config.deployment_config.bin_dir + "/" + config.component_properties.binary_name;
             LM_LOG_ERROR() << "ftruncate failed:" << executable_path
-                           << "Unable to set size of shared memory file descriptor. Error:"
-                           << score::mw::lifecycle::internal::errno_message(errno);
+                           << "Unable to set size of shared memory file descriptor. Error:" << errno_message(errno);
         }
 
-        if (app_type == score::mw::lifecycle::internal::configuration::ApplicationType::StateManager)
+        if (app_type == configuration::ApplicationType::StateManager)
         {
             block = initializeControlClient(fd, config);
         }
@@ -318,11 +311,11 @@ bool ProcessLauncher::setupComms(
         if (block)
         {
             // Map application type to CommsType for backward compatibility
-            if (app_type == score::mw::lifecycle::internal::configuration::ApplicationType::StateManager)
+            if (app_type == configuration::ApplicationType::StateManager)
             {
                 block->comms_type_ = CommsType::kControlClient;
             }
-            else if (app_type == score::mw::lifecycle::internal::configuration::ApplicationType::Native)
+            else if (app_type == configuration::ApplicationType::Native)
             {
                 block->comms_type_ = CommsType::kNoComms;
             }
@@ -347,9 +340,7 @@ bool ProcessLauncher::setupComms(
     return comms_result;
 }
 
-IpcCommsP ProcessLauncher::initializeControlClient(
-    int& fd,
-    const score::mw::lifecycle::internal::configuration::ComponentConfig& config)
+IpcCommsP ProcessLauncher::initializeControlClient(int& fd, const configuration::ComponentConfig& config)
 {
     LM_LOG_DEBUG() << "Initialize the control client for" << config.name << " process";
     /* Initialise the control client communications */
@@ -380,8 +371,7 @@ bool ProcessLauncher::initializeSemaphores(IpcCommsP shared_block)
 }
 
 /// @details The implementation should be async signal safe.
-OsalReturnType ProcessLauncher::setSchedulingAndSecurity(
-    const score::mw::lifecycle::internal::configuration::Sandbox& config)
+OsalReturnType ProcessLauncher::setSchedulingAndSecurity(const configuration::Sandbox& config)
 {
     OsalReturnType retval = OsalReturnType::kSuccess;
 
@@ -476,12 +466,12 @@ void ProcessLauncher::handleChildProcess(ChildProcessConfig& param)
         param.config.deployment_config.bin_dir + "/" + param.config.component_properties.binary_name;
 
     // Build argv array - note: must be null-terminated
-    std::array<const char*, score::mw::lifecycle::internal::kArgvArraySize> argv{};
+    std::array<const char*, kArgvArraySize> argv{};
     size_t arg_idx = 0;
     argv[arg_idx++] = executable_path.c_str();
     for (const auto& arg : param.config.component_properties.process_arguments)
     {
-        if (arg_idx < score::mw::lifecycle::internal::kArgvArraySize - 1)
+        if (arg_idx < kArgvArraySize - 1)
         {
             argv[arg_idx++] = arg.c_str();
         }
@@ -518,7 +508,7 @@ OsalReturnType ProcessLauncher::requestTermination(ProcessID pid)
         else
         {
             LM_LOG_ERROR() << "SIGTERM failed: Unable to send SIGTERM to process ID" << pid
-                           << ". Error:" << score::mw::lifecycle::internal::errno_message(errno);
+                           << ". Error:" << errno_message(errno);
         }
     }
     else
@@ -575,7 +565,7 @@ OsalReturnType ProcessLauncher::waitForTermination(osal::ProcessID& pid, int32_t
     {
         /// exiting with pid == 0 is perfectly normal behaviour when all process groups are in the Off state.
         LM_LOG_DEBUG() << "wait failed: Unable to wait for any child process to terminate. Error:"
-                       << score::mw::lifecycle::internal::errno_message(errno);
+                       << errno_message(errno);
     }
 
     return result;
@@ -617,7 +607,7 @@ OsalReturnType ProcessLauncher::waitForkRunning(IpcCommsP sync, std::chrono::mil
         else
         {
             LM_LOG_WARN() << "Skipping semaphore deinitialization - shared memory region appears invalid: "
-                          << score::mw::lifecycle::internal::errno_message(errno);
+                          << errno_message(errno);
         }
     }
     else

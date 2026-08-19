@@ -39,9 +39,6 @@ namespace score::mw::lifecycle::internal
 ///       In the future, this class shall be split up to properly separate Component and Process lifecycle.
 class ProcessInfoNode final : public IComponent
 {
-
-    using ReportStateFn = std::function<bool(IdentifierHash, ProcessState, timespec)>;
-
   public:
     /// @brief Constructs a ProcessInfoNode.
     /// @param config Configuration for the OS process.

@@ -197,7 +197,6 @@ IComponent::RequestResult ProcessInfoNode::startProcess(score::cpp::stop_token s
     LM_LOG_DEBUG() << "Starting process" << process_index_ << "(" << config_.name << ") from executable"
                    << config_.deployment_config.bin_dir << "/" << config_.component_properties.binary_name;
 
-    // Read configured restart attempts
     uint32_t restart_counter = 0;
     if (config_.deployment_config.ready_recovery_action.has_value())
     {

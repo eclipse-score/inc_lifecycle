@@ -118,12 +118,6 @@ class GraphTest : public ::testing::Test
         return "RunTarget" + std::to_string(index);
     }
 
-    /// @brief Run targets are registered in the graph under their plain configured name.
-    IdentifierHash state_name(std::string_view run_target)
-    {
-        return IdentifierHash{run_target};
-    }
-
     void executeJobSuccessfully(const ComponentTask& job)
     {
         IComponent::RequestResult res;
@@ -227,7 +221,7 @@ TEST_F(GraphOrdinaryTransitionTest, correctJobDetails)
 {
     RecordProperty("Description", "Test that, in a simple transition, the correct job information is passed");
 
-    const auto target = state_name(run_target_name(1));
+    const auto target = IdentifierHash{run_target_name(1)};
 
     graph_->startTransition(target);
 
@@ -242,7 +236,7 @@ TEST_F(GraphOrdinaryTransitionTest, simpleActivationTransition)
     RecordProperty(
         "Description", "Test that a simple transition activates the expected run target and process successfully");
 
-    const auto target = state_name(run_target_name(0));
+    const auto target = IdentifierHash{run_target_name(0)};
 
     graph_->startTransition(target);
 
@@ -259,9 +253,9 @@ TEST_F(GraphOrdinaryTransitionTest, simpleDeactivationTransition)
     RecordProperty(
         "Description", "Test that a simple transition deactivates the expected run target and process successfully");
 
-    completeTransition(state_name(run_target_name(0)));
+    completeTransition(IdentifierHash{run_target_name(0)});
 
-    const auto target = state_name(off.name);
+    const auto target = IdentifierHash{off.name};
     graph_->startTransition(target);
 
     const auto job = job_queue_->pop();
@@ -284,7 +278,7 @@ TEST_F(GraphInitialTransitionTest, nothingToDo)
         mock_transition_result_publisher_,
         setInitialStateTransitionResult(ControlClientCode::kInitialMachineStateSuccess));
 
-    graph_->startInitialTransition(state_name(startup.name));
+    graph_->startInitialTransition(IdentifierHash{startup.name});
 
     EXPECT_EQ(graph_->getState(), GraphState::kSuccess);
 }
@@ -297,7 +291,7 @@ TEST_F(GraphInitialTransitionTest, jobFailure)
         mock_transition_result_publisher_,
         setInitialStateTransitionResult(ControlClientCode::kInitialMachineStateFailed));
 
-    graph_->startInitialTransition(state_name(run_target_name(0)));
+    graph_->startInitialTransition(IdentifierHash{run_target_name(0)});
 
     const auto job = job_queue_->pop()->value();
     failActivationJob(job);
@@ -315,7 +309,7 @@ TEST_F(GraphInitialTransitionTest, cancel)
         mock_transition_result_publisher_,
         setInitialStateTransitionResult(ControlClientCode::kInitialMachineStateFailed));
 
-    graph_->startInitialTransition(state_name(run_target_name(0)));
+    graph_->startInitialTransition(IdentifierHash{run_target_name(0)});
 
     graph_->cancel();
 
@@ -337,7 +331,7 @@ TEST_F(GraphOffTransitionTest, normalShutdown)
         "Test that startTransitionToOffState() correctly requests deactivation of a running component from internal "
         "graph state kSuccess");
 
-    completeTransition(state_name(run_target_name(0)));
+    completeTransition(IdentifierHash{run_target_name(0)});
 
     const auto start_res = graph_->startTransitionToOffState();
 
@@ -355,7 +349,7 @@ TEST_F(GraphOffTransitionTest, shutdownDuringTransition)
     RecordProperty(
         "Description",
         "Test that, in the case of a shutdown while a cancellation is in progress, no new transition is started");
-    graph_->startTransition(state_name(run_target_name(0)));
+    graph_->startTransition(IdentifierHash{run_target_name(0)});
     const auto first_pending_state = graph_->getPendingState();
 
     graph_->cancel();
@@ -366,6 +360,55 @@ TEST_F(GraphOffTransitionTest, shutdownDuringTransition)
 
     EXPECT_FALSE(start_res);
     EXPECT_EQ(first_pending_state, second_pending_state);
+}
+
+/// @brief Fixture whose configuration deliberately omits the "Off" run target, so the graph has to
+/// create the node itself.
+class GraphImplicitOffTargetTest : public GraphTest
+{
+  protected:
+    void SetConfig() override
+    {
+        auto procs = generateProcessComponents(1);
+
+        RunTargetConfig rt{};
+        rt.name = run_target_name(0);
+        rt.depends_on = {procs[0].name};
+
+        std::vector<RunTargetConfig> rts{};
+        rts.push_back(startup);
+        rts.push_back(std::move(rt));
+
+        config_ = ConfigBuilder{}
+                      .setComponents(std::move(procs))
+                      .setRunTargets(std::move(rts))
+                      .setInitialRunTarget("Startup")
+                      .setFallbackRunTarget(std::move(fallback))
+                      .build();
+    }
+};
+
+TEST_F(GraphImplicitOffTargetTest, offRunTargetIsCreatedWhenNotConfigured)
+{
+    RecordProperty(
+        "Description",
+        "Test that the graph creates an Off run target when the configuration does not define one, so that a "
+        "transition to Off still stops the running components");
+
+    completeTransition(IdentifierHash{run_target_name(0)});
+
+    // Without a generated Off node there would be nothing to transition to.
+    ASSERT_TRUE(graph_->startTransitionToOffState());
+    EXPECT_TRUE(graph_->isTransitioningToOff());
+
+    const auto job = job_queue_->pop();
+    ASSERT_TRUE(job->has_value());
+    EXPECT_EQ(job->value().type, ComponentTaskType::kDeactivate);
+    executeJobSuccessfully(job->value());
+    graph_->handleComponentEvent(DeactivationComplete{job->value().component.get().getIndex()});
+
+    EXPECT_EQ(graph_->getState(), GraphState::kSuccess);
+    EXPECT_EQ(graph_->getProcessGroupState(), IdentifierHash{"Off"});
 }
 
 class GraphHandleComponentEventTest : public GraphTest
@@ -390,7 +433,7 @@ TEST_F(GraphHandleComponentEventTest, failedFirstDuringTransition)
         "Description",
         "Test that when more than one job is queued, the first failure invalidates the transition and stops the next "
         "job");
-    graph_->startTransition(state_name(run_target_name(0)));  // Two nodes queued
+    graph_->startTransition(IdentifierHash{run_target_name(0)});  // Two nodes queued
 
     // Fail the first job
     const auto first_job = job_queue_->pop();
@@ -408,7 +451,7 @@ TEST_F(GraphHandleComponentEventTest, failureFollowedBySuccessFails)
     RecordProperty(
         "Description", "Test that when more than one job is queued, a failure is not overwritten by a later success");
 
-    graph_->startTransition(state_name(run_target_name(0)));  // Two nodes queued
+    graph_->startTransition(IdentifierHash{run_target_name(0)});  // Two nodes queued
 
     // Fail the first job
     const auto first_job = job_queue_->pop();
@@ -430,7 +473,7 @@ TEST_F(GraphHandleComponentEventTest, unexpectedTerminationDuringSuccess)
         "Test that an unexpected termination after a successful transition causes the graph to deactivate the "
         "component and enter an undefined state");
 
-    completeTransition(state_name(run_target_name(0)));
+    completeTransition(IdentifierHash{run_target_name(0)});
 
     const auto component = graph_->getProcessInfoNode(0);
     EXPECT_CALL(process_interface_, requestTermination)
@@ -452,7 +495,7 @@ TEST_F(GraphHandleComponentEventTest, unexpectedTerminationDuringTransition)
         "Test that when an activated component terminates during a transition, the transition is aborted and the "
         "correct pending event set");
 
-    graph_->startTransition(state_name(run_target_name(0)));
+    graph_->startTransition(IdentifierHash{run_target_name(0)});
 
     const auto first_job = job_queue_->pop();
     executeJobSuccessfully(first_job->value());
@@ -495,7 +538,7 @@ TEST_F(GraphCancelTest, cancelsOngoingTransition)
 {
     RecordProperty("Description", "Test that cancel() stops and fails an ongoing transition");
 
-    graph_->startInitialTransition(state_name(run_target_name(0)));
+    graph_->startInitialTransition(IdentifierHash{run_target_name(0)});
 
     graph_->cancel();
 
@@ -545,7 +588,7 @@ TEST_F(GraphUtilitiesTest, forceKillProcesses)
     EXPECT_CALL(process_interface_, forceTermination).Times(1);
 
     // Start up the processes
-    completeTransition(state_name(run_target_name(0)));
+    completeTransition(IdentifierHash{run_target_name(0)});
 
     graph_->forceKillProcesses();
 }

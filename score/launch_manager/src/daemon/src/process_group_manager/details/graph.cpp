@@ -45,113 +45,78 @@ DependencyGraph<Graph::Component> CreateDependencyGraph(
     // on https://github.com/eclipse-score/lifecycle/issues/463
     // making the dep_graph a hash map would make this much cleaner as we
     // wouldn't have to keep track of stuff...
-    const std::vector<configuration::RunTargetConfig> run_targets = config.takeRunTargets();
+    std::vector<configuration::RunTargetConfig> run_targets = config.takeRunTargets();
     std::vector<configuration::ComponentConfig> components = config.takeComponents();
 
     // the Off and fallback run targets are special.
     // Off can be configred by the user and would mean we need +1 but
     // over-reserving is ok.
     // fallback is always created.
-    const std::size_t graph_size = components.size() + run_targets.size() + 2U;
+    DependencyGraph<Graph::Component> graph(components.size() + run_targets.size() + 2U);
 
-    DependencyGraph<Graph::Component> graph(graph_size);
+    // map node names to their graph index, needed for deps
+    std::unordered_map<std::string, GraphIndex> name_to_index;
 
-    // map component names to their graph index, needed for deps
-    std::unordered_map<std::string, GraphIndex> component_name_to_index;
+    // dependencies can only be wired up once every node exists, so collect
+    // them while creating the nodes
+    std::vector<std::pair<GraphIndex, std::vector<std::string>>> pending_dependencies;
+    pending_dependencies.reserve(graph.capacity());
 
-    // store dependency information before moving components
-    std::vector<std::vector<std::string>> component_dependencies;
-    component_dependencies.reserve(components.size());
+    // add all comps
     for (auto& component_config : components)
     {
-        component_dependencies.push_back(std::move(component_config.component_properties.depends_on));
-    }
-
-    // need a counter to keep track of the inserted elements
-    std::size_t graph_index = 0;
-
-    for (std::size_t component_i = 0; component_i < components.size(); graph_index++, component_i++)
-    {
-        const auto component_name = components[component_i].name;
+        const auto name = component_config.name;
+        auto depends_on = std::move(component_config.component_properties.depends_on);
 
         const auto index = graph.emplace(
             std::in_place_type<ProcessInfoNode>,
-            std::move(components[component_i]),
-            static_cast<uint32_t>(graph_index),
+            std::move(component_config),
+            static_cast<uint32_t>(graph.size()),
             process_handling);
 
-        LM_LOG_DEBUG() << "Creating component node:" << component_name << "at index:" << index;
-        component_name_to_index[component_name] = index;
-
-        // all of this relies on graphindex having sequential indexes
-        SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(
-            index == graph_index, "Component graph indices must match component order");
+        LM_LOG_DEBUG() << "Creating component node:" << name << "at index:" << index;
+        name_to_index[name] = index;
+        pending_dependencies.emplace_back(index, std::move(depends_on));
     }
 
-    LM_LOG_DEBUG() << "Created" << components.size() << "component nodes";
-
-    // do the component dependencies
-    for (std::size_t comp_dep_i = 0; comp_dep_i < component_dependencies.size(); ++comp_dep_i)
-    {
-        for (const auto& dep_name : component_dependencies[comp_dep_i])
-        {
-            auto it = component_name_to_index.find(dep_name);
-            SCORE_LANGUAGE_FUTURECPP_PRECONDITION_MESSAGE(
-                it != component_name_to_index.end(), "Component dependency not found in component list");
-
-            graph.addDependency(comp_dep_i, it->second);
-        }
-    }
-
+    // add all rts
     bool off_rt_defined = false;
-    // create run_targets
-    for (std::size_t run_target_i = 0; run_target_i < run_targets.size(); run_target_i++, graph_index++)
+    for (auto& run_target : run_targets)
     {
-        auto index = graph.emplace(std::in_place_type<RunTarget>, graph_index);
-        const auto& run_target = run_targets[run_target_i];
+        const auto index = graph.emplace(std::in_place_type<RunTarget>, graph.size());
         LM_LOG_DEBUG() << "Created RunTarget node:" << run_target.name << "at index" << index;
 
-        SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(
-            index == graph_index, "Component graph indices must match component order");
-
         off_rt_defined |= bool(run_target.name == "Off");
-        component_name_to_index[run_target.name] = index;
+        name_to_index[run_target.name] = index;
         run_target_map.insert({IdentifierHash{run_target.name}.data(), index});
-    };
-
-    for (std::size_t run_target_i = 0; run_target_i < run_targets.size(); ++run_target_i)
-    {
-        for (const auto& dep_name : run_targets[run_target_i].depends_on)
-        {
-            auto it = component_name_to_index.find(dep_name);
-            LM_LOG_DEBUG() << run_targets[run_target_i].name << "has dep to " << dep_name;
-            SCORE_LANGUAGE_FUTURECPP_PRECONDITION_MESSAGE(
-                it != component_name_to_index.end(), "RunTarget dependency not found in component list");
-
-            graph.addDependency(components.size() + run_target_i, it->second);
-        }
+        pending_dependencies.emplace_back(index, std::move(run_target.depends_on));
     }
 
     // handle the off target
     if (!off_rt_defined)
     {
-        auto off_index = graph.emplace(std::in_place_type<RunTarget>, graph.size());
+        const auto off_index = graph.emplace(std::in_place_type<RunTarget>, graph.size());
         run_target_map.insert({IdentifierHash{"Off"}.data(), off_index});
     }
 
     // handle the fallback target
-    auto fallback_index = graph.emplace(std::in_place_type<RunTarget>, graph.size());
+    const auto fallback_index = graph.emplace(std::in_place_type<RunTarget>, graph.size());
     run_target_map.insert({IdentifierHash{"fallback"}.data(), fallback_index});
-
     LM_LOG_DEBUG() << "fallback at index:" << fallback_index;
-    for (const auto& dep_name : config.fallbackRunTarget().depends_on)
-    {
-        auto it = component_name_to_index.find(dep_name);
-        LM_LOG_DEBUG() << "fallback" << fallback_index << "has dep to " << dep_name;
-        SCORE_LANGUAGE_FUTURECPP_PRECONDITION_MESSAGE(
-            it != component_name_to_index.end(), "RunTarget dependency not found in component list");
+    pending_dependencies.emplace_back(fallback_index, config.fallbackRunTarget().depends_on);
 
-        graph.addDependency(fallback_index, it->second);
+    // wire up deps
+    for (const auto& [node_index, dependencies] : pending_dependencies)
+    {
+        for (const auto& dep_name : dependencies)
+        {
+            const auto it = name_to_index.find(dep_name);
+            LM_LOG_DEBUG() << "Node" << node_index << "has dep to" << dep_name;
+            SCORE_LANGUAGE_FUTURECPP_PRECONDITION_MESSAGE(
+                it != name_to_index.end(), "Dependency not found in component list");
+
+            graph.addDependency(node_index, it->second);
+        }
     }
 
     LM_LOG_DEBUG() << "Created dependency graph with" << graph.size() << "total nodes";
