@@ -42,6 +42,10 @@ ProcessInfoNode::ProcessInfoNode(
         config_.deployment_config.environmental_variables.add(
             "LCM_ALIVE_INTERFACE_PATH", "/lifecycle_health_" + config_.name);
     }
+    if (config_.deployment_config.ready_recovery_action.has_value())
+    {
+        start_tries_ = config_.deployment_config.ready_recovery_action->number_of_attempts + 1;
+    }
 }
 
 IComponent::RequestResult ProcessInfoNode::tryReportCompletion(score::mw::lifecycle::ProcessState new_state)
@@ -197,15 +201,8 @@ IComponent::RequestResult ProcessInfoNode::startProcess(score::cpp::stop_token s
     LM_LOG_DEBUG() << "Starting process" << process_index_ << "(" << config_.name << ") from executable"
                    << config_.deployment_config.bin_dir << "/" << config_.component_properties.binary_name;
 
-    uint32_t restart_counter = 0;
-    if (config_.deployment_config.ready_recovery_action.has_value())
-    {
-        restart_counter = config_.deployment_config.ready_recovery_action->number_of_attempts;
-    }
-
-    LM_LOG_DEBUG() << "Process" << config_.name << "configured with" << restart_counter << "restart attempts";
     std::optional<ComponentError> error;
-    for (auto attempts = static_cast<int32_t>(restart_counter); attempts >= 0; attempts--)
+    for (std::uint8_t attempts = start_tries_; attempts != 0U; attempts--)
     {
         // setState(kIdle) will fail if the state is:
         // - Starting: this would mean we did not set state to kFailed on failure or exit when we successfully launched

@@ -185,6 +185,9 @@ class ProcessInfoNode final : public IComponent
 
     /// @brief The interfaces used to control a OS process.
     ProcessHandling process_handling_;
+
+    /// @brief Number ot times to try run the process.
+    std::uint8_t start_tries_{1U};
 };
 
 }  // namespace score::mw::lifecycle::internal

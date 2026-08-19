@@ -86,7 +86,7 @@ DependencyGraph<Graph::Component> CreateDependencyGraph(
         const auto index = graph.emplace(std::in_place_type<RunTarget>, graph.size());
         LM_LOG_DEBUG() << "Created RunTarget node:" << run_target.name << "at index" << index;
 
-        off_rt_defined |= bool(run_target.name == "Off");
+        off_rt_defined |= bool(run_target.name == Graph::off_state_name);
         name_to_index[run_target.name] = index;
         run_target_map.insert({IdentifierHash{run_target.name}.data(), index});
         pending_dependencies.emplace_back(index, std::move(run_target.depends_on));
@@ -96,12 +96,12 @@ DependencyGraph<Graph::Component> CreateDependencyGraph(
     if (!off_rt_defined)
     {
         const auto off_index = graph.emplace(std::in_place_type<RunTarget>, graph.size());
-        run_target_map.insert({IdentifierHash{"Off"}.data(), off_index});
+        run_target_map.insert({IdentifierHash{Graph::off_state_name}.data(), off_index});
     }
 
     // handle the fallback target
     const auto fallback_index = graph.emplace(std::in_place_type<RunTarget>, graph.size());
-    run_target_map.insert({IdentifierHash{"fallback"}.data(), fallback_index});
+    run_target_map.insert({IdentifierHash{Graph::recovery_state_name}.data(), fallback_index});
     LM_LOG_DEBUG() << "fallback at index:" << fallback_index;
     pending_dependencies.emplace_back(fallback_index, config.fallbackRunTarget().depends_on);
 

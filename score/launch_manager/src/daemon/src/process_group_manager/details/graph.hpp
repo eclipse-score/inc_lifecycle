@@ -150,6 +150,9 @@ class Graph final
     /// @brief All currently supported component implementations.
     using Component = std::variant<ProcessInfoNode, RunTarget>;
 
+    static constexpr std::string_view off_state_name{"Off"};
+    static constexpr std::string_view recovery_state_name{"fallback"};
+
     /// @brief Constructor to initialize a Graph object.
     /// @param max_num_nodes Maximum number of nodes this graph can hold.
     /// @param process_handling The interfaces used to start, stop and report on the OS processes.
@@ -382,7 +385,7 @@ class Graph final
     ControlClientMessage cancel_message_{};
 
     /// @brief Constant for Off state.
-    IdentifierHash off_state_{"Off"};
+    const IdentifierHash off_state_{"Off"};
 
     /// @brief Stores the timestamp based on the system clock when starting a request
     std::chrono::time_point<std::chrono::steady_clock> request_start_time_{};
