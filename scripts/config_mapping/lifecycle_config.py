@@ -513,6 +513,16 @@ def custom_validations(config):
         )
         success = False
 
+    # Components and RunTargets share a single namespace when dependencies are resolved,
+    # so a name used by both is ambiguous.
+    colliding_names = set(config["components"]) & set(config["run_targets"])
+    if colliding_names:
+        report_error(
+            "The following names are used for both a Component and a RunTarget, "
+            f"please choose different names: {', '.join(sorted(colliding_names))}."
+        )
+        success = False
+
     # Check that for any switch_run_target recovery action, the run_target is set to "fallback_run_target"
     for _, run_target in config["run_targets"].items():
         recovery_target_name = (

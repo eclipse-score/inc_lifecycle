@@ -627,6 +627,12 @@ def test_custom_validations_fallback_as_run_target_name(full_valid_config):
     assert custom_validations(full_valid_config) is False
 
 
+def test_custom_validations_component_and_run_target_same_name(full_valid_config):
+    """A name may not be used for both a Component and a RunTarget."""
+    full_valid_config["run_targets"]["app1"] = {"depends_on": []}
+    assert custom_validations(full_valid_config) is False
+
+
 def test_custom_validations_recovery_target_not_fallback(full_valid_config):
     """Recovery actions must switch to fallback_run_target (currently a known limitation)."""
     full_valid_config["run_targets"]["Running"] = {
