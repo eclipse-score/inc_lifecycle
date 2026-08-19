@@ -84,8 +84,8 @@ lm_cc_test(
 )
 
 alias(
-    name = "mock_applicationcontext_cc",
-    actual = "//score/launch_manager/src/lifecycle_client:mock_applicationcontext",
+    name = "mock_application_context_cc",
+    actual = "//score/launch_manager/src/lifecycle_client:mock_application_context",
 )
 
 cc_library(
