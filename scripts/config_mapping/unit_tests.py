@@ -609,16 +609,19 @@ def test_custom_validations_passes_valid_config(full_valid_config):
     assert custom_validations(full_valid_config) is True
 
 
-def test_custom_validations_initial_run_target_not_startup(full_valid_config):
-    """initial_run_target must be 'Startup' (currently a known limitation)."""
+def test_custom_validations_initial_run_target_other_than_startup(full_valid_config):
+    """Any RunTarget may be used as initial_run_target, not only 'Startup'."""
+    full_valid_config["run_targets"] = {"Running": {"depends_on": []}}
     full_valid_config["initial_run_target"] = "Running"
-    assert custom_validations(full_valid_config) is False
+    assert custom_validations(full_valid_config) is True
 
 
-def test_custom_validations_missing_startup(full_valid_config):
-    """Startup must be a mandatory RunTarget (currently a known limitation)."""
+def test_custom_validations_no_startup_run_target(full_valid_config):
+    """'Startup' is no longer a mandatory RunTarget."""
     del full_valid_config["run_targets"]["Startup"]
-    assert custom_validations(full_valid_config) is False
+    full_valid_config["run_targets"]["Boot"] = {"depends_on": []}
+    full_valid_config["initial_run_target"] = "Boot"
+    assert custom_validations(full_valid_config) is True
 
 
 def test_custom_validations_fallback_as_run_target_name(full_valid_config):
@@ -661,8 +664,8 @@ def test_custom_validations_cyclic_deps_fails(full_valid_config):
 
 def test_custom_validations_multiple_errors(full_valid_config):
     """When multiple validations fail all errors are reported and result is False."""
-    full_valid_config["initial_run_target"] = "Wrong"
-    del full_valid_config["run_targets"]["Startup"]
+    full_valid_config["run_targets"]["fallback_run_target"] = {"depends_on": []}
+    full_valid_config["run_targets"]["app1"] = {"depends_on": []}
     del full_valid_config["fallback_run_target"]
     assert custom_validations(full_valid_config) is False
 
