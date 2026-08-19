@@ -2,13 +2,13 @@
 <!DOCTYPE html>
 
 
-<html lang="en" data-content_root="../../../" >
+<html lang="en" data-content_root="../" >
 
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Example: Detailed Design &#8212; Lifecycle and Health Management  documentation</title>
+    <title>Release Note v0.4.0 &#8212; Lifecycle and Health Management  documentation</title>
   
   
   
@@ -27,42 +27,42 @@
   </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../../../_static/styles/theme.css?digest=7f76b32a3354e82990f2" rel="stylesheet" />
-<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=7f76b32a3354e82990f2" rel="stylesheet" />
+  <link href="../_static/styles/theme.css?digest=7f76b32a3354e82990f2" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=7f76b32a3354e82990f2" rel="stylesheet" />
 
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/css/score.css?v=bb63a8e1" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/css/score_needs.css?v=82a1844f" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/css/score_design.css?v=8048e6ee" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-data-viewer/jsonview.bundle.css?v=f6ef2277" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-needs/libs/html/datatables.min.css?v=4b4fd840" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-needs/common_css/need_style.css?v=92936fa5" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-needs/common_css/needstable.css?v=5e1b6797" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-needs/common_css/need_toggle.css?v=5c6620df" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-needs/common_css/need_core.css?v=f5b60a78" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-needs/common_css/need_links.css?v=2150a916" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-needs/modern.css?v=803738c0" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/score.css?v=bb63a8e1" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/score_needs.css?v=82a1844f" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/score_design.css?v=8048e6ee" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-data-viewer/jsonview.bundle.css?v=f6ef2277" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/libs/html/datatables.min.css?v=4b4fd840" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_style.css?v=92936fa5" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/needstable.css?v=5e1b6797" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_toggle.css?v=5c6620df" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_core.css?v=f5b60a78" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/common_css/need_links.css?v=2150a916" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-needs/modern.css?v=803738c0" />
   
   <!-- So that users can add custom icons -->
-  <script defer src="../../../_static/scripts/fontawesome.js?digest=7f76b32a3354e82990f2"></script>
+  <script defer src="../_static/scripts/fontawesome.js?digest=7f76b32a3354e82990f2"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=7f76b32a3354e82990f2" />
-<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=7f76b32a3354e82990f2" />
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=7f76b32a3354e82990f2" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=7f76b32a3354e82990f2" />
 
-    <script src="../../../_static/jquery.js?v=5d32c60e"></script>
-    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-    <script src="../../../_static/documentation_options.js?v=7f41d439"></script>
-    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
-    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
-    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
-    <script src="../../../_static/sphinx-data-viewer/jsonview.bundle.js?v=18cd53c5"></script>
-    <script src="../../../_static/sphinx-data-viewer/jsonview_loader.js?v=f7ff7e7d"></script>
-    <script src="../../../_static/sphinx-needs/libs/html/datatables.min.js?v=8a4aee21"></script>
-    <script src="../../../_static/sphinx-needs/libs/html/datatables_loader.js?v=a2cae175"></script>
-    <script src="../../../_static/sphinx-needs/libs/html/sphinx_needs_collapse.js?v=dca66431"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'components/launch_manager/detailed_design/detailed_design';</script>
+    <script src="../_static/jquery.js?v=5d32c60e"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+    <script src="../_static/documentation_options.js?v=7f41d439"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script src="../_static/sphinx-data-viewer/jsonview.bundle.js?v=18cd53c5"></script>
+    <script src="../_static/sphinx-data-viewer/jsonview_loader.js?v=f7ff7e7d"></script>
+    <script src="../_static/sphinx-needs/libs/html/datatables.min.js?v=8a4aee21"></script>
+    <script src="../_static/sphinx-needs/libs/html/datatables_loader.js?v=a2cae175"></script>
+    <script src="../_static/sphinx-needs/libs/html/sphinx_needs_collapse.js?v=dca66431"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'release/release_note_v_0_4_0';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.17.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://eclipse-score.github.io/lifecycle/versions.json';
@@ -71,18 +71,18 @@
             false;
         </script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
-    <link rel="index" title="Index" href="../../../genindex.html" />
-    <link rel="search" title="Search" href="../../../search.html" />
-    <link rel="next" title="Implementation Inspection Checklist" href="chklst_impl_inspection.html" />
-    <link rel="prev" title="Detailed Design" href="index.html" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Release Note v0.3.0" href="release_note_v_0_3_0.html" />
+    <link rel="prev" title="Release notes" href="index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.0.0" />
   
     
-    <script src="../../../_static/searchtools.js"></script>
-    <script src="../../../_static/language_data.js"></script>
-    <script src="../../../searchindex.js"></script>
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
   
   </head>
   <body data-default-mode="">
@@ -100,7 +100,7 @@
   <dialog id="pst-search-dialog">
     
 <form class="bd-search d-flex align-items-center"
-      action="../../../search.html"
+      action="../search.html"
       method="get">
   <i class="fa-solid fa-magnifying-glass"></i>
   <input type="search"
@@ -136,7 +136,7 @@
     
   
 
-<a class="navbar-brand logo" href="../../../index.html">
+<a class="navbar-brand logo" href="../index.html">
   
   
   
@@ -158,35 +158,35 @@
   <ul class="bd-navbar-elements navbar-nav">
     
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../features/index.html">
+  <a class="nav-link nav-internal" href="../features/index.html">
     Features
   </a>
 </li>
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../manuals/index.html">
+  <a class="nav-link nav-internal" href="../manuals/index.html">
     Manuals
   </a>
 </li>
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../safety_mgt/index.html">
+  <a class="nav-link nav-internal" href="../safety_mgt/index.html">
     Safety Management
   </a>
 </li>
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../security_mgt/index.html">
+  <a class="nav-link nav-internal" href="../security_mgt/index.html">
     Security Management
   </a>
 </li>
 
 
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../release/index.html">
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
     Release notes
   </a>
 </li>
@@ -200,14 +200,14 @@
                 <ul id="pst-nav-more-links" class="dropdown-menu">
                     
 <li class=" ">
-  <a class="nav-link dropdown-item nav-internal" href="../../../verification_report/statistics.html">
+  <a class="nav-link dropdown-item nav-internal" href="../verification_report/statistics.html">
     Verification Statistics
   </a>
 </li>
 
 
-<li class=" current active">
-  <a class="nav-link dropdown-item nav-internal" href="../../index.html">
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../components/index.html">
     Component documentation
   </a>
 </li>
@@ -325,49 +325,49 @@
   <ul class="bd-navbar-elements navbar-nav">
     
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../features/index.html">
+  <a class="nav-link nav-internal" href="../features/index.html">
     Features
   </a>
 </li>
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../manuals/index.html">
+  <a class="nav-link nav-internal" href="../manuals/index.html">
     Manuals
   </a>
 </li>
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../safety_mgt/index.html">
+  <a class="nav-link nav-internal" href="../safety_mgt/index.html">
     Safety Management
   </a>
 </li>
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../security_mgt/index.html">
+  <a class="nav-link nav-internal" href="../security_mgt/index.html">
     Security Management
   </a>
 </li>
 
 
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../release/index.html">
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
     Release notes
   </a>
 </li>
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../verification_report/statistics.html">
+  <a class="nav-link nav-internal" href="../verification_report/statistics.html">
     Verification Statistics
   </a>
 </li>
 
 
-<li class="nav-item current active">
-  <a class="nav-link nav-internal" href="../../index.html">
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../components/index.html">
     Component documentation
   </a>
 </li>
@@ -442,28 +442,11 @@
 <nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
-  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="../index.html">Launch Manager</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="../user_guide/index.html">User Guide</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../product_documentation/known_limitations.html">Known Limitations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../requirements/index.html">Requirements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../requirements/chklst_req_inspection.html">Requirement Inspection Checklist</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../architecture/index.html">Component Architecture</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../architecture/chklst_arc_inspection.html">Architecture Inspection Checklist</a></li>
-<li class="toctree-l2 current active has-children"><a class="reference internal" href="index.html">Detailed Design</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l3 current active"><a class="current reference internal" href="#">Example: Detailed Design</a></li>
-
-<li class="toctree-l3"><a class="reference internal" href="chklst_impl_inspection.html">Implementation Inspection Checklist</a></li>
-</ul>
-</details></li>
-<li class="toctree-l2"><a class="reference internal" href="chklst_impl_inspection.html">Implementation Inspection Checklist</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../safety_analysis/fmea.html">FMEA (Failure Modes and Effects Analysis)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../safety_analysis/dfa.html">DFA (Dependent Failure Analysis)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../safety_analysis/aou_requirements.html">AoU Component Requirements Template</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../subcomponents/index.html">Sub-Component documentation</a></li>
-</ul>
-</details></li>
-<li class="toctree-l1"><a class="reference internal" href="../../health_monitor/index.html">HealthMonitor</a></li>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Content</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Release Note v0.4.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release_note_v_0_3_0.html">Release Note v0.3.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release_note_v_0_2_0.html">Release Note v0.2.0</a></li>
 </ul>
 </div>
 </nav></div>
@@ -500,20 +483,14 @@
   <ul class="bd-breadcrumbs">
     
     <li class="breadcrumb-item breadcrumb-home">
-      <a href="../../../index.html" class="nav-link" aria-label="Home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
         <i class="fa-solid fa-home"></i>
       </a>
     </li>
     
-    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Component documentation</a></li>
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Release notes</a></li>
     
-    
-    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Launch Manager</a></li>
-    
-    
-    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Detailed Design</a></li>
-    
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Example: Detailed Design</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Release Note v0.4.0</span></li>
   </ul>
 </nav>
 </div>
@@ -530,17 +507,15 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="example-detailed-design">
-<h1>Example: Detailed Design<a class="headerlink" href="#example-detailed-design" title="Link to this heading">#</a></h1>
-<div class="need_container docutils container" id="SNCB-ea71ab9d">
-<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_document table" id="doc__launch_manager_detailed_design">
+  <div class="need_container docutils container" id="SNCB-fcfc48cd">
+<div class="pst-scrollable-table-container"><table class="need needs_grid_complex needs_layout_score needs_style_none needs_type_document table" id="doc__lifecycle_release_note_v0_4_0">
 <tbody>
 <tr class="head row-odd"><td class="head_left" colspan="2"><div class="needs_head_left line-block">
-<div class="line"><span><span class="needs_title"><span class="needs_data">Launch Manager Detailed Design</span></span></span></div>
+<div class="line"><span><span class="needs_title"><span class="needs_data">lifecycle Release Note v0.4.0</span></span></span></div>
 </div>
 </td>
 <td class="head_center" colspan="2"><div class="needs_head line-block">
-<div class="line"><span><span class="needs_status"><span class="needs_label">status: </span><span class="needs_data">draft</span></span></span></div>
+<div class="line"><span><span class="needs_status"><span class="needs_label">status: </span><span class="needs_data">valid</span></span></span></div>
 <div class="line"><span><span class="needs_security"><span class="needs_label">security: </span><span class="needs_data">NO</span></span></span></div>
 <div class="line"><span><span class="needs_safety"><span class="needs_label">safety: </span><span class="needs_data">ASIL_B</span></span></span></div>
 </div>
@@ -553,7 +528,7 @@
 <tr class="meta row-even"><td class="meta" colspan="3"><div class="needs_meta_left line-block">
 <div class="line"><span><span><div class="line"><span class="needs_version"><span class="needs_label">version: </span>1</span></div>
 </span></span></div>
-<div class="line"><span><div class="line">realizes: <span class="realizes"><span><a class="external_link reference external" href="https://eclipse-score.github.io/process_description//main/process_areas/implementation/implementation_workproducts.html#wp__sw_implementation">wp__sw_implementation</a></span></span></div>
+<div class="line"><span><div class="line">realizes: <span class="realizes"><span><a class="external_link reference external" href="https://eclipse-score.github.io/process_description//main/process_areas/release_management/release_workproducts.html#wp__module_sw_release_note">wp__module_sw_release_note</a></span></span></div>
 </span></div>
 </div>
 </td>
@@ -562,7 +537,7 @@
 <tr class="content row-odd"><td class="content" colspan="6"></td>
 </tr>
 <tr class="footer row-even"><td class="footer_left" colspan="2"><div class="needs_footer_left line-block">
-<div class="line"><span><span class="needs-id"><a class="reference internal" href="#doc__launch_manager_detailed_design" title="doc__launch_manager_detailed_design">doc__launch_manager_detailed_design</a></span></span></div>
+<div class="line"><span><span class="needs-id"><a class="reference internal" href="#doc__lifecycle_release_note_v0_4_0" title="doc__lifecycle_release_note_v0_4_0">doc__lifecycle_release_note_v0_4_0</a></span></span></div>
 </div>
 </td>
 <td class="footer" colspan="2"><div class="needs_footer line-block">
@@ -575,63 +550,97 @@
 </table>
 </div>
 </div>
+<section id="release-note-v0-4-0">
+<h1>Release Note v0.4.0<a class="headerlink" href="#release-note-v0-4-0" title="Link to this heading">#</a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">#</a></h2>
+<p>This document provides an overview of the changes, improvements, and bug fixes included in the software module release version named above
+as compared to the module’s origin release (which is usually the previous release).</p>
 </section>
-<section id="detailed-design-for-component-launch-manager">
-<h1>Detailed Design for Component: Launch Manager<a class="headerlink" href="#detailed-design-for-component-launch-manager" title="Link to this heading">#</a></h1>
-<section id="description">
-<h2>Description<a class="headerlink" href="#description" title="Link to this heading">#</a></h2>
-<div class="line-block">
-<div class="line">Design Decisions - For the documentation of the decision the <a class="external_link reference external" href="https://eclipse-score.github.io/process_description//main/process_areas/change_management/guidance/change_management_decision_record_template.html#gd_temp__change_decision_record">gd_temp__change_decision_record</a> can be used.</div>
-<div class="line">Design Constraints</div>
-</div>
-<p>Example:</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>component is split into two units unit1 and unit2 based on single responsibility principle.</p></li>
-<li><p>unit2 is injected to unit1 one via dependency injection for testability.</p></li>
-</ul>
-</div></blockquote>
-<section id="rationale-behind-decomposition-into-units">
-<h3>Rationale Behind Decomposition into Units<a class="headerlink" href="#rationale-behind-decomposition-into-units" title="Link to this heading">#</a></h3>
-<div class="line-block">
-<div class="line">mandatory: a motivation for the decomposition into one or more units.</div>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Reason for split into multiple units could be-
-- Based on design principles like SOLID,DRY etc
-- Based on design pattern’s etc.</p>
-</div>
+<section id="disclaimer">
+<h2>Disclaimer<a class="headerlink" href="#disclaimer" title="Link to this heading">#</a></h2>
+<p>This release note does not “release for production”, as it does not come with a safety argumentation and a performed safety assessment.
+The work products compiled in the safety package are created with care according to a process satisfying standards, but the as the project,
+being a non-profit and open source organization, can not take over any liability for its content.</p>
 </section>
-</section>
-<section id="static-diagrams-for-unit-interactions">
-<h2>Static Diagrams for Unit Interactions<a class="headerlink" href="#static-diagrams-for-unit-interactions" title="Link to this heading">#</a></h2>
-<p>A static view provides an overview of the units and their relationships using
-UML 2.0 notations (e.g. class diagrams, component diagrams). Use <code class="docutils literal notranslate"><span class="pre">..</span> <span class="pre">uml::</span></code>
-or <code class="docutils literal notranslate"><span class="pre">..</span> <span class="pre">image::</span></code> directives to include the diagram.</p>
-</section>
-<section id="dynamic-diagrams-for-unit-interactions-optional">
-<h2>Dynamic Diagrams for Unit Interactions (optional)<a class="headerlink" href="#dynamic-diagrams-for-unit-interactions-optional" title="Link to this heading">#</a></h2>
-<p>A dynamic view illustrates how the units within a component interact over their
-interfaces to fulfill a specific use case or functionality. It is optional when the
-component’s behaviour is straightforward and can be understood from the static view
-and interface documentation alone.</p>
-<p>Use standard UML behavioural diagrams (sequence diagrams, state machine diagrams)
-with <code class="docutils literal notranslate"><span class="pre">..</span> <span class="pre">uml::</span></code> or <code class="docutils literal notranslate"><span class="pre">..</span> <span class="pre">image::</span></code> directives.</p>
-</section>
-<section id="units-within-the-component">
-<h2>Units within the Component<a class="headerlink" href="#units-within-the-component" title="Link to this heading">#</a></h2>
-<p>The relationship between a unit and its parent component is established implicitly
-through the file path. Each component has its own directory, and units residing
-within that directory belong to it. The unit’s attributes and behaviour are documented
-in the source code itself. A separate static diagram per unit is not required.</p>
-<p>Interface documentation of a software unit is part of the source code (e.g. public
-API headers, trait definitions, or documented function signatures).</p>
-<p>Example:</p>
+<section id="changes-to-the-module">
+<h2>Changes to the Module<a class="headerlink" href="#changes-to-the-module" title="Link to this heading">#</a></h2>
+<section id="new-features">
+<h3>New Features<a class="headerlink" href="#new-features" title="Link to this heading">#</a></h3>
 <ul class="simple">
-<li><p>unit1: implements the main logic (see source code for details)</p></li>
-<li><p>unit2: injected into unit1 via dependency injection for testability</p></li>
+<li><p>None</p></li>
 </ul>
+</section>
+<section id="improvements">
+<h3>Improvements<a class="headerlink" href="#improvements" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>None</p></li>
+</ul>
+</section>
+<section id="bug-fixes">
+<h3>Bug Fixes<a class="headerlink" href="#bug-fixes" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>None</p></li>
+</ul>
+</section>
+<section id="other-changes-by-label">
+<h3>Other Changes by Label<a class="headerlink" href="#other-changes-by-label" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>None</p></li>
+</ul>
+</section>
+<section id="compatibility">
+<h3>Compatibility<a class="headerlink" href="#compatibility" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>The following platforms are supported using the <a class="reference external" href="https://github.com/eclipse-score/bazel_cpp_toolchains">bazel_cpp_toolchains</a>:</p>
+<ul>
+<li><p><cite>x86_64-unknown-linux-gnu</cite></p></li>
+<li><p><cite>aarch64-unknown-linux-gnu</cite></p></li>
+<li><p><cite>x86_64-unknown-nto-qnx800</cite></p></li>
+<li><p><cite>aarch64-unknown-nto-qnx800</cite></p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="performed-verification">
+<h3>Performed Verification<a class="headerlink" href="#performed-verification" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Build on all supported platforms</p></li>
+<li><p>Unit test execution on all supported platforms</p></li>
+</ul>
+</section>
+<section id="known-issues">
+<h3>Known Issues<a class="headerlink" href="#known-issues" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>None</p></li>
+</ul>
+</section>
+<section id="known-vulnerabilities">
+<h3>Known Vulnerabilities<a class="headerlink" href="#known-vulnerabilities" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>None</p></li>
+</ul>
+</section>
+<section id="upgrade-instructions">
+<h3>Upgrade Instructions<a class="headerlink" href="#upgrade-instructions" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Update include paths and BUILD labels for public mocks.</dt><dd><ul>
+<li><p>Rename all usage of <cite>//score/launch_manager:applicationcontext_mock_c</cite> to <cite>//score/launch_manager:mock_applicationcontext_cc</cite>.</p></li>
+<li><p>Rename all usage of <cite>//score/launch_manager:lifecycle_mock_cc</cite> to <cite>//score/launch_manager:mock_lifecycle_cc</cite>.</p></li>
+<li><p>Rename all usage of  <cite>//score/launch_manager:report_running_mock_cc</cite> to <cite>//score/launch_manager:mock_lifecycle_cc</cite>.</p></li>
+<li><p>Rename all usage of <cite>applicationcontextmock.h</cite> to <cite>mock_applicationcontext.h</cite>.</p></li>
+<li><p>Rename all usage of <cite>lifecyclemanagermock.h</cite> to <cite>mock_lifecyclemanager.h</cite>.</p></li>
+<li><p>Rename all usage of <cite>report_running_mock.h</cite> to <cite>mock_report_running.h</cite>.</p></li>
+<li><p>These changes introduce a consistent naming convention for the test doubles in the lifecycle repository. More information in <a class="reference external" href="https://github.com/eclipse-score/lifecycle/issues/422">#422</a></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>Backward compatibility with the previous release is not guaranteed.</p></li>
+</ul>
+<p><em>For any questions or support, please contact the</em> <a class="reference external" href="https://github.com/orgs/eclipse-score/projects/33">Project Team</a> <em>or raise an issue/discussion.</em></p>
+</section>
 </section>
 </section>
 
@@ -651,15 +660,15 @@ API headers, trait definitions, or documented function signatures).</p>
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Detailed Design</p>
+        <p class="prev-next-title">Release notes</p>
       </div>
     </a>
     <a class="right-next"
-       href="chklst_impl_inspection.html"
+       href="release_note_v_0_3_0.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Implementation Inspection Checklist</p>
+        <p class="prev-next-title">Release Note v0.3.0</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -682,26 +691,28 @@ API headers, trait definitions, or documented function signatures).</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Example: Detailed Design</a></li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#detailed-design-for-component-launch-manager">Detailed Design for Component: Launch Manager</a><ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#description">Description</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rationale-behind-decomposition-into-units">Rationale Behind Decomposition into Units</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#disclaimer">Disclaimer</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#changes-to-the-module">Changes to the Module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#new-features">New Features</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#improvements">Improvements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#bug-fixes">Bug Fixes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#other-changes-by-label">Other Changes by Label</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#compatibility">Compatibility</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#performed-verification">Performed Verification</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#known-issues">Known Issues</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#known-vulnerabilities">Known Vulnerabilities</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#upgrade-instructions">Upgrade Instructions</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#static-diagrams-for-unit-interactions">Static Diagrams for Unit Interactions</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dynamic-diagrams-for-unit-interactions-optional">Dynamic Diagrams for Unit Interactions (optional)</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#units-within-the-component">Units within the Component</a></li>
 </ul>
-</li>
-</ul>
-
   </nav></div>
 
   <div class="sidebar-secondary-item">
 
   
   <div class="tocsection editthispage">
-    <a href="https://github.com/eclipse-score/lifecycle/edit/main//home/runner/work/lifecycle/lifecycle/docs/components/launch_manager/detailed_design/detailed_designr/docs/detailed_design/detailed_design.rst">
+    <a href="https://github.com/eclipse-score/lifecycle/edit/main//home/runner/work/lifecycle/lifecycle/docs/release/release_note_v_0_4_0.rst">
       <i class="fa-solid fa-pencil"></i>
       
       
@@ -726,8 +737,8 @@ API headers, trait definitions, or documented function signatures).</p>
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="../../../_static/scripts/bootstrap.js?digest=7f76b32a3354e82990f2"></script>
-<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=7f76b32a3354e82990f2"></script>
+  <script defer src="../_static/scripts/bootstrap.js?digest=7f76b32a3354e82990f2"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=7f76b32a3354e82990f2"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
