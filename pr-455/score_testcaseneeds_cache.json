@@ -2214,7 +2214,7 @@
   {
     "name": "GraphOrdinaryTransitionTest__correctJobDetails",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "228",
+    "line": "220",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2228,7 +2228,7 @@
   {
     "name": "GraphOrdinaryTransitionTest__simpleActivationTransition",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "242",
+    "line": "234",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2242,7 +2242,7 @@
   {
     "name": "GraphOrdinaryTransitionTest__simpleDeactivationTransition",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "259",
+    "line": "251",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2256,7 +2256,7 @@
   {
     "name": "GraphInitialTransitionTest__nothingToDo",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "281",
+    "line": "273",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2270,7 +2270,7 @@
   {
     "name": "GraphInitialTransitionTest__jobFailure",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "294",
+    "line": "286",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2284,7 +2284,7 @@
   {
     "name": "GraphInitialTransitionTest__cancel",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "311",
+    "line": "303",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2298,7 +2298,7 @@
   {
     "name": "GraphOffTransitionTest__normalShutdown",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "335",
+    "line": "327",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2312,7 +2312,21 @@
   {
     "name": "GraphOffTransitionTest__shutdownDuringTransition",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "355",
+    "line": "347",
+    "result": "passed",
+    "repo_name": "local_repo",
+    "hash": "",
+    "url": "",
+    "TestType": "interface-test",
+    "DerivationTechnique": "equivalence-classes",
+    "result_text": "",
+    "PartiallyVerifies": null,
+    "FullyVerifies": null
+  },
+  {
+    "name": "GraphImplicitOffTargetTest__offRunTargetIsCreatedWhenNotConfigured",
+    "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
+    "line": "391",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2326,7 +2340,7 @@
   {
     "name": "GraphHandleComponentEventTest__failedFirstDuringTransition",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "389",
+    "line": "430",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2340,7 +2354,7 @@
   {
     "name": "GraphHandleComponentEventTest__failureFollowedBySuccessFails",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "408",
+    "line": "449",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2354,7 +2368,7 @@
   {
     "name": "GraphHandleComponentEventTest__unexpectedTerminationDuringSuccess",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "428",
+    "line": "469",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2368,7 +2382,7 @@
   {
     "name": "GraphHandleComponentEventTest__unexpectedTerminationDuringTransition",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "450",
+    "line": "491",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2382,7 +2396,7 @@
   {
     "name": "GraphCancelTest__notInTransition",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "486",
+    "line": "527",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2396,7 +2410,7 @@
   {
     "name": "GraphCancelTest__cancelsOngoingTransition",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "496",
+    "line": "537",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2410,7 +2424,7 @@
   {
     "name": "GraphUtilitiesTest__getProcessInfoNode",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "517",
+    "line": "558",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2424,7 +2438,7 @@
   {
     "name": "GraphUtilitiesTest__getConfigMethods",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "533",
+    "line": "574",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2438,7 +2452,7 @@
   {
     "name": "GraphUtilitiesTest__forceKillProcesses",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "541",
+    "line": "582",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2452,7 +2466,7 @@
   {
     "name": "GraphUtilitiesTest__toString",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "555",
+    "line": "596",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -2466,7 +2480,7 @@
   {
     "name": "GraphUtilitiesTest__gettersSetters",
     "file": "score/launch_manager/src/daemon/src/process_group_manager/details/graph_UT.cpp",
-    "line": "569",
+    "line": "610",
     "result": "passed",
     "repo_name": "local_repo",
     "hash": "",
@@ -6454,7 +6468,7 @@
     "FullyVerifies": null
   },
   {
-    "name": "test_custom_validations_recovery_target_not_fallback",
+    "name": "test_custom_validations_component_and_run_target_same_name",
     "file": "scripts/config_mapping/unit_tests.py",
     "line": "630",
     "result": "passed",
@@ -6468,9 +6482,9 @@
     "FullyVerifies": null
   },
   {
-    "name": "test_custom_validations_missing_fallback_run_target",
+    "name": "test_custom_validations_recovery_target_not_fallback",
     "file": "scripts/config_mapping/unit_tests.py",
-    "line": "638",
+    "line": "636",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -6482,7 +6496,7 @@
     "FullyVerifies": null
   },
   {
-    "name": "test_custom_validations_cyclic_deps_fails",
+    "name": "test_custom_validations_missing_fallback_run_target",
     "file": "scripts/config_mapping/unit_tests.py",
     "line": "644",
     "result": "passed",
@@ -6496,9 +6510,23 @@
     "FullyVerifies": null
   },
   {
+    "name": "test_custom_validations_cyclic_deps_fails",
+    "file": "scripts/config_mapping/unit_tests.py",
+    "line": "650",
+    "result": "passed",
+    "repo_name": null,
+    "hash": null,
+    "url": null,
+    "TestType": null,
+    "DerivationTechnique": null,
+    "result_text": "",
+    "PartiallyVerifies": null,
+    "FullyVerifies": null
+  },
+  {
     "name": "test_custom_validations_multiple_errors",
     "file": "scripts/config_mapping/unit_tests.py",
-    "line": "656",
+    "line": "662",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -6512,7 +6540,7 @@
   {
     "name": "test_gen_config_minimal",
     "file": "scripts/config_mapping/unit_tests.py",
-    "line": "669",
+    "line": "675",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -6526,7 +6554,7 @@
   {
     "name": "test_gen_config_with_alive_supervision",
     "file": "scripts/config_mapping/unit_tests.py",
-    "line": "706",
+    "line": "712",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -6540,7 +6568,7 @@
   {
     "name": "test_gen_config_without_alive_supervision",
     "file": "scripts/config_mapping/unit_tests.py",
-    "line": "754",
+    "line": "760",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -6554,7 +6582,7 @@
   {
     "name": "test_gen_config_with_watchdog",
     "file": "scripts/config_mapping/unit_tests.py",
-    "line": "790",
+    "line": "796",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -6568,7 +6596,7 @@
   {
     "name": "test_gen_config_watchdog_partial_fields_omitted",
     "file": "scripts/config_mapping/unit_tests.py",
-    "line": "819",
+    "line": "825",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -6582,7 +6610,7 @@
   {
     "name": "test_gen_config_with_sandbox_limits",
     "file": "scripts/config_mapping/unit_tests.py",
-    "line": "845",
+    "line": "851",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -6596,7 +6624,7 @@
   {
     "name": "test_gen_config_output_filename_matches_spec",
     "file": "scripts/config_mapping/unit_tests.py",
-    "line": "885",
+    "line": "891",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -6610,7 +6638,7 @@
   {
     "name": "test_gen_config_env_variables_list_format",
     "file": "scripts/config_mapping/unit_tests.py",
-    "line": "903",
+    "line": "909",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -6624,7 +6652,7 @@
   {
     "name": "test_gen_config_run_target_with_dependencies",
     "file": "scripts/config_mapping/unit_tests.py",
-    "line": "942",
+    "line": "948",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -6638,7 +6666,7 @@
   {
     "name": "test_gen_config_recovery_action_switch_run_target",
     "file": "scripts/config_mapping/unit_tests.py",
-    "line": "993",
+    "line": "999",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -6652,7 +6680,7 @@
   {
     "name": "test_gen_config_scheduling_policy_mapping",
     "file": "scripts/config_mapping/unit_tests.py",
-    "line": "1019",
+    "line": "1025",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -6666,7 +6694,7 @@
   {
     "name": "test_gen_config_ready_recovery_action",
     "file": "scripts/config_mapping/unit_tests.py",
-    "line": "1054",
+    "line": "1060",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -6680,7 +6708,7 @@
   {
     "name": "test_gen_config_unmapped_scheduling_policy",
     "file": "scripts/config_mapping/unit_tests.py",
-    "line": "1093",
+    "line": "1099",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -6694,7 +6722,7 @@
   {
     "name": "test_gen_config_with_empty_components_list_generates_empty_array",
     "file": "scripts/config_mapping/unit_tests.py",
-    "line": "1134",
+    "line": "1140",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -6708,7 +6736,7 @@
   {
     "name": "test_output_filename_basic",
     "file": "scripts/config_mapping/unit_tests.py",
-    "line": "1159",
+    "line": "1165",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -6722,7 +6750,7 @@
   {
     "name": "test_output_filename_multiple_dots",
     "file": "scripts/config_mapping/unit_tests.py",
-    "line": "1163",
+    "line": "1169",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -6736,7 +6764,7 @@
   {
     "name": "test_output_filename_no_extension",
     "file": "scripts/config_mapping/unit_tests.py",
-    "line": "1167",
+    "line": "1173",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -6750,7 +6778,7 @@
   {
     "name": "test_output_filename_dot_in_name",
     "file": "scripts/config_mapping/unit_tests.py",
-    "line": "1171",
+    "line": "1177",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -6764,7 +6792,7 @@
   {
     "name": "test_get_working_dir_explicit",
     "file": "scripts/config_mapping/unit_tests.py",
-    "line": "1180",
+    "line": "1186",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -6778,7 +6806,7 @@
   {
     "name": "test_get_working_dir_defaults_to_bin_dir",
     "file": "scripts/config_mapping/unit_tests.py",
-    "line": "1186",
+    "line": "1192",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -6792,7 +6820,7 @@
   {
     "name": "test_get_working_dir_empty_string_falls_back",
     "file": "scripts/config_mapping/unit_tests.py",
-    "line": "1190",
+    "line": "1196",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -6806,7 +6834,7 @@
   {
     "name": "test_is_supervised[State_Manager-True]",
     "file": "scripts/config_mapping/unit_tests.py",
-    "line": "1205",
+    "line": "1211",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -6820,7 +6848,7 @@
   {
     "name": "test_is_supervised[Reporting_And_Supervised-True]",
     "file": "scripts/config_mapping/unit_tests.py",
-    "line": "1205",
+    "line": "1211",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -6834,7 +6862,7 @@
   {
     "name": "test_is_supervised[REPORTING-False]",
     "file": "scripts/config_mapping/unit_tests.py",
-    "line": "1205",
+    "line": "1211",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -6848,7 +6876,7 @@
   {
     "name": "test_is_supervised[NOT_REPORTING-False]",
     "file": "scripts/config_mapping/unit_tests.py",
-    "line": "1205",
+    "line": "1211",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -6862,7 +6890,7 @@
   {
     "name": "test_is_supervised[Supervised_Only-False]",
     "file": "scripts/config_mapping/unit_tests.py",
-    "line": "1205",
+    "line": "1211",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -6876,7 +6904,7 @@
   {
     "name": "test_is_supervised[-False]",
     "file": "scripts/config_mapping/unit_tests.py",
-    "line": "1205",
+    "line": "1211",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -6890,7 +6918,7 @@
   {
     "name": "test_load_json_file",
     "file": "scripts/config_mapping/unit_tests.py",
-    "line": "1225",
+    "line": "1231",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -6904,7 +6932,7 @@
   {
     "name": "test_load_json_file_nonexistent",
     "file": "scripts/config_mapping/unit_tests.py",
-    "line": "1235",
+    "line": "1241",
     "result": "passed",
     "repo_name": null,
     "hash": null,
@@ -6918,7 +6946,7 @@
   {
     "name": "test_schema_validation_smoke",
     "file": "scripts/config_mapping/unit_tests.py",
-    "line": "1247",
+    "line": "1253",
     "result": "passed",
     "repo_name": null,
     "hash": null,
