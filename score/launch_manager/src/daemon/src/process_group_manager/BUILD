@@ -88,6 +88,7 @@ cc_library(
         "//score/launch_manager/src/daemon/src/configuration:config",
         "//score/launch_manager/src/daemon/src/control:control_client_channel",
         "//score/launch_manager/src/daemon/src/osal:ipc_comms",
+        "//score/launch_manager/src/daemon/src/osal:wait_for_file",
         "//score/launch_manager/src/daemon/src/process_group_manager/details:graph",
         "//score/launch_manager/src/daemon/src/process_group_manager/details:itransition_result_publisher",
         "//score/launch_manager/src/daemon/src/process_group_manager/details:os_handler",

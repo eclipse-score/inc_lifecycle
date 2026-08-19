@@ -123,6 +123,12 @@ class IProcess
     /// @return kFail if sync is NULL or a timeout occurs, kSuccess otherwise
 
     virtual OsalReturnType waitForkRunning(IpcCommsP sync, std::chrono::milliseconds timeout) = 0;
+
+    /// @brief Ignores a kRunning signal.
+    /// @param sync     The pointer returned from startProcess.
+    virtual OsalReturnType ignoreRunning(IpcCommsP sync) = 0;
+
+    // virtual OsalReturnType respondToRunning(IpcCommsP sync, std::chrono::milliseconds timeout) = 0;
 };
 
 }  // namespace osal

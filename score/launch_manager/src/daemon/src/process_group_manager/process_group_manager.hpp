@@ -24,6 +24,7 @@
 #include "score/mw/launch_manager/common/identifier_hash.hpp"
 #include "score/mw/launch_manager/configuration/config.hpp"
 #include "score/mw/launch_manager/control/control_client_channel.hpp"
+#include "score/mw/launch_manager/osal/wait_for_file.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/component_event_queue.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/graph.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/itransition_result_publisher.hpp"
@@ -263,6 +264,9 @@ class ProcessGroupManager final : public ITransitionResultPublisher
 
     /// @brief The process interface object associated with the ProcessGroupManager.
     osal::ProcessLauncher process_interface_;
+
+    /// @brief Waits for FileState ready conditions; injected into ProcessInfoNode via ProcessHandling.
+    osal::FileWaiter file_waiter_;
 
     /// @brief Shared pointer to the SafeProcessMap object.
     std::shared_ptr<SafeProcessMap> process_map_;

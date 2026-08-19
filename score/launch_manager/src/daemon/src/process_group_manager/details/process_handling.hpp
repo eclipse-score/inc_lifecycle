@@ -14,6 +14,7 @@
 #ifndef _INCLUDED_PROCESSHANDLING_
 #define _INCLUDED_PROCESSHANDLING_
 
+#include "score/mw/launch_manager/osal/ifile_waiter.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/safe_process_map.hpp"
 #include "score/mw/launch_manager/process_group_manager/iprocess.hpp"
 #include "score/mw/launch_manager/supervision_control_client/isupervision_event_publisher.hpp"
@@ -33,6 +34,9 @@ struct ProcessHandling
 
     /// @brief Map to store the state of the process.
     std::shared_ptr<SafeProcessMapInserter> process_map_;
+
+    /// @brief Interface used to wait for a FileState ready condition.
+    osal::IFileWaiter* file_waiter_{nullptr};
 };
 
 }  // namespace score::mw::lifecycle::internal

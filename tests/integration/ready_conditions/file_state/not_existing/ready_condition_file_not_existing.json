@@ -1,0 +1,137 @@
+{
+    "schema_version": 1,
+    "defaults": {
+        "deployment_config": {
+            "bin_dir": "/tmp/tests/ready_condition_file_not_exists",
+            "ready_timeout": 0.1,
+            "shutdown_timeout": 1.0,
+            "ready_recovery_action": {
+                "restart": {
+                    "number_of_attempts": 0
+                }
+            },
+            "recovery_action": {
+                "switch_run_target": {
+                    "run_target": "fallback_run_target"
+                }
+            },
+            "sandbox": {
+                "uid": 0,
+                "gid": 0,
+                "scheduling_policy": "SCHED_OTHER",
+                "scheduling_priority": 0
+            }
+        },
+        "component_properties": {
+            "application_profile": {
+                "application_type": "Native",
+                "is_self_terminating": false
+            },
+            "ready_condition": {
+                "process_state": "Running"
+            }
+        }
+    },
+    "components": {
+        "control_client_test_driver": {
+            "component_properties": {
+                "binary_name": "control_client_test_driver",
+                "application_profile": {
+                    "application_type": "State_Manager"
+                }
+            }
+        },
+        "file_deleting_component": {
+            "component_properties": {
+                "binary_name": "file_modifier",
+                "process_arguments": [
+                    "delete", "/tmp/tests/ready_condition_file_not_exists/vanishing_file", "0", "native"
+                ],
+                "application_profile": {
+                    "application_type": "Native"
+                },
+                "ready_condition": {
+                    "file_state": {
+                        "file_path": "/tmp/tests/ready_condition_file_not_exists/vanishing_file",
+                        "state": "NotExisting",
+                        "polling_interval": 0.1
+                    }
+                }
+            }
+        },
+        "file_deleting_component_reporting": {
+            "component_properties": {
+                "binary_name": "file_modifier",
+                "process_arguments": [
+                    "delete", "/tmp/tests/ready_condition_file_not_exists/vanishing_file_report", "0", "report"
+                ],
+                "application_profile": {
+                    "application_type": "Reporting"
+                },
+                "ready_condition": {
+                    "file_state": {
+                        "file_path": "/tmp/tests/ready_condition_file_not_exists/vanishing_file_report",
+                        "state": "NotExisting",
+                        "polling_interval": 0.1
+                    }
+                }
+            }
+        },
+        "file_deleting_component_timeout": {
+            "component_properties": {
+                "binary_name": "file_modifier",
+                "process_arguments": [
+                    "delete", "/tmp/tests/ready_condition_file_not_exists/vanishing_file_2", "500", "native"
+                ],
+                "ready_condition": {
+                    "file_state": {
+                        "file_path": "/tmp/tests/ready_condition_file_not_exists/vanishing_file_2",
+                        "state": "NotExisting",
+                        "polling_interval": 0.1
+                    }
+                }
+            }
+        }
+    },
+    "run_targets": {
+        "Startup": {
+            "depends_on": [
+                "control_client_test_driver"
+            ],
+            "recovery_action": {
+                "switch_run_target": {
+                    "run_target": "fallback_run_target"
+                }
+            }
+        },
+        "working": {
+            "depends_on": [
+                "file_deleting_component",
+                "control_client_test_driver"
+            ],
+            "recovery_action": {
+                "switch_run_target": {
+                    "run_target": "fallback_run_target"
+                }
+            }
+        },
+        "timeout": {
+            "depends_on": [
+                "file_deleting_component_timeout",
+                "control_client_test_driver"
+            ],
+            "recovery_action": {
+                "switch_run_target": {
+                    "run_target": "fallback_run_target"
+                }
+            }
+        }
+    },
+    "initial_run_target": "Startup",
+    "alive_supervision": {
+        "evaluation_cycle": 0.05
+    },
+    "fallback_run_target": {
+        "depends_on": []
+    }
+}

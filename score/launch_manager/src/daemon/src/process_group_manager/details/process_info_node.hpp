@@ -53,7 +53,7 @@ class ProcessInfoNode final : public IComponent
         : terminator_(),
           has_semaphore_(other.has_semaphore_.load()),
           pid_(other.pid_),
-          status_(other.status_.load()),
+          exit_code_(other.exit_code_.load()),
           process_state_(other.process_state_.load()),
           reached_ready_(other.reached_ready_.load()),
           config_(std::move(other.config_)),
@@ -163,7 +163,7 @@ class ProcessInfoNode final : public IComponent
     osal::ProcessID pid_ = 0;
 
     /// @brief The status reported by the operating system when the process terminated
-    std::atomic<int32_t> status_{0};
+    std::atomic<int32_t> exit_code_{0};
 
     /// @brief The current state of the OS process
     std::atomic<score::mw::lifecycle::ProcessState> process_state_{score::mw::lifecycle::ProcessState::kIdle};

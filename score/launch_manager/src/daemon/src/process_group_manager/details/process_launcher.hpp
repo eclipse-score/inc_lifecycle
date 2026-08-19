@@ -51,6 +51,9 @@ class ProcessLauncher final : public IProcess
     /// @see IProcess::waitForkRunning() for details
     OsalReturnType waitForkRunning(IpcCommsP sync, std::chrono::milliseconds timeout) override;
 
+    /// @see IProcess::waitForkRunning() for details
+    OsalReturnType ignoreRunning(IpcCommsP sync) override;
+
   private:
     /// @brief Creates shared memory for communication between processes.
     /// @param[in,out] sync Pointer to a location to store a pointer to a structure containing
