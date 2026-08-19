@@ -136,6 +136,8 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     /// @brief Cancels processGroupManager main routine as though SIGTERM had been sent
     void cancel();
 
+    const IdentifierHash recovery_state_{"fallback"};
+
   private:
     /// @brief Perform the function of Control Client handler
     /// @details (a) check for requests from any state manager processes in this process group\n
@@ -236,12 +238,6 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     ///     set the request code of the message to be equal to `initial_state_transition_result_`
     /// @param scc pointer to Control Client channel
     void processGetInitialMachineStateTransitionResult(ControlClientChannelP scc);
-
-    /// @brief process request to validate the process group state id
-    /// @details set the request code of the message to `kValidateProcessGroupStateSuccess` or
-    /// `kValidateProcessGroupStateFailed` as appropriate
-    /// @param scc pointer to Control Client channel
-    void processValidateFunctionStateID(ControlClientChannelP scc);
 
     /// @brief Send all process groups to the "Off" state
     /// @details cancel any Graph for a process group not in the "Off" state, wait for up to 2 seconds for all graphs

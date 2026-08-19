@@ -491,10 +491,6 @@ void ProcessGroupManager::controlClientRequests(Graph& pg)
                 processGetInitialMachineStateTransitionResult(scc);
                 break;
 
-            case ControlClientCode::kValidateProcessGroupState:
-                processValidateFunctionStateID(scc);
-                break;
-
             default:  // Error, this is not a recognised request!
                 scc->request().request_or_response_ = ControlClientCode::kInvalidRequest;
                 break;
@@ -526,18 +522,17 @@ void ProcessGroupManager::handleRecoveryRequest(const IdentifierHash& process_id
     const IdentifierHash old_state = graph_->getProcessGroupState();
     // the fallback state doesn't have a name in the config, so we use
     // "fallback", it doesn't actually matter...
-    const IdentifierHash recovery_state("fallback");
     const GraphState graph_state = graph_->getState();
 
     LM_LOG_DEBUG() << "handleRecoveryRequest: Processing recovery request for process " << process_identifier
-                   << " to state " << recovery_state;
+                   << " to state " << recovery_state_;
 
     if (GraphState::kInTransition == graph_state)
     {
-        if (old_state != recovery_state)
+        if (old_state != recovery_state_)
         {
             // Cancel current transition and start new one
-            (void)graph_->setPendingState(recovery_state);
+            (void)graph_->setPendingState(recovery_state_);
             graph_->setRequestStartTime();
             graph_->cancel();
             controlClientResponses(*graph_);
@@ -548,7 +543,7 @@ void ProcessGroupManager::handleRecoveryRequest(const IdentifierHash& process_id
             LM_LOG_DEBUG() << "handleRecoveryRequest: Already transitioning to same state";
         }
     }
-    else if (GraphState::kSuccess == graph_state && old_state == recovery_state)
+    else if (GraphState::kSuccess == graph_state && old_state == recovery_state_)
     {
         // Already in the requested state
         LM_LOG_DEBUG() << "handleRecoveryRequest: Already in requested state";
@@ -556,7 +551,7 @@ void ProcessGroupManager::handleRecoveryRequest(const IdentifierHash& process_id
     else
     {
         // Start new state transition
-        (void)graph_->setPendingState(recovery_state);
+        (void)graph_->setPendingState(recovery_state_);
         graph_->setRequestStartTime();
     }
 }
@@ -635,26 +630,6 @@ void ProcessGroupManager::processGetInitialMachineStateTransitionResult(ControlC
     else
     {
         scc->initial_result_count_++;
-    }
-}
-
-void ProcessGroupManager::processValidateFunctionStateID(ControlClientChannelP scc)
-{
-    // Check if the requested state name matches any run target
-    const auto& run_targets = configuration_.runTargets();
-    const auto& requested_state_name = scc->request().process_group_state_.pg_state_name_;
-
-    bool found = std::any_of(run_targets.begin(), run_targets.end(), [&requested_state_name](const auto& rt) {
-        return requested_state_name == rt.name;
-    });
-
-    if (found)
-    {
-        scc->request().request_or_response_ = ControlClientCode::kValidateProcessGroupStateSuccess;
-    }
-    else
-    {
-        scc->request().request_or_response_ = ControlClientCode::kValidateProcessGroupStateFailed;
     }
 }
 
