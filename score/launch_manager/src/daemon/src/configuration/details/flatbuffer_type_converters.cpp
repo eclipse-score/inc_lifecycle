@@ -328,7 +328,7 @@ score::cpp::expected<FileState, IConfigLoader::Error> convertFileState(const fb:
 score::cpp::expected<ReadyCondition, IConfigLoader::Error> convertReadyCondition(const fb::ReadyCondition* fb_rc)
 {
     SCORE_LANGUAGE_FUTURECPP_ASSERT_PRD_MESSAGE(
-        fb_rc != nullptr, "No ReadyCondition is confitured, this should have been defaulted with the script.");
+        fb_rc != nullptr, "No ReadyCondition is configured, this should have been defaulted with the script.");
 
     const bool has_process_state = fb_rc->process_state().has_value();
     const bool has_file_state = fb_rc->file_state() != nullptr;
