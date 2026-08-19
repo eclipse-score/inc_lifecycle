@@ -26,18 +26,14 @@ namespace score::mw::lifecycle::internal
 ProcessInfoNode::ProcessInfoNode(
     configuration::ComponentConfig&& config,
     uint32_t index,
-    ISupervisionEventPublisher& state_publisher,
-    osal::IProcess* process_interface,
-    std::shared_ptr<SafeProcessMapInserter> process_map)
+    ProcessHandling process_handling)
     : terminator_(),
       has_semaphore_(false),
       process_index_(index),
       pid_(0),
       status_(0),
       config_(std::move(config)),
-      state_publisher_(state_publisher),
-      process_interface_(process_interface),
-      process_map_(std::move(process_map))
+      process_handling_(std::move(process_handling))
 {
 
     if (config.component_properties.application_profile.application_type ==
@@ -86,7 +82,7 @@ IComponent::RequestResult ProcessInfoNode::tryReportSuccess()
 
         if (auto time = getTimeForReport())
         {
-            state_publisher_.reportActivation(IdentifierHash{config_.name}, time.value());
+            process_handling_.state_publisher_.reportActivation(IdentifierHash{config_.name}, time.value());
         }
 
         return {RequestState::kSuccess};
@@ -231,7 +227,7 @@ IComponent::RequestResult ProcessInfoNode::startProcess(score::cpp::stop_token s
         error = std::nullopt;
         static_cast<void>(setState(score::mw::lifecycle::ProcessState::kStarting));  // Cannot fail by design
 
-        if (osal::OsalReturnType::kSuccess == process_interface_->startProcess(pid_, sync_, config_))
+        if (osal::OsalReturnType::kSuccess == process_handling_.process_interface_->startProcess(pid_, sync_, config_))
         {
             LM_LOG_DEBUG() << "startProcess pid" << pid_ << "received for process:" << config_.name;
 
@@ -291,7 +287,7 @@ score::cpp::expected_blank<IComponent::ComponentError> ProcessInfoNode::handlePr
 
     if (((configuration::ApplicationType::Native ==
           config_.component_properties.application_profile.application_type) ||
-         (process_interface_->waitForkRunning(
+         (process_handling_.process_interface_->waitForkRunning(
               sync_, std::chrono::milliseconds(config_.deployment_config.ready_timeout_ms)) ==
           osal::OsalReturnType::kSuccess)) &&
         (0 == status_))
@@ -333,7 +329,7 @@ score::cpp::expected_blank<IComponent::ComponentError> ProcessInfoNode::handlePr
 score::cpp::expected<score::cpp::expected_blank<IComponent::ComponentError>, IComponent::ComponentError>
 ProcessInfoNode::handleProcessStarted(const score::cpp::stop_token& stop_token)
 {
-    switch (process_map_->insertIfNotTerminated(pid_, this))
+    switch (process_handling_.process_map_->insertIfNotTerminated(pid_, this))
     {
         case score::mw::lifecycle::internal::SafeProcessMapReturnType::kOk:  // Normal case, entry was put in
                                                                              // the map, process still running
@@ -380,7 +376,7 @@ void ProcessInfoNode::handleTerminationProcess(const score::cpp::stop_token& sto
                    << ")";
 
     // handle request termination
-    if ((process_interface_->requestTermination(pid_) == osal::OsalReturnType::kFail) ||
+    if ((process_handling_.process_interface_->requestTermination(pid_) == osal::OsalReturnType::kFail) ||
         (terminator_.timedWait(std::chrono::milliseconds(config_.deployment_config.shutdown_timeout_ms)) ==
          osal::OsalReturnType::kSuccess))
     {
@@ -404,7 +400,7 @@ void ProcessInfoNode::handleForcedTermination(const score::cpp::stop_token& stop
     LM_LOG_WARN() << "Process" << process_index_ << "(" << config_.name
                   << ") did not respond to SIGTERM, sending SIGKILL";
 
-    while ((osal::OsalReturnType::kSuccess == process_interface_->forceTermination(pid_)) &&
+    while ((osal::OsalReturnType::kSuccess == process_handling_.process_interface_->forceTermination(pid_)) &&
            (terminator_.timedWait(score::mw::lifecycle::internal::kMaxSigKillDelay) != osal::OsalReturnType::kSuccess))
     {
         LM_LOG_FATAL() << "Process" << process_index_ << "(" << config_.name << ") did not respond to SIGKILL!!";
@@ -429,7 +425,7 @@ IComponent::RequestResult ProcessInfoNode::deactivate(score::cpp::stop_token sto
     reached_ready_.store(false);
     if (auto time = getTimeForReport())
     {
-        state_publisher_.reportDeactivation(IdentifierHash{config_.name}, time.value());
+        process_handling_.state_publisher_.reportDeactivation(IdentifierHash{config_.name}, time.value());
     }
     terminateProcess(stop_token);
     setState(ProcessState::kIdle);

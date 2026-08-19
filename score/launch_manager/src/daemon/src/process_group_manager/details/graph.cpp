@@ -33,16 +33,12 @@ namespace
 
 /// @brief Creates a dependency graph from the configuration.
 /// @param config The configuration containing components and run targets.
-/// @param supervision_event_publisher Publisher for supervision events.
-/// @param process_interface Interface for OS process operations.
-/// @param process_map Map for tracking process PIDs.
+/// @param process_handling The interfaces used to start, stop and report on the OS processes.
 /// @param run_target_map Map to keep the translation between IDHash to Index
 /// @return A populated dependency graph with all components and run targets.
 DependencyGraph<Graph::Component> CreateDependencyGraph(
     configuration::Config& config,
-    ISupervisionEventPublisher& supervision_event_publisher,
-    osal::IProcess* process_interface,
-    std::shared_ptr<SafeProcessMapInserter> process_map,
+    ProcessHandling process_handling,
     std::unordered_map<std::size_t, GraphIndex>& run_target_map)
 {
     // this is a temporary (bad) implementation, all shall be cleandup
@@ -82,9 +78,7 @@ DependencyGraph<Graph::Component> CreateDependencyGraph(
             std::in_place_type<ProcessInfoNode>,
             std::move(components[component_i]),
             static_cast<uint32_t>(graph_index),
-            supervision_event_publisher,
-            process_interface,
-            process_map);
+            process_handling);
 
         LM_LOG_DEBUG() << "Creating component node:" << component_name << "at index:" << index;
         component_name_to_index[component_name] = index;
@@ -171,25 +165,20 @@ Graph::Graph(
     uint32_t max_num_nodes,
     configuration::Config& configuration,
     std::shared_ptr<WorkerQueue> job_queue,
-    osal::IProcess* process_interface,
-    std::shared_ptr<SafeProcessMapInserter> process_map,
-    ISupervisionEventPublisher& supervision_event_publisher,
+    ProcessHandling process_handling,
     ITransitionResultPublisher* transition_result_receiver)
     : nodes_(max_num_nodes),
       transition_builder_(nodes_),
       state_(GraphState::kSuccess),
       configuration_(configuration),
       job_queue_(job_queue),
-      process_interface_(process_interface),
-      process_map_(process_map),
-      supervision_event_publisher_(supervision_event_publisher),
+      process_handling_(std::move(process_handling)),
       transition_result_receiver_(transition_result_receiver)
 {
     last_state_manager_.process_index_ = 0xFFFFU;  // an invalid state manager
     last_state_manager_.process_group_index_ = 0xFFFFU;
     cancel_message_.request_or_response_ = ControlClientCode::kNotSet;
-    nodes_ = CreateDependencyGraph(
-        configuration_, supervision_event_publisher_, process_interface_, process_map_, run_targets_);
+    nodes_ = CreateDependencyGraph(configuration_, process_handling_, run_targets_);
 }
 
 Graph::~Graph()
@@ -533,7 +522,7 @@ void Graph::forceKillProcesses()
             if (pid > 0)
             {
                 // forceTermination already handles errors appropriately, so we can ignore its result.
-                static_cast<void>(process_interface_->forceTermination(pid));
+                static_cast<void>(process_handling_.process_interface_->forceTermination(pid));
             }
         }
     }

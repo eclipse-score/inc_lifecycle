@@ -206,9 +206,7 @@ bool ProcessGroupManager::initializeProcessGroups()
         configuration_.components().size() + configuration_.runTargets().size() + 2,
         configuration_,
         worker_jobs_,
-        &process_interface_,
-        process_map_,
-        *supervision_control_notifier_.get(),
+        ProcessHandling{*supervision_control_notifier_.get(), &process_interface_, process_map_},
         this);
 
     LM_LOG_DEBUG() << "Process group initialized successfully";

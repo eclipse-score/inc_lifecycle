@@ -68,7 +68,7 @@ class ProcessInfoNodeFixture : public ::testing::Test
         config.deployment_config.shutdown_timeout_ms = shutdown_timeout_ms_;
 
         return std::make_unique<ProcessInfoNode>(
-            std::move(config), kProcessIndex, mock_publisher_, &mock_processIf_, process_map_);
+            std::move(config), kProcessIndex, ProcessHandling{mock_publisher_, &mock_processIf_, process_map_});
     }
 
     /// @brief Helper method to create a ProcessInfoNode that is self-terminating.

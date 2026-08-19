@@ -34,6 +34,7 @@
 #include "score/mw/launch_manager/process_group_manager/details/component_task.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/dependency_graph.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/itransition_result_publisher.hpp"
+#include "score/mw/launch_manager/process_group_manager/details/process_handling.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/process_info_node.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/run_target.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/transition.hpp"
@@ -151,13 +152,12 @@ class Graph final
 
     /// @brief Constructor to initialize a Graph object.
     /// @param max_num_nodes Maximum number of nodes this graph can hold.
+    /// @param process_handling The interfaces used to start, stop and report on the OS processes.
     Graph(
         uint32_t max_num_nodes,
         configuration::Config& configuration,
         std::shared_ptr<WorkerQueue> job_queue,
-        osal::IProcess* process_interface,
-        std::shared_ptr<SafeProcessMapInserter> process_map,
-        ISupervisionEventPublisher& supervision_event_publisher,
+        ProcessHandling process_handling,
         ITransitionResultPublisher* transition_result_receiver);
 
     /// @brief Destructor to clean up resources used by the Graph object.
@@ -354,14 +354,8 @@ class Graph final
     /// @brief Queue to push component tasks to
     std::shared_ptr<WorkerQueue> job_queue_;
 
-    /// @brief Interface to pass process nodes for OS interaction
-    osal::IProcess* process_interface_;
-
-    /// @brief Interface to pass process nodes for pid association
-    std::shared_ptr<SafeProcessMapInserter> process_map_;
-
-    /// @brief Interface to pass process nodes for alive monitor notifications
-    ISupervisionEventPublisher& supervision_event_publisher_;
+    /// @brief The interfaces passed to the process nodes to control their OS processes
+    ProcessHandling process_handling_;
 
     /// @brief Class to receive information about the initial state transition result
     ITransitionResultPublisher* transition_result_receiver_;

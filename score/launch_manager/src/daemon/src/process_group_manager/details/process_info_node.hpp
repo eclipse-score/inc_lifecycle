@@ -18,6 +18,7 @@
 #include "score/mw/launch_manager/configuration/component_config.hpp"
 #include "score/mw/launch_manager/control/control_client_channel.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/icomponent.hpp"
+#include "score/mw/launch_manager/process_group_manager/details/process_handling.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/safe_process_map.hpp"
 #include "score/mw/launch_manager/process_group_manager/process_state.hpp"
 #include "score/mw/launch_manager/supervision_control_client/isupervision_event_publisher.hpp"
@@ -46,15 +47,8 @@ class ProcessInfoNode final : public IComponent
     /// @param config Configuration for the OS process.
     /// @param index The process index within its process group.
     /// @param ready_condition Whether this process is considered ready when running or when terminated.
-    /// @param state_publisher Interface used to report state changes to the platform health manager.
-    /// @param process_interface The OS process interface used to start and stop the process.
-    /// @param process_map The shared process map used to track process pids.
-    ProcessInfoNode(
-        configuration::ComponentConfig&& config,
-        uint32_t index,
-        ISupervisionEventPublisher& state_publisher,
-        osal::IProcess* process_interface,
-        std::shared_ptr<SafeProcessMapInserter> process_map);
+    /// @param process_handling The interfaces used to start, stop and report on the OS process.
+    ProcessInfoNode(configuration::ComponentConfig&& config, uint32_t index, ProcessHandling process_handling);
 
     /// @brief Explicit move constructor required due to atomics. PIN must be moveable to exist in the graph
     ProcessInfoNode(ProcessInfoNode&& other) noexcept
@@ -68,9 +62,7 @@ class ProcessInfoNode final : public IComponent
           config_(std::move(other.config_)),
           control_client_channel_(std::move(other.control_client_channel_)),
           sync_(std::move(other.sync_)),
-          state_publisher_(other.state_publisher_),
-          process_interface_(other.process_interface_),
-          process_map_(std::move(other.process_map_))
+          process_handling_(std::move(other.process_handling_))
     {
     }
 
@@ -191,17 +183,11 @@ class ProcessInfoNode final : public IComponent
     /// @brief Pointer to the comms for this process
     osal::IpcCommsP sync_{nullptr};
 
-    /// @brief Interface for reporting component state to health monitor
-    ISupervisionEventPublisher& state_publisher_;
-
     /// @brief True if we have returned a success or failure for the current activation/deactivation
     std::atomic_flag success_returned_{false};
 
-    /// @brief Handle to manage the underlying posix process
-    osal::IProcess* process_interface_{nullptr};
-
-    /// @brief Map this node will be stored in
-    std::shared_ptr<SafeProcessMapInserter> process_map_;
+    /// @brief The interfaces used to control a OS process.
+    ProcessHandling process_handling_;
 };
 
 }  // namespace score::mw::lifecycle::internal
