@@ -24,7 +24,7 @@
 //   - A Run Target named "run_target_crashing_app_on_runtime" containing "control_client_test_driver" and
 //     "component_crashing_once"
 
-TEST(FallbackToSameTargetRestarts, ControlClientMock)
+TEST(FallbackToSameTargetRestarts, ControlClientTestDriver)
 {
     score::mw::lifecycle::ControlClient client;
 
