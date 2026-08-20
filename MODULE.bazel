@@ -92,6 +92,17 @@ llvm.toolchain(
 )
 use_repo(llvm, "llvm_toolchain")
 
+fast_llvm_repo = use_repo_rule("//:fast_llvm_repo.bzl", "fast_llvm_repo")
+
+fast_llvm_repo(
+    name = "llvm_dist",
+    llvm_version = "19.1.0",
+)
+
+llvm.toolchain_root(label = "@llvm_dist//:root")
+
+register_toolchains("@llvm_toolchain//:all")
+
 # UTs on QNX
 bazel_dep(name = "score_qnx_unit_tests", version = "0.2.0", dev_dependency = True)
 bazel_dep(name = "score_rules_imagefs", version = "0.0.4", dev_dependency = True)
