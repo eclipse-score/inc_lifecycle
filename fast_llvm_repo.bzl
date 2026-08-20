@@ -8,6 +8,12 @@ _LLVM_DISTRIBUTIONS = {
         # downloads instead of unpacking them.
         "sha256": "cee77d641690466a193d9b88c89705de1c02bbad46bde6a3b126793c0a0f2923",
     },
+    "19.1.1": {
+        # Official prebuilt LLVM package for 64-bit Linux hosts.
+        "url": "https://github.com/llvm/llvm-project/releases/download/llvmorg-19.1.1/LLVM-19.1.1-Linux-X64.tar.xz",
+        # SHA-256 pinned by toolchains_llvm for this exact upstream archive.
+        "sha256": "8204de000b6a6921f0572e038336601e3225898e9a253c8aaa43b0a5fae8a4ce",
+    },
 }
 
 # Implementation of `fast_llvm_repo`. Repository rules run while Bazel is

@@ -97,7 +97,7 @@ llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm", 
 llvm.toolchain(
     # The version must also be present in `_LLVM_DISTRIBUTIONS` in
     # `fast_llvm_repo.bzl`.
-    llvm_version = "19.1.0",
+    llvm_version = "19.1.1",
     # Use the operating system's libstdc++ headers and libraries when this
     # toolchain compiles for Linux x86-64, rather than LLVM's libc++.
     stdlib = {"linux-x86_64": "stdc++"},
@@ -118,7 +118,7 @@ fast_llvm_repo(
     # The external repository name referred to by `toolchain_root` below.
     name = "llvm_dist",
     # Select the URL and checksum entry in `_LLVM_DISTRIBUTIONS`.
-    llvm_version = "19.1.0",
+    llvm_version = "19.1.1",
 )
 
 # Tell the LLVM extension that its toolchain definitions must use our
