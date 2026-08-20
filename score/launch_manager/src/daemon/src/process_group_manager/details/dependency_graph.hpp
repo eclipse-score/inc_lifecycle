@@ -10,19 +10,6 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
-
-/********************************************************************************
- * Copyright (c) 2026 Contributors to the Eclipse Foundation
- *
- * See the NOTICE file(s) distributed with this work for additional
- * information regarding copyright ownership.
- *
- * This program and the accompanying materials are made available under the
- * terms of the Apache License Version 2.0 which is available at
- * https://www.apache.org/licenses/LICENSE-2.0
- *
- * SPDX-License-GraphIndex: Apache-2.0
- ********************************************************************************/
 #ifndef SCORE_LCM_DEPENDENCY_GRAPH_HPP
 #define SCORE_LCM_DEPENDENCY_GRAPH_HPP
 
@@ -58,6 +45,8 @@ class DependencyGraph
         }
     };
 
+    using iterator = typename std::unordered_map<GraphIndex, GraphNode>::iterator;
+
   public:
     /// @param count The exact number of nodes that will be added.
     ///
@@ -71,9 +60,9 @@ class DependencyGraph
     /// @brief Construct a new node in-place. Returns the node's index, which equals the current size
     /// before insertion (i.e. the first node is 0, second is 1, etc.).
     template <typename... Args>
-    GraphIndex emplace(Args&&... args)
+    GraphIndex try_emplace(const GraphIndex& key, Args&&... args)
     {
-        auto& res = nodes.try_emplace(std::forward<Args>(args)...);
+        std::pair<iterator, bool> res = nodes.try_emplace(key, std::forward<Args>(args)...);
         return res.first->first;
     }
 
@@ -83,12 +72,12 @@ class DependencyGraph
     void addDependency(const GraphIndex node, const GraphIndex depends_on)
     {
         SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(
-            nodes[node].depends_on.size() < capacity(), "More dependencies added than there are nodes in the graph");
+            nodes.at(node).depends_on.size() < capacity(), "More dependencies added than there are nodes in the graph");
         SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(
-            nodes[depends_on].dependents.size() < capacity(),
+            nodes.at(depends_on).dependents.size() < capacity(),
             "More dependencies added than there are nodes in the graph");
-        nodes[node].depends_on.push_back(depends_on);
-        nodes[depends_on].dependents.push_back(node);
+        nodes.at(node).depends_on.push_back(depends_on);
+        nodes.at(depends_on).dependents.push_back(node);
     }
 
     /// @return The number of nodes in the graph.
@@ -106,7 +95,7 @@ class DependencyGraph
 
     T& operator[](GraphIndex index)
     {
-        return nodes[index].value;
+        return nodes.at(index).value;
     }
 
     const T& operator[](const GraphIndex index) const
@@ -139,7 +128,7 @@ class DependencyGraph
         auto push_res = traversal_queue.push(start);
         static_cast<void>(push_res);
         SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(push_res, "Traversal queue was already full");
-        nodes[start].visited = true;
+        nodes.at(start).visited = true;
         while (!traversal_queue.empty())
         {
             const auto pop_res = traversal_queue.tryPop();
@@ -150,13 +139,13 @@ class DependencyGraph
 
             for (const auto neighbor : neighbors)
             {
-                if (nodes[neighbor].visited)
+                if (nodes.at(neighbor).visited)
                 {
                     continue;
                 }
                 push_res = traversal_queue.push(neighbor);
                 SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(push_res, "Traversal queue was already full");
-                nodes[neighbor].visited = true;
+                nodes.at(neighbor).visited = true;
             }
         }
     }
@@ -164,7 +153,7 @@ class DependencyGraph
     /// @brief Iterator over node values.
     struct ValueIterator
     {
-        typename std::unordered_map<GraphIndex, GraphNode>::iterator it;
+        iterator it;
         T& operator*()
         {
             return it->second.value;
@@ -200,8 +189,6 @@ class DependencyGraph
     /// @brief Presized queue reused by single-threaded traversals.
     internal::FixedSizeQueue<GraphIndex> traversal_queue;
 };
-
-template class DependencyGraph<int, int>;
 
 }  // namespace score::mw::lifecycle
 

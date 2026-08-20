@@ -26,32 +26,32 @@ namespace score::mw::lifecycle::internal
 /// @brief A node finished activating successfully.
 struct [[nodiscard]] ActivationSuccessful
 {
-    uint32_t node_index;
+    IdentifierHash node_index;
 };
 
 /// @brief A node failed to activate.
 struct [[nodiscard]] ActivationFailed
 {
-    uint32_t node_index;
+    IdentifierHash node_index;
     IComponent::ComponentError reason;
 };
 
 /// @brief A node finished deactivating.
 struct [[nodiscard]] DeactivationComplete
 {
-    uint32_t node_index;
+    IdentifierHash node_index;
 };
 
 /// @brief A node terminated without having been requested to.
 struct [[nodiscard]] UnexpectedTermination
 {
-    uint32_t node_index;
+    IdentifierHash node_index;
 };
 
 /// @brief A job was queued but cancelled by the time it was processed
 struct [[nodiscard]] JobSkipped
 {
-    uint32_t node_index;
+    IdentifierHash node_index;
 };
 
 /// @brief Alive supervision has failed for the given process identifier.

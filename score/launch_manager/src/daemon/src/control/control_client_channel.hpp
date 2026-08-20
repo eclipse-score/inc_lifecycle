@@ -40,9 +40,9 @@ namespace internal
 struct ControlClientID final
 {
     uint16_t process_group_index_;  ///< Process group containing the state manager process
-    uint16_t process_index_;        ///< The process within the process group
+    IdentifierHash process_index_;  ///< The process within the process group
     uint32_t future_id_;            ///< ID to match request and response
-    ControlClientID() : process_group_index_(0), process_index_(0), future_id_(0)
+    ControlClientID() : process_group_index_(0), process_index_(""), future_id_(0)
     {
     }  ///< For use by Control Client
 };

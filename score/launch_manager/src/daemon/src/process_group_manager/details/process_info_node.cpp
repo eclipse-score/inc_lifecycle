@@ -455,9 +455,9 @@ std::chrono::milliseconds ProcessInfoNode::getTerminationTimeout() const
     return std::chrono::milliseconds{config_.deployment_config.shutdown_timeout_ms};
 }
 
-uint32_t ProcessInfoNode::getIndex() const
+IdentifierHash ProcessInfoNode::getIndex() const
 {
-    return process_index_;
+    return IdentifierHash{config_.name};
 }
 
 ControlClientChannelP ProcessInfoNode::getControlClientChannel() const

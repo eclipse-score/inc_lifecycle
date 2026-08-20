@@ -27,7 +27,7 @@ namespace score::mw::lifecycle::internal
 class RunTarget final : public IComponent
 {
   public:
-    explicit RunTarget(uint32_t index) : index_(index)
+    explicit RunTarget(IdentifierHash index) : index_(index)
     {
     }
 
@@ -56,7 +56,7 @@ class RunTarget final : public IComponent
         return RequestState::kSuccess;
     }
 
-    uint32_t getIndex() const override
+    IdentifierHash getIndex() const override
     {
         return index_;
     }
@@ -67,7 +67,7 @@ class RunTarget final : public IComponent
     }
 
   private:
-    uint32_t index_;
+    IdentifierHash index_;
     std::atomic<bool> active_{false};
 };
 

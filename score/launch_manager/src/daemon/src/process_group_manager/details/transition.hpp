@@ -15,6 +15,7 @@
 
 #include "score/mw/launch_manager/common/concurrency/fixed_size_queue.hpp"
 #include "score/mw/launch_manager/common/constants.hpp"
+#include "score/mw/launch_manager/process_group_manager/details/component_of.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/dependency_graph.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/icomponent.hpp"
 
@@ -41,22 +42,25 @@ enum class Action : std::uint8_t
 };
 
 /// @brief Contains a node that is ready to be activated/deactivated
+template <typename GraphIndex>
 struct ReadyNode
 {
     GraphIndex node;
     Action action;
 };
 
-inline bool operator==(const ReadyNode& lhs, const ReadyNode& rhs)
+template <typename T>
+inline bool operator==(const ReadyNode<T>& lhs, const ReadyNode<T>& rhs)
 {
     return lhs.node == rhs.node && lhs.action == rhs.action;
 }
-inline bool operator!=(const ReadyNode& lhs, const ReadyNode& rhs)
+template <typename T>
+inline bool operator!=(const ReadyNode<T>& lhs, const ReadyNode<T>& rhs)
 {
     return !(lhs == rhs);
 }
 
-template <typename T>
+template <typename T, typename GraphIndex>
 class TransitionBuilder;
 
 namespace detail
@@ -82,7 +86,7 @@ struct is_component_type<U, std::void_t<decltype(componentOf(std::declval<U&>())
 ///          need to be activated (those reachable from the target that are
 ///          not yet active).
 ///
-template <typename T>
+template <typename GraphIndex, typename T>
 class Transition
 {
     // The transition is split into two phases:
@@ -102,7 +106,7 @@ class Transition
         "Transition<T> requires an ADL-findable componentOf(T&) that returns a reference "
         "to IComponent&.");
 
-    friend class TransitionBuilder<T>;
+    friend class TransitionBuilder<GraphIndex, T>;
 
   public:
     /// @brief Pop the next ready node, or std::nullopt if none is ready right now
@@ -110,13 +114,13 @@ class Transition
     /// is gone from the frontier the moment it's returned. Safe to interleave
     /// with onNodeFinished() — nodes onNodeFinished() appends are queued behind
     /// whatever's already pending, never lost, regardless of consumption order.
-    std::optional<ReadyNode> nextReady()
+    std::optional<ReadyNode<GraphIndex>> nextReady()
     {
         if (state_.next_nodes.empty())
         {
             return std::nullopt;
         }
-        return ReadyNode{state_.next_nodes.tryPop().value(), currentAction()};
+        return ReadyNode<GraphIndex>{state_.next_nodes.tryPop().value(), currentAction()};
     }
 
     /// @brief Input iterator that drains the transition via nextReady().
@@ -127,8 +131,8 @@ class Transition
     class Iterator
     {
       public:
-        using value_type = ReadyNode;
-        using reference = ReadyNode;
+        using value_type = ReadyNode<GraphIndex>;
+        using reference = ReadyNode<GraphIndex>;
         using difference_type = std::ptrdiff_t;
         using iterator_category = std::input_iterator_tag;
         using pointer = void;
@@ -139,7 +143,7 @@ class Transition
             advance();
         }
 
-        ReadyNode operator*() const
+        ReadyNode<GraphIndex> operator*() const
         {
             return *current_;
         }
@@ -164,7 +168,7 @@ class Transition
         }
 
         Transition* owner_ = nullptr;
-        std::optional<ReadyNode> current_;
+        std::optional<ReadyNode<GraphIndex>> current_;
     };
 
     Iterator begin()
@@ -206,9 +210,10 @@ class Transition
         const auto& successors = state_.phase == Phase::Starting ? graph_.dependents(node) : graph_.dependsOn(node);
         for (const GraphIndex s : successors)
         {
-            if (isReady(s) && !state_.enqueued_set.test(s))
+            const std::size_t index = state_.bitset_map.at(s);
+            if (isReady(s) && !state_.enqueued_set.test(index))
             {
-                state_.enqueued_set.set(s);
+                state_.enqueued_set.set(index);
                 SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(
                     state_.next_nodes.push(s), "Transition queue should never exceed capacity");
             }
@@ -226,16 +231,15 @@ class Transition
     /// @brief True iff @p node is a valid index into the underlying graph, i.e. in [0, size()).
     bool isValidNode(GraphIndex node) const
     {
-        return node < graph_.size();
+        return state_.bitset_map.find(node) != state_.bitset_map.end();
     }
 
     /// @brief Construct a reusable Transition for the given graph.
     /// @details All the memory needed for a transition is allocated here, so that no further allocations are
     /// needed while the transition is in flight. The same transition object is then reused for multiple transitions by
     /// calling @ref setupTransition() with a new target node.
-    explicit Transition(DependencyGraph<T>& graph) : state_(graph.capacity()), graph_(graph)
+    explicit Transition(DependencyGraph<GraphIndex, T>& graph) : state_(graph.capacity()), graph_(graph)
     {
-        state_.in_target_subgraph.assign(graph.capacity(), false);
     }
 
     /// @brief Set up a fresh transition to @p target.
@@ -244,13 +248,22 @@ class Transition
     /// aborted transition are captured too). Then moves to the Starting Phase to bring up @p target.
     void setupTransition(GraphIndex target)
     {
-        std::fill(state_.in_target_subgraph.begin(), state_.in_target_subgraph.end(), false);
+        if (state_.bitset_map.size() == 0)
+        {
+            std::size_t count = 0;
+            for (auto& node : graph_)
+            {
+                state_.bitset_map.emplace(internal::componentOf(node).getIndex(), count++);
+            }
+        }
+
+        state_.in_target_subgraph.reset();
+        state_.enqueued_set.reset();
 
         state_.target_root = target;
         clearNextNodes();
         state_.pending = 0;
         state_.phase = Phase::Stopping;
-        state_.enqueued_set.reset();
         setupDeactivation(target);
         if (state_.pending == 0)
         {
@@ -275,7 +288,7 @@ class Transition
         ///              nodes onNodeFinished must never (re)stop.
         ///   starting:  nodes that are directly or indirectly depended on by
         ///              the target_root.
-        std::vector<bool> in_target_subgraph;
+        std::bitset<static_cast<std::size_t>(internal::ProcessLimits::kMaxProcesses)> in_target_subgraph;
 
         /// @brief The destination subgraph's root (the `target` endpoint)
         GraphIndex target_root{};
@@ -292,8 +305,11 @@ class Transition
         /// successors. Detection of dependency readiness should be reworked to remove this.
         std::bitset<static_cast<std::size_t>(internal::ProcessLimits::kMaxProcesses)> enqueued_set{};
 
-        State(std::size_t nodes) : next_nodes(nodes)
+        std::unordered_map<GraphIndex, std::size_t> bitset_map;
+
+        explicit State(std::size_t nodes) : next_nodes(nodes)
         {
+            bitset_map.reserve(nodes);
         }
     };
 
@@ -328,7 +344,7 @@ class Transition
     }
 
     State state_;
-    DependencyGraph<T>& graph_;
+    DependencyGraph<GraphIndex, T>& graph_;
 
     /// @brief The action based on whether the transition is in the Stopping or Starting phase
     Action currentAction() const
@@ -339,9 +355,11 @@ class Transition
     /// @brief Check if the node is ready to be activated/deactivated in the current phase.
     bool isReady(GraphIndex s)
     {
+        const std::size_t index = state_.bitset_map.at(s);
+
         return state_.phase == Phase::Starting
-                   ? (state_.in_target_subgraph[s] && !active(s) && allDepsActive(s))
-                   : (!state_.in_target_subgraph[s] && !stopped(s) && allDependentsStopped(s));
+                   ? (state_.in_target_subgraph.test(index) && !active(s) && allDepsActive(s))
+                   : (!state_.in_target_subgraph.test(index) && !stopped(s) && allDependentsStopped(s));
     }
 
     void clearNextNodes()
@@ -377,7 +395,8 @@ class Transition
     void setupActivation(GraphIndex root)
     {
         graph_.traverse(root, [this](GraphIndex i) -> const std::vector<GraphIndex>& {
-            state_.in_target_subgraph[i] = true;
+            const std::size_t index = state_.bitset_map[i];
+            state_.in_target_subgraph.set(index);
             if (!active(i))
             {
                 ++state_.pending;
@@ -403,17 +422,19 @@ class Transition
     void setupDeactivation(GraphIndex target)
     {
         graph_.traverse(target, [this](GraphIndex i) -> const std::vector<GraphIndex>& {
-            state_.in_target_subgraph[i] = true;
+            const std::size_t index = state_.bitset_map[i];
+            state_.in_target_subgraph.set(index);
             return graph_.dependsOn(i);
         });
-        for (GraphIndex i = 0; i < graph_.size(); ++i)
+
+        for (const auto& [node, index] : state_.bitset_map)
         {
-            if (!state_.in_target_subgraph[i] && !stopped(i))
+            if (!state_.in_target_subgraph[index] && !stopped(node))
             {
                 ++state_.pending;
-                if (allDependentsStopped(i))
+                if (allDependentsStopped(node))
                 {
-                    state_.next_nodes.push(i);
+                    state_.next_nodes.push(node);
                 }
             }
         }
@@ -425,11 +446,11 @@ class Transition
 /// @details The builder only supports a single transition at a time. It is
 /// expected that whenever a new transition is created, the previous one is no longer in use.
 /// The reason is that Memory is only allocated during initialization and then reused for each transition.
-template <typename T>
+template <typename GraphIndex, typename T>
 class TransitionBuilder final
 {
   public:
-    explicit TransitionBuilder(DependencyGraph<T>& graph) : transition_(graph)
+    explicit TransitionBuilder(DependencyGraph<GraphIndex, T>& graph) : transition_(graph)
     {
     }
 
@@ -437,7 +458,7 @@ class TransitionBuilder final
     /// @details First deactivates every node currently running that is not needed by @p target (keeping anything
     /// shared with @p target active), then activates all nodes reachable from @p target. The stop set is derived from
     /// live component state, so this recovers correctly even when a previous transition was aborted mid-flight.
-    Transition<T>& createTransition(GraphIndex target)
+    Transition<GraphIndex, T>& createTransition(GraphIndex target)
     {
         SCORE_LANGUAGE_FUTURECPP_ASSERT(transition_.isValidNode(target));
         transition_.setupTransition(target);
@@ -446,7 +467,7 @@ class TransitionBuilder final
 
   private:
     /// @brief The single reusable transition
-    Transition<T> transition_;
+    Transition<GraphIndex, T> transition_;
 };
 
 }  // namespace score::mw::lifecycle
