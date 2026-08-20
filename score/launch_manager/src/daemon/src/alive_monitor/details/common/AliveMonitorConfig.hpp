@@ -35,7 +35,7 @@ struct SupervisedComponentConfig
     /// @brief Component short name.
     std::string name;
     /// @brief Alive-supervision parameters.
-    std::optional<score::mw::lifecycle::internal::configuration::ComponentAliveSupervision> alive_supervision;
+    std::optional<configuration::ComponentAliveSupervision> alive_supervision;
     /// @brief Uid the component runs as.
     uid_t uid{};
 };
@@ -51,7 +51,7 @@ struct AliveMonitorConfig
 
 /// @brief Returns a copy of alive-monitor-relevant configuration.
 /// @return AliveMonitor configuration
-AliveMonitorConfig aliveMonitorConfig(const score::mw::lifecycle::internal::configuration::Config& config);
+AliveMonitorConfig aliveMonitorConfig(const configuration::Config& config);
 
 }  // namespace score::mw::lifecycle::internal::alive
 

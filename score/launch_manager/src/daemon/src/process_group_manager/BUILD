@@ -20,6 +20,7 @@ cc_library(
     visibility = ["//score:__subpackages__"],
     deps = [
         "//score/launch_manager/src/daemon/src/common:constants",
+        "//score/launch_manager/src/daemon/src/configuration:component_config",
         "//score/launch_manager/src/daemon/src/osal:ipc_comms",
     ],
 )
@@ -85,7 +86,6 @@ cc_library(
         "//score/launch_manager/src/daemon/src/common/concurrency:mpmc_concurrent_queue",
         "//score/launch_manager/src/daemon/src/common/concurrency:thread_pool",
         "//score/launch_manager/src/daemon/src/configuration:config",
-        "//score/launch_manager/src/daemon/src/configuration:configuration_adapter",
         "//score/launch_manager/src/daemon/src/control:control_client_channel",
         "//score/launch_manager/src/daemon/src/osal:ipc_comms",
         "//score/launch_manager/src/daemon/src/process_group_manager/details:graph",

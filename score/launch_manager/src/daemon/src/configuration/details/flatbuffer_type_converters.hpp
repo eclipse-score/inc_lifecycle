@@ -32,9 +32,6 @@
 namespace score::mw::lifecycle::internal::configuration
 {
 
-namespace details
-{
-
 // --- Range validation ---
 
 template <typename TargetT>
@@ -142,7 +139,6 @@ score::cpp::expected<TargetT, IConfigLoader::Error> validateRange(int64_t value,
 [[nodiscard]] score::cpp::expected<std::optional<WatchdogConfig>, IConfigLoader::Error> convertWatchdog(
     const fb::Watchdog* fb_wd);
 
-}  // namespace details
 }  // namespace score::mw::lifecycle::internal::configuration
 
 #endif  // FLATBUFFER_TYPE_CONVERTERS_HPP

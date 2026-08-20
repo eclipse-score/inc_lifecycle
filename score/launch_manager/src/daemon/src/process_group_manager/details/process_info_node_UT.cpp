@@ -17,7 +17,10 @@
 #include "score/mw/launch_manager/supervision_control_client/mock_supervision_event_publisher.hpp"
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <chrono>
+#include <cstdint>
 #include <memory>
+#include <utility>
 #include <vector>
 
 using namespace testing;
@@ -46,42 +49,47 @@ class ProcessInfoNodeFixture : public ::testing::Test
     }
 
     /// @brief Helper method to create a ProcessInfoNode with the given parameters.
+    /// @note ComponentConfig is move-only, so a fresh one is built for every node.
     std::unique_ptr<ProcessInfoNode> createProcessInfoNode(
-        osal::CommsType comms_type = osal::CommsType::kReporting,
-        int restart_attempts = 0,
+        configuration::ApplicationType application_type = configuration::ApplicationType::Reporting,
+        std::uint32_t restart_attempts = 0U,
         bool self_terminating = false,
-        ProcessInfoNode::ReadyCondition ready_condition = ProcessInfoNode::ReadyCondition::kRunning)
+        configuration::ProcessState ready_state = configuration::ProcessState::Running)
     {
-        config_.startup_config_.comms_type_ = comms_type;
+        configuration::ComponentConfig config{};
+        config.name = "test_process";
+        config.component_properties.binary_name = "test_process";
 
-        PgManagerConfig pgm_config;
-        pgm_config.number_of_restart_attempts = restart_attempts;
-        pgm_config.is_self_terminating_ = self_terminating;
-        config_.pgm_config_ = pgm_config;
+        auto& profile = config.component_properties.application_profile;
+        profile.application_type = application_type;
+        profile.is_self_terminating = self_terminating;
+        config.component_properties.ready_condition = configuration::ReadyCondition{ready_state};
+        config.deployment_config.ready_recovery_action = configuration::RestartAction{restart_attempts, 0U};
+        config.deployment_config.shutdown_timeout_ms = shutdown_timeout_ms_;
 
         return std::make_unique<ProcessInfoNode>(
-            &config_, kProcessIndex, ready_condition, mock_publisher_, &mock_processIf_, process_map_);
+            std::move(config), kProcessIndex, ProcessHandling{mock_publisher_, &mock_processIf_, process_map_});
     }
 
     /// @brief Helper method to create a ProcessInfoNode that is self-terminating.
     std::unique_ptr<ProcessInfoNode> createSelfTerminatingProcessInfoNode(
-        osal::CommsType comms_type = osal::CommsType::kReporting,
-        int restart_attempts = 0)
+        configuration::ApplicationType application_type = configuration::ApplicationType::Reporting,
+        std::uint32_t restart_attempts = 0U)
     {
-        return createProcessInfoNode(comms_type, restart_attempts, true);
+        return createProcessInfoNode(application_type, restart_attempts, true);
     }
 
     /// @brief Helper method to create a ProcessInfoNode that is already in Running state
     std::unique_ptr<ProcessInfoNode> createRunningProcessInfoNode(
-        osal::CommsType comms_type = osal::CommsType::kReporting,
+        configuration::ApplicationType application_type = configuration::ApplicationType::Reporting,
         std::chrono::milliseconds termination_timeout = std::chrono::milliseconds{1000})
     {
-        auto node = createProcessInfoNode(comms_type);
-        config_.pgm_config_.termination_timeout_ms_ = termination_timeout;
+        shutdown_timeout_ms_ = static_cast<std::uint32_t>(termination_timeout.count());
+        auto node = createProcessInfoNode(application_type);
 
         expectSuccessfulProcessLaunch();
 
-        node->activate(score::cpp::stop_token{});
+        static_cast<void>(node->activate(score::cpp::stop_token{}));
         return node;
     }
 
@@ -89,7 +97,7 @@ class ProcessInfoNodeFixture : public ::testing::Test
     std::unique_ptr<ProcessInfoNode> createRunningProcessInfoNode_TermTimeout(
         std::chrono::milliseconds termination_timeout)
     {
-        return createRunningProcessInfoNode(osal::CommsType::kReporting, termination_timeout);
+        return createRunningProcessInfoNode(configuration::ApplicationType::Reporting, termination_timeout);
     }
 
     /// @brief Sets up expectations for the OS process being launched and successfully added to the process map.
@@ -106,12 +114,13 @@ class ProcessInfoNodeFixture : public ::testing::Test
         EXPECT_CALL(mock_processIf_, requestTermination(_))
             .WillOnce(DoAll(
                 InvokeWithoutArgs([node, exit_status] {
-                    node->tryHandleTermination(exit_status);
+                    static_cast<void>(node->tryHandleTermination(exit_status));
                 }),
                 Return(osal::OsalReturnType::kSuccess)));
     }
 
-    OsProcess config_{};
+    /// @brief Termination timeout applied to every node created by the helpers below.
+    std::uint32_t shutdown_timeout_ms_{1000U};
     score::cpp::stop_source stop_source_{};
     std::shared_ptr<MockSafeProcessMapInserter> process_map_{std::make_shared<MockSafeProcessMapInserter>()};
     StrictMock<osal::MockIProcess> mock_processIf_{};
@@ -144,7 +153,7 @@ TEST_F(ProcessInfoNodeStartupTest, CanStartNonReportingProcess)
         "Can start a non-reporting process and check that the state transitions to kRunning without waiting for "
         "kRunning report.");
 
-    auto node = createProcessInfoNode(osal::CommsType::kNoComms);
+    auto node = createProcessInfoNode(configuration::ApplicationType::Native);
     expectSuccessfulProcessLaunch();
 
     auto result = node->activate(score::cpp::stop_token{});
@@ -159,7 +168,7 @@ TEST_F(ProcessInfoNodeStartupTest, CanStartReportingProcess_ReportsRunningInTime
 {
     RecordProperty("Description", "Can start a reporting process and check that the state transitions to kRunning.");
 
-    auto node = createProcessInfoNode(osal::CommsType::kReporting);
+    auto node = createProcessInfoNode(configuration::ApplicationType::Reporting);
     expectSuccessfulProcessLaunch();
     EXPECT_CALL(mock_processIf_, waitForkRunning(_, _)).WillOnce(Return(osal::OsalReturnType::kSuccess));
     EXPECT_CALL(mock_publisher_, reportActivation);
@@ -178,7 +187,7 @@ TEST_F(ProcessInfoNodeStartupTest, OsForkFails_ReturnsErrorBeforeReady)
         "Description",
         "If the OS fails to fork the process, activate() returns kErrorBeforeReady and the node ends up in kFailed.");
 
-    auto node = createProcessInfoNode(osal::CommsType::kNoComms);
+    auto node = createProcessInfoNode(configuration::ApplicationType::Native);
     EXPECT_CALL(mock_processIf_, startProcess(_, _, _)).WillOnce(Return(osal::OsalReturnType::kFail));
 
     auto result = node->activate(score::cpp::stop_token{});
@@ -195,7 +204,7 @@ TEST_F(ProcessInfoNodeStartupTest, MapInsertError_ReturnsErrorBeforeReady)
         "If the process map insertion fails with an error, activate() returns kErrorBeforeReady and the "
         "node ends up in kFailed.");
 
-    auto node = createProcessInfoNode(osal::CommsType::kNoComms);
+    auto node = createProcessInfoNode(configuration::ApplicationType::Native);
     EXPECT_CALL(mock_processIf_, startProcess(_, _, _)).WillOnce(Return(osal::OsalReturnType::kSuccess));
     EXPECT_CALL(*process_map_, insertIfNotTerminated(_, _))
         .WillOnce(Return(score::mw::lifecycle::internal::SafeProcessMapReturnType::kInsertionError));
@@ -216,12 +225,12 @@ TEST_F(ProcessInfoNodeStartupTest, SelfTerminating_ExitsBeforeMapInsert_ReturnsS
         "A self-terminating non-reporting process that exits with status 0 before the map insertion completes is "
         "treated as a successful startup.");
 
-    auto node = createSelfTerminatingProcessInfoNode(osal::CommsType::kNoComms);
+    auto node = createSelfTerminatingProcessInfoNode(configuration::ApplicationType::Native);
     // Simulate the process exiting before the map insertion happens.
     EXPECT_CALL(mock_processIf_, startProcess(_, _, _))
         .WillOnce(DoAll(
             InvokeWithoutArgs([node = node.get()] {
-                node->tryHandleTermination(0);
+                static_cast<void>(node->tryHandleTermination(0));
             }),
             Return(osal::OsalReturnType::kSuccess)));
     EXPECT_CALL(*process_map_, insertIfNotTerminated(_, _))
@@ -240,7 +249,7 @@ TEST_F(ProcessInfoNodeStartupTest, ActivateAlreadyActiveNode_ReturnsSuccess)
         "Description",
         "Calling activate() on a node that is already active returns kSuccess without re-launching the process.");
 
-    auto node = createRunningProcessInfoNode(osal::CommsType::kNoComms);
+    auto node = createRunningProcessInfoNode(configuration::ApplicationType::Native);
 
     auto result = node->activate(score::cpp::stop_token{});
 
@@ -261,7 +270,7 @@ TEST_F(ProcessInfoNodeStartupCrashTest, ProcesssTerminated_OnWaitForkRunningTime
         "Description",
         "If waitForkRunning times out, the process reports kActivationTimedOut and ends up in state kTerminated.");
 
-    auto node = createProcessInfoNode(osal::CommsType::kReporting);
+    auto node = createProcessInfoNode(configuration::ApplicationType::Reporting);
     expectSuccessfulProcessLaunch();
     EXPECT_CALL(mock_processIf_, waitForkRunning(_, _)).WillOnce(Return(osal::OsalReturnType::kFail));
     // Simulate the OS handler reporting the killed process's exit once termination is requested.
@@ -282,13 +291,13 @@ TEST_F(ProcessInfoNodeStartupCrashTest, ReportingProcess_CrashesBeforeReady_NoRe
         "Process returns kErrorBeforeReady when crashing before reaching its ready condition (kRunning) with 0 restart "
         "attempts");
 
-    auto node = createProcessInfoNode(osal::CommsType::kReporting);
+    auto node = createProcessInfoNode(configuration::ApplicationType::Reporting);
     expectSuccessfulProcessLaunch();
     // Simulate the OS handler detecting the crash while the process is still waiting to reach kRunning.
     EXPECT_CALL(mock_processIf_, waitForkRunning(_, _))
         .WillOnce(DoAll(
             InvokeWithoutArgs([node = node.get()] {
-                node->tryHandleTermination(-1);
+                static_cast<void>(node->tryHandleTermination(-1));
             }),
             Return(osal::OsalReturnType::kFail)));
     EXPECT_CALL(mock_publisher_, reportActivation).Times(0);
@@ -309,7 +318,7 @@ TEST_F(ProcessInfoNodeStartupCrashTest, ReportingProcess_CrashesBeforeReady_With
 
     constexpr uint32_t kRestartAttempts = 3;
     constexpr uint32_t kTotalAttempts = kRestartAttempts + 1;
-    auto node = createProcessInfoNode(osal::CommsType::kReporting, kRestartAttempts);
+    auto node = createProcessInfoNode(configuration::ApplicationType::Reporting, kRestartAttempts);
 
     EXPECT_CALL(mock_processIf_, startProcess(_, _, _))
         .Times(kTotalAttempts)
@@ -323,7 +332,7 @@ TEST_F(ProcessInfoNodeStartupCrashTest, ReportingProcess_CrashesBeforeReady_With
         .Times(kTotalAttempts)
         .WillRepeatedly(DoAll(
             InvokeWithoutArgs([node = node.get()] {
-                node->tryHandleTermination(-1);
+                static_cast<void>(node->tryHandleTermination(-1));
             }),
             Return(osal::OsalReturnType::kFail)));
     EXPECT_CALL(mock_publisher_, reportActivation).Times(0);
@@ -342,13 +351,13 @@ TEST_F(ProcessInfoNodeStartupCrashTest, NonReportingProcess_CrashesBeforeReady_N
         "A non-reporting process that crashes (non-zero status) between map insertion and the startup thread's status "
         "check returns kErrorBeforeReady.");
 
-    auto node = createProcessInfoNode(osal::CommsType::kNoComms);
+    auto node = createProcessInfoNode(configuration::ApplicationType::Native);
     EXPECT_CALL(mock_processIf_, startProcess(_, _, _)).WillOnce(Return(osal::OsalReturnType::kSuccess));
     // Simulate the process crashing after the map insertion.
     EXPECT_CALL(*process_map_, insertIfNotTerminated(_, _))
         .WillOnce(DoAll(
             InvokeWithoutArgs([node = node.get()] {
-                node->tryHandleTermination(-1);
+                static_cast<void>(node->tryHandleTermination(-1));
             }),
             Return(score::mw::lifecycle::internal::SafeProcessMapReturnType::kOk)));
 
@@ -368,7 +377,7 @@ TEST_F(ProcessInfoNodeStartupCrashTest, NonReportingProcess_CrashesBeforeReady_W
 
     constexpr uint32_t kRestartAttempts = 2;
     constexpr uint32_t kTotalAttempts = kRestartAttempts + 1;
-    auto node = createProcessInfoNode(osal::CommsType::kNoComms, kRestartAttempts);
+    auto node = createProcessInfoNode(configuration::ApplicationType::Native, kRestartAttempts);
 
     EXPECT_CALL(mock_processIf_, startProcess(_, _, _))
         .Times(kTotalAttempts)
@@ -377,7 +386,7 @@ TEST_F(ProcessInfoNodeStartupCrashTest, NonReportingProcess_CrashesBeforeReady_W
         .Times(kTotalAttempts)
         .WillRepeatedly(DoAll(
             InvokeWithoutArgs([node = node.get()] {
-                node->tryHandleTermination(-1);
+                static_cast<void>(node->tryHandleTermination(-1));
             }),
             Return(score::mw::lifecycle::internal::SafeProcessMapReturnType::kOk)));
 
@@ -395,7 +404,7 @@ TEST_F(ProcessInfoNodeStartupCrashTest, TimeoutThenSuccess_WithRestarts)
         "A reporting process that times out on the first attempt but reports kRunning on the retry returns kSuccess.");
 
     constexpr uint32_t kRestartAttempts = 1;
-    auto node = createProcessInfoNode(osal::CommsType::kReporting, kRestartAttempts);
+    auto node = createProcessInfoNode(configuration::ApplicationType::Reporting, kRestartAttempts);
 
     EXPECT_CALL(mock_processIf_, startProcess(_, _, _)).Times(2).WillRepeatedly(Return(osal::OsalReturnType::kSuccess));
     EXPECT_CALL(*process_map_, insertIfNotTerminated(_, _))
@@ -424,7 +433,7 @@ TEST_F(ProcessInfoNodeUnexpectedTerminationTest, ProcesssCrashed_AfterReadyCondi
     RecordProperty(
         "Description", "Process returns kErrorAfterReady when crashing after reaching its ready condition (kRunning).");
 
-    auto node = createRunningProcessInfoNode(osal::CommsType::kNoComms);
+    auto node = createRunningProcessInfoNode(configuration::ApplicationType::Native);
 
     auto result = node->tryHandleTermination(-1);
 
@@ -439,9 +448,9 @@ TEST_F(ProcessInfoNodeUnexpectedTerminationTest, SelfTerminatingProcess_ExitsWit
         "Description",
         "A self-terminating process exits without an explicit termination request and ends up in state kTerminated.");
 
-    auto node = createSelfTerminatingProcessInfoNode(osal::CommsType::kNoComms);
+    auto node = createSelfTerminatingProcessInfoNode(configuration::ApplicationType::Native);
     expectSuccessfulProcessLaunch();
-    node->activate(score::cpp::stop_token{});
+    static_cast<void>(node->activate(score::cpp::stop_token{}));
 
     auto result = node->tryHandleTermination(0);
 
@@ -458,10 +467,10 @@ TEST_F(ProcessInfoNodeUnexpectedTerminationTest, SelfTerminating_TerminatedReady
         "it exits cleanly, since its exit is the event that satisfies the ready condition.");
 
     auto node = createProcessInfoNode(
-        osal::CommsType::kNoComms,
+        configuration::ApplicationType::Native,
         0 /*restart_attempts*/,
         true /*self terminating*/,
-        ProcessInfoNode::ReadyCondition::kTerminated /*ready condition*/);
+        configuration::ProcessState::Terminated /*ready condition*/);
     expectSuccessfulProcessLaunch();
     // activate() returns kWaiting because kRunning != kTerminated (the ready condition).
     auto activate_result = node->activate(score::cpp::stop_token{});
@@ -482,9 +491,9 @@ TEST_F(ProcessInfoNodeUnexpectedTerminationTest, SelfTerminating_CrashAfterReady
         "A self-terminating process that crashes (non-zero exit status) after reaching its ready condition returns "
         "kErrorAfterReady, just like a non-self-terminating process crash.");
 
-    auto node = createSelfTerminatingProcessInfoNode(osal::CommsType::kNoComms);
+    auto node = createSelfTerminatingProcessInfoNode(configuration::ApplicationType::Native);
     expectSuccessfulProcessLaunch();
-    node->activate(score::cpp::stop_token{});
+    static_cast<void>(node->activate(score::cpp::stop_token{}));
 
     auto result = node->tryHandleTermination(-1);
 
@@ -508,7 +517,7 @@ TEST_F(ProcessInfoNodeDeactivationTest, CanTerminateNonSelfTerminatingProcess)
     EXPECT_CALL(mock_processIf_, waitForkRunning(_, _)).WillOnce(Return(osal::OsalReturnType::kSuccess));
     EXPECT_CALL(mock_publisher_, reportDeactivation);
 
-    auto node = createRunningProcessInfoNode(osal::CommsType::kReporting);
+    auto node = createRunningProcessInfoNode(configuration::ApplicationType::Reporting);
     // Simulate the OS handler reporting the process's exit once termination is requested.
     expectOsAcknowledgesTermination(node.get());
 
@@ -550,7 +559,7 @@ TEST_F(ProcessInfoNodeMoveTest, MoveConstruct_RunningNode_PreservesAtomicState)
         "Move-constructing from a running ProcessInfoNode carries over the atomic process state and ready flag, so the "
         "moved node reports the running state and is active.");
 
-    auto source = createRunningProcessInfoNode(osal::CommsType::kNoComms);
+    auto source = createRunningProcessInfoNode(configuration::ApplicationType::Native);
     ASSERT_THAT(source->getState(), Eq(score::mw::lifecycle::ProcessState::kRunning));
     ASSERT_THAT(source->active(), IsTrue());
 
@@ -577,7 +586,7 @@ TEST_F(ProcessInfoNodeDeactivationTest, ProcessIgnoresSigterm_ForcedWithSigkill)
     EXPECT_CALL(mock_processIf_, forceTermination(_))
         .WillOnce(DoAll(
             InvokeWithoutArgs([node = node.get()] {
-                node->tryHandleTermination(0);
+                static_cast<void>(node->tryHandleTermination(0));
             }),
             Return(osal::OsalReturnType::kSuccess)));
 

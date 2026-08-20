@@ -495,21 +495,19 @@ def check_cyclic_dependencies(config):
 def custom_validations(config):
     success = True
 
-    if config.get("initial_run_target") != "Startup":
-        report_error(
-            "initial_run_target must be configured to 'Startup'. Other values are not yet supported yet."
-        )
-        success = False
-
-    if "Startup" not in config["run_targets"]:
-        report_error(
-            '"Startup" is a mandatory RunTarget and must be defined in the configuration.'
-        )
-        success = False
-
     if "fallback_run_target" in config["run_targets"]:
         report_error(
             'RunTarget name "fallback_run_target" is reserved, please choose a different name.'
+        )
+        success = False
+
+    # Components and RunTargets share a single namespace when dependencies are resolved,
+    # so a name used by both is ambiguous.
+    colliding_names = set(config["components"]) & set(config["run_targets"])
+    if colliding_names:
+        report_error(
+            "The following names are used for both a Component and a RunTarget, "
+            f"please choose different names: {', '.join(sorted(colliding_names))}."
         )
         success = False
 

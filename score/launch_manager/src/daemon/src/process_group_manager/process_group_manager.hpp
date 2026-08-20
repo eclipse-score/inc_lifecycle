@@ -23,7 +23,6 @@
 #include "score/mw/launch_manager/common/constants.hpp"
 #include "score/mw/launch_manager/common/identifier_hash.hpp"
 #include "score/mw/launch_manager/configuration/config.hpp"
-#include "score/mw/launch_manager/configuration/configuration_adapter.hpp"
 #include "score/mw/launch_manager/control/control_client_channel.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/component_event_queue.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/graph.hpp"
@@ -41,9 +40,6 @@
 
 namespace score::mw::lifecycle::internal
 {
-
-using ConfigurationType = ConfigurationAdapter;
-using Config = score::mw::lifecycle::internal::configuration::Config;
 
 /// @brief ProcessGroupManager provides the core functionality of LCM.
 /// Software that is deployed to the machine, should be managed through Process Groups.
@@ -76,20 +72,20 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     /// @param watchdog A unique pointer to an IWatchdogIf instance serviced during the main loop. May be nullptr in
     /// legacy configuration where no watchdog is wired.
     ProcessGroupManager(
+        configuration::Config&& config,
         std::unique_ptr<IAliveMonitorThread> alive_monitor_thread,
         std::shared_ptr<IRecoveryClient> recovery_client,
         std::unique_ptr<score::mw::lifecycle::ISupervisionControlNotifier> supervision_control_notifier,
         std::unique_ptr<score::mw::lifecycle::internal::watchdog::IWatchdogIf> watchdog);
 
     /// @brief Initializes the process group manager.
-    /// Loads the flat configuration through ConfigurationManager.
     /// Sets up a signal handler for SIGINT and SIGTERM so that the main loop of
     /// the run() method will be exited in the event of those signals
     /// Creates the process map, worker threads and worker job queues.
     /// Creates and initialises the shared memory for the nudge semaphore, always using FD #4,
     /// and stores a pointer to it.
     /// @return Returns true if initialization was successful, false otherwise.
-    bool initialize(const Config& config);
+    bool initialize();
 
     /// @brief De-initialises the process group manager
     /// deletes worker threads, worker jobs and the process map and then de-initialises the configuration manager
@@ -104,15 +100,10 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     /// @return Returns true if the process group manager ran successfully, false otherwise.
     bool run();
 
-    /// @brief Get the process group for a given pg_name
-    /// @param pg_name the name to look up
+    /// @brief Get the process group for a given run_target
+    /// @param run_target the name to look up
     /// @return a pointer to the Graph, or nullptr if not found
-    std::shared_ptr<Graph> getProcessGroup(IdentifierHash pg_name);
-
-    /// @brief Get the process group that owns the process with the given identifier
-    /// @param process_id the process identifier to look up
-    /// @return a pointer to the Graph, or nullptr if not found
-    std::shared_ptr<Graph> getProcessGroupByProcessId(const IdentifierHash& process_id);
+    std::shared_ptr<Graph> getProcessGroup(IdentifierHash run_target);
 
     /// @brief Get a node corresponding to the given process group and process index
     /// @param pg_index The index of the process group in the list of groups managed by this manager
@@ -134,10 +125,6 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     /// @return Pointer to the OSAL process interface.
     osal::IProcess* getProcessInterface();
 
-    /// @brief Get the configuration object
-    /// @return a pointer to the configuration object
-    ConfigurationType* getConfiguration();
-
     /// @brief Gets the process map.
     /// @return Shared pointer to the SafeProcessMap object.
     std::shared_ptr<SafeProcessMap> getProcessMap();
@@ -148,6 +135,8 @@ class ProcessGroupManager final : public ITransitionResultPublisher
 
     /// @brief Cancels processGroupManager main routine as though SIGTERM had been sent
     void cancel();
+
+    const IdentifierHash recovery_state_{"fallback"};
 
   private:
     /// @brief Perform the function of Control Client handler
@@ -242,19 +231,13 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     void processGetExecutionError(ControlClientChannelP scc);
 
     /// @brief process a request to get the initial machine state transition result
-    /// @details if `machine_process_group_` is a null pointer:\n
+    /// @details if `graph_` is a null pointer:\n
     ///     set the request code of the message to `kInitialMachineStateNotSet`\n
     /// else:\n
     ///     wait for `initial_state_transition_result_` to be not equal to `kInitialMachineStateNotSet`\n
     ///     set the request code of the message to be equal to `initial_state_transition_result_`
     /// @param scc pointer to Control Client channel
     void processGetInitialMachineStateTransitionResult(ControlClientChannelP scc);
-
-    /// @brief process request to validate the process group state id
-    /// @details set the request code of the message to `kValidateProcessGroupStateSuccess` or
-    /// `kValidateProcessGroupStateFailed` as appropriate
-    /// @param scc pointer to Control Client channel
-    void processValidateFunctionStateID(ControlClientChannelP scc);
 
     /// @brief Send all process groups to the "Off" state
     /// @details cancel any Graph for a process group not in the "Off" state, wait for up to 2 seconds for all graphs
@@ -271,14 +254,11 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     /// @brief Creates process component objects, including the job queue and worker threads.
     void createProcessComponentsObjects(std::size_t total_processes);
 
-    /// @brief Initializes the graph nodes.
-    void initializeGraphNodes();
-
     /// @brief Initializes the Control Client handler.
     bool initializeControlClientHandler();
 
     /// @brief The configuration object associated with the ProcessGroupManager.
-    ConfigurationType configuration_;
+    configuration::Config configuration_;
 
     /// @brief The process interface object associated with the ProcessGroupManager.
     osal::ProcessLauncher process_interface_;
@@ -292,19 +272,11 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     /// @brief Shared pointer to the job queue for ProcessInfoNode jobs.
     std::shared_ptr<WorkerQueue> worker_jobs_;
 
-    /// @brief Number of process groups.
-    /// @deprecated there is no reason to store the number of process groups in the class
-    /// @todo Remove this data member, it is not required (a local variable may be used)
-    uint32_t num_process_groups_ = 0U;
-
-    /// @brief Stores the process groups as shared pointers to Graph objects.
-    std::vector<std::shared_ptr<Graph>> process_groups_{};
-
     /// @brief The result of the initial state transition
     std::atomic<ControlClientCode> initial_state_transition_result_{ControlClientCode::kInitialMachineStateNotSet};
 
-    /// @brief Pointer to the graph corresponding to the machine process group
-    std::shared_ptr<Graph> machine_process_group_{nullptr};
+    /// @brief Pointer to the gaph.
+    std::shared_ptr<Graph> graph_{nullptr};
 
     /// @brief Process state notifier object used to send data to PHM
     std::unique_ptr<score::mw::lifecycle::ISupervisionControlNotifier> supervision_control_notifier_;

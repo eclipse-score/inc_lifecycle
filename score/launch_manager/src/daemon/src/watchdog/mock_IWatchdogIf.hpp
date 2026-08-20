@@ -34,7 +34,7 @@ class MockWatchdogIf : public IWatchdogIf
     MOCK_METHOD(
         bool,
         init,
-        (const score::mw::lifecycle::internal::configuration::WatchdogConfig& watchdog_config,
+        (const score::mw::lifecycle::internal::configuration::WatchdogConfig&& watchdog_config,
          std::int64_t cycle_time_ns),
         (noexcept, override));
     MOCK_METHOD(bool, enable, (), (noexcept, override));
