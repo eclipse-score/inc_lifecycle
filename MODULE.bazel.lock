@@ -10193,7 +10193,7 @@
     "@@toolchains_llvm+//toolchain/extensions:llvm.bzl%llvm": {
       "general": {
         "bzlTransitiveDigest": "2nizkGuHTT5Rnm/m2ZKyN0gz6PG1uMRn/wIec1UMxaw=",
-        "usagesDigest": "Bjq0icZhgyZSWqR0baN+OcR8ZqenKkYO1Gd957R5yac=",
+        "usagesDigest": "BBq6at+ayeHbaHcEiYbExlHIOoPTYBVWROSLizm6v9E=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
@@ -10218,7 +10218,7 @@
               "link_flags": {},
               "link_libs": {},
               "llvm_versions": {
-                "": "19.1.1"
+                "": "19.1.0"
               },
               "opt_compile_flags": {},
               "opt_link_flags": {},

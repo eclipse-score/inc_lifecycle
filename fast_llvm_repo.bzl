@@ -5,7 +5,6 @@ _LLVM_DISTRIBUTIONS = {
     },
 }
 
-
 def _fast_llvm_repo_impl(ctx):
     dist = _LLVM_DISTRIBUTIONS.get(ctx.attr.llvm_version)
 
@@ -34,28 +33,25 @@ def _fast_llvm_repo_impl(ctx):
             ctx.path("."),
         ],
         timeout = 1800,
+        quiet = False,
     )
 
     if result.return_code:
-        fail("LLVM extraction failed:\n%s" % result.stderr)
+        fail(result.stderr)
 
     ctx.delete(archive)
 
-    ctx.file(
+    ctx.template(
         "BUILD.bazel",
-        """
-package(default_visibility = ["//visibility:public"])
-
-filegroup(
-    name = "root",
-    srcs = [],
-)
-""",
+        Label("@toolchains_llvm//toolchain:BUILD.llvm_repo"),
     )
 
 fast_llvm_repo = repository_rule(
     implementation = _fast_llvm_repo_impl,
     attrs = {
         "llvm_version": attr.string(mandatory = True),
+        "_llvm_repo_build": attr.label(
+            default = Label("@toolchains_llvm//toolchain:BUILD.llvm_repo"),
+        ),
     },
 )
