@@ -38,6 +38,9 @@ using ::testing::StrEq;
 
 const score::filesystem::Path kTestPath{"/tmp/test_config.bin"};
 
+/// Name of the run target the loader appends when the configuration does not provide it.
+constexpr const char* kOffRunTargetName = "Off";
+
 std::vector<uint8_t> finishBuffer(
     ::flatbuffers::FlatBufferBuilder& fbb,
     ::flatbuffers::Offset<fb::LaunchManagerConfig> root)
@@ -292,6 +295,28 @@ TEST_F(FlatbufferConfigLoaderTest, LoadRunTargets)
     EXPECT_THAT(target.depends_on[0], Eq("component_a"));
     EXPECT_THAT(target.transition_timeout_ms, Eq(5000U));
     EXPECT_THAT(target.recovery_action.run_target, Eq("SafeState"));
+}
+
+TEST_F(FlatbufferConfigLoaderTest, ConfiguredOffRunTargetIsLoadedVerbatim)
+{
+    RecordProperty("Description", "An explicitly configured \"Off\" run target is loaded like any other run target.");
+
+    ::flatbuffers::FlatBufferBuilder fbb;
+
+    auto switch_target = fbb.CreateString("SafeState");
+    auto switch_action = fb::CreateSwitchRunTargetAction(fbb, switch_target);
+    auto rt_name = fbb.CreateString(kOffRunTargetName);
+    auto rt_desc = fbb.CreateString("Configured off state");
+    auto rt = fb::CreateRunTarget(fbb, rt_name, rt_desc, 0 /*depends_on*/, 2.0 /*transition_timeout*/, switch_action);
+    auto rts = fbb.CreateVector(std::vector<::flatbuffers::Offset<fb::RunTarget>>{rt});
+
+    auto result = loadBuffer(buildConfigWithRunTargets(fbb, rts));
+
+    ASSERT_THAT(result.has_value(), IsTrue());
+    ASSERT_THAT(result->runTargets().size(), Eq(1U));
+    EXPECT_THAT(result->runTargets()[0].name, Eq(kOffRunTargetName));
+    EXPECT_THAT(result->runTargets()[0].description, Eq("Configured off state"));
+    EXPECT_THAT(result->runTargets()[0].transition_timeout_ms, Eq(2000U));
 }
 
 TEST_F(FlatbufferConfigLoaderTest, LoadFallbackRunTarget)

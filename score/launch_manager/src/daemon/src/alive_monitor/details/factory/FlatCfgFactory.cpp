@@ -93,7 +93,7 @@ bool FlatCfgFactory::createAliveIfIpc(
 {
     try
     {
-        const std::string pathInterface = internal::aliveInterfacePath(component_id);
+        const std::string pathInterface = aliveInterfacePath(component_id);
         auto& server = servers.emplace_back();
 
         if (initIpcServerWithUidBasedAccess(server, pathInterface, uid))

@@ -150,14 +150,14 @@ cc_library(
 )
 
 cc_library(
-    name = "mock_applicationcontext",
+    name = "mock_application_context",
     testonly = True,
     srcs = [
-        "src/mock_applicationcontext.cpp",
+        "src/mock_application_context.cpp",
     ],
     hdrs = [
         "src/applicationcontext.h",
-        "src/mock_applicationcontext.h",
+        "src/mock_application_context.h",
     ],
     features = COMPILER_WARNING_FEATURES,
     include_prefix = "score/mw/lifecycle",
@@ -173,11 +173,11 @@ cc_library(
     name = "mock_mw_lifecycle_manager",
     testonly = True,
     srcs = [
-        "src/mock_mwlifecyclemanager.cpp",
+        "src/mock_mw_lifecycle_manager.cpp",
     ],
     hdrs = [
         "src/lifecyclemanager.h",
-        "src/mock_mwlifecyclemanager.h",
+        "src/mock_mw_lifecycle_manager.h",
     ],
     features = COMPILER_WARNING_FEATURES,
     include_prefix = "score/mw/lifecycle",
@@ -193,12 +193,12 @@ cc_library(
     name = "mock_lifecycle",
     testonly = True,
     srcs = [
-        "src/mock_lifecyclemanager.cpp",
+        "src/mock_lifecycle_manager.cpp",
     ],
     hdrs = [
         "src/application.h",
         "src/lifecyclemanager.h",
-        "src/mock_lifecyclemanager.h",
+        "src/mock_lifecycle_manager.h",
     ],
     features = COMPILER_WARNING_FEATURES,
     include_prefix = "score/mw/lifecycle",
@@ -206,7 +206,7 @@ cc_library(
     visibility = ["//score/launch_manager:__subpackages__"],
     deps = [
         ":lifecyclemanager",
-        ":mock_applicationcontext",
+        ":mock_application_context",
         ":mock_mw_lifecycle_manager",
         "@googletest//:gtest",
         "@score_baselibs//score/os/utils:signal",

@@ -32,11 +32,14 @@
 #include "score/mw/launch_manager/osal/sys_exit.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/process_launcher.hpp"
 #include "score/mw/launch_manager/process_group_manager/iprocess.hpp"
+#include <charconv>
+#include <array>
 #include <cerrno>
 #include <csignal>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <iterator>
 
 constexpr int kPidZero = 0;  // This value is used to check if the process ID (uses pid_t) is valid or not.
 constexpr int kPosixSuccess = 0;
@@ -135,40 +138,48 @@ void handleComms(score::mw::lifecycle::internal::osal::ChildProcessConfig& param
 }
 
 /// @details The implementation should be async signal safe.
-void changeCurrentWorkingDirectory(const score::mw::lifecycle::internal::osal::OsalConfig& config)
+void changeCurrentWorkingDirectory(const score::mw::lifecycle::internal::configuration::DeploymentConfig& config)
 {
-    // working_dir_ is set by python configuration generator in lifecycle_config.py, so it should always be valid.
+    // working_dir is set by configuration, so it should always be valid.
     // If not, chdir will fail anyway and we will log an error and exit.
-    if (-1 == chdir(config.working_dir_.c_str()))
+    if (-1 == chdir(config.working_dir.c_str()))
     {
-        static_cast<void>(signal_safe_log_errno(errno, "chdir(", config.working_dir_, ") failed."));
+        static_cast<void>(signal_safe_log_errno(errno, "chdir(", config.working_dir, ") failed."));
         sysexit(EXIT_FAILURE);
     }
 }
 
 /// @details The implementation should be async signal safe.
-void implementMemoryResourceLimits(const score::mw::lifecycle::internal::osal::OsalConfig& config)
+void implementMemoryResourceLimits(const score::mw::lifecycle::internal::configuration::Sandbox& config)
 {
-    setLimit(RLIMIT_DATA, config.resource_limits_.data_, "RLIMIT_DATA");
-    setLimit(RLIMIT_AS, config.resource_limits_.as_, "RLIMIT_AS");
-    setLimit(RLIMIT_STACK, config.resource_limits_.stack_, "RLIMIT_STACK");
+    if (config.max_memory_usage.has_value())
+    {
+        setLimit(RLIMIT_DATA, config.max_memory_usage.value(), "RLIMIT_DATA");
+        setLimit(RLIMIT_AS, config.max_memory_usage.value(), "RLIMIT_AS");
+    }
+
+    // Stack limit - not in new config, skip
+    // setLimit(RLIMIT_STACK, 0, "RLIMIT_STACK");
 
     // Note about cpu limit:
     // Using setrlimit, this imposes a maximum time that a process will run for, which might not be
     // what you intend? Probably you'll want a maximum time in a time-slice, but you don't get that
     // with limits set by setrlimit...
-    setLimit(RLIMIT_CPU, config.resource_limits_.cpu_, "RLIMIT_CPU");
+    if (config.max_cpu_usage.has_value())
+    {
+        setLimit(RLIMIT_CPU, config.max_cpu_usage.value(), "RLIMIT_CPU");
+    }
 }
 
 /// @details The implementation should be async signal safe.
-void changeSecurityPolicy(const score::mw::lifecycle::internal::osal::OsalConfig& config)
+void changeSecurityPolicy(const score::mw::lifecycle::internal::configuration::Sandbox& config)
 {
-    if (config.security_policy_ != "")
+    if (config.security_policy.has_value() && !config.security_policy.value().empty())
     {
-        if (score::mw::lifecycle::internal::osal::setSecurityPolicy(config.security_policy_.c_str()) != 0)
+        if (score::mw::lifecycle::internal::osal::setSecurityPolicy(config.security_policy.value().c_str()) != 0)
         {
             static_cast<void>(
-                signal_safe_log_errno(errno, "changeSecurityPolicy(", config.security_policy_, ") failed"));
+                signal_safe_log_errno(errno, "changeSecurityPolicy(", config.security_policy.value(), ") failed"));
             sysexit(EXIT_FAILURE);
         }
     }
@@ -179,26 +190,31 @@ void changeSecurityPolicy(const score::mw::lifecycle::internal::osal::OsalConfig
 namespace score::mw::lifecycle::internal::osal
 {
 
-OsalReturnType ProcessLauncher::startProcess(ProcessID* pid, IpcCommsP* block, const OsalConfig* config)
+OsalReturnType ProcessLauncher::startProcess(
+    ProcessID& pid,
+    IpcCommsP& block,
+    const score::mw::lifecycle::internal::configuration::ComponentConfig& config)
 {
     OsalReturnType result = OsalReturnType::kFail;
 
-    if ((pid && block && config && config->executable_path_ != "" && config->argv_[0U]))
+    if (!config.component_properties.binary_name.empty())
     {
-        if (access(config->executable_path_.c_str(), X_OK) != 0)
+        std::string executable_path = config.deployment_config.bin_dir + "/" + config.component_properties.binary_name;
+        if (access(executable_path.c_str(), X_OK) != 0)
         {
-            static_cast<void>(signal_safe_log("File does not exist or is not executable: ", config->executable_path_));
+            static_cast<void>(signal_safe_log("File does not exist or is not executable: ", executable_path));
             return result;
         }
 
         int fd = -1;
-        *pid = -1;
-        *block = nullptr;
+        pid = -1;
+        block = nullptr;
         bool comms_result = true;
 
-        if (config->comms_type_ != CommsType::kNoComms)
+        auto app_type = config.component_properties.application_profile.application_type;
+        if (app_type != score::mw::lifecycle::internal::configuration::ApplicationType::Native)
         {
-            comms_result = setupComms(*block, fd, *config);
+            comms_result = setupComms(block, fd, config);
         }
 
         if (comms_result)
@@ -206,9 +222,9 @@ OsalReturnType ProcessLauncher::startProcess(ProcessID* pid, IpcCommsP* block, c
             /// @todo need to recheck after logging framework implementation.
             static_cast<void>(fflush(stdout));
 
-            *pid = fork();
+            pid = fork();
 
-            if (*pid == kPosixSuccess)
+            if (pid == kPosixSuccess)
             {
                 /*
                  * From this point on, only async signal safe functions can be
@@ -216,11 +232,11 @@ OsalReturnType ProcessLauncher::startProcess(ProcessID* pid, IpcCommsP* block, c
                  * which were held at that time will never be released.
                  * See `man 2 fork`.
                  */
-                ChildProcessConfig param = {config, fd, *block};
+                ChildProcessConfig param = {config, fd, block};
                 handleChildProcess(param);
                 result = OsalReturnType::kSuccess;
             }
-            else if (*pid > kPidZero)
+            else if (pid > kPidZero)
             {
                 result = OsalReturnType::kSuccess;
             }
@@ -242,8 +258,7 @@ OsalReturnType ProcessLauncher::startProcess(ProcessID* pid, IpcCommsP* block, c
     }
     else
     {
-        LM_LOG_ERROR()
-            << "Invalid input parameters: Ensure process_id, config, executable_path, and argv are correctly provided.";
+        LM_LOG_ERROR() << "Invalid input parameters: Ensure config and binary_name are correctly provided.";
 
         return result;
     }
@@ -251,79 +266,95 @@ OsalReturnType ProcessLauncher::startProcess(ProcessID* pid, IpcCommsP* block, c
     return result;
 }
 
-bool ProcessLauncher::setupComms(IpcCommsP& block, int& fd, const OsalConfig& config)
+bool ProcessLauncher::setupComms(IpcCommsP& block, int& fd, const configuration::ComponentConfig& config)
 {
-    bool comms_result = true;
-    char shm_name[static_cast<uint32_t>(score::mw::lifecycle::internal::ProcessLimits::maxLocalBuffSize)];
-    size_t length = sizeof(IpcCommsSync);
+    const auto app_type = config.component_properties.application_profile.application_type;
 
-    if (CommsType::kControlClient == config.comms_type_)
+    size_t length = sizeof(IpcCommsSync);
+    if (configuration::ApplicationType::StateManager == app_type)
     {
         length += sizeof(ControlClientChannel);
     }
 
-    static_cast<void>(snprintf(
-        shm_name,
-        static_cast<uint32_t>(score::mw::lifecycle::internal::ProcessLimits::maxLocalBuffSize),
-        "/ipc_shared_mem%u",
-        shm_name_counter++));
+    constexpr std::string_view kShmNamePrefix{"/ipc_shared_mem"};
+    std::array<char, static_cast<std::size_t>(ProcessLimits::maxLocalBuffSize)> shm_name{};
+    static_cast<void>(kShmNamePrefix.copy(shm_name.data(), kShmNamePrefix.size()));
 
-    fd = shm_open(shm_name, O_CREAT | O_EXCL | O_RDWR, 0U);
+    char* const counter_first = std::next(shm_name.data(), static_cast<std::ptrdiff_t>(kShmNamePrefix.size()));
+    // The last byte is excluded from the conversion range so that it keeps the zero from the value
+    // initialization above, which guarantees a null-terminated name for shm_open().
+    char* const counter_last = std::next(shm_name.data(), static_cast<std::ptrdiff_t>(shm_name.size() - 1U));
 
+    const auto conversion = std::to_chars(counter_first, counter_last, shm_name_counter++);
+    if (conversion.ec != std::errc{})
+    {
+        LM_LOG_ERROR() << "Shared memory name truncated: the local buffer is too small for the shared memory "
+                          "object name.";
+        return false;
+    }
+    *conversion.ptr = '\0';
+
+    fd = shm_open(shm_name.data(), O_CREAT | O_EXCL | O_RDWR, 0U);
     if (fd < 0)
     {
-        LM_LOG_ERROR() << "shm_open failed:" << config.executable_path_ << "Unable to open shared memory object. Error:"
-                       << score::mw::lifecycle::internal::errno_message(errno);
-        comms_result = false;
+        LM_LOG_ERROR() << "shm_open failed:" << config.deployment_config.bin_dir << "/"
+                       << config.component_properties.binary_name
+                       << "Unable to open shared memory object. Error:" << errno_message(errno);
+        return false;
     }
-    else
+
+    shm_unlink(shm_name.data());
+
+    if (-1 == ftruncate(fd, static_cast<int>(length)))
     {
-        shm_unlink(shm_name);
-
-        if (ftruncate(fd, static_cast<int>(length)))  // failure -1
-        {
-            comms_result = false;
-            LM_LOG_ERROR() << "ftruncate failed:" << config.executable_path_
-                           << "Unable to set size of shared memory file descriptor. Error:"
-                           << score::mw::lifecycle::internal::errno_message(errno);
-        }
-
-        if (config.comms_type_ == CommsType::kControlClient)
-        {
-            block = initializeControlClient(fd, config);
-        }
-        else
-        {
-            block = IpcCommsSync::getCommsObject(fd);
-        }
-        if (block)
-        {
-            block->comms_type_ = config.comms_type_;
-            if (!initializeSemaphores(block))
-            {
-                LM_LOG_ERROR() << "Semaphore init failed:" << config.short_name_
-                               << "Unable to initialize send_sync or reply_sync semaphore.";
-                comms_result = false;
-            }
-        }
-        else
-        {
-            comms_result = false;
-        }
+        LM_LOG_ERROR() << "ftruncate failed:" << config.deployment_config.bin_dir << "/"
+                       << config.component_properties.binary_name
+                       << "Unable to set size of shared memory file descriptor. Error:" << errno_message(errno);
+        return false;
     }
 
-    return comms_result;
+    block = (configuration::ApplicationType::StateManager == app_type) ? initializeControlClient(fd, config)
+                                                                       : IpcCommsSync::getCommsObject(fd);
+    if (!block)
+    {
+        return false;
+    }
+
+    // Map application type to CommsType for backward compatibility
+    switch (app_type)
+    {
+        case configuration::ApplicationType::StateManager:
+            block->comms_type_ = CommsType::kControlClient;
+            break;
+        case configuration::ApplicationType::Native:
+            block->comms_type_ = CommsType::kNoComms;
+            break;
+        case configuration::ApplicationType::Reporting:
+        case configuration::ApplicationType::ReportingAndSupervised:
+        default:
+            block->comms_type_ = CommsType::kReporting;
+            break;
+    }
+
+    if (!initializeSemaphores(block))
+    {
+        LM_LOG_ERROR() << "Semaphore init failed:" << config.name
+                       << "Unable to initialize send_sync or reply_sync semaphore.";
+        return false;
+    }
+
+    return true;
 }
 
-IpcCommsP ProcessLauncher::initializeControlClient(int& fd, const OsalConfig& config)
+IpcCommsP ProcessLauncher::initializeControlClient(int& fd, const configuration::ComponentConfig& config)
 {
-    LM_LOG_DEBUG() << "Initialize the control client for" << config.short_name_ << " process";
+    LM_LOG_DEBUG() << "Initialize the control client for" << config.name << " process";
     /* Initialise the control client communications */
     IpcCommsP shared_block = nullptr;
     ControlClientChannelP scc = ControlClientChannel::initializeControlClientChannel(fd, &shared_block);
     if (!scc)
     {
-        LM_LOG_ERROR() << "Failed to obtain ControlClientChannel for " << config.short_name_
+        LM_LOG_ERROR() << "Failed to obtain ControlClientChannel for " << config.name
                        << ": initializeControlClientChannel returned nullptr";
         return nullptr;  // Caller will see shared_block maybe null and treat as failure later.
     }
@@ -346,7 +377,7 @@ bool ProcessLauncher::initializeSemaphores(IpcCommsP shared_block)
 }
 
 /// @details The implementation should be async signal safe.
-OsalReturnType ProcessLauncher::setSchedulingAndSecurity(const OsalConfig& config)
+OsalReturnType ProcessLauncher::setSchedulingAndSecurity(const configuration::Sandbox& config)
 {
     OsalReturnType retval = OsalReturnType::kSuccess;
 
@@ -357,66 +388,65 @@ OsalReturnType ProcessLauncher::setSchedulingAndSecurity(const OsalConfig& confi
         retval = OsalReturnType::kFail;
     }
     // Set scheduling policy with sched_setscheduler
-    /* RULECHECKER_comment(1, 1, check_union_object, "Union type defined in external library is used.", true) */
     sched_param sch_param{};
 
-    sch_param.sched_priority = config.scheduling_priority_;
+    sch_param.sched_priority = config.scheduling_priority;
 
-    if (sch_param.sched_priority < sched_get_priority_min(config.scheduling_policy_))
+    if (sch_param.sched_priority < sched_get_priority_min(config.scheduling_policy))
     {
         static_cast<void>(signal_safe_log(
             "Scheduling priority ",
             sch_param.sched_priority,
             " is below minimum for policy ",
-            config.scheduling_policy_,
+            config.scheduling_policy,
             ", setting to minimum"));
-        sch_param.sched_priority = sched_get_priority_min(config.scheduling_policy_);
+        sch_param.sched_priority = sched_get_priority_min(config.scheduling_policy);
     }
-    else if (sch_param.sched_priority > sched_get_priority_max(config.scheduling_policy_))
+    else if (sch_param.sched_priority > sched_get_priority_max(config.scheduling_policy))
     {
         static_cast<void>(signal_safe_log(
             "Scheduling priority ",
             sch_param.sched_priority,
             " is above maximum for policy ",
-            config.scheduling_policy_,
+            config.scheduling_policy,
             ", setting to maximum"));
-        sch_param.sched_priority = sched_get_priority_max(config.scheduling_policy_);
+        sch_param.sched_priority = sched_get_priority_max(config.scheduling_policy);
     }
 
-    if (-1 == sched_setscheduler(0, config.scheduling_policy_, &sch_param))
+    if (-1 == sched_setscheduler(0, config.scheduling_policy, &sch_param))
     {
         static_cast<void>(signal_safe_log_errno(errno, "sched_setscheduler() failed"));
         retval = OsalReturnType::kFail;
     }
 
-    // Set core affinity using OS specific functionality in osal
-    if (-1 == osal::setaffinity(config.cpu_mask_))
-    {
-        static_cast<void>(signal_safe_log_errno(errno, "setaffinity(", config.cpu_mask_, ") failed"));
-        retval = OsalReturnType::kFail;
-    }
+    // Set core affinity using OS specific functionality in osal - not in new config, skip
+    // if (-1 == osal::setaffinity(0))
+    // {
+    //     static_cast<void>(signal_safe_log_errno(errno, "setaffinity failed"));
+    //     retval = OsalReturnType::kFail;
+    // }
 
     // Set group ID
-    if (-1 == setgid(config.gid_))
+    if (-1 == setgid(config.gid))
     {
-        static_cast<void>(signal_safe_log_errno(errno, "setgid(", config.gid_, ") failed"));
+        static_cast<void>(signal_safe_log_errno(errno, "setgid(", config.gid, ") failed"));
         retval = OsalReturnType::kFail;
     }
     // Set supplementary group ids
-    size_t supplementary_gids_number = config.supplementary_gids_.size();
+    size_t supplementary_gids_number = config.supplementary_group_ids.size();
 
     // Note: the type of the first parameter of setgroups() differs in Linux and QNX, so we use osal
     if (supplementary_gids_number > 0 &&
-        -1 == osal::setgroups(supplementary_gids_number, config.supplementary_gids_.data()))
+        -1 == osal::setgroups(supplementary_gids_number, config.supplementary_group_ids.data()))
     {
         static_cast<void>(signal_safe_log_errno(errno, "setgroups() failed"));
         retval = OsalReturnType::kFail;
     }
 
     // Set user ID
-    if (-1 == setuid(config.uid_))
+    if (-1 == setuid(config.uid))
     {
-        static_cast<void>(signal_safe_log_errno(errno, "setuid(", config.uid_, ") failed"));
+        static_cast<void>(signal_safe_log_errno(errno, "setuid(", config.uid, ") failed"));
         retval = OsalReturnType::kFail;
     }
 
@@ -428,23 +458,43 @@ void ProcessLauncher::handleChildProcess(ChildProcessConfig& param)
 {
     handleComms(param);
 
-    if (OsalReturnType::kSuccess != setSchedulingAndSecurity(*param.config))
+    if (OsalReturnType::kSuccess != setSchedulingAndSecurity(param.config.deployment_config.sandbox))
     {
         sysexit(EXIT_FAILURE);
     }
 
-    changeCurrentWorkingDirectory(*param.config);
-    implementMemoryResourceLimits(*param.config);
-    changeSecurityPolicy(*param.config);
+    changeCurrentWorkingDirectory(param.config.deployment_config);
+    implementMemoryResourceLimits(param.config.deployment_config.sandbox);
+    changeSecurityPolicy(param.config.deployment_config.sandbox);
+
+    // Build executable path
+    std::string executable_path =
+        param.config.deployment_config.bin_dir + "/" + param.config.component_properties.binary_name;
+
+    // Build argv array - note: must be null-terminated
+    std::array<const char*, kArgvArraySize> argv{};
+    size_t arg_idx = 0;
+    argv[arg_idx++] = executable_path.c_str();
+    for (const auto& arg : param.config.component_properties.process_arguments)
+    {
+        if (arg_idx < kArgvArraySize - 1)
+        {
+            argv[arg_idx++] = arg.c_str();
+        }
+    }
+    argv[arg_idx] = nullptr;
+
+    // Get envp from Environment - it already provides a null-terminated array
+    char* const* envp = param.config.deployment_config.environmental_variables.envp();
 
     // Finally, execute the process, passing all the arguments and environment variables
 
     // RULECHECKER_comment(1, 1, check_pointer_qualifier_cast_const, "Remove const for standard library with char type
     // arguments.", true);
-    if (-1 == execve(param.config->argv_[0], const_cast<char* const*>(param.config->argv_.data()), param.config->envp_))
+    if (-1 == execve(argv[0], const_cast<char* const*>(argv.data()), envp))
     {
-        static_cast<void>(signal_safe_log_errno(
-            errno, "execve failed: Unable to execute the ", param.config->executable_path_, " app."));
+        static_cast<void>(
+            signal_safe_log_errno(errno, "execve failed: Unable to execute the ", executable_path, " app."));
         sysexit(EXIT_FAILURE);
     }
 }
@@ -464,7 +514,7 @@ OsalReturnType ProcessLauncher::requestTermination(ProcessID pid)
         else
         {
             LM_LOG_ERROR() << "SIGTERM failed: Unable to send SIGTERM to process ID" << pid
-                           << ". Error:" << score::mw::lifecycle::internal::errno_message(errno);
+                           << ". Error:" << errno_message(errno);
         }
     }
     else
@@ -521,7 +571,7 @@ OsalReturnType ProcessLauncher::waitForTermination(osal::ProcessID& pid, int32_t
     {
         /// exiting with pid == 0 is perfectly normal behaviour when all process groups are in the Off state.
         LM_LOG_DEBUG() << "wait failed: Unable to wait for any child process to terminate. Error:"
-                       << score::mw::lifecycle::internal::errno_message(errno);
+                       << errno_message(errno);
     }
 
     return result;
@@ -563,7 +613,7 @@ OsalReturnType ProcessLauncher::waitForkRunning(IpcCommsP sync, std::chrono::mil
         else
         {
             LM_LOG_WARN() << "Skipping semaphore deinitialization - shared memory region appears invalid: "
-                          << score::mw::lifecycle::internal::errno_message(errno);
+                          << errno_message(errno);
         }
     }
     else

@@ -81,12 +81,6 @@ enum class ControlClientCode  // Both request and response codes are given. Mapp
     kExecutionErrorInvalidArguments = 49,  ///< Response: Process group does not exist
     kExecutionErrorRequestFailed = 50,     ///< Response: The process group is in a defined state
     kExecutionErrorRequestSuccess = 51,    ///< Response: Execution error reported for the given process group
-
-    // validateProcessGroupState
-    kValidateProcessGroupState = 64,        ///< Request to validate the process group state ID
-    kValidateProcessGroupStateFailed = 65,  ///< Response: Process group state ID w/as invalid
-    kValidateProcessGroupStateSuccess =
-        66  ///< Response: Both process group name and process group state name were valid
 };
 
 /// @brief A message that can be a request, and acknowledgement or a response
@@ -304,9 +298,7 @@ constexpr ControlClientCodeMapping stateArray[] = {
     {ControlClientCode::kExecutionErrorInvalidArguments, "kExecutionErrorInvalidArguments"},
     {ControlClientCode::kExecutionErrorRequestFailed, "kExecutionErrorRequestFailed"},
     {ControlClientCode::kExecutionErrorRequestSuccess, "kExecutionErrorRequestSuccess"},
-    {ControlClientCode::kValidateProcessGroupState, "kValidateProcessGroupState"},
-    {ControlClientCode::kValidateProcessGroupStateFailed, "kValidateProcessGroupStateFailed"},
-    {ControlClientCode::kValidateProcessGroupStateSuccess, "kValidateProcessGroupStateSuccess"}};
+};
 
 }  // namespace internal
 

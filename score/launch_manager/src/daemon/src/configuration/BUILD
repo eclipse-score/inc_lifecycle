@@ -27,13 +27,57 @@ generate_cpp(
 )
 
 cc_library(
+    name = "environment_config",
+    srcs = ["environment_config.cpp"],
+    hdrs = ["environment_config.hpp"],
+    include_prefix = "score/mw/launch_manager/configuration",
+    strip_include_prefix = "/score/launch_manager/src/daemon/src/configuration",
+    visibility = ["//score:__subpackages__"],
+    deps = [
+        "@score_baselibs//score/language/futurecpp",
+    ],
+)
+
+cc_library(
+    name = "watchdog_config",
+    hdrs = ["watchdog_config.hpp"],
+    include_prefix = "score/mw/launch_manager/configuration",
+    strip_include_prefix = "/score/launch_manager/src/daemon/src/configuration",
+    visibility = ["//score:__subpackages__"],
+)
+
+cc_library(
+    name = "recovery_action_config",
+    hdrs = ["recovery_action_config.hpp"],
+    include_prefix = "score/mw/launch_manager/configuration",
+    strip_include_prefix = "/score/launch_manager/src/daemon/src/configuration",
+    visibility = ["//score:__subpackages__"],
+)
+
+cc_library(
+    name = "component_config",
+    hdrs = ["component_config.hpp"],
+    include_prefix = "score/mw/launch_manager/configuration",
+    strip_include_prefix = "/score/launch_manager/src/daemon/src/configuration",
+    visibility = ["//score:__subpackages__"],
+    deps = [
+        ":environment_config",
+        ":recovery_action_config",
+    ],
+)
+
+cc_library(
     name = "config",
     srcs = ["details/config.cpp"],
     hdrs = ["config.hpp"],
     include_prefix = "score/mw/launch_manager/configuration",
     strip_include_prefix = "/score/launch_manager/src/daemon/src/configuration",
     visibility = ["//score:__subpackages__"],
-    deps = ["@score_baselibs//score/language/futurecpp"],
+    deps = [
+        ":component_config",
+        ":watchdog_config",
+        "@score_baselibs//score/language/futurecpp",
+    ],
 )
 
 lm_cc_test(
@@ -112,42 +156,6 @@ lm_cc_test(
     visibility = ["//tests:__subpackages__"],
     deps = [
         ":flatbuffer_config_loader",
-        "@googletest//:gtest_main",
-        "@score_baselibs//score/flatbuffers:flatbufferscpp",
-    ],
-)
-
-cc_library(
-    name = "configuration_adapter",
-    srcs = ["configuration_adapter.cpp"],
-    hdrs = ["configuration_adapter.hpp"],
-    include_prefix = "score/mw/launch_manager/configuration",
-    strip_include_prefix = "/score/launch_manager/src/daemon/src/configuration",
-    visibility = ["//score:__subpackages__"],
-    deps = [
-        ":config",
-        ":config_loader",
-        ":flatbuffer_config_loader",
-        "//score/launch_manager/src/daemon/src/common:alive_interface_path",
-        "//score/launch_manager/src/daemon/src/common:constants",
-        "//score/launch_manager/src/daemon/src/common:identifier_hash",
-        "//score/launch_manager/src/daemon/src/common:log",
-        "//score/launch_manager/src/daemon/src/common:process_group_state_id",
-        "//score/launch_manager/src/daemon/src/osal:num_cores",
-        "//score/launch_manager/src/daemon/src/process_group_manager:iprocess",
-        "//score/launch_manager/src/daemon/src/process_group_manager:process_state",
-    ],
-)
-
-lm_cc_test(
-    name = "configuration_adapter_UT",
-    srcs = ["configuration_adapter_UT.cpp"],
-    visibility = ["//tests:__subpackages__"],
-    deps = [
-        ":configuration_adapter",
-        "//score/launch_manager/src/daemon/src/osal:num_cores",
-        "//score/launch_manager/src/daemon/src/process_group_manager:iprocess",
-        "//score/launch_manager/src/daemon/src/process_group_manager:process_state",
         "@googletest//:gtest_main",
         "@score_baselibs//score/flatbuffers:flatbufferscpp",
     ],
