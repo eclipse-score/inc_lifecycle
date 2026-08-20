@@ -38,6 +38,8 @@ inline std::string aliveInterfacePath(const IdentifierHash& component_name)
     SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(
         result.ec == std::errc(), "to_chars failed, meaning the hash was converted to more than 20 characters!");
 
+    *result.ptr = '\0';
+
     return "/lifecycle_health_" + std::string{buf.begin(), result.ptr};
 }
 

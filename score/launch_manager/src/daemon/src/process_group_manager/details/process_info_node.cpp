@@ -41,7 +41,7 @@ ProcessInfoNode::ProcessInfoNode(
         configuration::ApplicationType::ReportingAndSupervised)
     {
         config_.deployment_config.environmental_variables.add(
-            "LCM_ALIVE_INTERFACE_PATH", aliveInterfacePath(config_.name));
+            "LCM_ALIVE_INTERFACE_PATH", aliveInterfacePath(IdentifierHash{config_.name}));
     }
     if (config_.deployment_config.ready_recovery_action.has_value())
     {
