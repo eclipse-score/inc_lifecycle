@@ -177,7 +177,7 @@ bool ProcessGroupManager::initializeControlClientHandler()
 
             if (osal::IpcCommsSync::control_client_handler_nudge_fd == fd2)
             {
-                void* buf = mmap(NULL, sizeof(osal::Semaphore), PROT_WRITE, MAP_SHARED, fd2, 0);
+                void* buf = mmap(NULL, sizeof(osal::Semaphore), PROT_READ | PROT_WRITE, MAP_SHARED, fd2, 0);
 
                 // RULECHECKER_comment(1, 1, check_c_style_cast, "This is the definition provided by the OS and does a
                 // C-style cast.", true)
