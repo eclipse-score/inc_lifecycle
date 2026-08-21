@@ -107,7 +107,7 @@ struct IpcCommsSync final
     static IpcCommsP getCommsObject(int fd = IpcCommsSync::sync_fd)
     {
         IpcCommsP ret = nullptr;
-        void* buf = mmap(nullptr, sizeof(IpcCommsSync), PROT_WRITE, MAP_SHARED, fd, 0);
+        void* buf = mmap(nullptr, sizeof(IpcCommsSync), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 
         // RULECHECKER_comment(1, 1, check_c_style_cast, "This is the definition provided by the OS and does a C-style
         // cast.", true)

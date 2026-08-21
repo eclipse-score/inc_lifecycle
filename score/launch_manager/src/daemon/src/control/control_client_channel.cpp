@@ -86,7 +86,12 @@ void ControlClientChannel::sendRequest(ControlClientMessage& msg)
     // now map the semaphore and post on it
     // Attempt to map the semaphore
     auto* nudgeLM = mmap(
-        NULL, sizeof(osal::Semaphore), PROT_WRITE, MAP_SHARED, osal::IpcCommsSync::control_client_handler_nudge_fd, 0);
+        NULL,
+        sizeof(osal::Semaphore),
+        PROT_READ | PROT_WRITE,
+        MAP_SHARED,
+        osal::IpcCommsSync::control_client_handler_nudge_fd,
+        0);
 
     // RULECHECKER_comment(1, 1, check_c_style_cast, "This is the definition provided by the OS and does a C-style
     // cast.", true)
@@ -141,8 +146,13 @@ void ControlClientChannel::acknowledgeRequest()
 ControlClientChannelP ControlClientChannel::initializeControlClientChannel(int fileDesc, osal::IpcCommsP* mem_ptr)
 {
     ControlClientChannelP result = nullptr;
-    void* channelMemory =
-        mmap(nullptr, sizeof(ControlClientChannel) + sizeof(osal::IpcCommsSync), PROT_WRITE, MAP_SHARED, fileDesc, 0);
+    void* channelMemory = mmap(
+        nullptr,
+        sizeof(ControlClientChannel) + sizeof(osal::IpcCommsSync),
+        PROT_READ | PROT_WRITE,
+        MAP_SHARED,
+        fileDesc,
+        0);
 
     if (MAP_FAILED == channelMemory)
     {
