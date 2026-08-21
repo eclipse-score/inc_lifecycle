@@ -90,7 +90,16 @@ def report_error(message):
 
 # There are various dictionaries in the config where only a single entry is allowed.
 # We do not want to merge the defaults with the user specified values for these dictionaries.
-not_merging_dicts = ["ready_recovery_action", "recovery_action"]
+not_merging_dicts = ["ready_recovery_action", "recovery_action", "ready_condition"]
+
+
+# Defaults for the optional fields of a "file_state" ready condition.
+# note: these are only default when a file_state is configured so it's no in
+# the main default config.
+file_state_defaults: Dict[str, Any] = {
+    "state": "Exists",
+    "polling_interval": 0.01,
+}
 
 
 def load_json_file(file_path: str) -> Dict[str, Any]:
@@ -104,6 +113,21 @@ def get_working_dir(deployment_config):
     Get the working directory for a component. If not specified, default to the bin_dir.
     """
     return deployment_config.get("working_dir", deployment_config["bin_dir"])
+
+
+def apply_file_state_defaults(ready_condition):
+    """Fill in the optional fields of a "file_state" ready condition with
+    their defaults. Only done if a "file_state" ready condition is configured.
+    """
+    file_state = ready_condition.get("file_state")
+    is_configured = isinstance(file_state, dict)
+    if not is_configured:
+        return
+
+    # user config takes precedence over the defaults
+    merged = dict(file_state_defaults)
+    merged.update(file_state)
+    ready_condition["file_state"] = {**merged}
 
 
 def preprocess_defaults(global_defaults, config):
@@ -167,6 +191,12 @@ def preprocess_defaults(global_defaults, config):
         new_config["components"][component_name]["deployment_config"] = dict_merge(
             merged_defaults["deployment_config"],
             component_config.get("deployment_config", {}),
+        )
+
+        apply_file_state_defaults(
+            new_config["components"][component_name]["component_properties"].get(
+                "ready_condition", {}
+            )
         )
 
         # If the application_type is not supervised, remove alive_supervision
@@ -494,6 +524,21 @@ def check_cyclic_dependencies(config):
 
 def custom_validations(config):
     success = True
+
+    # A ready condition is either process state or file state (right now), but
+    # never on both.
+    for component_name, component_config in config["components"].items():
+        ready_condition = component_config["component_properties"].get(
+            "ready_condition", {}
+        )
+        has_process_state = "process_state" in ready_condition
+        has_file_state = "file_state" in ready_condition
+        if has_process_state and has_file_state:
+            report_error(
+                f"Component '{component_name}': ready_condition must configure either "
+                '"process_state" or "file_state", but not both.'
+            )
+            success = False
 
     if "fallback_run_target" in config["run_targets"]:
         report_error(

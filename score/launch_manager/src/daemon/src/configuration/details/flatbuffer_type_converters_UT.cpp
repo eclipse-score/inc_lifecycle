@@ -560,7 +560,13 @@ TEST_F(ConverterTest, ConvertApplicationProfileMissingSelfTerminatingReturnsErro
     EXPECT_THAT(result.error(), Eq(IConfigLoader::Error::InvalidFormat));
 }
 
-TEST_F(ConverterTest, ConvertReadyConditionValid)
+TEST_F(ConverterTest, ConvertReadyConditionNullDeath)
+{
+    RecordProperty("Description", "convertReadyCondition fires an assertion when passed nullptr.");
+    EXPECT_DEATH(static_cast<void>(convertReadyCondition(nullptr)), ".*");
+}
+
+TEST_F(ConverterTest, ConvertReadyConditionWithProcessState)
 {
     RecordProperty("Description", "convertReadyCondition maps process_state correctly.");
     ::flatbuffers::FlatBufferBuilder fbb;
@@ -570,18 +576,149 @@ TEST_F(ConverterTest, ConvertReadyConditionValid)
 
     auto result = convertReadyCondition(ptr);
     ASSERT_THAT(result.has_value(), IsTrue());
-    EXPECT_THAT(result->process_state, Eq(ProcessState::Terminated));
+    EXPECT_THAT(*result, ::testing::VariantWith<ProcessState>(ProcessState::Terminated));
 }
 
-TEST_F(ConverterTest, ConvertReadyConditionMissingProcessStateReturnsError)
+TEST_F(ConverterTest, ConvertReadyConditionWithFileState)
 {
-    RecordProperty("Description", "Missing process_state returns InvalidFormat.");
+    RecordProperty("Description", "convertReadyCondition maps file_state correctly.");
+    ::flatbuffers::FlatBufferBuilder fbb;
+    auto fs = fb::CreateFileStateDirect(fbb, "/tmp/ready", fb::FileExistenceState::Exists, 0.01 /*polling_interval*/);
+    auto rc = fb::CreateReadyCondition(fbb, ::flatbuffers::nullopt /*process_state*/, fs);
+    fbb.Finish(rc);
+    const auto* ptr = ::flatbuffers::GetRoot<fb::ReadyCondition>(fbb.GetBufferPointer());
+
+    auto result = convertReadyCondition(ptr);
+    ASSERT_THAT(result.has_value(), IsTrue());
+    EXPECT_THAT(*result, ::testing::VariantWith<FileState>(::testing::Field(&FileState::file_path, Eq("/tmp/ready"))));
+}
+
+TEST_F(ConverterTest, ConvertReadyConditionWithBothStatesReturnsError)
+{
+    RecordProperty(
+        "Description", "convertReadyCondition with both process_state and file_state returns InvalidFormat.");
+    ::flatbuffers::FlatBufferBuilder fbb;
+    auto fs = fb::CreateFileStateDirect(fbb, "/tmp/ready", fb::FileExistenceState::Exists);
+    auto rc = fb::CreateReadyCondition(fbb, fb::ProcessState::Running, fs);
+    fbb.Finish(rc);
+    const auto* ptr = ::flatbuffers::GetRoot<fb::ReadyCondition>(fbb.GetBufferPointer());
+
+    auto result = convertReadyCondition(ptr);
+    ASSERT_THAT(result.has_value(), IsFalse());
+    EXPECT_THAT(result.error(), Eq(IConfigLoader::Error::InvalidFormat));
+}
+
+TEST_F(ConverterTest, ConvertReadyConditionWithNeitherStateDeath)
+{
+    RecordProperty(
+        "Description",
+        "convertReadyCondition fires an assertion if neither process_state nor file_state is configured, as the "
+        "configuration script always defaults one of them.");
     ::flatbuffers::FlatBufferBuilder fbb;
     auto rc = fb::CreateReadyCondition(fbb);
     fbb.Finish(rc);
     const auto* ptr = ::flatbuffers::GetRoot<fb::ReadyCondition>(fbb.GetBufferPointer());
 
+    EXPECT_DEATH(static_cast<void>(convertReadyCondition(ptr)), ".*");
+}
+
+TEST_F(ConverterTest, ConvertReadyConditionWithInvalidPollingIntervalReturnsError)
+{
+    RecordProperty("Description", "convertReadyCondition propagates an invalid FileState::polling_interval.");
+    ::flatbuffers::FlatBufferBuilder fbb;
+    auto fs = fb::CreateFileStateDirect(fbb, "/tmp/ready", fb::FileExistenceState::Exists, -1.0 /*polling_interval*/);
+    auto rc = fb::CreateReadyCondition(fbb, ::flatbuffers::nullopt /*process_state*/, fs);
+    fbb.Finish(rc);
+    const auto* ptr = ::flatbuffers::GetRoot<fb::ReadyCondition>(fbb.GetBufferPointer());
+
     auto result = convertReadyCondition(ptr);
+    ASSERT_THAT(result.has_value(), IsFalse());
+    EXPECT_THAT(result.error(), Eq(IConfigLoader::Error::InvalidFormat));
+}
+
+TEST_F(ConverterTest, ConvertFileExistenceStateMapsDeath)
+{
+    RecordProperty("Description", "convertFileExistenceState Fires an assertion if an undefined enum is given.");
+    EXPECT_DEATH(
+        static_cast<void>(convertFileExistenceState(
+            static_cast<fb::FileExistenceState>(static_cast<int>(fb::FileExistenceState::MAX) + 1))),
+        ".*");
+}
+
+TEST_F(ConverterTest, ConvertFileExistenceStateMapsBothValues)
+{
+    RecordProperty("Description", "convertFileExistenceState maps both enum values correctly.");
+    EXPECT_THAT(convertFileExistenceState(fb::FileExistenceState::Exists), Eq(FileExistenceState::Exists));
+    EXPECT_THAT(convertFileExistenceState(fb::FileExistenceState::NotExisting), Eq(FileExistenceState::NotExisting));
+}
+
+TEST_F(ConverterTest, ConvertFileStateValid)
+{
+    RecordProperty("Description", "convertFileState maps file_path, an explicit state and polling_interval correctly.");
+    ::flatbuffers::FlatBufferBuilder fbb;
+    auto fs =
+        fb::CreateFileStateDirect(fbb, "/tmp/ready", fb::FileExistenceState::NotExisting, 0.3 /*polling_interval*/);
+    fbb.Finish(fs);
+    const auto* ptr = ::flatbuffers::GetRoot<fb::FileState>(fbb.GetBufferPointer());
+
+    auto result = convertFileState(*ptr);
+    ASSERT_THAT(result.has_value(), IsTrue());
+    EXPECT_THAT(result->file_path, Eq("/tmp/ready"));
+    EXPECT_THAT(result->state, Eq(FileExistenceState::NotExisting));
+    EXPECT_THAT(result->polling_interval, Eq(std::chrono::milliseconds{300}));
+}
+
+TEST_F(ConverterTest, ConvertFileStateDefaultsToExists)
+{
+    RecordProperty("Description", "convertFileState defaults state to Exists if it is not set.");
+    ::flatbuffers::FlatBufferBuilder fbb;
+    // state is omitted from the buffer since it matches the schema default
+    auto fs = fb::CreateFileStateDirect(fbb, "/tmp/ready", fb::FileExistenceState::Exists, 0.01 /*polling_interval*/);
+    fbb.Finish(fs);
+    const auto* ptr = ::flatbuffers::GetRoot<fb::FileState>(fbb.GetBufferPointer());
+
+    auto result = convertFileState(*ptr);
+    ASSERT_THAT(result.has_value(), IsTrue());
+    EXPECT_THAT(result->state, Eq(FileExistenceState::Exists));
+    EXPECT_THAT(result->polling_interval, Eq(std::chrono::milliseconds{10}));
+}
+
+TEST_F(ConverterTest, ConvertFileStateWithoutPollingIntervalDeath)
+{
+    RecordProperty(
+        "Description",
+        "convertFileState fires an assertion if polling_interval is not configured, as the configuration script "
+        "always defaults it.");
+    ::flatbuffers::FlatBufferBuilder fbb;
+    auto fs = fb::CreateFileStateDirect(fbb, "/tmp/ready");
+    fbb.Finish(fs);
+    const auto* ptr = ::flatbuffers::GetRoot<fb::FileState>(fbb.GetBufferPointer());
+
+    EXPECT_DEATH(static_cast<void>(convertFileState(*ptr)), ".*");
+}
+
+TEST_F(ConverterTest, ConvertFileStateNegativePollingIntervalReturnsError)
+{
+    RecordProperty("Description", "convertFileState returns InvalidFormat for a negative polling_interval.");
+    ::flatbuffers::FlatBufferBuilder fbb;
+    auto fs = fb::CreateFileStateDirect(fbb, "/tmp/ready", fb::FileExistenceState::Exists, -0.5 /*polling_interval*/);
+    fbb.Finish(fs);
+    const auto* ptr = ::flatbuffers::GetRoot<fb::FileState>(fbb.GetBufferPointer());
+
+    auto result = convertFileState(*ptr);
+    ASSERT_THAT(result.has_value(), IsFalse());
+    EXPECT_THAT(result.error(), Eq(IConfigLoader::Error::InvalidFormat));
+}
+
+TEST_F(ConverterTest, ConvertFileStateSubMillisecondPollingIntervalReturnsError)
+{
+    RecordProperty("Description", "convertFileState returns InvalidFormat for a sub-millisecond polling_interval.");
+    ::flatbuffers::FlatBufferBuilder fbb;
+    auto fs = fb::CreateFileStateDirect(fbb, "/tmp/ready", fb::FileExistenceState::Exists, 0.0001 /*polling_interval*/);
+    fbb.Finish(fs);
+    const auto* ptr = ::flatbuffers::GetRoot<fb::FileState>(fbb.GetBufferPointer());
+
+    auto result = convertFileState(*ptr);
     ASSERT_THAT(result.has_value(), IsFalse());
     EXPECT_THAT(result.error(), Eq(IConfigLoader::Error::InvalidFormat));
 }

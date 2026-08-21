@@ -127,7 +127,12 @@
                     "application_type": "Native",
                     "is_self_terminating": true
                 },
-                "process_arguments": ["-b", "--option"]
+                "process_arguments": ["-b", "--option"],
+                "ready_condition": {
+                    "file_state": {
+                        "file_path": "/var/run/b/ready"
+                    }
+                }
             },
             "deployment_config": {
                 "bin_dir": "/opt/apps/b",
@@ -146,7 +151,14 @@
                     "application_type": "Reporting",
                     "is_self_terminating": false
                 },
-                "depends_on": ["component_a"]
+                "depends_on": ["component_a"],
+                "ready_condition": {
+                    "file_state": {
+                        "file_path": "/var/run/c/startup.lock",
+                        "state": "NotExisting",
+                        "polling_interval": 0.5
+                    }
+                }
             },
             "deployment_config": {
                 "bin_dir": "/opt/apps/c",

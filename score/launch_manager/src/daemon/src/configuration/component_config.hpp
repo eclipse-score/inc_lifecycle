@@ -14,9 +14,11 @@
 #define COMPONENT_CONFIG_HPP
 
 #include <sys/types.h>
+#include <chrono>
 #include <cstdint>
 #include <optional>
 #include <string>
+#include <variant>
 #include <vector>
 
 #include "score/mw/launch_manager/configuration/environment_config.hpp"
@@ -48,16 +50,26 @@ struct ApplicationProfile
     std::optional<ComponentAliveSupervision> alive_supervision;
 };
 
-enum class ProcessState : uint8_t
+enum class FileExistenceState : uint8_t
+{
+    Exists = 0,
+    NotExisting,
+};
+
+struct FileState
+{
+    std::string file_path;
+    FileExistenceState state;
+    std::chrono::milliseconds polling_interval;
+};
+
+enum class ProcessState : std::uint8_t
 {
     Running = 0,
     Terminated = 1
 };
 
-struct ReadyCondition
-{
-    ProcessState process_state{ProcessState::Running};
-};
+using ReadyCondition = std::variant<ProcessState, FileState>;
 
 struct ComponentProperties
 {
@@ -65,7 +77,7 @@ struct ComponentProperties
     ApplicationProfile application_profile;
     std::vector<std::string> depends_on;
     std::vector<std::string> process_arguments;
-    std::optional<ReadyCondition> ready_condition;
+    ReadyCondition ready_condition;
 };
 struct Sandbox
 {
