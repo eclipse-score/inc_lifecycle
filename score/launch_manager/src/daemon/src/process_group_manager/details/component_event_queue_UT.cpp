@@ -40,7 +40,7 @@ TEST_F(ComponentEventQueueTest, WaitForEventsReturnsFalseOnEmptyQueue)
 TEST_F(ComponentEventQueueTest, WaitForEventsReturnsTrueAfterPush)
 {
     RecordProperty("Description", "Verify waitForEvents returns true once an event has been pushed.");
-    EXPECT_TRUE(queue_.push(ActivationSuccessful{7U}));
+    EXPECT_TRUE(queue_.push(ActivationSuccessful{IdentifierHash{"process"}}));
     EXPECT_TRUE(queue_.waitForEvents(std::chrono::milliseconds{0}));
 }
 
@@ -53,13 +53,14 @@ TEST_F(ComponentEventQueueTest, GetNextEventReturnsNulloptWhenEmpty)
 TEST_F(ComponentEventQueueTest, GetNextEventReturnsPushedEventWithPayloadIntact)
 {
     RecordProperty("Description", "Verify a pushed event is returned by getNextEvent with its payload preserved.");
-    EXPECT_TRUE(queue_.push(ActivationFailed{3U, IComponent::ComponentError::kErrorBeforeReady}));
+    const IdentifierHash process_identifier{"payload"};
+    EXPECT_TRUE(queue_.push(ActivationFailed{process_identifier, IComponent::ComponentError::kErrorBeforeReady}));
 
     auto event = queue_.getNextEvent();
     ASSERT_TRUE(event.has_value());
     ASSERT_TRUE(std::holds_alternative<ActivationFailed>(*event));
     const auto& failed = std::get<ActivationFailed>(*event);
-    EXPECT_EQ(failed.node_index, 3U);
+    EXPECT_EQ(failed.node_index, process_identifier);
     EXPECT_EQ(failed.reason, IComponent::ComponentError::kErrorBeforeReady);
 }
 
@@ -82,7 +83,7 @@ TEST_F(ComponentEventQueueTest, GetNextEventReturnsSupervisionFailureWithPayload
 TEST_F(ComponentEventQueueTest, GetOverflowStaysFalseUnderNormalUsage)
 {
     RecordProperty("Description", "Verify getOverflow() stays false when events are pushed and drained normally.");
-    EXPECT_TRUE(queue_.push(ActivationSuccessful{1U}));
+    EXPECT_TRUE(queue_.push(ActivationSuccessful{IdentifierHash{"process"}}));
     static_cast<void>(queue_.getNextEvent());
     EXPECT_FALSE(queue_.getOverflow());
 }
@@ -95,13 +96,13 @@ TEST_F(ComponentEventQueueTest, GetOverflowBecomesTrueOnceQueueIsFull)
         "mirroring how ProcessGroupManager::run() detects lost events.");
     for (std::size_t i = 0U; i < queue_.capacity(); ++i)
     {
-        EXPECT_TRUE(queue_.push(ActivationSuccessful{static_cast<uint32_t>(i)}));
+        EXPECT_TRUE(queue_.push(ActivationSuccessful{IdentifierHash{"process"}}));
     }
     EXPECT_FALSE(queue_.getOverflow());
 
     // One more push while the queue is already at capacity and nobody is draining it: this
     // push is dropped immediately, flagging overflow.
-    EXPECT_FALSE(queue_.push(ActivationSuccessful{9999U}));
+    EXPECT_FALSE(queue_.push(ActivationSuccessful{IdentifierHash{"process"}}));
     EXPECT_TRUE(queue_.getOverflow());
 }
 
@@ -111,7 +112,7 @@ TEST_F(ComponentEventQueueTest, StopFailsWaitForEventsOnEmptyQueue)
         "Description",
         "Verify stop() causes a subsequently-called waitForEvents() to return false, even if there's an event in the "
         "queue");
-    EXPECT_TRUE(queue_.push(ActivationSuccessful{1}));
+    EXPECT_TRUE(queue_.push(ActivationSuccessful{IdentifierHash{"process"}}));
     queue_.stop();
     EXPECT_FALSE(queue_.waitForEvents(std::chrono::milliseconds{0}));
 }
@@ -122,7 +123,7 @@ TEST_F(ComponentEventQueueTest, GetNextEventStillDrainsQueuedEventsAfterStop)
         "Description",
         "Verify that events pushed before stop() was called are not silently discarded -- "
         "getNextEvent() must still be able to drain them during shutdown.");
-    EXPECT_TRUE(queue_.push(ActivationSuccessful{1U}));
+    EXPECT_TRUE(queue_.push(ActivationSuccessful{IdentifierHash{"process"}}));
     queue_.stop();
 
     auto event = queue_.getNextEvent();

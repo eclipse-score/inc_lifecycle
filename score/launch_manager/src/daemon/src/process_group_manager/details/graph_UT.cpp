@@ -228,7 +228,7 @@ TEST_F(GraphOrdinaryTransitionTest, correctJobDetails)
     const auto job = job_queue_->pop();
     ASSERT_TRUE(job->has_value()) << "startTransition didn't push anything to the queue";
     EXPECT_EQ(job->value().type, ComponentTaskType::kActivate);
-    EXPECT_EQ(job->value().component.get().getIndex(), 1);
+    EXPECT_EQ(job->value().component.get().getIndex(), target);
 }
 
 TEST_F(GraphOrdinaryTransitionTest, simpleActivationTransition)
@@ -242,7 +242,7 @@ TEST_F(GraphOrdinaryTransitionTest, simpleActivationTransition)
 
     const auto job = job_queue_->pop();
     executeJobSuccessfully(job->value());
-    graph_->handleComponentEvent(ActivationSuccessful{0});
+    graph_->handleComponentEvent(ActivationSuccessful{IdentifierHash{"Process"}});
 
     ASSERT_EQ(graph_->getState(), GraphState::kSuccess);
     EXPECT_EQ(graph_->getProcessGroupState(), target);
@@ -260,7 +260,7 @@ TEST_F(GraphOrdinaryTransitionTest, simpleDeactivationTransition)
 
     const auto job = job_queue_->pop();
     executeJobSuccessfully(job->value());
-    graph_->handleComponentEvent(DeactivationComplete{0});
+    graph_->handleComponentEvent(DeactivationComplete{IdentifierHash{"Process"}});
 
     ASSERT_EQ(graph_->getState(), GraphState::kSuccess);
     EXPECT_EQ(graph_->getProcessGroupState(), target);
@@ -295,7 +295,8 @@ TEST_F(GraphInitialTransitionTest, jobFailure)
 
     const auto job = job_queue_->pop()->value();
     failActivationJob(job);
-    graph_->handleComponentEvent(ActivationFailed{0, IComponent::ComponentError::kErrorBeforeReady});
+    graph_->handleComponentEvent(
+        ActivationFailed{IdentifierHash{"Process"}, IComponent::ComponentError::kErrorBeforeReady});
 
     EXPECT_EQ(graph_->getState(), GraphState::kUndefinedState);
 }
@@ -315,7 +316,7 @@ TEST_F(GraphInitialTransitionTest, cancel)
 
     const auto job = job_queue_->pop()->value();
     executeJobSuccessfully(job);
-    graph_->handleComponentEvent(ActivationSuccessful{0});
+    graph_->handleComponentEvent(ActivationSuccessful{IdentifierHash{"Process"}});
 
     EXPECT_EQ(graph_->getState(), GraphState::kUndefinedState);
 }
@@ -341,7 +342,7 @@ TEST_F(GraphOffTransitionTest, normalShutdown)
     EXPECT_TRUE(graph_->isTransitioningToOff());
     ASSERT_TRUE(job->has_value());
     EXPECT_EQ(job.value()->type, ComponentTaskType::kDeactivate);
-    EXPECT_EQ(job->value().component.get().getIndex(), 0);
+    EXPECT_EQ(job->value().component.get().getIndex(), IdentifierHash{process_name(0)});
 }
 
 TEST_F(GraphOffTransitionTest, shutdownDuringTransition)
@@ -517,7 +518,7 @@ TEST_F(GraphHandleComponentEventTest, unexpectedTerminationDuringSuccess)
 
     completeTransition(IdentifierHash{run_target_name(0)});
 
-    const auto component = graph_->getProcessInfoNode(0);
+    const auto component = graph_->getProcessInfoNode(IdentifierHash{process_name(0)});
     EXPECT_CALL(process_interface_, requestTermination)
         .WillOnce(DoAll(
             InvokeWithoutArgs([component] {
@@ -525,7 +526,7 @@ TEST_F(GraphHandleComponentEventTest, unexpectedTerminationDuringSuccess)
             }),
             Return(osal::OsalReturnType::kSuccess)));
 
-    graph_->handleComponentEvent(UnexpectedTermination{0});
+    graph_->handleComponentEvent(UnexpectedTermination{IdentifierHash{"Process"}});
 
     EXPECT_EQ(graph_->getState(), GraphState::kUndefinedState);
 }
@@ -586,7 +587,7 @@ TEST_F(GraphCancelTest, cancelsOngoingTransition)
 
     const auto job = job_queue_->pop();
 
-    graph_->handleComponentEvent(JobSkipped{0});
+    graph_->handleComponentEvent(JobSkipped{IdentifierHash{"Process"}});
 
     EXPECT_TRUE(job->value().stop_token.stop_requested());
     EXPECT_EQ(graph_->getPendingEvent(), ControlClientCode::kSetStateCancelled);
@@ -602,9 +603,9 @@ TEST_F(GraphUtilitiesTest, getProcessInfoNode)
     RecordProperty(
         "Description", "Test that getProcessInfoNode returns process info node pointer or null pointer when expected");
 
-    const auto* pin = graph_->getProcessInfoNode(0);
-    const auto* oob = graph_->getProcessInfoNode(100);
-    const auto* rt = graph_->getProcessInfoNode(1);
+    const auto* pin = graph_->getProcessInfoNode(IdentifierHash{process_name(0)});
+    const auto* oob = graph_->getProcessInfoNode(IdentifierHash{"Not real"});
+    const auto* rt = graph_->getProcessInfoNode(IdentifierHash{run_target_name(0)});
 
     EXPECT_NE(pin, nullptr);
     EXPECT_EQ(oob, nullptr);
@@ -654,7 +655,7 @@ TEST_F(GraphUtilitiesTest, gettersSetters)
     RecordProperty("Description", "Test that basic getters return the value the setter sets");
 
     ControlClientID state_manager = {};
-    state_manager.process_index_ = 123;
+    state_manager.process_index_ = IdentifierHash{"123"};
     graph_->setStateManager(state_manager);
     EXPECT_EQ(graph_->getStateManager().process_index_, state_manager.process_index_);
 

@@ -27,8 +27,8 @@ using namespace testing;
 using namespace score::mw::lifecycle::internal;
 using namespace score::mw::lifecycle;
 
-// Default ProcessIndex for testing
-constexpr uint32_t kProcessIndex = 111;
+// Default process name for testing
+const IdentifierHash kProcessName{"TestProcess"};
 
 class MockSafeProcessMapInserter : public SafeProcessMapInserter
 {
@@ -68,7 +68,7 @@ class ProcessInfoNodeFixture : public ::testing::Test
         config.deployment_config.shutdown_timeout_ms = shutdown_timeout_ms_;
 
         return std::make_unique<ProcessInfoNode>(
-            std::move(config), kProcessIndex, ProcessHandling{mock_publisher_, &mock_processIf_, process_map_});
+            std::move(config), ProcessHandling{mock_publisher_, &mock_processIf_, process_map_});
     }
 
     /// @brief Helper method to create a ProcessInfoNode that is self-terminating.
@@ -139,7 +139,7 @@ TEST_F(ProcessInfoNodeStartupTest, CanConstructIdleProcessInfoNode)
 
     auto node = createProcessInfoNode();
 
-    ASSERT_THAT(node->getIndex(), Eq(kProcessIndex));
+    ASSERT_THAT(node->getIndex(), Eq(kProcessName));
     ASSERT_THAT(node->getState(), Eq(score::mw::lifecycle::ProcessState::kIdle));
     ASSERT_THAT(node->getPid(), Eq(0));
     ASSERT_THAT(node->active(), IsFalse());
@@ -545,7 +545,7 @@ TEST_F(ProcessInfoNodeMoveTest, MoveConstruct_IdleNode_PreservesObservableState)
 
     ProcessInfoNode moved{std::move(*source)};
 
-    ASSERT_THAT(moved.getIndex(), Eq(kProcessIndex));
+    ASSERT_THAT(moved.getIndex(), Eq(kProcessName));
     ASSERT_THAT(moved.getState(), Eq(score::mw::lifecycle::ProcessState::kIdle));
     ASSERT_THAT(moved.active(), IsFalse());
     ASSERT_THAT(moved.getPid(), Eq(0));
@@ -565,7 +565,7 @@ TEST_F(ProcessInfoNodeMoveTest, MoveConstruct_RunningNode_PreservesAtomicState)
 
     ProcessInfoNode moved{std::move(*source)};
 
-    ASSERT_THAT(moved.getIndex(), Eq(kProcessIndex));
+    ASSERT_THAT(moved.getIndex(), Eq(kProcessName));
     ASSERT_THAT(moved.getState(), Eq(score::mw::lifecycle::ProcessState::kRunning));
     ASSERT_THAT(moved.active(), IsTrue());
 }

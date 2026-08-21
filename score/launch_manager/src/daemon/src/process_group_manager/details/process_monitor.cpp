@@ -43,7 +43,7 @@ void ProcessMonitor::doWork(ComponentTask&& task)
     };
 
     auto handle_success = [&]() {
-        const uint32_t node_index = task.component.get().getIndex();
+        const IdentifierHash node_index = task.component.get().getIndex();
         bool push_res = true;
 
         switch (task.type)
@@ -63,7 +63,7 @@ void ProcessMonitor::doWork(ComponentTask&& task)
     };
 
     auto handle_failure = [&](IComponent::ComponentError& error) {
-        const uint32_t node_index = task.component.get().getIndex();
+        const IdentifierHash node_index = task.component.get().getIndex();
 
         switch (task.type)
         {

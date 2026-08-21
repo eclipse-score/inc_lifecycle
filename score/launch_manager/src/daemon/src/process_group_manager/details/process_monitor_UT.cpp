@@ -20,6 +20,8 @@
 using namespace testing;
 using namespace score::mw::lifecycle::internal;
 
+const score::mw::lifecycle::IdentifierHash kDefaultIdentifier{"Process"};
+
 class ProcessMonitorTest : public ::testing::Test
 {
   protected:
@@ -28,7 +30,7 @@ class ProcessMonitorTest : public ::testing::Test
         RecordProperty("TestType", "interface-test");
         RecordProperty("DerivationTechnique", "explorative-testing");
 
-        ON_CALL(mock_component, getIndex).WillByDefault(Return(1));
+        ON_CALL(mock_component, getIndex).WillByDefault(Return(kDefaultIdentifier));
     }
 
     MockComponentEventQueue mock_queue{};
@@ -43,7 +45,9 @@ TEST_F(ProcessMonitorTest, DoWorkNormalActivation)
     // Given a valid activate task
     // Then
     EXPECT_CALL(mock_component, activate).WillOnce(Return(IComponent::RequestState::kSuccess));
-    EXPECT_CALL(mock_queue, push(VariantWith<ActivationSuccessful>(Field(&ActivationSuccessful::node_index, 1))))
+    EXPECT_CALL(
+        mock_queue,
+        push(VariantWith<ActivationSuccessful>(Field(&ActivationSuccessful::node_index, kDefaultIdentifier))))
         .Times(1);
     // When
     process_monitor.doWork(ComponentTask{ComponentTaskType::kActivate, mock_component, stop_source.get_token()});
@@ -55,7 +59,9 @@ TEST_F(ProcessMonitorTest, DoWorkNormalDeactivation)
     // Given a valid activate task
     // Then
     EXPECT_CALL(mock_component, deactivate).WillOnce(Return(IComponent::RequestState::kSuccess));
-    EXPECT_CALL(mock_queue, push(VariantWith<DeactivationComplete>(Field(&DeactivationComplete::node_index, 1))))
+    EXPECT_CALL(
+        mock_queue,
+        push(VariantWith<DeactivationComplete>(Field(&DeactivationComplete::node_index, kDefaultIdentifier))))
         .Times(1);
     // When
     process_monitor.doWork(ComponentTask{ComponentTaskType::kDeactivate, mock_component, stop_source.get_token()});
@@ -70,7 +76,9 @@ TEST_F(ProcessMonitorTest, DoWorkOnTerminationDepProcess)
     // The component is neither complete nor failed
     EXPECT_CALL(mock_component, activate).WillOnce(Return(IComponent::RequestState::kWaiting));
     EXPECT_CALL(mock_component, tryHandleTermination).WillOnce(Return(IComponent::RequestState::kSuccess));
-    EXPECT_CALL(mock_queue, push(VariantWith<ActivationSuccessful>(Field(&ActivationSuccessful::node_index, 1))))
+    EXPECT_CALL(
+        mock_queue,
+        push(VariantWith<ActivationSuccessful>(Field(&ActivationSuccessful::node_index, kDefaultIdentifier))))
         .Times(1);
     // When
     process_monitor.doWork(ComponentTask{ComponentTaskType::kActivate, mock_component, stop_source.get_token()});
@@ -88,7 +96,9 @@ TEST_F(ProcessMonitorTest, TerminatedUnexpectedly)
     // Then
     EXPECT_CALL(mock_component, tryHandleTermination)
         .WillOnce(Return(score::cpp::make_unexpected(IComponent::ComponentError::kErrorAfterReady)));
-    EXPECT_CALL(mock_queue, push(VariantWith<UnexpectedTermination>(Field(&UnexpectedTermination::node_index, 1))))
+    EXPECT_CALL(
+        mock_queue,
+        push(VariantWith<UnexpectedTermination>(Field(&UnexpectedTermination::node_index, kDefaultIdentifier))))
         .Times(1);
 
     process_monitor.terminated(mock_component, 0);

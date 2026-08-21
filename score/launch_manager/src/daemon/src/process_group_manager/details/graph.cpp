@@ -59,11 +59,7 @@ void CreateDependencyGraph(
         auto depends_on = std::move(component_config.component_properties.depends_on);
 
         const auto index = graph.try_emplace(
-            IdentifierHash{name},
-            std::in_place_type<ProcessInfoNode>,
-            std::move(component_config),
-            static_cast<uint32_t>(graph.size()),
-            process_handling);
+            IdentifierHash{name}, std::in_place_type<ProcessInfoNode>, std::move(component_config), process_handling);
 
         LM_LOG_DEBUG() << "Creating component node:" << name;
         pending_dependencies.emplace_back(index, std::move(depends_on));

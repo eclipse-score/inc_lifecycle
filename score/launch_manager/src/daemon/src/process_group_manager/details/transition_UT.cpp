@@ -10,8 +10,22 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
-#include "score/mw/launch_manager/process_group_manager/details/dependency_graph.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/icomponent.hpp"
+
+namespace score::mw::lifecycle::internal
+{
+/// @brief Test-only projection for Transition<IComponent*>, mirroring component_of.hpp's
+/// production overload. Declared in this namespace so Transition<IComponent*> finds it via ADL.
+IComponent& componentOf(IComponent* node)
+{
+    return *node;
+}
+}  // namespace score::mw::lifecycle::internal
+
+#define SCORE_LCM_COMPONENT_OF_HPP_INCLUDED
+
+#include "score/mw/launch_manager/common/identifier_hash.hpp"
+#include "score/mw/launch_manager/process_group_manager/details/dependency_graph.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/transition.hpp"
 
 #include <gmock/gmock.h>
@@ -36,7 +50,7 @@ class MockComponent : public IComponent
     MOCK_METHOD(RequestResult, activate, (score::cpp::stop_token), (override));
     MOCK_METHOD(RequestResult, deactivate, (score::cpp::stop_token), (override));
     MOCK_METHOD(RequestResult, tryHandleTermination, (int32_t), (override));
-    MOCK_METHOD(uint32_t, getIndex, (), (const, override));
+    MOCK_METHOD(IdentifierHash, getIndex, (), (const, override));
     MOCK_METHOD(bool, active, (), (const, override));
 
     /// @brief Flip both flags together, mirroring a real component reaching a terminal state.
@@ -50,13 +64,6 @@ class MockComponent : public IComponent
     bool active_ = false;
     bool stopped_ = true;
 };
-
-/// @brief Test-only projection for Transition<IComponent*>, mirroring component_of.hpp's
-/// production overload. Declared in this namespace so Transition<IComponent*> finds it via ADL.
-IComponent& componentOf(IComponent* node)
-{
-    return *node;
-}
 
 using ComponentType = internal::IComponent*;
 
@@ -76,32 +83,35 @@ class TransitionTest : public ::testing::Test
     /// nodes are added.
     void makeGraph(std::size_t node_count)
     {
-        graph_ = std::make_unique<DependencyGraph<ComponentType>>(node_count);
+        graph_ = std::make_unique<DependencyGraph<IdentifierHash, ComponentType>>(node_count);
         components_.clear();
-        builder_ = std::make_unique<TransitionBuilder<ComponentType>>(*graph_);
+        builder_ = std::make_unique<TransitionBuilder<IdentifierHash, ComponentType>>(*graph_);
     }
 
     /// @brief Add a fresh mock-backed node and return its index.
-    GraphIndex addNode()
+    IdentifierHash addNode()
     {
-        components_.push_back(std::make_unique<::testing::NiceMock<internal::MockComponent>>());
-        return graph_->emplace(components_.back().get());
+        static std::size_t index{0};
+        const auto res = components_.emplace(
+            IdentifierHash{std::to_string(index++)}, std::make_unique<::testing::NiceMock<internal::MockComponent>>());
+        graph_->try_emplace(res.first->first, res.first->second.get());
+        return res.first->first;
     }
 
-    internal::MockComponent& componentAt(GraphIndex i)
+    internal::MockComponent& componentAt(IdentifierHash i)
     {
-        return *components_[i];
+        return *components_.at(i);
     }
 
     /// @brief Mark @p node active and report it finished — mimics an activation completing.
-    void activate(Transition<ComponentType>& t, GraphIndex node)
+    void activate(Transition<IdentifierHash, ComponentType>& t, IdentifierHash node)
     {
         componentAt(node).setActive(true);
         t.onNodeFinished(node);
     }
 
     /// @brief Mark @p node stopped and report it finished — mimics a deactivation completing.
-    void deactivate(Transition<ComponentType>& t, GraphIndex node)
+    void deactivate(Transition<IdentifierHash, ComponentType>& t, IdentifierHash node)
     {
         componentAt(node).setActive(false);
         t.onNodeFinished(node);
@@ -110,19 +120,19 @@ class TransitionTest : public ::testing::Test
     /// @brief Drain everything ready right now into a vector so it can be matched.
     /// @details Iterating CONSUMES the frontier, so call this once per step (after each
     /// onNodeFinished()), not repeatedly for the same step.
-    static std::vector<ReadyNode> collectReady(Transition<ComponentType>& t)
+    static std::vector<ReadyNode<IdentifierHash>> collectReady(Transition<IdentifierHash, ComponentType>& t)
     {
-        std::vector<ReadyNode> out;
-        for (const ReadyNode rn : t)
+        std::vector<ReadyNode<IdentifierHash>> out;
+        for (const ReadyNode<IdentifierHash> rn : t)
         {
             out.push_back(rn);
         }
         return out;
     }
 
-    std::unique_ptr<DependencyGraph<ComponentType>> graph_;
-    std::vector<std::unique_ptr<::testing::NiceMock<internal::MockComponent>>> components_;
-    std::unique_ptr<TransitionBuilder<ComponentType>> builder_;
+    std::unique_ptr<DependencyGraph<IdentifierHash, ComponentType>> graph_;
+    std::unordered_map<IdentifierHash, std::unique_ptr<::testing::NiceMock<internal::MockComponent>>> components_;
+    std::unique_ptr<TransitionBuilder<IdentifierHash, ComponentType>> builder_;
 };
 
 // ---------------------------------------------------------------------------
@@ -158,7 +168,7 @@ TEST_F(EmptyGraphDeathTest, CreateTransitionAssertsOnOutOfRangeTarget)
     RecordProperty(
         "Description", "createTransition() with an out-of-range target index aborts via a futurecpp assert.");
 
-    EXPECT_DEATH(builder_->createTransition(0), "");
+    EXPECT_DEATH(builder_->createTransition(IdentifierHash{"not real"}), "");
 }
 
 // ---------------------------------------------------------------------------
@@ -178,7 +188,7 @@ class SingleNodeGraphTest : public TransitionTest
         node_ = addNode();
     }
 
-    GraphIndex node_{};
+    IdentifierHash node_{};
 };
 
 TEST_F(SingleNodeGraphTest, TransitionStartsTheNode)
@@ -191,7 +201,7 @@ TEST_F(SingleNodeGraphTest, TransitionStartsTheNode)
     auto& transition = builder_->createTransition(node_);
 
     EXPECT_FALSE(transition.isFinished());
-    EXPECT_THAT(collectReady(transition), ::testing::ElementsAre(ReadyNode{node_, Action::Start}));
+    EXPECT_THAT(collectReady(transition), ::testing::ElementsAre(ReadyNode<IdentifierHash>{node_, Action::Start}));
 
     activate(transition, node_);
 
@@ -222,19 +232,19 @@ TEST_F(SingleNodeGraphTest, TransitionToOffStopsTheRunningNodeThenStartsOff)
         "dependency-less Off node; the transition finishes once both reach their terminal state.");
 
     makeGraph(2);
-    const GraphIndex node = addNode();
-    const GraphIndex off = addNode();
+    const IdentifierHash node = addNode();
+    const IdentifierHash off = addNode();
     componentAt(node).setActive(true);  // node running; Off node stopped (default)
 
     auto& transition = builder_->createTransition(off);
 
     // Stopping phase: the running node is stopped first (Off does not depend on it).
     EXPECT_FALSE(transition.isFinished());
-    EXPECT_THAT(collectReady(transition), ::testing::ElementsAre(ReadyNode{node, Action::Stop}));
+    EXPECT_THAT(collectReady(transition), ::testing::ElementsAre(ReadyNode<IdentifierHash>{node, Action::Stop}));
     deactivate(transition, node);
 
     // Starting phase: the Off node is now ready to activate.
-    EXPECT_THAT(collectReady(transition), ::testing::ElementsAre(ReadyNode{off, Action::Start}));
+    EXPECT_THAT(collectReady(transition), ::testing::ElementsAre(ReadyNode<IdentifierHash>{off, Action::Start}));
     activate(transition, off);
 
     EXPECT_THAT(collectReady(transition), ::testing::IsEmpty());
@@ -249,13 +259,13 @@ TEST_F(SingleNodeGraphTest, TransitionToOffFromAllStoppedStartsTheOffNode)
         "activates the dependency-less Off node, leaving the stopped application node untouched.");
 
     makeGraph(2);
-    const GraphIndex node = addNode();  // an application node, left stopped
-    const GraphIndex off = addNode();
+    const IdentifierHash node = addNode();  // an application node, left stopped
+    const IdentifierHash off = addNode();
 
     auto& transition = builder_->createTransition(off);
 
     EXPECT_FALSE(transition.isFinished());
-    EXPECT_THAT(collectReady(transition), ::testing::ElementsAre(ReadyNode{off, Action::Start}));
+    EXPECT_THAT(collectReady(transition), ::testing::ElementsAre(ReadyNode<IdentifierHash>{off, Action::Start}));
     activate(transition, off);
 
     EXPECT_THAT(collectReady(transition), ::testing::IsEmpty());
@@ -303,12 +313,12 @@ class SharedNodeGraphTest : public TransitionTest
         graph_->addDependency(rt2_, b_);
     }
 
-    GraphIndex a_{};
-    GraphIndex b_{};
-    GraphIndex c_{};
-    GraphIndex rt1_{};
-    GraphIndex rt2_{};
-    GraphIndex off_{};
+    IdentifierHash a_{};
+    IdentifierHash b_{};
+    IdentifierHash c_{};
+    IdentifierHash rt1_{};
+    IdentifierHash rt2_{};
+    IdentifierHash off_{};
 };
 
 TEST_F(SharedNodeGraphTest, TransitionStartsDependenciesBeforeDependent)
@@ -321,13 +331,14 @@ TEST_F(SharedNodeGraphTest, TransitionStartsDependenciesBeforeDependent)
     auto& transition = builder_->createTransition(rt1_);
     EXPECT_THAT(
         collectReady(transition),
-        ::testing::UnorderedElementsAre(ReadyNode{c_, Action::Start}, ReadyNode{b_, Action::Start}));
+        ::testing::UnorderedElementsAre(
+            ReadyNode<IdentifierHash>{c_, Action::Start}, ReadyNode<IdentifierHash>{b_, Action::Start}));
 
     activate(transition, c_);
     EXPECT_THAT(collectReady(transition), ::testing::IsEmpty());  // still blocked on B
 
     activate(transition, b_);
-    EXPECT_THAT(collectReady(transition), ::testing::ElementsAre(ReadyNode{rt1_, Action::Start}));
+    EXPECT_THAT(collectReady(transition), ::testing::ElementsAre(ReadyNode<IdentifierHash>{rt1_, Action::Start}));
 
     activate(transition, rt1_);
     EXPECT_THAT(collectReady(transition), ::testing::IsEmpty());
@@ -349,7 +360,7 @@ TEST_F(SharedNodeGraphTest, NextReadyInterleavedWithOnNodeFinishedKeepsPendingSi
     EXPECT_EQ(first->action, Action::Start);
     activate(transition, first->node);  // must not discard the sibling
 
-    const GraphIndex sibling = (first->node == c_) ? b_ : c_;
+    const IdentifierHash sibling = (first->node == c_) ? b_ : c_;
     const auto second = transition.nextReady();
     ASSERT_TRUE(second.has_value());
     EXPECT_EQ(second->node, sibling);
@@ -378,21 +389,21 @@ TEST_F(SharedNodeGraphTest, TransitionBetweenRunTargetsKeepsSharedNodeActive)
     componentAt(rt1_).setActive(true);
 
     auto& transition = builder_->createTransition(rt2_);
-    EXPECT_THAT(collectReady(transition), ::testing::ElementsAre(ReadyNode{rt1_, Action::Stop}));
+    EXPECT_THAT(collectReady(transition), ::testing::ElementsAre(ReadyNode<IdentifierHash>{rt1_, Action::Stop}));
 
     deactivate(transition, rt1_);
-    EXPECT_THAT(collectReady(transition), ::testing::ElementsAre(ReadyNode{c_, Action::Stop}));
+    EXPECT_THAT(collectReady(transition), ::testing::ElementsAre(ReadyNode<IdentifierHash>{c_, Action::Stop}));
 
     // Finishing the last stop-set node auto-advances into the starting phase.
     deactivate(transition, c_);
-    EXPECT_THAT(collectReady(transition), ::testing::ElementsAre(ReadyNode{a_, Action::Start}));
+    EXPECT_THAT(collectReady(transition), ::testing::ElementsAre(ReadyNode<IdentifierHash>{a_, Action::Start}));
 
     // B was shared and stayed up the whole time.
     EXPECT_TRUE(componentAt(b_).active_);
     EXPECT_FALSE(componentAt(b_).stopped_);
 
     activate(transition, a_);
-    EXPECT_THAT(collectReady(transition), ::testing::ElementsAre(ReadyNode{rt2_, Action::Start}));
+    EXPECT_THAT(collectReady(transition), ::testing::ElementsAre(ReadyNode<IdentifierHash>{rt2_, Action::Start}));
 
     activate(transition, rt2_);
     EXPECT_THAT(collectReady(transition), ::testing::IsEmpty());
@@ -412,7 +423,7 @@ TEST_F(SharedNodeGraphTest, OnNodeFinishedDuringIterationDrivesWholeTransitionIn
 
     auto& transition = builder_->createTransition(rt2_);
 
-    std::vector<ReadyNode> visited;
+    std::vector<ReadyNode<IdentifierHash>> visited;
     for (const auto rn : transition)
     {
         visited.push_back(rn);
@@ -424,10 +435,10 @@ TEST_F(SharedNodeGraphTest, OnNodeFinishedDuringIterationDrivesWholeTransitionIn
     EXPECT_THAT(
         visited,
         ::testing::ElementsAre(
-            ReadyNode{rt1_, Action::Stop},
-            ReadyNode{c_, Action::Stop},
-            ReadyNode{a_, Action::Start},
-            ReadyNode{rt2_, Action::Start}));
+            ReadyNode<IdentifierHash>{rt1_, Action::Stop},
+            ReadyNode<IdentifierHash>{c_, Action::Stop},
+            ReadyNode<IdentifierHash>{a_, Action::Start},
+            ReadyNode<IdentifierHash>{rt2_, Action::Start}));
     EXPECT_TRUE(transition.isFinished());
 
     // B was shared and never touched.
@@ -447,14 +458,14 @@ TEST_F(SharedNodeGraphTest, FailedTransitionIsRecoveredByAFreshFallbackTransitio
     componentAt(rt2_).setActive(true);
 
     auto& toRt1 = builder_->createTransition(rt1_);
-    EXPECT_THAT(collectReady(toRt1), ::testing::ElementsAre(ReadyNode{rt2_, Action::Stop}));
+    EXPECT_THAT(collectReady(toRt1), ::testing::ElementsAre(ReadyNode<IdentifierHash>{rt2_, Action::Stop}));
 
     deactivate(toRt1, rt2_);
-    EXPECT_THAT(collectReady(toRt1), ::testing::ElementsAre(ReadyNode{a_, Action::Stop}));
+    EXPECT_THAT(collectReady(toRt1), ::testing::ElementsAre(ReadyNode<IdentifierHash>{a_, Action::Stop}));
 
     // Finishing the last stop-set node auto-advances into the starting phase.
     deactivate(toRt1, a_);
-    EXPECT_THAT(collectReady(toRt1), ::testing::ElementsAre(ReadyNode{c_, Action::Start}));
+    EXPECT_THAT(collectReady(toRt1), ::testing::ElementsAre(ReadyNode<IdentifierHash>{c_, Action::Start}));
 
     // C fails to activate: it never reports finished, so the transition is stuck forever.
     EXPECT_FALSE(componentAt(c_).active_);
@@ -464,10 +475,10 @@ TEST_F(SharedNodeGraphTest, FailedTransitionIsRecoveredByAFreshFallbackTransitio
     // Fallback RT1 -> RT2: RT1's exclusive nodes are already stopped, so the stopping phase is a
     // no-op and the transition starts straight in the starting phase.
     auto& toRt2 = builder_->createTransition(rt2_);
-    EXPECT_THAT(collectReady(toRt2), ::testing::ElementsAre(ReadyNode{a_, Action::Start}));
+    EXPECT_THAT(collectReady(toRt2), ::testing::ElementsAre(ReadyNode<IdentifierHash>{a_, Action::Start}));
 
     activate(toRt2, a_);
-    EXPECT_THAT(collectReady(toRt2), ::testing::ElementsAre(ReadyNode{rt2_, Action::Start}));
+    EXPECT_THAT(collectReady(toRt2), ::testing::ElementsAre(ReadyNode<IdentifierHash>{rt2_, Action::Start}));
 
     activate(toRt2, rt2_);
     EXPECT_THAT(collectReady(toRt2), ::testing::IsEmpty());
@@ -497,7 +508,7 @@ TEST_F(SharedNodeGraphTest, StopsOrphanLeftRunningOutsideTheLastTargetSubgraph)
 
     // Drive the whole transition in one loop, reporting each node's terminal state as it comes up.
     // Everything running is stopped (the orphan A included), then the Off node is activated.
-    std::vector<ReadyNode> stopped_nodes;
+    std::vector<ReadyNode<IdentifierHash>> stopped_nodes;
     bool off_started = false;
     for (const auto rn : transition)
     {
@@ -527,10 +538,10 @@ TEST_F(SharedNodeGraphTest, StopsOrphanLeftRunningOutsideTheLastTargetSubgraph)
     EXPECT_THAT(
         stopped_nodes,
         ::testing::UnorderedElementsAre(
-            ReadyNode{a_, Action::Stop},
-            ReadyNode{b_, Action::Stop},
-            ReadyNode{c_, Action::Stop},
-            ReadyNode{rt1_, Action::Stop}));
+            ReadyNode<IdentifierHash>{a_, Action::Stop},
+            ReadyNode<IdentifierHash>{b_, Action::Stop},
+            ReadyNode<IdentifierHash>{c_, Action::Stop},
+            ReadyNode<IdentifierHash>{rt1_, Action::Stop}));
 }
 
 // ---------------------------------------------------------------------------
@@ -571,11 +582,11 @@ class LinearGraphTest : public TransitionTest
         componentAt(d_).setActive(true);
     }
 
-    GraphIndex a_{};
-    GraphIndex b_{};
-    GraphIndex c_{};
-    GraphIndex d_{};
-    GraphIndex off_{};
+    IdentifierHash a_{};
+    IdentifierHash b_{};
+    IdentifierHash c_{};
+    IdentifierHash d_{};
+    IdentifierHash off_{};
 };
 
 TEST_F(LinearGraphTest, TransitionToAStartsChainBottomUp)
@@ -587,13 +598,13 @@ TEST_F(LinearGraphTest, TransitionToAStartsChainBottomUp)
 
     auto& transition = builder_->createTransition(a_);
 
-    EXPECT_THAT(collectReady(transition), ::testing::ElementsAre(ReadyNode{d_, Action::Start}));
+    EXPECT_THAT(collectReady(transition), ::testing::ElementsAre(ReadyNode<IdentifierHash>{d_, Action::Start}));
     activate(transition, d_);
-    EXPECT_THAT(collectReady(transition), ::testing::ElementsAre(ReadyNode{c_, Action::Start}));
+    EXPECT_THAT(collectReady(transition), ::testing::ElementsAre(ReadyNode<IdentifierHash>{c_, Action::Start}));
     activate(transition, c_);
-    EXPECT_THAT(collectReady(transition), ::testing::ElementsAre(ReadyNode{b_, Action::Start}));
+    EXPECT_THAT(collectReady(transition), ::testing::ElementsAre(ReadyNode<IdentifierHash>{b_, Action::Start}));
     activate(transition, b_);
-    EXPECT_THAT(collectReady(transition), ::testing::ElementsAre(ReadyNode{a_, Action::Start}));
+    EXPECT_THAT(collectReady(transition), ::testing::ElementsAre(ReadyNode<IdentifierHash>{a_, Action::Start}));
     activate(transition, a_);
 
     EXPECT_THAT(collectReady(transition), ::testing::IsEmpty());
@@ -612,17 +623,17 @@ TEST_F(LinearGraphTest, TransitionToOffStopsChainTopDownThenStartsOff)
 
     auto& transition = builder_->createTransition(off_);
 
-    EXPECT_THAT(collectReady(transition), ::testing::ElementsAre(ReadyNode{a_, Action::Stop}));
+    EXPECT_THAT(collectReady(transition), ::testing::ElementsAre(ReadyNode<IdentifierHash>{a_, Action::Stop}));
     deactivate(transition, a_);
-    EXPECT_THAT(collectReady(transition), ::testing::ElementsAre(ReadyNode{b_, Action::Stop}));
+    EXPECT_THAT(collectReady(transition), ::testing::ElementsAre(ReadyNode<IdentifierHash>{b_, Action::Stop}));
     deactivate(transition, b_);
-    EXPECT_THAT(collectReady(transition), ::testing::ElementsAre(ReadyNode{c_, Action::Stop}));
+    EXPECT_THAT(collectReady(transition), ::testing::ElementsAre(ReadyNode<IdentifierHash>{c_, Action::Stop}));
     deactivate(transition, c_);
-    EXPECT_THAT(collectReady(transition), ::testing::ElementsAre(ReadyNode{d_, Action::Stop}));
+    EXPECT_THAT(collectReady(transition), ::testing::ElementsAre(ReadyNode<IdentifierHash>{d_, Action::Stop}));
     deactivate(transition, d_);
 
     // Chain fully stopped: the Off node is now ready to activate.
-    EXPECT_THAT(collectReady(transition), ::testing::ElementsAre(ReadyNode{off_, Action::Start}));
+    EXPECT_THAT(collectReady(transition), ::testing::ElementsAre(ReadyNode<IdentifierHash>{off_, Action::Start}));
     activate(transition, off_);
 
     EXPECT_THAT(collectReady(transition), ::testing::IsEmpty());
@@ -642,9 +653,9 @@ TEST_F(LinearGraphTest, TransitionToCStopsNodesNotNeededByC)
     auto& transition = builder_->createTransition(c_);
 
     // A has no dependents, so it is ready to stop first; B becomes ready once A is stopped.
-    EXPECT_THAT(collectReady(transition), ::testing::ElementsAre(ReadyNode{a_, Action::Stop}));
+    EXPECT_THAT(collectReady(transition), ::testing::ElementsAre(ReadyNode<IdentifierHash>{a_, Action::Stop}));
     deactivate(transition, a_);
-    EXPECT_THAT(collectReady(transition), ::testing::ElementsAre(ReadyNode{b_, Action::Stop}));
+    EXPECT_THAT(collectReady(transition), ::testing::ElementsAre(ReadyNode<IdentifierHash>{b_, Action::Stop}));
     deactivate(transition, b_);
 
     // C and D are already active, so there is nothing to start: the transition is done.
