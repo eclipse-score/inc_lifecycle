@@ -26,7 +26,7 @@
 
 #include <score/assert.hpp>
 
-namespace score::mw::lifecycle
+namespace score::mw::lifecycle::internal
 {
 
 /// @brief Layer of indirection for mw::com usage
@@ -379,6 +379,6 @@ class BasicLmControlImpl final : public ILmControl
 /// @brief Production alias: BasicLmControlImpl wired to the real mw::com proxy.
 using LmControlImpl = BasicLmControlImpl<MwComProxyTraits>;
 
-}  // namespace score::mw::lifecycle
+}  // namespace score::mw::lifecycle::internal
 
 #endif  // SCORE_MW_LIFECYCLE_LM_CONTROL_IMPL_HPP

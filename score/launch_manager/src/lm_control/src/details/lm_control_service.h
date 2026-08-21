@@ -19,7 +19,7 @@
 #include "score/mw/com/types.h"
 #include "score/mw/lifecycle/ilm_control.hpp"
 
-namespace score::mw::lifecycle
+namespace score::mw::lifecycle::internal
 {
 
 // ============================================================================
@@ -152,6 +152,6 @@ class LmControlService : public Trait::Base
 using LmControlProxy = score::mw::com::AsProxy<LmControlService>;
 using LmControlSkeleton = score::mw::com::AsSkeleton<LmControlService>;
 
-}  // namespace score::mw::lifecycle
+}  // namespace score::mw::lifecycle::internal
 
 #endif  // SCORE_MW_LIFECYCLE_LM_CONTROL_SERVICE_H_

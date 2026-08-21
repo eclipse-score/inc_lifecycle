@@ -25,7 +25,7 @@
 
 #include "score/mw/lifecycle/details/lm_control_impl.hpp"
 
-namespace score::mw::lifecycle
+namespace score::mw::lifecycle::internal
 {
 namespace
 {
@@ -744,4 +744,4 @@ TEST_F(LmControlUT, DestructorUnsubscribesWhenConnected)
 }
 
 }  // namespace
-}  // namespace score::mw::lifecycle
+}  // namespace score::mw::lifecycle::internal
