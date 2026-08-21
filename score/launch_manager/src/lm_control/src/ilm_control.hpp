@@ -76,7 +76,8 @@ class ILmControl
     ///          abstraction to expose at this level. Do not treat this interface
     ///          as stable until these decisions are resolved.
     ///
-    /// Establishes the mw::com connection to the Launch Manager.
+    /// Initiates the mw::com service discovery to the Launch Manager.
+    /// Until the connection is established, method calls return kCommunicationError.
     ///
     /// @pre mw::com must be fully initialized by the caller before invoking
     ///      this function. Create() does not initialize mw::com internally.
@@ -89,7 +90,7 @@ class ILmControl
     /// @returns A unique_ptr to the ILmControl instance on success.
     ///
     /// @error kInvalidArguments instance_specifier is empty or malformed.
-    /// @error kCommunicationError     The Launch Manager service could not be reached.
+    /// @error kCommunicationError The service discovery could not be started.
     static score::Result<std::unique_ptr<ILmControl>> Create(std::string_view instance_specifier);
 
     /// @brief Virtual destructor for safe deletion through this interface.
@@ -123,7 +124,7 @@ class ILmControl
     /// @error kRequestQueueIsFull   Activation was rejected because Launch Manager cannot accept another activation
     /// request.
     /// @error kRunTargetDoesntExist Name of the requested Run Target does not exist in current configuration.
-    /// @error kCommunicationError         Connection with Launch Manager cannot be established and request cannot be
+    /// @error kCommunicationError         Connection with Launch Manager could not be established and request cannot be
     /// sent.
     virtual score::Result<void> activate_run_target(RunTargetName runTargetName, bool force = false) = 0;
 
@@ -154,7 +155,7 @@ class ILmControl
     ///
     /// @error kActivationInProgress Launch Manager is currently executing a Run Target
     ///                              activation and thus there is no single Run Target active.
-    /// @error kCommunicationError   Connection with Launch Manager cannot be established
+    /// @error kCommunicationError   Connection with Launch Manager could not be established
     ///                              and information about active Run Target cannot be retrieved.
     virtual score::Result<RunTargetName> get_active_run_target() = 0;
 
