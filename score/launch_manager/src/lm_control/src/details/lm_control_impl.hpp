@@ -29,19 +29,6 @@
 namespace score::mw::lifecycle
 {
 
-/// @brief Translates a RunTargetActivationSource to a human-readable string for logging.
-constexpr std::string_view toStringView(const RunTargetActivationSource source) noexcept
-{
-    switch (source)
-    {
-        case RunTargetActivationSource::kStateManagerRequest:
-            return "StateManagerRequest";
-        case RunTargetActivationSource::kRecoveryAction:
-            return "RecoveryAction";
-    }
-    return "Unknown";
-}
-
 /// @brief Layer of indirection for mw::com usage
 /// @details This allows to inject a fake proxy in tests, while the production code uses the real mw::com proxy.
 struct MwComProxyTraits
@@ -364,7 +351,7 @@ class BasicLmControlImpl final : public ILmControl
     static void forwardSample(const ActivationCallback& callback, const SamplePtrType& sample) noexcept
     {
         LM_LOG_DEBUG() << "LmControl: activation_result received: run_target=" << sample->activated_run_target
-                       << "source=" << toStringView(sample->activation_source);
+                       << "source=" << sample->activation_source;
         if (callback)
         {
             callback(sample->activation_source, sample->activated_run_target);

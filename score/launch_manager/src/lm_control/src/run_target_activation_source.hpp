@@ -37,6 +37,24 @@ enum class RunTargetActivationSource : std::uint8_t
     kRecoveryAction = 1
 };
 
+/// @brief Stream insertion operator for RunTargetActivationSource.
+///
+/// Templated on the stream type so it works with any ostream-compatible stream
+/// (for example, `std::ostream` or mw::log streams) without introducing
+/// additional dependencies in this header.
+template <typename Stream>
+Stream& operator<<(Stream& os, const RunTargetActivationSource source)
+{
+    switch (source)
+    {
+        case RunTargetActivationSource::kStateManagerRequest:
+            return os << "kStateManagerRequest";
+        case RunTargetActivationSource::kRecoveryAction:
+            return os << "kRecoveryAction";
+    }
+    return os << static_cast<std::uint32_t>(source);
+}
+
 }  // namespace score::mw::lifecycle
 
 #endif  // SCORE_MW_LIFECYCLE_RUN_TARGET_ACTIVATION_SOURCE_HPP
