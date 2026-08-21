@@ -82,8 +82,7 @@ IComponent::RequestResult ProcessInfoNode::tryReportCompletion(score::mw::lifecy
         ready_condition);
 
     // Reaching the desired state or beyond satisfies the ready condition: a self-terminating process
-    // may already have exited (kTerminated) by the time completion is reported. File-state conditions
-    // are not tracked via the process state and are handled elsewhere.
+    // may already have exited (kTerminated) by the time completion is reported.
     if (has_process_state_condition && new_state >= desired_state)
     {
         return tryReportSuccess();
