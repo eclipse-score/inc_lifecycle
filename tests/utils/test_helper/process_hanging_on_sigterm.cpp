@@ -22,9 +22,8 @@
 
 namespace
 {
-/// @brief How long the process stalls while being terminated, keeping an in-progress
-/// run-target switch alive so the test has a deterministic window to send SIGTERM to
-/// the launch manager. Must be smaller than the configured shutdown_timeout so the
+/// @brief How long the process stalls while being terminated.
+/// Must be smaller than the configured shutdown_timeout so the
 /// process still exits gracefully.
 constexpr unsigned int kTerminationDelaySeconds = 2U;
 
