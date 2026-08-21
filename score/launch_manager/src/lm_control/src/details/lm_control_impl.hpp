@@ -154,7 +154,7 @@ class BasicLmControlImpl final : public ILmControl
         }
     }
 
-    score::Result<void> activate_run_target(RunTargetName runTargetName, bool force = false) override
+    score::Result<void> activate_run_target(RunTargetName runTargetName, bool force) override
     {
         auto* const proxy = connectedProxy();
         if (proxy == nullptr)

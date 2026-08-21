@@ -332,7 +332,7 @@ TEST_F(LmControlUT, MethodsFailWhileNotYetConnected)
 
     auto sut = MakeLmControl();
 
-    auto activate = sut->activate_run_target("Running");
+    auto activate = sut->activate_run_target("Running", false);
     ASSERT_FALSE(activate.has_value());
     EXPECT_EQ(activate.error(), ExecErrc::kCommunicationError);
 
@@ -498,7 +498,9 @@ TEST_F(LmControlUT, ActivateForwardsNameAndQueuedModeByDefault)
             Field(&ActivateRunTargetRequest::mode, ActivationMode::kQueued))))
         .WillOnce(Return(Accepted()));
 
-    EXPECT_TRUE(sut->activate_run_target("Driving").has_value());
+    // Through the interface: that is where the force=false default lives.
+    ILmControl& lm_control = *sut;
+    EXPECT_TRUE(lm_control.activate_run_target("Driving").has_value());
 }
 
 TEST_F(LmControlUT, ActivateForcedMapsToForcedMode)
@@ -522,7 +524,7 @@ TEST_F(LmControlUT, ActivateRejectionSurfacesRejectionReason)
     EXPECT_CALL(mock_, ActivateRunTarget(_))
         .WillOnce(Return(ActivateRunTargetResponse{RequestStatus::kRejected, ExecErrc::kRequestQueueIsFull}));
 
-    auto result = sut->activate_run_target("Driving");
+    auto result = sut->activate_run_target("Driving", false);
     ASSERT_FALSE(result.has_value());
     EXPECT_EQ(result.error(), ExecErrc::kRequestQueueIsFull);
 }
@@ -535,7 +537,7 @@ TEST_F(LmControlUT, ActivateTransportFailureReturnsCommunicationError)
 
     EXPECT_CALL(mock_, ActivateRunTarget(_)).WillOnce(Return(score::MakeUnexpected(ExecErrc::kFailed)));
 
-    auto result = sut->activate_run_target("Driving");
+    auto result = sut->activate_run_target("Driving", false);
     ASSERT_FALSE(result.has_value());
     EXPECT_EQ(result.error(), ExecErrc::kCommunicationError);
 }
