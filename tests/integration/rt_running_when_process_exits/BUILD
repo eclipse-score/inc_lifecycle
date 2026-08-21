@@ -19,6 +19,7 @@ cc_binary(
     deps = [
         "//score/launch_manager:lifecycle_cc",
         "//tests/utils/test_helper",
+        "//tests/utils/test_helper:process_utils",
         "@googletest//:gtest_main",
     ],
 )

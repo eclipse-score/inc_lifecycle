@@ -12,14 +12,12 @@
  ********************************************************************************/
 #include <gtest/gtest.h>
 
-#include <algorithm>
-#include <cctype>
 #include <filesystem>
 #include <fstream>
-#include <sstream>
 #include <string>
-#include <vector>
+#include <string_view>
 
+#include "tests/utils/test_helper/process_utils.hpp"
 #include "tests/utils/test_helper/test_helper.hpp"
 #include <score/mw/lifecycle/report_running.h>
 
@@ -28,46 +26,6 @@ namespace
 
 constexpr std::string_view kSetupScriptName = "setup_filesystem.sh";
 constexpr std::string_view kSetupOutputFile = "setup_filesystem_output.txt";
-
-/// @brief Returns true if any currently running process was launched from the setup script.
-///
-/// This is the programmatic equivalent of inspecting the output of `ps` and looking for the
-/// setup_filesystem.sh process: it walks /proc/<pid>/cmdline and checks whether any argument
-/// refers to the setup script. Zombie/reaped processes carry an empty cmdline and are therefore
-/// correctly ignored.
-bool setup_script_still_running()
-{
-    for (const auto& entry : std::filesystem::directory_iterator{"/proc"})
-    {
-        if (!entry.is_directory())
-        {
-            continue;
-        }
-
-        const std::string pid = entry.path().filename().string();
-        if (pid.empty() || !std::all_of(pid.begin(), pid.end(), [](unsigned char c) {
-                return std::isdigit(c);
-            }))
-        {
-            continue;  // Not a process directory.
-        }
-
-        std::ifstream cmdline{entry.path() / "cmdline", std::ios::binary};
-        if (!cmdline)
-        {
-            continue;  // Process may have vanished between listing and reading.
-        }
-
-        std::stringstream buffer;
-        buffer << cmdline.rdbuf();
-        // cmdline arguments are separated by null bytes; a simple substring search is sufficient.
-        if (buffer.str().find(kSetupScriptName) != std::string::npos)
-        {
-            return true;
-        }
-    }
-    return false;
-}
 
 }  // namespace
 
@@ -103,7 +61,7 @@ TEST(RtRunningWhenProcessExits, FilesystemReader)
 
     TEST_STEP("Verify setup_filesystem.sh process has already terminated")
     {
-        EXPECT_FALSE(setup_script_still_running())
+        EXPECT_FALSE(test_helper::process_is_running(kSetupScriptName))
             << "The setup_filesystem.sh process is still running; filesystem_reader was started "
                "before its dependency terminated";
     }

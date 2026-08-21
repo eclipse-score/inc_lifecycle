@@ -43,11 +43,9 @@ TEST(RtRunningWhenProcessExits, ControlClientTestDriver)
     score::mw::lifecycle::ControlClient client;
     score::cpp::stop_token stop_token;
 
-    ASSERT_TRUE(check_clean({test_end_location}));
-    // The marker file may be left over from a previous run when executing manually on the host.
-    // Remove it so that its presence is a reliable signal that slow_setup.sh terminated during
-    // *this* run.
-    ASSERT_TRUE(check_clean({kSlowSetupOutput}, /*strict=*/false));
+    // kSlowSetupOutput is checked too: its later presence must be a reliable signal that
+    // slow_setup.sh terminated during *this* run, not leftover from a previous one.
+    ASSERT_TRUE(check_clean({test_end_location, kSlowSetupOutput}));
 
     TEST_STEP("Report running")
     {
