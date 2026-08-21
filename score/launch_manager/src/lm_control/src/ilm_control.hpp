@@ -60,6 +60,8 @@ class ILmControl
     /// recovery action may activate a different Run Target).
     /// The subscriber sees every settling.
     ///
+    /// @note The callback must not throw exceptions.
+    ///
     /// @param[in] activationSource   What caused the activation to occur.
     /// @param[in] activatedRunTarget The Run Target that was activated - may
     ///                               differ from the one originally requested.

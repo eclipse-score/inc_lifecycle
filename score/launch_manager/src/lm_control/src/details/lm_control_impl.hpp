@@ -14,6 +14,7 @@
 #define SCORE_MW_LIFECYCLE_LM_CONTROL_IMPL_HPP
 
 #include <cstddef>
+#include <exception>
 #include <mutex>
 #include <optional>
 #include <string>
@@ -357,15 +358,33 @@ class BasicLmControlImpl final : public ILmControl
     /// @brief Forwards a single activation-result sample to the given callback.
     /// @param[in] callback The callback to invoke, may be empty in which case the sample is dropped.
     /// @param[in] sample   The received activation result.
+    /// @note Exceptions from the user callback are caught and logged: this runs on an
+    ///       mw::com dispatch thread, so letting one escape would terminate the process.
     static void forwardSample(const ActivationCallback& callback, const SamplePtr<ActivationResult>& sample) noexcept
     {
         LM_LOG_DEBUG() << "LmControl: activation_result received: run_target=" << sample->activated_run_target
                        << "source=" << sample->activation_source;
-        if (callback)
+        if (!callback)
+        {
+            return;
+        }
+
+        try
         {
             callback(sample->activation_source, sample->activated_run_target);
-            LM_LOG_DEBUG() << "LmControl: activation_result: user callback invoked";
         }
+        catch (const std::exception& e)
+        {
+            LM_LOG_ERROR() << "LmControl: activation callback threw:" << e.what() << "- sample dropped";
+            return;
+        }
+        catch (...)
+        {
+            LM_LOG_ERROR() << "LmControl: activation callback threw an unknown exception - sample dropped";
+            return;
+        }
+
+        LM_LOG_DEBUG() << "LmControl: activation_result: user callback invoked";
     }
 
     // Guards proxy_

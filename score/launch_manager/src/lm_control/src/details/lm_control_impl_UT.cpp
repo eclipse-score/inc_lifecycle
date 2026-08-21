@@ -19,6 +19,7 @@
 #include <functional>
 #include <memory>
 #include <optional>
+#include <stdexcept>
 #include <string_view>
 #include <utility>
 #include <vector>
@@ -679,6 +680,55 @@ TEST_F(LmControlUT, ActivationResultWithoutCallbackIsDroppedSafely)
 
     ASSERT_TRUE(receive_handler_);
     receive_handler_();  // no callback registered — must not crash
+}
+
+TEST_F(LmControlUT, ThrowingActivationCallbackIsContainedAndDrainContinues)
+{
+    RecordProperty(
+        "Description",
+        "An exception escaping the user activation callback is caught, the offending sample is dropped and "
+        "the remaining samples of the batch are still forwarded.");
+
+    auto sut = MakeConnected();
+
+    std::vector<RunTargetName> received{};
+    ASSERT_TRUE(sut->register_run_target_activation_callback([&](RunTargetActivationSource, RunTargetName n) {
+                       received.push_back(n);
+                       if (n == "Boom")
+                       {
+                           throw std::runtime_error{"callback failure"};
+                       }
+                   })
+                    .has_value());
+
+    EXPECT_CALL(mock_, GetNewSamples(_)).WillOnce(Invoke([](std::size_t) {
+        return score::Result<std::vector<ActivationResult>>{MakeSamples({"T0", "Boom", "T1"})};
+    }));
+
+    ASSERT_TRUE(receive_handler_);
+    receive_handler_();  // must neither terminate nor abort the drain
+
+    EXPECT_THAT(received, ::testing::ElementsAre("T0", "Boom", "T1"));
+}
+
+TEST_F(LmControlUT, ActivationCallbackThrowingNonStdExceptionIsContained)
+{
+    RecordProperty(
+        "Description", "An activation callback throwing something not derived from std::exception is caught as well.");
+
+    auto sut = MakeConnected();
+
+    ASSERT_TRUE(sut->register_run_target_activation_callback([](RunTargetActivationSource, RunTargetName) {
+                       throw 42;
+                   })
+                    .has_value());
+
+    EXPECT_CALL(mock_, GetNewSamples(_)).WillOnce(Invoke([](std::size_t) {
+        return score::Result<std::vector<ActivationResult>>{MakeSamples({"Running"})};
+    }));
+
+    ASSERT_TRUE(receive_handler_);
+    receive_handler_();  // must not terminate
 }
 
 TEST_F(LmControlUT, ActivationResultGetNewSamplesFailureIsTolerated)
