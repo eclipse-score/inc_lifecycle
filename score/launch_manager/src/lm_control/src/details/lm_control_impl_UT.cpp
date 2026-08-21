@@ -154,6 +154,12 @@ struct FakeProxyTraits
     using HandleType = FakeHandle;
     using FindServiceHandle = FakeFindHandle;
 
+    /// @brief Stand-ins for mw::com's pointer-like wrappers, see MwComProxyTraits.
+    template <typename ResponseType>
+    using MethodResultPtr = std::shared_ptr<ResponseType>;
+    template <typename SampleType>
+    using SamplePtr = SampleType*;
+
     static inline MwComMock* mock{nullptr};
 
     template <typename Handler>

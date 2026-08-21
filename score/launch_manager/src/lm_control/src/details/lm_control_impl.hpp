@@ -37,6 +37,14 @@ struct MwComProxyTraits
     using HandleType = LmControlProxy::HandleType;
     using FindServiceHandle = score::mw::com::FindServiceHandle;
 
+    /// @brief Pointer-like wrapper a proxy method call returns its response in.
+    template <typename ResponseType>
+    using MethodResultPtr = score::mw::com::MethodReturnTypePtr<ResponseType>;
+
+    /// @brief Pointer-like wrapper a proxy event hands to its receive callback.
+    template <typename SampleType>
+    using SamplePtr = score::mw::com::SamplePtr<SampleType>;
+
     template <typename Handler>
     static score::Result<FindServiceHandle> StartFindService(
         Handler&& handler,
@@ -95,7 +103,7 @@ class BasicLmControlImpl final : public ILmControl
             return score::MakeUnexpected(ExecErrc::kInvalidArguments);
         }
 
-        const auto start_result = Traits::StartFindService(
+        const score::Result<FindServiceHandle> start_result = Traits::StartFindService(
             [this](score::mw::com::ServiceHandleContainer<HandleType> handles, FindServiceHandle) noexcept {
                 onServiceFound(std::move(handles));
             },
@@ -144,7 +152,7 @@ class BasicLmControlImpl final : public ILmControl
         const ActivateRunTargetRequest request{
             runTargetName, force ? ActivationMode::kForced : ActivationMode::kQueued};
 
-        const auto result = proxy->activate_run_target(request);
+        const score::Result<MethodResultPtr<ActivateRunTargetResponse>> result = proxy->activate_run_target(request);
         if (!result.has_value())
         {
             LM_LOG_ERROR() << "LmControl: activate_run_target: proxy method call failed with error:" << result.error();
@@ -180,7 +188,7 @@ class BasicLmControlImpl final : public ILmControl
             return score::MakeUnexpected(ExecErrc::kCommunicationError);
         }
 
-        const auto result = proxy->get_active_run_target();
+        const score::Result<MethodResultPtr<GetActiveRunTargetResponse>> result = proxy->get_active_run_target();
         if (!result.has_value())
         {
             LM_LOG_ERROR() << "LmControl: get_active_run_target: proxy method call failed with error:"
@@ -204,6 +212,12 @@ class BasicLmControlImpl final : public ILmControl
     using ProxyType = typename Traits::Proxy;
     using HandleType = typename Traits::HandleType;
     using FindServiceHandle = typename Traits::FindServiceHandle;
+
+    template <typename ResponseType>
+    using MethodResultPtr = typename Traits::template MethodResultPtr<ResponseType>;
+
+    template <typename SampleType>
+    using SamplePtr = typename Traits::template SamplePtr<SampleType>;
 
     /// @brief Allow to read small number of samples at once
     static constexpr std::size_t kActivationResultSampleCount = 4U;
@@ -240,7 +254,7 @@ class BasicLmControlImpl final : public ILmControl
     {
         SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(!proxy_.has_value(), "proxy already created");
 
-        auto create_result = Traits::Create(handle);
+        score::Result<ProxyType> create_result = Traits::Create(handle);
         if (!create_result.has_value())
         {
             LM_LOG_ERROR() << "LmControl: Proxy::Create failed with error:" << create_result.error();
@@ -308,7 +322,7 @@ class BasicLmControlImpl final : public ILmControl
         for (;;)
         {
             const auto get_result = proxy_->activation_result.GetNewSamples(
-                [&callback](const auto& sample) noexcept {
+                [&callback](const SamplePtr<ActivationResult>& sample) noexcept {
                     forwardSample(callback, sample);
                 },
                 kActivationResultSampleCount);
@@ -341,14 +355,9 @@ class BasicLmControlImpl final : public ILmControl
     }
 
     /// @brief Forwards a single activation-result sample to the given callback.
-    /// @details The sample parameter is intentionally a template: in production it
-    ///          is a score::mw::com::SamplePtr<ActivationResult>, while a fake proxy
-    ///          in tests can hand in any pointer-like sample. Nothing here depends
-    ///          on the concrete mw::com sample type.
     /// @param[in] callback The callback to invoke, may be empty in which case the sample is dropped.
     /// @param[in] sample   The received activation result.
-    template <typename SamplePtrType>
-    static void forwardSample(const ActivationCallback& callback, const SamplePtrType& sample) noexcept
+    static void forwardSample(const ActivationCallback& callback, const SamplePtr<ActivationResult>& sample) noexcept
     {
         LM_LOG_DEBUG() << "LmControl: activation_result received: run_target=" << sample->activated_run_target
                        << "source=" << sample->activation_source;
