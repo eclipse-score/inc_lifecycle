@@ -36,7 +36,7 @@ TEST(DependencyGraphTest, AddDependencyWiresDependsOnAndDependents)
 {
     DependencyGraph<IdentifierHash, std::string> graph(2);
     const auto dep = graph.try_emplace(IdentifierHash{"dep"}, "dep");
-    const auto root = graph.try_emplace(IdentifierHash{"dep"}, "root");
+    const auto root = graph.try_emplace(IdentifierHash{"root"}, "root");
     graph.addDependency(root, dep);
 
     EXPECT_THAT(graph.dependsOn(root), ::testing::ElementsAre(dep));

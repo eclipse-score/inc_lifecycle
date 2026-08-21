@@ -273,6 +273,9 @@ void Graph::startTransition(IdentifierHash pg_state)
         requested_state_.pg_state_name_ = pg_state;
     }
 
+    SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(
+        nodes_.find(pg_state) != nodes_.end(), "State name should be validated before it is passed to this method");
+
     bool reached_transition = setState(GraphState::kInTransition);
     static_cast<void>(reached_transition);
     // startTransition() should not be called while the graph is not in a final state
@@ -484,6 +487,11 @@ void Graph::setStateManager(ControlClientID& control_client_id)
 
 ProcessInfoNode* Graph::getProcessInfoNode(IdentifierHash process_index)
 {
+    if (nodes_.find(process_index) == nodes_.end())
+    {
+        return nullptr;
+    }
+
     return std::get_if<ProcessInfoNode>(&nodes_[process_index]);
 }
 

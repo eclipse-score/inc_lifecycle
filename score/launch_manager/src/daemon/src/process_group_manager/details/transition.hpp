@@ -231,7 +231,7 @@ class Transition
     /// @brief True iff @p node is a valid index into the underlying graph, i.e. in [0, size()).
     bool isValidNode(GraphIndex node) const
     {
-        return state_.bitset_map.find(node) != state_.bitset_map.end();
+        return graph_.find(node) != graph_.end();
     }
 
     /// @brief Construct a reusable Transition for the given graph.

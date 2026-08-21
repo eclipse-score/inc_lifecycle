@@ -28,7 +28,8 @@ using namespace score::mw::lifecycle::internal;
 using namespace score::mw::lifecycle;
 
 // Default process name for testing
-const IdentifierHash kProcessName{"TestProcess"};
+constexpr std::string_view kProcessName{"test_process"};
+const IdentifierHash kProcessNameHash{kProcessName};
 
 class MockSafeProcessMapInserter : public SafeProcessMapInserter
 {
@@ -57,8 +58,8 @@ class ProcessInfoNodeFixture : public ::testing::Test
         configuration::ProcessState ready_state = configuration::ProcessState::Running)
     {
         configuration::ComponentConfig config{};
-        config.name = "test_process";
-        config.component_properties.binary_name = "test_process";
+        config.name = kProcessName;
+        config.component_properties.binary_name = kProcessName;
 
         auto& profile = config.component_properties.application_profile;
         profile.application_type = application_type;

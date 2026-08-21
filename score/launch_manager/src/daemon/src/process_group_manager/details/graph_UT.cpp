@@ -228,7 +228,7 @@ TEST_F(GraphOrdinaryTransitionTest, correctJobDetails)
     const auto job = job_queue_->pop();
     ASSERT_TRUE(job->has_value()) << "startTransition didn't push anything to the queue";
     EXPECT_EQ(job->value().type, ComponentTaskType::kActivate);
-    EXPECT_EQ(job->value().component.get().getIndex(), target);
+    EXPECT_EQ(job->value().component.get().getIndex(), IdentifierHash{process_name(1)});
 }
 
 TEST_F(GraphOrdinaryTransitionTest, simpleActivationTransition)
@@ -242,7 +242,7 @@ TEST_F(GraphOrdinaryTransitionTest, simpleActivationTransition)
 
     const auto job = job_queue_->pop();
     executeJobSuccessfully(job->value());
-    graph_->handleComponentEvent(ActivationSuccessful{IdentifierHash{"Process"}});
+    graph_->handleComponentEvent(ActivationSuccessful{IdentifierHash{process_name(0)}});
 
     ASSERT_EQ(graph_->getState(), GraphState::kSuccess);
     EXPECT_EQ(graph_->getProcessGroupState(), target);
@@ -260,7 +260,7 @@ TEST_F(GraphOrdinaryTransitionTest, simpleDeactivationTransition)
 
     const auto job = job_queue_->pop();
     executeJobSuccessfully(job->value());
-    graph_->handleComponentEvent(DeactivationComplete{IdentifierHash{"Process"}});
+    graph_->handleComponentEvent(DeactivationComplete{IdentifierHash{process_name(0)}});
 
     ASSERT_EQ(graph_->getState(), GraphState::kSuccess);
     EXPECT_EQ(graph_->getProcessGroupState(), target);
@@ -296,7 +296,7 @@ TEST_F(GraphInitialTransitionTest, jobFailure)
     const auto job = job_queue_->pop()->value();
     failActivationJob(job);
     graph_->handleComponentEvent(
-        ActivationFailed{IdentifierHash{"Process"}, IComponent::ComponentError::kErrorBeforeReady});
+        ActivationFailed{IdentifierHash{process_name(0)}, IComponent::ComponentError::kErrorBeforeReady});
 
     EXPECT_EQ(graph_->getState(), GraphState::kUndefinedState);
 }
@@ -316,7 +316,7 @@ TEST_F(GraphInitialTransitionTest, cancel)
 
     const auto job = job_queue_->pop()->value();
     executeJobSuccessfully(job);
-    graph_->handleComponentEvent(ActivationSuccessful{IdentifierHash{"Process"}});
+    graph_->handleComponentEvent(ActivationSuccessful{IdentifierHash{process_name(0)}});
 
     EXPECT_EQ(graph_->getState(), GraphState::kUndefinedState);
 }
@@ -526,7 +526,7 @@ TEST_F(GraphHandleComponentEventTest, unexpectedTerminationDuringSuccess)
             }),
             Return(osal::OsalReturnType::kSuccess)));
 
-    graph_->handleComponentEvent(UnexpectedTermination{IdentifierHash{"Process"}});
+    graph_->handleComponentEvent(UnexpectedTermination{component->getIndex()});
 
     EXPECT_EQ(graph_->getState(), GraphState::kUndefinedState);
 }
@@ -587,7 +587,7 @@ TEST_F(GraphCancelTest, cancelsOngoingTransition)
 
     const auto job = job_queue_->pop();
 
-    graph_->handleComponentEvent(JobSkipped{IdentifierHash{"Process"}});
+    graph_->handleComponentEvent(JobSkipped{IdentifierHash{process_name(0)}});
 
     EXPECT_TRUE(job->value().stop_token.stop_requested());
     EXPECT_EQ(graph_->getPendingEvent(), ControlClientCode::kSetStateCancelled);

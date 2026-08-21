@@ -52,7 +52,7 @@ class DependencyGraph
     ///
     /// @details The size of the internal traversal queue is either count - 1 or 1. This is because in each traversal
     /// one node is pushed to the queue and then popped. From then on, dependencies are pushed to the queue.
-    explicit DependencyGraph(const std::size_t count) : traversal_queue(std::max(count, 2UL) - 1)
+    explicit DependencyGraph(const std::size_t count) : capacity_(count), traversal_queue(std::max(count, 2UL) - 1)
     {
         nodes.reserve(count);
     }
@@ -90,7 +90,7 @@ class DependencyGraph
     /// reserved at construction).
     std::size_t capacity() const
     {
-        return nodes.max_size();
+        return capacity_;
     }
 
     T& operator[](GraphIndex index)
@@ -169,6 +169,11 @@ class DependencyGraph
         {
             return it != other.it;
         }
+
+        bool operator==(const ValueIterator& other) const
+        {
+            return it == other.it;
+        }
     };
 
     /// @returns Iterator at the beginning of the nodes store.
@@ -183,7 +188,14 @@ class DependencyGraph
         return ValueIterator{nodes.end()};
     }
 
+    ValueIterator find(GraphIndex index)
+    {
+        return ValueIterator{nodes.find(index)};
+    }
+
   private:
+    std::size_t capacity_;
+
     std::unordered_map<GraphIndex, GraphNode> nodes;
 
     /// @brief Presized queue reused by single-threaded traversals.

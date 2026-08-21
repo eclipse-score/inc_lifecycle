@@ -44,7 +44,11 @@ class MockComponent : public IComponent
   public:
     MockComponent()
     {
+        static std::size_t index{0};
+        name_ = IdentifierHash{std::to_string(index++)};
+
         ON_CALL(*this, active()).WillByDefault(::testing::ReturnPointee(&active_));
+        ON_CALL(*this, getIndex()).WillByDefault(::testing::ReturnPointee(&name_));
     }
 
     MOCK_METHOD(RequestResult, activate, (score::cpp::stop_token), (override));
@@ -63,6 +67,8 @@ class MockComponent : public IComponent
     // Default: inactive and fully stopped.
     bool active_ = false;
     bool stopped_ = true;
+
+    IdentifierHash name_;
 };
 
 using ComponentType = internal::IComponent*;
@@ -91,11 +97,11 @@ class TransitionTest : public ::testing::Test
     /// @brief Add a fresh mock-backed node and return its index.
     IdentifierHash addNode()
     {
-        static std::size_t index{0};
-        const auto res = components_.emplace(
-            IdentifierHash{std::to_string(index++)}, std::make_unique<::testing::NiceMock<internal::MockComponent>>());
-        graph_->try_emplace(res.first->first, res.first->second.get());
-        return res.first->first;
+        auto component = std::make_unique<::testing::NiceMock<internal::MockComponent>>();
+        const IdentifierHash name = component->name_;
+        const auto res = components_.emplace(name, std::move(component));
+        graph_->try_emplace(name, res.first->second.get());
+        return name;
     }
 
     internal::MockComponent& componentAt(IdentifierHash i)
