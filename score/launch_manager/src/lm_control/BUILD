@@ -11,7 +11,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 load("@rules_cc//cc:defs.bzl", "cc_library")
-load("//tests/utils/bazel:runfiles.bzl", "runfiles_at")
 load("//tests/utils/bazel:unit_test.bzl", "lm_cc_test")
 
 cc_library(
@@ -53,24 +52,17 @@ lm_cc_test(
     ],
 )
 
-# mw::com reads its manifest from the working-directory-relative default path
-# ./etc/mw_com_config.json unless told otherwise via CLI args.
-# CLI args are currently not supported with score_qnx_unit_tests, so
-# making sure the file is available at the default path in the runfiles of the test.
-runfiles_at(
-    name = "default_mw_com_config",
-    testonly = True,
-    src = "src/details/test_lm_mw_com_config.json",
-    path = "etc/mw_com_config.json",
-)
-
 lm_cc_test(
     name = "ilm_control_UT",
     srcs = ["src/details/ilm_control_UT.cpp"],
-    data = [":default_mw_com_config"],
+    args = [
+        "--service_instance_manifest",
+        "$(rootpath src/details/test_lm_mw_com_config.json)",
+    ],
+    data = ["src/details/test_lm_mw_com_config.json"],
     deps = [
         ":lm_control",
-        "@googletest//:gtest_main",
+        "@googletest//:gtest",
         "@score_communication//score/mw/com",
     ],
 )

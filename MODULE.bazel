@@ -94,6 +94,15 @@ use_repo(llvm, "llvm_toolchain")
 
 # UTs on QNX
 bazel_dep(name = "score_qnx_unit_tests", version = "0.2.0", dev_dependency = True)
+
+# TODO: drop this override once a version > 0.2.0 is published.
+# Latest release (0.2.0) does not support CLI args when running tests on QNX
+git_override(
+    module_name = "score_qnx_unit_tests",
+    commit = "79cc6598268d1f21cbfa75da4993facccf01edbd",
+    remote = "https://github.com/eclipse-score/qnx_unit_tests.git",
+)
+
 bazel_dep(name = "score_rules_imagefs", version = "0.0.4", dev_dependency = True)
 
 imagefs = use_extension("@score_rules_imagefs//extensions:imagefs.bzl", "imagefs", dev_dependency = True)

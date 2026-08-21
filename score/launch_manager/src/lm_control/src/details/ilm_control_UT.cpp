@@ -24,7 +24,6 @@ namespace score::mw::lifecycle
 namespace
 {
 
-// Present in the test manifest (lm_mw_com_config.json).
 constexpr std::string_view kValidSpecifier = "StateManager/LaunchManager/Instance";
 
 class ILmControlUT : public ::testing::Test
@@ -65,3 +64,10 @@ TEST_F(ILmControlUT, ReturnsInitErrorForInvalidSpecifier)
 
 }  // namespace
 }  // namespace score::mw::lifecycle
+
+int main(int argc, char** argv)
+{
+    ::testing::InitGoogleTest(&argc, argv);
+    score::mw::com::runtime::InitializeRuntime(argc, const_cast<const char**>(argv));
+    return RUN_ALL_TESTS();
+}
