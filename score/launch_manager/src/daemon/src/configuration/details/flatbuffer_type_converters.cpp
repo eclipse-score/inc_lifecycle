@@ -103,6 +103,18 @@ ProcessState convertProcessState(fb::ProcessState fb_state)
     }
 }
 
+FileExistenceState convertFileExistenceState(fb::FileExistenceState fb_state)
+{
+    switch (fb_state)
+    {
+        case fb::FileExistenceState::NotExisting:
+            return FileExistenceState::NotExisting;
+        case fb::FileExistenceState::Exists:
+            return FileExistenceState::Exists;
+    }
+    SCORE_LANGUAGE_FUTURECPP_UNREACHABLE();
+}
+
 score::cpp::expected<int32_t, IConfigLoader::Error> convertSchedulingPolicy(fb::SchedulingPolicy policy)
 {
     switch (policy)
@@ -296,19 +308,59 @@ score::cpp::expected<ApplicationProfile, IConfigLoader::Error> convertApplicatio
     return result;
 }
 
+score::cpp::expected<FileState, IConfigLoader::Error> convertFileState(const fb::FileState& fb_fs)
+{
+    SCORE_LANGUAGE_FUTURECPP_ASSERT_PRD_MESSAGE(
+        fb_fs.file_path(), "FileState::file_path must never be nullptr as it is required in the schema");
+    SCORE_LANGUAGE_FUTURECPP_ASSERT_PRD_MESSAGE(
+        fb_fs.polling_interval() != 0.0,
+        "No FileState::polling_interval is configured, this should have been defaulted with the script.");
+
+    auto polling_interval_ms = secondsToMs(fb_fs.polling_interval());
+    if (!polling_interval_ms.has_value())
+    {
+        LM_LOG_ERROR() << "Invalid value for FileState::polling_interval";
+        return score::cpp::make_unexpected(polling_interval_ms.error());
+    }
+    return FileState{
+        fb_fs.file_path()->str(),
+        convertFileExistenceState(fb_fs.state()),
+        std::chrono::milliseconds{*polling_interval_ms}};
+}
+
 score::cpp::expected<ReadyCondition, IConfigLoader::Error> convertReadyCondition(const fb::ReadyCondition* fb_rc)
 {
-    ReadyCondition result{};
-    if (fb_rc != nullptr)
+    SCORE_LANGUAGE_FUTURECPP_ASSERT_PRD_MESSAGE(
+        fb_rc != nullptr, "No ReadyCondition is configured, this should have been defaulted with the script.");
+
+    const bool has_process_state = fb_rc->process_state().has_value();
+    const bool has_file_state = fb_rc->file_state() != nullptr;
+
+    if (has_process_state && has_file_state)
     {
-        auto process_state = requireScalarValue(fb_rc->process_state(), "ReadyCondition::process_state");
-        if (!process_state.has_value())
-        {
-            return score::cpp::make_unexpected(process_state.error());
-        }
-        result.process_state = convertProcessState(*process_state);
+        LM_LOG_ERROR() << "ReadyCondition cannot have both process_state and file_state set";
+        return score::cpp::make_unexpected(IConfigLoader::Error::InvalidFormat);
     }
-    return result;
+
+    if (has_process_state)
+    {
+        return ReadyCondition{convertProcessState(*fb_rc->process_state())};
+    }
+
+    if (has_file_state)
+    {
+        auto file_state = convertFileState(*(fb_rc->file_state()));
+        if (!file_state.has_value())
+        {
+            LM_LOG_ERROR() << "Invalid value for ReadyCondition::file_state";
+            return score::cpp::make_unexpected(file_state.error());
+        }
+
+        // convertFileState only returns nullopt for a nullptr input, which is ruled out above
+        return ReadyCondition{*file_state};
+    };
+
+    SCORE_LANGUAGE_FUTURECPP_UNREACHABLE();
 }
 
 score::cpp::expected<ComponentProperties, IConfigLoader::Error> convertComponentProperties(
@@ -334,12 +386,12 @@ score::cpp::expected<ComponentProperties, IConfigLoader::Error> convertComponent
         result.process_arguments = convertStringVector(fb_cp->process_arguments());
         if (fb_cp->ready_condition() != nullptr)
         {
-            auto ready_cond = convertReadyCondition(fb_cp->ready_condition());
-            if (!ready_cond.has_value())
+            auto ready_condition = convertReadyCondition(fb_cp->ready_condition());
+            if (!ready_condition.has_value())
             {
-                return score::cpp::make_unexpected(ready_cond.error());
+                return score::cpp::make_unexpected(ready_condition.error());
             }
-            result.ready_condition = std::move(*ready_cond);
+            result.ready_condition = std::move(ready_condition.value());
         }
     }
     return result;

@@ -450,6 +450,81 @@ def test_preprocessing_no_defaults_section():
     assert result["components"]["c1"]["deployment_config"]["bin_dir"] == "/opt"
 
 
+def _config_with_file_state(file_state):
+    return {
+        "schema_version": 1,
+        "components": {
+            "c1": {
+                "component_properties": {
+                    "binary_name": "c1",
+                    "ready_condition": {"file_state": file_state},
+                }
+            }
+        },
+        "run_targets": {"Startup": {}},
+        "initial_run_target": "Startup",
+        "fallback_run_target": {"transition_timeout": 1},
+    }
+
+
+def test_preprocessing_file_state_defaults():
+    """
+    A file_state ready condition only requires a file_path, state and
+    polling_interval are filled in with their defaults.
+    """
+    config = _config_with_file_state({"file_path": "/tmp/ready"})
+    result = preprocess_defaults(score_defaults, config)
+    ready_condition = result["components"]["c1"]["component_properties"][
+        "ready_condition"
+    ]
+    assert ready_condition == {
+        "file_state": {
+            "file_path": "/tmp/ready",
+            "state": "Exists",
+            "polling_interval": 0.01,
+        }
+    }
+
+
+def test_preprocessing_file_state_defaults_overridden():
+    """
+    User specified file_state values take precedence over the defaults.
+    """
+    config = _config_with_file_state(
+        {"file_path": "/tmp/ready", "state": "NotExisting", "polling_interval": 0.5}
+    )
+    result = preprocess_defaults(score_defaults, config)
+    file_state = result["components"]["c1"]["component_properties"]["ready_condition"][
+        "file_state"
+    ]
+    assert file_state["state"] == "NotExisting"
+    assert file_state["polling_interval"] == 0.5
+
+
+def test_preprocessing_file_state_defaults_not_applied_for_process_state():
+    """
+    Without a file_state ready condition, no file_state defaults are added.
+    """
+    config = {
+        "schema_version": 1,
+        "components": {
+            "c1": {
+                "component_properties": {
+                    "binary_name": "c1",
+                    "ready_condition": {"process_state": "Terminated"},
+                }
+            }
+        },
+        "run_targets": {"Startup": {}},
+        "initial_run_target": "Startup",
+        "fallback_run_target": {"transition_timeout": 1},
+    }
+    result = preprocess_defaults(score_defaults, config)
+    assert result["components"]["c1"]["component_properties"]["ready_condition"] == {
+        "process_state": "Terminated"
+    }
+
+
 # ---------------------------------------------------------------------------
 # check_cyclic_dependencies
 # ---------------------------------------------------------------------------
@@ -592,7 +667,8 @@ def full_valid_config():
         "components": {
             "app1": {
                 "component_properties": {
-                    "application_profile": {"application_type": "REPORTING"}
+                    "application_profile": {"application_type": "REPORTING"},
+                    "ready_condition": {"process_state": "Running"},
                 }
             }
         },
@@ -640,6 +716,25 @@ def test_custom_validations_recovery_target_not_fallback(full_valid_config):
     """Recovery actions must switch to fallback_run_target (currently a known limitation)."""
     full_valid_config["run_targets"]["Running"] = {
         "recovery_action": {"switch_run_target": {"run_target": "SomeOtherRT"}}
+    }
+    assert custom_validations(full_valid_config) is False
+
+
+def test_custom_validations_ready_condition_file_state(full_valid_config):
+    """A ready condition based on the file state alone is valid."""
+    full_valid_config["components"]["app1"]["component_properties"][
+        "ready_condition"
+    ] = {"file_state": {"file_path": "/tmp/ready"}}
+    assert custom_validations(full_valid_config) is True
+
+
+def test_custom_validations_ready_condition_both_states(full_valid_config):
+    """process_state and file_state must not be configured at the same time."""
+    full_valid_config["components"]["app1"]["component_properties"][
+        "ready_condition"
+    ] = {
+        "process_state": "Running",
+        "file_state": {"file_path": "/tmp/ready"},
     }
     assert custom_validations(full_valid_config) is False
 

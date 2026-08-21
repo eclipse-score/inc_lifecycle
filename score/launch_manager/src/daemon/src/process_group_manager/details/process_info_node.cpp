@@ -53,20 +53,26 @@ IComponent::RequestResult ProcessInfoNode::tryReportCompletion(score::mw::lifecy
 {
     ProcessState desired_state{};
 
-    SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(
-        config_.component_properties.ready_condition.has_value() == true,
-        "component has no ready condition, config should have created a default one");
-    auto ready_condition = config_.component_properties.ready_condition.value();
+    const auto& ready_condition = config_.component_properties.ready_condition;
 
-    switch (ready_condition.process_state)
-    {
-        case configuration::ProcessState::Running:
-            desired_state = ProcessState::kRunning;
-            break;
-        case configuration::ProcessState::Terminated:
-            desired_state = ProcessState::kTerminated;
-            break;
-    }
+    std::visit(
+        [&desired_state](auto&& arg) {
+            using ReadyCondT = std::decay_t<decltype(arg)>;
+            if constexpr (std::is_same_v<ReadyCondT, configuration::ProcessState>)
+            {
+                switch (arg)
+                {
+                    case configuration::ProcessState::Running:
+                        desired_state = ProcessState::kRunning;
+                        break;
+                    case configuration::ProcessState::Terminated:
+                        desired_state = ProcessState::kTerminated;
+                        break;
+                }
+            }
+        },
+        ready_condition);
+
     if (new_state == ProcessState::kFailed)
     {
         // Didn't reach running or startup

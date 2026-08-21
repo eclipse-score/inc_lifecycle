@@ -14,10 +14,12 @@
 #define CONFIG_HPP
 
 #include <sys/types.h>
+#include <chrono>
 #include <cstdint>
 #include <optional>
 #include <string>
 #include <string_view>
+#include <variant>
 #include <vector>
 
 #include "score/mw/launch_manager/configuration/component_config.hpp"

@@ -89,9 +89,48 @@
                 "Terminated"
               ],
               "description": "Specifies the required state of the component's POSIX process. 'Running': the process has started and reached its running state. 'Terminated': the process has started, reached its running state, and then terminated successfully."
+            },
+            "file_state": {
+              "type": "object",
+              "description": "Specifies a ready condition based on the existence of a file at a given path.",
+              "properties": {
+                "file_path": {
+                  "type": "string",
+                  "pattern": "^/(?:[^/]+(?:/[^/]+)*)$",
+                  "description": "Specifies the absolute path to the file being watched."
+                },
+                "state": {
+                  "type": "string",
+                  "enum": [
+                    "Exists",
+                    "NotExisting"
+                  ],
+                  "description": "Specifies the required existence of the file. 'Exists': the file must be present at 'file_path'. 'NotExisting': the file must be absent from 'file_path'. Defaults to 'Exists' if not specified."
+                },
+                "polling_interval": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "description": "Specifies the time interval, in seconds (e.g., '0.3' for 300 milliseconds), at which the Launch Manager checks the file existence. Defaults to 10 milliseconds."
+                }
+              },
+              "required": [
+                "file_path"
+              ],
+              "additionalProperties": false
             }
           },
-          "required": [],
+          "oneOf": [
+            {
+              "required": [
+                "process_state"
+              ]
+            },
+            {
+              "required": [
+                "file_state"
+              ]
+            }
+          ],
           "additionalProperties": false
         }
       },
