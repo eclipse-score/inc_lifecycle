@@ -116,10 +116,15 @@ struct ActivationResult
 // ============================================================================
 
 /// @brief mw::com service definition for the Launch Manager control interface.
+///
+/// Instantiated twice by mw::com: once as LmControlProxy (client) and once as
+/// LmControlSkeleton (server). mw::com injects @p Trait, which supplies the
+/// side-specific Base class and the Method/Event templates below.
 template <typename Trait>
 class LmControlService : public Trait::Base
 {
   public:
+    /// Inherit mw::com's binding constructors.
     using Trait::Base::Base;
 
     /// @brief Request Run Target activation.
