@@ -15,17 +15,21 @@
 
 #include <cstddef>
 #include <exception>
+#include <memory>
 #include <mutex>
 #include <optional>
 #include <string>
 #include <string_view>
 #include <utility>
 
+#include "score/language/safecpp/scoped_function/copyable_scoped_function.h"
+#include "score/language/safecpp/scoped_function/scope.h"
 #include "score/mw/launch_manager/common/log.hpp"
 #include "score/mw/lifecycle/details/lm_control_service.h"
 #include "score/mw/lifecycle/ilm_control.hpp"
 
 #include <score/assert.hpp>
+#include <score/utility.hpp>
 
 namespace score::mw::lifecycle::internal
 {
@@ -104,9 +108,16 @@ class BasicLmControlImpl final : public ILmControl
             return score::MakeUnexpected(ExecErrc::kInvalidArguments);
         }
 
-        const score::Result<FindServiceHandle> start_result = Traits::StartFindService(
-            [this](score::mw::com::ServiceHandleContainer<HandleType> handles, FindServiceHandle) noexcept {
+        // Bind the discovery callback to discovery_scope_, so that the destructor can wait for
+        // its execution to finish.
+        const auto scoped_handler =
+            std::make_shared<ScopedDiscoveryHandler>(discovery_scope_, [this](HandleContainer handles) noexcept {
                 onServiceFound(std::move(handles));
+            });
+
+        const score::Result<FindServiceHandle> start_result = Traits::StartFindService(
+            [scoped_handler](HandleContainer handles, FindServiceHandle) noexcept {
+                score::cpp::ignore = (*scoped_handler)(std::move(handles));
             },
             std::move(specifier_result).value());
 
@@ -122,8 +133,7 @@ class BasicLmControlImpl final : public ILmControl
 
     ~BasicLmControlImpl() noexcept override
     {
-        // Stop discovery first: once StopFindService returns, onServiceFound() can no longer run,
-        // so the remaining teardown races nothing.
+        // Calling StopFindService() first makes sure not further invocation of onServiceFound() can happen
         if (find_handle_.has_value())
         {
             const auto stop_result = Traits::StopFindService(find_handle_.value());
@@ -132,9 +142,13 @@ class BasicLmControlImpl final : public ILmControl
                 LM_LOG_ERROR() << "LmControl: StopFindService failed with error:" << stop_result.error();
             }
         }
+        // Waits until any currently running onServiceFound() invocation has completed.
+        // This prevents data race on proxy_.
+        discovery_scope_.Expire();
 
         if (proxy_.has_value())
         {
+            // Unsubscribe waits for any currently running receive handler to finish before unsubscribing.
             // Unsubscribe also unsets the receive handler, no need for explicit UnsetReceiveHandler() call.
             proxy_->activation_result.Unsubscribe();
         }
@@ -212,7 +226,11 @@ class BasicLmControlImpl final : public ILmControl
   private:
     using ProxyType = typename Traits::Proxy;
     using HandleType = typename Traits::HandleType;
+    using HandleContainer = score::mw::com::ServiceHandleContainer<HandleType>;
     using FindServiceHandle = typename Traits::FindServiceHandle;
+
+    /// @brief The discovery callback, bound to discovery_scope_.
+    using ScopedDiscoveryHandler = safecpp::CopyableScopedFunction<void(HandleContainer) const>;
 
     template <typename ResponseType>
     using MethodResultPtr = typename Traits::template MethodResultPtr<ResponseType>;
@@ -394,6 +412,10 @@ class BasicLmControlImpl final : public ILmControl
     // Handle of the running discovery search, stopped by the destructor. Written once by init()
     // and never touched again, so it needs no lock.
     std::optional<FindServiceHandle> find_handle_;
+
+    // Lifetime bound of the discovery callback. Expiring it blocks until a running
+    // onServiceFound() has returned and prevents any further invocation.
+    safecpp::Scope<> discovery_scope_;
 
     ActivationCallback callback_;
     std::mutex callback_mutex_;

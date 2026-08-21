@@ -401,6 +401,24 @@ TEST_F(LmControlUT, SynchronousDiscoveryDuringConstructionStopsFindingOnce)
     EXPECT_TRUE(sut->get_active_run_target().has_value());
 }
 
+TEST_F(LmControlUT, DiscoveryCallbackAfterDestructionIsANoOp)
+{
+    RecordProperty(
+        "Description",
+        "A discovery callback dispatched after the instance was destroyed does not reach onServiceFound: "
+        "the destructor expires the scope the callback is bound to.");
+
+    {
+        auto sut = MakeLmControl();
+        ASSERT_TRUE(find_handler_) << "StartFindService was never called";
+    }
+
+    EXPECT_CALL(mock_, CreateProxy()).Times(0);
+
+    // mw::com may still dispatch here - StopFindService() does not wait for an in-flight callback.
+    find_handler_(score::mw::com::ServiceHandleContainer<FakeHandle>{FakeHandle{}}, FakeFindHandle{});
+}
+
 TEST_F(LmControlUT, SubscribeFailureLeavesInstanceDisconnected)
 {
     RecordProperty(
