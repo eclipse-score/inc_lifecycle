@@ -33,6 +33,12 @@ cc_library(
     ],
 )
 
+cc_library(
+    name = "process_utils",
+    hdrs = ["process_utils.hpp"],
+    visibility = ["//tests:__subpackages__"],
+)
+
 cc_binary(
     name = "reporting_process",
     srcs = ["reporting_process.cpp"],
