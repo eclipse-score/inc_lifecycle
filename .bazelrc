@@ -72,8 +72,6 @@ build:x86_64-linux --extra_toolchains=@score_toolchains_rust//toolchains/ferroce
 
 test:x86_64-linux --//config:integration_mode=docker
 test:x86_64-linux --//config:unit_mode=host
-# Show a failing test's log (incl. the crash-dump banner) in the console.
-test:x86_64-linux --test_output=errors
 
 # Target configuration for CPU:AArch64|OS:Linux build (do not use it in case of system toolchains!)
 build:arm64-linux --config=stub
@@ -183,11 +181,3 @@ test:tsan --test_tag_filters=-no-tsan
 test:tsan --build_tests_only
 test:tsan --cxxopt=-Wno-maybe-uninitialized
 test:tsan --cxxopt=-Wno-redundant-move
-
-# Core-dump capture — opt in with --config=core_dump. The env var gates the
-# plugin at runtime; the build flag selects the gdb-equipped debug image so cores
-# can be analysed in-container and a backtrace is auto-captured. -c dbg is implied
-# so the auto-captured backtrace carries file/line symbols.
-build:core_dump --compilation_mode=dbg
-test:core_dump --test_env=SCORE_ENABLE_CORE_DUMP=1
-test:core_dump --//config:core_dump=True
