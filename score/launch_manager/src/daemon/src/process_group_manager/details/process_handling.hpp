@@ -17,7 +17,6 @@
 #include "score/mw/launch_manager/osal/ifile_waiter.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/safe_process_map.hpp"
 #include "score/mw/launch_manager/process_group_manager/iprocess.hpp"
-#include "score/mw/launch_manager/supervision_control_client/isupervision_event_publisher.hpp"
 #include <memory>
 
 namespace score::mw::lifecycle::internal
@@ -26,9 +25,6 @@ namespace score::mw::lifecycle::internal
 /// @brief Collection of interfaces required to control a OS process.
 struct ProcessHandling
 {
-    /// @brief Interface for reporting component state to health monitor.
-    ISupervisionEventPublisher& state_publisher_;
-
     /// @brief Handle to manage the underlying posix process.
     osal::IProcess* process_interface_{nullptr};
 

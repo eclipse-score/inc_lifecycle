@@ -73,7 +73,7 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     /// legacy configuration where no watchdog is wired.
     ProcessGroupManager(
         configuration::Config&& config,
-        std::unique_ptr<IAliveMonitor> alive_monitor,
+        std::unique_ptr<saf::daemon::IAliveMonitor> alive_monitor,
         std::shared_ptr<IRecoveryClient> recovery_client,
         std::unique_ptr<score::mw::lifecycle::internal::watchdog::IWatchdogIf> watchdog);
 
@@ -281,7 +281,7 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     /// @brief Pointer to the gaph.
     std::shared_ptr<Graph> graph_{nullptr};
 
-    std::unique_ptr<IAliveMonitor> alive_monitor_;
+    std::unique_ptr<saf::daemon::IAliveMonitor> alive_monitor_;
 
     std::unique_ptr<ProcessMonitor> process_monitor_;
 

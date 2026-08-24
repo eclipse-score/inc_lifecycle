@@ -39,7 +39,7 @@
 #include "score/mw/launch_manager/process_group_manager/details/run_target.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/transition.hpp"
 #include "score/mw/launch_manager/process_group_manager/iprocess.hpp"
-#include "score/mw/launch_manager/supervision_control_client/isupervision_event_publisher.hpp"
+#include "score/mw/launch_manager/supervision_control_client/isupervision_factory.hpp"
 #include <score/stop_token.hpp>
 
 namespace score
@@ -161,6 +161,7 @@ class Graph final
         configuration::Config& configuration,
         std::shared_ptr<WorkerQueue> job_queue,
         ProcessHandling process_handling,
+        ISupervisionFactory& supervision_factory,
         ITransitionResultPublisher* transition_result_receiver);
 
     /// @brief Destructor to clean up resources used by the Graph object.

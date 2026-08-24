@@ -38,7 +38,7 @@ class ISupervisionFactory
     /// @param [in] config Alive supervision configuration for the process.
     /// @param [in] uid The configured uid of the process.
     /// @returns Handle for the process to start and stop its own supervision.
-    virtual SupervisionHandle
+    virtual std::unique_ptr<SupervisionHandle>
     constructSupervision(IdentifierHash id, uid_t uid, internal::configuration::ComponentAliveSupervision config) = 0;
 };
 

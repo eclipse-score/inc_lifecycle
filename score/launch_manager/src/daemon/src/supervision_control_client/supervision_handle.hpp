@@ -25,7 +25,7 @@ namespace score
 namespace mw::lifecycle
 {
 
-class SupervisionHandle : ISupervisionEventPublisher
+class SupervisionHandle : public ISupervisionEventPublisher
 {
   public:
     explicit SupervisionHandle(IdentifierHash process_id, std::shared_ptr<SupervisionBufferType> buffer)

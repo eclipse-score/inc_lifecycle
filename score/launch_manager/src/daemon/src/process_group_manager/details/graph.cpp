@@ -42,6 +42,7 @@ void CreateDependencyGraph(
     DependencyGraph<IdentifierHash, Graph::Component>& graph,
     configuration::Config& config,
     ProcessHandling process_handling,
+    ISupervisionFactory& supervision_factory,
     std::chrono::milliseconds& off_state_transition_timeout)
 {
     std::vector<configuration::RunTargetConfig> run_targets = config.takeRunTargets();
@@ -59,7 +60,7 @@ void CreateDependencyGraph(
         auto depends_on = std::move(component_config.component_properties.depends_on);
 
         const auto index = graph.try_emplace(
-            IdentifierHash{name}, std::in_place_type<ProcessInfoNode>, std::move(component_config), process_handling);
+            IdentifierHash{name}, std::in_place_type<ProcessInfoNode>, std::move(component_config), process_handling, supervision_factory);
 
         LM_LOG_DEBUG() << "Creating component node:" << name;
         pending_dependencies.emplace_back(index, std::move(depends_on));
@@ -119,6 +120,7 @@ Graph::Graph(
     configuration::Config& configuration,
     std::shared_ptr<WorkerQueue> job_queue,
     ProcessHandling process_handling,
+    ISupervisionFactory& supervision_factory,
     ITransitionResultPublisher* transition_result_receiver)
     : nodes_(max_num_nodes),
       transition_builder_(nodes_),
@@ -131,7 +133,7 @@ Graph::Graph(
     last_state_manager_.process_identifier_ = IdentifierHash{""};  // an invalid state manager
     last_state_manager_.process_group_index_ = 0xFFFFU;
     cancel_message_.request_or_response_ = ControlClientCode::kNotSet;
-    CreateDependencyGraph(nodes_, configuration_, process_handling_, off_state_transition_timeout_);
+    CreateDependencyGraph(nodes_, configuration_, process_handling_, supervision_factory, off_state_transition_timeout_);
 }
 
 Graph::~Graph()
