@@ -19,6 +19,7 @@
 #include <thread>
 
 #include "score/mw/launch_manager/process_group_manager/ialive_monitor_thread.hpp"
+#include "score/mw/launch_manager/supervision_control_client/isupervision_event_publisher.hpp"
 
 namespace score
 {
@@ -41,11 +42,6 @@ class AliveMonitorThread final : public IAliveMonitorThread
     void stop() override;
 
   private:
-    void notifyInitializationComplete(
-        score::mw::lifecycle::internal::saf::daemon::EInitCode& f_init_status_r,
-        const score::mw::lifecycle::internal::saf::daemon::EInitCode f_init_result);
-    void waitForInitializationCompleted(score::mw::lifecycle::internal::saf::daemon::EInitCode& f_init_status_r);
-
     std::unique_ptr<saf::daemon::IAliveMonitor> m_health_monitor{nullptr};
     std::thread alive_monitor_thread_{};
     std::atomic_bool stop_thread_{false};
