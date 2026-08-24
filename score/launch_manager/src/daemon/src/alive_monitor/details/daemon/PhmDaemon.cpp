@@ -67,28 +67,6 @@ bool PhmDaemon::construct(const std::vector<configuration::ComponentConfig>& con
 
     supervisionManager.reserve(supervised_components);
 
-    // In a later refactoring step, components will register their own alive supervision and provide their identifier.
-    // For now, we iterate through them all here.
-
-    LM_LOG_DEBUG() << "Supervision manager starts constructing workers";
-
-    for (const auto& comp : config)
-    {
-        if (!comp.component_properties.application_profile.alive_supervision.has_value())
-        {
-            continue;
-        }
-        const auto& alive = comp.component_properties.application_profile.alive_supervision.value();
-        const IdentifierHash name{comp.name};
-        const auto uid = comp.deployment_config.sandbox.uid;
-        if (!supervisionManager.constructWorker(name, alive, uid, recoveryClient, processStateReader))
-        {
-
-            LM_LOG_ERROR() << "Supervision manager is unable to construct the required worker objects.";
-            return false;
-        }
-    }
-
     return true;
 }
 

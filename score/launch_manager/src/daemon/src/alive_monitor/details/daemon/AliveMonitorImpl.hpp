@@ -18,6 +18,7 @@
 #include <thread>
 
 #include "score/mw/launch_manager/alive_monitor/IAliveMonitor.hpp"
+#include "score/mw/launch_manager/alive_monitor/details/daemon/PhmDaemon.hpp"
 #include "score/mw/launch_manager/configuration/config.hpp"
 
 namespace score

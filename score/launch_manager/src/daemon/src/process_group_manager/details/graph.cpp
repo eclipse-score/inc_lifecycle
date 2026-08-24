@@ -43,6 +43,7 @@ void CreateDependencyGraph(
     configuration::Config& config,
     ProcessHandling process_handling,
     std::unordered_map<std::size_t, GraphIndex>& run_target_map,
+    ISupervisionFactory& supervision_factory,
     std::chrono::milliseconds& off_state_transition_timeout)
 {
     // this is a temporary (bad) implementation, all shall be cleandup
@@ -70,7 +71,8 @@ void CreateDependencyGraph(
             std::in_place_type<ProcessInfoNode>,
             std::move(component_config),
             static_cast<uint32_t>(graph.size()),
-            process_handling);
+            process_handling,
+            supervision_factory);
 
         LM_LOG_DEBUG() << "Creating component node:" << name << "at index:" << index;
         name_to_index[name] = index;
@@ -132,6 +134,7 @@ Graph::Graph(
     configuration::Config& configuration,
     std::shared_ptr<WorkerQueue> job_queue,
     ProcessHandling process_handling,
+    ISupervisionFactory& supervision_factory,
     ITransitionResultPublisher* transition_result_receiver)
     : nodes_(max_num_nodes),
       transition_builder_(nodes_),
@@ -144,7 +147,7 @@ Graph::Graph(
     last_state_manager_.process_index_ = 0xFFFFU;  // an invalid state manager
     last_state_manager_.process_group_index_ = 0xFFFFU;
     cancel_message_.request_or_response_ = ControlClientCode::kNotSet;
-    CreateDependencyGraph(nodes_, configuration_, process_handling_, run_targets_, off_state_transition_timeout_);
+    CreateDependencyGraph(nodes_, configuration_, process_handling_, run_targets_, supervision_factory, off_state_transition_timeout_);
 }
 
 Graph::~Graph()

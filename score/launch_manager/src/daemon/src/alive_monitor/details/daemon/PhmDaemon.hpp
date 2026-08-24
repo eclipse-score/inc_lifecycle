@@ -19,6 +19,7 @@
 #include <memory>
 
 #include "score/launch_manager/src/daemon/src/common/log.hpp"
+#include "score/mw/launch_manager/alive_monitor/details/common/EInitCode.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/daemon/PhmDaemonConfig.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/daemon/SupervisionManager.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ObservableEventReader.hpp"
@@ -183,11 +184,11 @@ class PhmDaemon : public ISupervisionFactory
         return true;
     }
 
-    SupervisionHandle
+    std::unique_ptr<SupervisionHandle>
     constructSupervision(IdentifierHash id, uid_t uid, configuration::ComponentAliveSupervision config) override
     {
         supervisionManager.constructWorker(id, config, uid, recoveryClient, processStateReader);
-        return SupervisionHandle{id, buffer_};
+        return std::make_unique<SupervisionHandle>(id, buffer_);
     }
 
   private:

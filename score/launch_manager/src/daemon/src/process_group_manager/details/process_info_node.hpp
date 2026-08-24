@@ -22,6 +22,7 @@
 #include "score/mw/launch_manager/process_group_manager/details/safe_process_map.hpp"
 #include "score/mw/launch_manager/process_group_manager/process_state.hpp"
 #include "score/mw/launch_manager/supervision_control_client/isupervision_event_publisher.hpp"
+#include "score/mw/launch_manager/supervision_control_client/isupervision_factory.hpp"
 #include <score/stop_token.hpp>
 #include <atomic>
 #include <chrono>
@@ -46,7 +47,11 @@ class ProcessInfoNode final : public IComponent
     /// @param index The process index within its process group.
     /// @param ready_condition Whether this process is considered ready when running or when terminated.
     /// @param process_handling The interfaces used to start, stop and report on the OS process.
-    ProcessInfoNode(configuration::ComponentConfig&& config, uint32_t index, ProcessHandling process_handling);
+    ProcessInfoNode(
+        configuration::ComponentConfig&& config,
+        uint32_t index,
+        ProcessHandling process_handling,
+        ISupervisionFactory& supervision_factory);
 
     /// @brief Explicit move constructor required due to atomics. PIN must be moveable to exist in the graph
     ProcessInfoNode(ProcessInfoNode&& other) noexcept
@@ -60,7 +65,8 @@ class ProcessInfoNode final : public IComponent
           config_(std::move(other.config_)),
           control_client_channel_(std::move(other.control_client_channel_)),
           sync_(std::move(other.sync_)),
-          process_handling_(std::move(other.process_handling_))
+          process_handling_(std::move(other.process_handling_)),
+          state_publisher_(std::move(other.state_publisher_))
     {
     }
 
@@ -189,6 +195,9 @@ class ProcessInfoNode final : public IComponent
 
     /// @brief The interfaces used to control a OS process.
     ProcessHandling process_handling_;
+
+    /// @brief Interface for reporting component state to health monitor.
+    std::unique_ptr<ISupervisionEventPublisher> state_publisher_;
 
     /// @brief Number ot times to try run the process.
     std::uint8_t start_tries_{1U};
