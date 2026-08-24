@@ -21,79 +21,48 @@
 
 #include "score/launch_manager/src/daemon/src/common/log.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/factory/IPhmFactory.hpp"
-#include "score/mw/launch_manager/alive_monitor/details/factory/StaticConfig.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifappl/Checkpoint.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifappl/MonitorIfDaemon.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ObservableEvent.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/supervision/Alive.hpp"
-#include "score/mw/launch_manager/alive_monitor/details/supervision/SupervisionCfg.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/TimeConversion.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
 #include "score/mw/launch_manager/common/alive_interface_path.hpp"
+#include "score/mw/launch_manager/common/constants.hpp"
 #include "score/mw/launch_manager/common/identifier_hash.hpp"
 
 namespace score::mw::lifecycle::internal::saf::factory
 {
 
-using BufferConfig = SupervisionBufferConfig;
 using RecoveryClient = score::mw::lifecycle::IRecoveryClient;
 using NanoSecondType = saf::timers::NanoSecondType;
 using IdentifierHash = score::mw::lifecycle::IdentifierHash;
 
-FlatCfgFactory::FlatCfgFactory(const BufferConfig& f_bufferConfig_r) : IPhmFactory(), bufferConfig_r(f_bufferConfig_r)
+FlatCfgFactory::FlatCfgFactory() : IPhmFactory()
 {
 }
 
-bool FlatCfgFactory::init(const std::vector<SupervisedComponentConfig>& supervised)
+bool FlatCfgFactory::createObservableEvent(
+    std::vector<ifexm::ObservableEvent>& events,
+    const IdentifierHash component_id,
+    ifexm::ObservableEventReader& event_reader_)
 {
-    supervised_components_ = supervised;
-    return true;
-}
-
-bool FlatCfgFactory::createObservableEvents(
-    std::vector<ifexm::ObservableEvent>& f_processStates_r,
-    ifexm::ObservableEventReader& f_processStateReader_r)
-{
-    bool isSuccess{true};
-
     try
     {
-        f_processStates_r.reserve(supervised_components_.size());
-        for (const auto& comp : supervised_components_)
+        auto& res = events.emplace_back(component_id);
+        if (event_reader_.registerObservableEvent(res, component_id))
         {
-            const auto id = IdentifierHash{comp.name};
-            f_processStates_r.emplace_back(id);
-            isSuccess = f_processStateReader_r.registerObservableEvent(f_processStates_r.back(), id);
-            if (!isSuccess)
-            {
-                break;
-            }
-
-            LM_LOG_DEBUG() << "Successfully created Observable Events:" << comp.name;
+            LM_LOG_DEBUG() << "Successfully created Observable Event:" << component_id;
+            return true;
         }
     }
     catch (const std::exception& f_exception_r)
     {
-        isSuccess = false;
         LM_LOG_ERROR() << "Could not create Observable Events due to exception:"
                        << std::string_view{f_exception_r.what()};
     }
 
-    if (isSuccess)
-    {
-        LM_LOG_DEBUG() << "Number of constructed Observable Events:" << static_cast<uint64_t>(f_processStates_r.size());
-    }
-    else
-    {
-        for (auto& processState_r : f_processStates_r)
-        {
-            f_processStateReader_r.deregisterObservableEvent(processState_r.event.id);
-        }
-        f_processStates_r.clear();
-        LM_LOG_ERROR() << "Could not create all necessary Observable Events.";
-    }
-
-    return isSuccess;
+    return false;
 }
 
 bool FlatCfgFactory::initIpcServerWithUidBasedAccess(
@@ -117,204 +86,104 @@ bool FlatCfgFactory::initIpcServerWithUidBasedAccess(
     return true;
 }
 
-bool FlatCfgFactory::createAliveIfIpcs(std::vector<ifappl::CheckpointIpcServer>& f_interfaceIpcs_r)
+bool FlatCfgFactory::createAliveIfIpc(
+    std::vector<ifappl::CheckpointIpcServer>& servers,
+    const IdentifierHash component_id,
+    const uid_t uid)
 {
-    bool isSuccess{true};
     try
     {
-        f_interfaceIpcs_r.reserve(supervised_components_.size());
+        const std::string pathInterface = aliveInterfacePath(component_id);
+        auto& server = servers.emplace_back();
 
-        for (const auto& comp : supervised_components_)
+        if (initIpcServerWithUidBasedAccess(server, pathInterface, uid))
         {
-            const std::string pathInterface = aliveInterfacePath(comp.name);
-            f_interfaceIpcs_r.emplace_back();
-            const std::int32_t configuredUid = static_cast<std::int32_t>(comp.uid);
-            isSuccess = initIpcServerWithUidBasedAccess(f_interfaceIpcs_r.back(), pathInterface, configuredUid);
-
-            if (isSuccess)
-            {
-                LM_LOG_DEBUG() << "Successfully created Monitor interface IPC with path:" << pathInterface;
-            }
-            else
-            {
-                LM_LOG_ERROR() << "Could not create Monitor interface IPC with path:" << pathInterface;
-                break;
-            }
+            LM_LOG_DEBUG() << "Successfully created Monitor interface IPC with path:" << pathInterface;
+            return true;
+        }
+        else
+        {
+            LM_LOG_ERROR() << "Could not create Monitor interface IPC with path:" << pathInterface;
+            return false;
         }
     }
     catch (const std::exception& f_exception_r)
     {
-        isSuccess = false;
         LM_LOG_ERROR() << "Could not create Monitor interface IPC due to exception:"
                        << std::string_view{f_exception_r.what()};
+        return false;
     }
-
-    if (isSuccess)
-    {
-        LM_LOG_DEBUG() << "Number of constructed Monitor interface IPCs:"
-                       << static_cast<uint64_t>(f_interfaceIpcs_r.size());
-    }
-    else
-    {
-        f_interfaceIpcs_r.clear();
-        LM_LOG_ERROR() << "Could not create all necessary Monitor interface IPCs.";
-    }
-
-    return isSuccess;
 }
 
 bool FlatCfgFactory::createAliveIf(
-    std::vector<ifappl::MonitorIfDaemon>& f_interfaces_r,
-    std::vector<ifappl::CheckpointIpcServer>& f_interfaceIpcs_r,
-    std::vector<ifexm::ObservableEvent>& f_processStates_r)
+    std::vector<ifappl::MonitorIfDaemon>& interfaces,
+    ifappl::CheckpointIpcServer& ipc_server,
+    ifexm::ObservableEvent& event)
 {
-    bool isSuccess{true};
     try
     {
-        f_interfaces_r.reserve(supervised_components_.size());
-        for (std::size_t compIndex = 0; compIndex < supervised_components_.size(); ++compIndex)
-        {
-            auto& interfaceIpc = f_interfaceIpcs_r.at(compIndex);
-            f_interfaces_r.emplace_back(interfaceIpc, interfaceIpc.getPath().data());
-            f_processStates_r.at(compIndex).attachObserver(f_interfaces_r.back());
+        auto& interface = interfaces.emplace_back(ipc_server, ipc_server.getPath().data());
+        event.attachObserver(interface);
 
-            LM_LOG_DEBUG() << "Successfully created MonitorInterface:" << f_interfaces_r.back().getInterfaceName();
-        }
-
-        LM_LOG_DEBUG() << "Number of constructed Monitor interfaces:" << static_cast<uint64_t>(f_interfaces_r.size());
+        LM_LOG_DEBUG() << "Successfully created MonitorInterface:" << interface.getInterfaceName();
+        return true;
     }
     catch (const std::exception& f_exception_r)
     {
-        isSuccess = false;
-        f_interfaces_r.clear();
         LM_LOG_ERROR() << "Could not create all necessary Monitor interfaces due to exception:"
                        << std::string_view{f_exception_r.what()};
+        return false;
     }
-
-    return isSuccess;
 }
 
-bool FlatCfgFactory::createSupervisionCheckpoints(
-    std::vector<ifappl::Checkpoint>& f_checkpoints_r,
-    std::vector<ifappl::MonitorIfDaemon>& f_interfaces_r,
-    std::vector<ifexm::ObservableEvent>& f_processStates_r)
+bool FlatCfgFactory::createSupervisionCheckpoint(
+    std::vector<ifappl::Checkpoint>& checkpoints,
+    ifappl::MonitorIfDaemon& interface,
+    const ifexm::ObservableEvent& event,
+    const IdentifierHash component_id)
 {
-    bool isSuccess{true};
-
     try
     {
-        f_checkpoints_r.reserve(supervised_components_.size());
+        auto& checkpoint = checkpoints.emplace_back(&event);
+        interface.attachCheckpoint(checkpoint);
 
-        for (size_t idx = 0; idx < supervised_components_.size(); ++idx)
-        {
-            const auto& comp = supervised_components_[idx];
-            const std::string checkpointCfgName = comp.name + "_checkpoint";
-            const uint32_t checkpointId = StaticConfig::k_DefaultCheckpointId;
+        LM_LOG_DEBUG() << "Successfully created supervision checkpoint for component:" << component_id;
 
-            const ifexm::ObservableEvent* process_p{&f_processStates_r.at(idx)};
-            f_checkpoints_r.emplace_back(checkpointCfgName.c_str(), checkpointId, process_p);
-            f_interfaces_r.at(idx).attachCheckpoint(f_checkpoints_r.back());
-
-            LM_LOG_DEBUG() << "Successfully created supervision checkpoint:" << f_checkpoints_r.back().getConfigName();
-        }
+        return true;
     }
     catch (const std::exception& f_exception_r)
     {
-        isSuccess = false;
         LM_LOG_ERROR() << "Could not create supervision worker objects, due to exception:"
                        << std::string_view{f_exception_r.what()};
+        return false;
     }
-
-    if (isSuccess)
-    {
-        LM_LOG_DEBUG() << "Number of constructed supervision checkpoints:"
-                       << static_cast<uint64_t>(f_checkpoints_r.size());
-    }
-    else
-    {
-        f_checkpoints_r.clear();
-        LM_LOG_ERROR() << "Could not create all necessary supervision checkpoints.";
-    }
-
-    return isSuccess;
 }
 
-bool FlatCfgFactory::createAliveSupervisions(
-    std::vector<supervision::Alive>& f_alive_r,
-    std::vector<ifappl::Checkpoint>& f_checkpoints_r,
-    std::vector<ifexm::ObservableEvent>& f_processStates_r,
-    std::shared_ptr<RecoveryClient> f_recoveryClient_r)
+bool FlatCfgFactory::createAliveSupervision(
+    std::vector<supervision::Alive>& supervisions,
+    ifappl::Checkpoint& checkpoint,
+    ifexm::ObservableEvent& event,
+    const std::shared_ptr<IRecoveryClient> recovery_client,
+    const IdentifierHash component_id,
+    const ComponentAliveSupervision component_config)
 {
-    bool isSuccess{true};
-
     try
     {
-        f_alive_r.reserve(supervised_components_.size());
-        alive_cfg_names_.clear();
-        alive_cfg_names_.reserve(supervised_components_.size());
+        auto& alive = supervisions.emplace_back(
+            component_id, component_config, recovery_client, checkpoint, kDefaultAliveSupCheckpointBufferElements);
 
-        for (size_t idx = 0; idx < supervised_components_.size(); ++idx)
-        {
-            const auto& comp = supervised_components_[idx];
-            const auto& alive_sup = comp.alive_supervision;
-            SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(
-                alive_sup.has_value(), "Supervised component must have alive_supervision configured");
+        event.attachObserver(alive);
 
-            alive_cfg_names_.emplace_back(comp.name + "_alive_supervision");
-            NanoSecondType aliveReferenceCycleCfg{
-                timers::TimeConversion::convertMilliSecToNanoSec(static_cast<double>(alive_sup->reporting_cycle_ms))};
-            uint32_t minAliveIndicationsCfg = alive_sup->min_indications.value_or(0U);
-            uint32_t maxAliveIndicationsCfg = alive_sup->max_indications.value_or(0U);
-            bool isMinCheckDisabledCfg = (minAliveIndicationsCfg == 0U);
-            bool isMaxCheckDisabledCfg = (maxAliveIndicationsCfg == 0U);
-            uint32_t failedCyclesToleranceCfg = alive_sup->failed_cycles_tolerance;
-
-            supervision::AliveSupervisionCfg aliveSupCfg{f_checkpoints_r.at(idx)};
-
-            aliveSupCfg.cfgName_p = alive_cfg_names_.back().c_str();
-            aliveSupCfg.aliveReferenceCycle = aliveReferenceCycleCfg;
-            aliveSupCfg.minAliveIndications = minAliveIndicationsCfg;
-            aliveSupCfg.maxAliveIndications = maxAliveIndicationsCfg;
-            aliveSupCfg.isMinCheckDisabled = isMinCheckDisabledCfg;
-            aliveSupCfg.isMaxCheckDisabled = isMaxCheckDisabledCfg;
-            aliveSupCfg.failedCyclesTolerance = failedCyclesToleranceCfg;
-            aliveSupCfg.checkpointBufferSize = bufferConfig_r.bufferSizeAliveSupervision;
-            aliveSupCfg.recoveryClient = f_recoveryClient_r;
-
-            aliveSupCfg.processIdentifier = getProcessId(comp);
-
-            f_alive_r.emplace_back(aliveSupCfg);
-
-            f_processStates_r.at(idx).attachObserver(f_alive_r.back());
-
-            LM_LOG_DEBUG() << "Successfully created alive supervision worker object:"
-                           << f_alive_r.back().getConfigName();
-        }
+        LM_LOG_DEBUG() << "Successfully created alive supervision worker object:" << alive.getConfigName();
+        return true;
     }
     catch (const std::exception& f_exception_r)
     {
-        isSuccess = false;
         LM_LOG_ERROR() << "Could not create all necessary alive supervision "
                           "worker objects, due to exception:"
                        << std::string_view{f_exception_r.what()};
+        return false;
     }
-
-    if (isSuccess)
-    {
-        LM_LOG_DEBUG() << "Number of constructed alive supervisions:" << static_cast<uint64_t>(f_alive_r.size());
-    }
-    else
-    {
-        f_alive_r.clear();
-        LM_LOG_ERROR() << "Could not create all necessary alive supervision worker objects";
-    }
-
-    return isSuccess;
-}
-
-IdentifierHash FlatCfgFactory::getProcessId(const SupervisedComponentConfig& comp) noexcept(true)
-{
-    return IdentifierHash{comp.name};
 }
 
 }  // namespace score::mw::lifecycle::internal::saf::factory

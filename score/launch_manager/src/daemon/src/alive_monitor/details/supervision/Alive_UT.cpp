@@ -20,13 +20,14 @@
 #include "score/mw/launch_manager/alive_monitor/details/ifappl/Checkpoint.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ObservableEvent.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/supervision/Alive.hpp"
-#include "score/mw/launch_manager/alive_monitor/details/supervision/SupervisionCfg.hpp"
+#include "score/mw/launch_manager/common/constants.hpp"
 #include "score/mw/launch_manager/common/identifier_hash.hpp"
 #include "score/mw/launch_manager/recovery_client/irecovery_client.h"
 
 using namespace testing;
 
 using EStatus = score::mw::lifecycle::internal::saf::supervision::Alive::EStatus;
+using score::mw::lifecycle::internal::configuration::ComponentAliveSupervision;
 
 namespace
 {
@@ -51,14 +52,13 @@ class MockRecoveryClient : public score::mw::lifecycle::IRecoveryClient
 struct AliveFixture
 {
     inline static const score::mw::lifecycle::IdentifierHash kProcessId{"42U"};
-    static constexpr char kCheckpointName[] = "test_cp";
 
     struct Builder
     {
         uint32_t failedCyclesTolerance = 0U;
         uint32_t minIndications = 1U;
         uint32_t maxIndications = 3U;
-        score::mw::lifecycle::internal::saf::timers::NanoSecondType referenceCycleNs = 1000U;
+        uint32_t reportingCycleMs = 1U;
 
         Builder& withFailedCyclesTolerance(uint32_t val)
         {
@@ -75,9 +75,9 @@ struct AliveFixture
             maxIndications = val;
             return *this;
         }
-        Builder& withReferenceCycleNs(score::mw::lifecycle::internal::saf::timers::NanoSecondType val)
+        Builder& withReportingCycleMs(uint32_t val)
         {
-            referenceCycleNs = val;
+            reportingCycleMs = val;
             return *this;
         }
 
@@ -96,21 +96,20 @@ struct AliveFixture
 
     std::unique_ptr<score::mw::lifecycle::internal::saf::supervision::Alive> alive;
 
-    explicit AliveFixture(const Builder& bld) : processState(kProcessId), checkpoint(kCheckpointName, 1U, &processState)
+    explicit AliveFixture(const Builder& bld) : processState(kProcessId), checkpoint(&processState)
     {
-        score::mw::lifecycle::internal::saf::supervision::AliveSupervisionCfg cfg{checkpoint};
-        cfg.cfgName_p = "test_alive";
-        cfg.aliveReferenceCycle = bld.referenceCycleNs;
-        cfg.minAliveIndications = bld.minIndications;
-        cfg.maxAliveIndications = bld.maxIndications;
-        cfg.isMinCheckDisabled = (bld.minIndications == 0U);
-        cfg.isMaxCheckDisabled = (bld.maxIndications == 0U);
-        cfg.failedCyclesTolerance = bld.failedCyclesTolerance;
-        cfg.checkpointBufferSize = 16U;
-        cfg.recoveryClient = mockClient;
-        cfg.processIdentifier = kProcessIdentifier;
+        ComponentAliveSupervision cfg{};
+        cfg.min_indications = bld.minIndications;
+        cfg.max_indications = bld.maxIndications;
+        cfg.failed_cycles_tolerance = bld.failedCyclesTolerance;
+        cfg.reporting_cycle_ms = bld.reportingCycleMs;
 
-        alive = std::make_unique<score::mw::lifecycle::internal::saf::supervision::Alive>(cfg);
+        alive = std::make_unique<score::mw::lifecycle::internal::saf::supervision::Alive>(
+            kProcessIdentifier,
+            cfg,
+            mockClient,
+            checkpoint,
+            score::mw::lifecycle::internal::kDefaultAliveSupCheckpointBufferElements);
         processState.attachObserver(*alive);
     }
 
@@ -166,8 +165,8 @@ TEST_F(AliveSupervisionTest, AliveTransitionsOkToExpiredOnMissingHeartbeat)
     fix.alive->evaluate(11U);
     EXPECT_EQ(fix.alive->getStatus(), EStatus::kOk);
 
-    // No heartbeats; reference cycle ends at 10 + 1000 = 1010
-    fix.alive->evaluate(1011U);
+    // No heartbeats; reference cycle ends at 10 + 100000 = 1000010
+    fix.alive->evaluate(1000011U);
     EXPECT_EQ(fix.alive->getStatus(), EStatus::kExpired);
 }
 
@@ -209,7 +208,7 @@ TEST_F(AliveSupervisionTest, AliveReportsEnqueueFailureWhenRingBufferFull)
 
     EXPECT_FALSE(fix.alive->hasRecoveryEnqueueFailed());
 
-    fix.alive->evaluate(1011U);
+    fix.alive->evaluate(1000011U);
     EXPECT_EQ(fix.alive->getStatus(), EStatus::kExpired);
     EXPECT_TRUE(fix.alive->hasRecoveryEnqueueFailed());
 }
@@ -231,11 +230,11 @@ TEST_F(AliveSupervisionTest, AliveDebouncesThroughFailedBeforeExpired)
     EXPECT_EQ(fix.alive->getStatus(), EStatus::kOk);
 
     // First missed cycle: ok -> failed (tolerance not yet exceeded)
-    fix.alive->evaluate(1011U);
+    fix.alive->evaluate(1000011U);
     EXPECT_EQ(fix.alive->getStatus(), EStatus::kFailed);
 
     // Second missed cycle: tolerance exceeded -> expired
-    fix.alive->evaluate(2011U);
+    fix.alive->evaluate(2000011U);
     EXPECT_EQ(fix.alive->getStatus(), EStatus::kExpired);
 }
 
@@ -293,6 +292,6 @@ TEST_F(AliveSupervisionTest, MaxIndicationViolationExpires)
     // Two heartbeats in one cycle violates max=1
     fix.reportHeartbeat(100U);
     fix.reportHeartbeat(200U);
-    fix.alive->evaluate(1011U);
+    fix.alive->evaluate(1000011U);
     EXPECT_EQ(fix.alive->getStatus(), EStatus::kExpired);
 }

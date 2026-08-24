@@ -24,19 +24,24 @@
 namespace score::mw::lifecycle::internal::saf::supervision
 {
 
-Alive::Alive(const AliveSupervisionCfg& f_aliveCfg_r)
-    : ISupervision(f_aliveCfg_r.cfgName_p),
-      k_aliveReferenceCycle(f_aliveCfg_r.aliveReferenceCycle),
-      k_minAliveIndications(f_aliveCfg_r.minAliveIndications),
-      k_maxAliveIndications(f_aliveCfg_r.maxAliveIndications),
-      k_isMinCheckDisabled(f_aliveCfg_r.isMinCheckDisabled),
-      k_isMaxCheckDisabled(f_aliveCfg_r.isMaxCheckDisabled),
-      k_failedSupervisionCyclesTolerance(f_aliveCfg_r.failedCyclesTolerance),
-      recoveryClient_p(f_aliveCfg_r.recoveryClient),
-      processIdentifier_(f_aliveCfg_r.processIdentifier),
-      timeSortingUpdateEventBuffer(common::TimeSortingBuffer<TimeSortedUpdateEvent>(f_aliveCfg_r.checkpointBufferSize))
+Alive::Alive(
+    const IdentifierHash id,
+    const ComponentAliveSupervision& f_aliveCfg_r,
+    const std::shared_ptr<IRecoveryClient> recovery_client,
+    saf::ifappl::Checkpoint& checkpoint_r,
+    const uint16_t bufferSize)
+    : ISupervision(id),
+      k_aliveReferenceCycle(timers::TimeConversion::convertMilliSecToNanoSec(f_aliveCfg_r.reporting_cycle_ms)),
+      k_minAliveIndications(f_aliveCfg_r.min_indications.value_or(0)),
+      k_maxAliveIndications(f_aliveCfg_r.max_indications.value_or(0)),
+      k_isMinCheckDisabled(k_minAliveIndications == 0),
+      k_isMaxCheckDisabled(k_maxAliveIndications == 0),
+      k_failedSupervisionCyclesTolerance(f_aliveCfg_r.failed_cycles_tolerance),
+      recoveryClient_p(recovery_client),
+      processIdentifier_(id),
+      timeSortingUpdateEventBuffer(common::TimeSortingBuffer<TimeSortedUpdateEvent>(bufferSize))
 {
-    f_aliveCfg_r.checkpoint_r.attachObserver(*this);
+    checkpoint_r.attachObserver(*this);
     SCORE_LANGUAGE_FUTURECPP_PRECONDITION_PRD_MESSAGE(
         (k_aliveReferenceCycle != 0U), "k_aliveReferenceCycle=0 causes infinite loop during evaluation.");
 

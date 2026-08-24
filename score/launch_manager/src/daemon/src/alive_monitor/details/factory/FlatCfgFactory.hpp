@@ -16,10 +16,9 @@
 
 #include <memory>
 
-#include "score/mw/launch_manager/alive_monitor/details/common/AliveMonitorConfig.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/factory/IPhmFactory.hpp"
-#include "score/mw/launch_manager/alive_monitor/details/factory/StaticConfig.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ObservableEventReader.hpp"
+#include "score/mw/launch_manager/configuration/config.hpp"
 #include <string>
 #include <vector>
 
@@ -41,8 +40,6 @@ namespace saf
 namespace factory
 {
 
-using SupervisedComponentConfig = score::mw::lifecycle::internal::alive::SupervisedComponentConfig;
-
 /// @brief PHM Factory for FlatCfg AR21-11 format
 /// @details Provides methods to create worker objects depending on a AR21-11 based PHM FlatCfg file
 ///          and establishes required links between the worker objects automatically.
@@ -50,8 +47,7 @@ class FlatCfgFactory : public IPhmFactory
 {
   public:
     /// @brief Constructor
-    /// @param [in] f_bufferConfig_r Buffer configuration used for constructing supervisions
-    explicit FlatCfgFactory(const factory::SupervisionBufferConfig& f_bufferConfig_r);
+    explicit FlatCfgFactory();
 
     /// @brief Destructor
     /* RULECHECKER_comment(0, 5, check_min_instructions, "Default destructor is not provided\
@@ -67,44 +63,41 @@ class FlatCfgFactory : public IPhmFactory
     /// @brief No Move Assignment
     FlatCfgFactory& operator=(FlatCfgFactory&&) = delete;
 
-    /// @brief Initialize SW cluster
-    /// @param [in] supervised  Vector of supervised component configurations
-    /// @return                 Initialization is successful (true), otherwise failure (false)
-    bool init(const std::vector<SupervisedComponentConfig>& supervised);
-
     /// @brief Refer to the description of the base class (IPhmFactory)
-    bool createObservableEvents(
-        std::vector<ifexm::ObservableEvent>& f_processStates_r,
-        ifexm::ObservableEventReader& f_processStateReader_r) override;
+    bool createObservableEvent(
+        std::vector<ifexm::ObservableEvent>& events,
+        const IdentifierHash component_id,
+        ifexm::ObservableEventReader& event_reader_) override;
 
     /// Refer to the description of the base class (IPhmFactory)
-    bool createAliveIfIpcs(std::vector<ifappl::CheckpointIpcServer>& f_interfaceIpcs_r) override;
+    bool createAliveIfIpc(
+        std::vector<ifappl::CheckpointIpcServer>& servers,
+        const IdentifierHash component_id,
+        const uid_t uid) override;
 
     /// Refer to the description of the base class (IPhmFactory)
     bool createAliveIf(
-        std::vector<ifappl::MonitorIfDaemon>& f_interfaces_r,
-        std::vector<ifappl::CheckpointIpcServer>& f_interfaceIpcs_r,
-        std::vector<ifexm::ObservableEvent>& f_processStates_r) override;
+        std::vector<ifappl::MonitorIfDaemon>& interfaces,
+        ifappl::CheckpointIpcServer& ipc_server,
+        ifexm::ObservableEvent& event) override;
 
     /// Refer to the description of the base class (IPhmFactory)
-    bool createSupervisionCheckpoints(
-        std::vector<ifappl::Checkpoint>& f_checkpoints_r,
-        std::vector<ifappl::MonitorIfDaemon>& f_interfaces_r,
-        std::vector<ifexm::ObservableEvent>& f_processStates_r) override;
+    bool createSupervisionCheckpoint(
+        std::vector<ifappl::Checkpoint>& checkpoints,
+        ifappl::MonitorIfDaemon& interface,
+        const ifexm::ObservableEvent& event,
+        const IdentifierHash component_id) override;
 
     /// Refer to the description of the base class (IPhmFactory)
-    bool createAliveSupervisions(
-        std::vector<supervision::Alive>& f_alive_r,
-        std::vector<ifappl::Checkpoint>& f_checkpoints_r,
-        std::vector<ifexm::ObservableEvent>& f_processStates_r,
-        std::shared_ptr<score::mw::lifecycle::IRecoveryClient> f_recoveryClient_r) override;
+    bool createAliveSupervision(
+        std::vector<supervision::Alive>& supervisions,
+        ifappl::Checkpoint& checkpoint,
+        ifexm::ObservableEvent& event,
+        const std::shared_ptr<IRecoveryClient> recovery_client,
+        const IdentifierHash component_id,
+        const ComponentAliveSupervision component_config) override;
 
   private:
-    /// @brief Get process id based on ASR path of process
-    /// @param[in] comp  Reference to component configuration
-    /// @return          process id
-    static score::mw::lifecycle::IdentifierHash getProcessId(const SupervisedComponentConfig& comp) noexcept(true);
-
     /// @brief Create IPC Channel with uid-based access permission
     /// @details Only the given uid will ge granted r/w access, no group will be granted access
     /// @param[in,out] f_ipcServer_r The IPC server object
@@ -115,12 +108,6 @@ class FlatCfgFactory : public IPhmFactory
         ifappl::CheckpointIpcServer& f_ipcServer_r,
         const std::string& f_ipcPath_r,
         const std::int32_t f_uid) noexcept(false);
-
-    /// @brief The buffer configuration for constructing supervision objects
-    const factory::SupervisionBufferConfig& bufferConfig_r;
-
-    std::vector<SupervisedComponentConfig> supervised_components_;
-    std::vector<std::string> alive_cfg_names_;
 };
 
 }  // namespace factory

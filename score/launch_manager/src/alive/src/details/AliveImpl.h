@@ -66,8 +66,7 @@ class AliveImpl
     virtual ~AliveImpl() = default;
 
     /// @brief Reports an occurrence of a Checkpoint
-    /// @param [in] f_checkpointId   Checkpoint identifier.
-    void ReportCheckpoint(std::uint32_t f_checkpointId) const noexcept(true);
+    void ReportCheckpoint() const noexcept(true);
 
   private:
     /// @brief Connect the application process with PHM daemon using IPC

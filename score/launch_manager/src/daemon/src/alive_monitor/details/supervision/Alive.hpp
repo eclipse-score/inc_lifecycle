@@ -22,8 +22,9 @@
 #include "score/mw/launch_manager/alive_monitor/details/ifappl/Checkpoint.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ObservableEvent.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/supervision/ISupervision.hpp"
-#include "score/mw/launch_manager/alive_monitor/details/supervision/SupervisionCfg.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
+#include "score/mw/launch_manager/configuration/config.hpp"
+#include "score/mw/launch_manager/recovery_client/irecovery_client.h"
 
 namespace score
 {
@@ -33,6 +34,8 @@ namespace saf
 {
 namespace supervision
 {
+
+using configuration::ComponentAliveSupervision;
 
 /// @brief Alive Supervision
 /// @details Alive Supervision contains the logic for health monitoring - Alive supervision
@@ -76,9 +79,19 @@ class Alive : public ISupervision,
     Alive& operator=(const Alive&) = delete;
 
     /// @brief Constructor
+    /// @param [in] id Id of the component to monitor
     /// @param [in] f_aliveCfg_r    Alive Supervision configuration structure
+    /// @param [in] recovery_client Client to notify in case of a supervision failure
+    /// @param [in] checkpoint_r Checkpoint for the supervision to observe
+    /// @param [in] bufferSize Size of the internal buffer: the maximum number of events to evaluate the supervision can
+    /// store without losing data
     /// @warning    Constructor may throw std::exceptions
-    explicit Alive(const AliveSupervisionCfg& f_aliveCfg_r) noexcept(false);
+    explicit Alive(
+        const IdentifierHash id,
+        const ComponentAliveSupervision& f_aliveCfg_r,
+        const std::shared_ptr<IRecoveryClient> recovery_client,
+        saf::ifappl::Checkpoint& checkpoint_r,
+        const uint16_t bufferSize) noexcept(false);
 
     /// @brief Destructor
     /* RULECHECKER_comment(0, 3, check_min_instructions, "Default destructor is not provided\

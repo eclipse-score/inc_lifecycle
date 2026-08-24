@@ -75,6 +75,9 @@ enum class ProcessLimits : std::uint32_t
     maxLocalBuffSize = 32U    ///< Maximum size for local buffer
 };
 
+/// @brief Default size of Alive Supervision checkpoint buffer
+constexpr uint16_t kDefaultAliveSupCheckpointBufferElements{100U};
+
 }  // namespace internal
 
 }  // namespace mw::lifecycle

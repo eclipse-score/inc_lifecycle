@@ -16,13 +16,14 @@
 namespace score::mw::lifecycle::internal::saf::supervision
 {
 
-ISupervision::ISupervision(const char* const f_supervisionConfigName_p) : k_cfgName(f_supervisionConfigName_p)
+ISupervision::ISupervision(const IdentifierHash f_supervisionConfigName_p) noexcept(true)
+    : k_cfgName(f_supervisionConfigName_p)
 {
     // Satisfy Misra for minimum number of instructions
     static_cast<void>(0);
 }
 
-std::string_view ISupervision::getConfigName(void) const noexcept
+IdentifierHash ISupervision::getConfigName(void) const noexcept
 {
     return k_cfgName;
 }

@@ -54,7 +54,7 @@ TEST_F(AliveImplTest, ReportCheckpointSafeWhenNotConnected)
 
     setenv("LCM_ALIVE_INTERFACE_PATH", "nonexistent_ipc_path", 1);
     AliveImpl impl("test/instance");
-    EXPECT_NO_THROW(impl.ReportCheckpoint(42U));
+    EXPECT_NO_THROW(impl.ReportCheckpoint());
 }
 
 }  // namespace score::mw::lifecycle
