@@ -87,7 +87,6 @@ void CreateDependencyGraph(
         if (run_target.name == Graph::off_state_name)
         {
             off_rt_defined = true;
-            LM_LOG_DEBUG() << "Off state transition timeout in cfg:" << run_target.transition_timeout_ms;
             off_state_transition_timeout = std::chrono::milliseconds(run_target.transition_timeout_ms);
         }
         name_to_index[run_target.name] = index;
@@ -98,7 +97,6 @@ void CreateDependencyGraph(
     // handle the off target
     if (!off_rt_defined)
     {
-        LM_LOG_DEBUG() << "Creating off RunTarget node with default timeout:" << 3000;
         const auto off_index = graph.emplace(std::in_place_type<RunTarget>, graph.size());
         run_target_map.insert({IdentifierHash{Graph::off_state_name}.data(), off_index});
         off_state_transition_timeout = std::chrono::milliseconds(3000);
