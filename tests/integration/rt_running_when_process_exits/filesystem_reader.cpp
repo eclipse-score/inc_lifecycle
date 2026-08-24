@@ -24,6 +24,7 @@
 namespace
 {
 
+constexpr std::string_view kSetupBinaryName = "touch_file.sh";
 constexpr std::string_view kSetupOutputFile = "setup_filesystem_output.txt";
 
 }  // namespace
@@ -59,7 +60,7 @@ TEST(RtRunningWhenProcessExits, FilesystemReader)
 
     TEST_STEP("Verify the setup process has already terminated")
     {
-        EXPECT_FALSE(test_helper::process_is_running(kSetupOutputFile))
+        EXPECT_FALSE(test_helper::process_is_running(kSetupBinaryName))
             << "The setup process is still running; filesystem_reader was started before its "
                "dependency terminated";
     }
