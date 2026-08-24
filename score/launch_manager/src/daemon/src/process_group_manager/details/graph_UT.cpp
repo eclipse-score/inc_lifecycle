@@ -411,6 +411,47 @@ TEST_F(GraphImplicitOffTargetTest, offRunTargetIsCreatedWhenNotConfigured)
     EXPECT_EQ(graph_->getProcessGroupState(), IdentifierHash{"Off"});
 }
 
+TEST_F(GraphImplicitOffTargetTest, offTransitionTimeoutFallsBackToDefault)
+{
+    RecordProperty(
+        "Description",
+        "Test that getOffStateTransitionTimeout returns the built-in default when the configuration does not define an "
+        "Off run target");
+
+    EXPECT_EQ(graph_->getOffStateTransitionTimeout(), 3000ms);
+}
+
+/// @brief Fixture that configures the "Off" run target with a distinctive transition timeout.
+class GraphOffStateTimeoutTest : public GraphTest
+{
+  protected:
+    void SetConfig() override
+    {
+        auto procs = generateProcessComponents(1);
+        auto rts = generateRunTargets(1);
+        rts[1].depends_on = {procs[0].name};
+        // The Off run target is the last entry generateRunTargets() appends.
+        rts.back().transition_timeout_ms = kOffTimeoutMs;
+        config_ = ConfigBuilder{}
+                      .setComponents(std::move(procs))
+                      .setRunTargets(std::move(rts))
+                      .setInitialRunTarget("Startup")
+                      .setFallbackRunTarget(std::move(fallback))
+                      .build();
+    }
+
+    static constexpr std::uint32_t kOffTimeoutMs = 1234;
+};
+
+TEST_F(GraphOffStateTimeoutTest, returnsConfiguredOffTimeout)
+{
+    RecordProperty(
+        "Description",
+        "Test that getOffStateTransitionTimeout returns the transition_timeout_ms configured for the Off run target");
+
+    EXPECT_EQ(graph_->getOffStateTransitionTimeout(), std::chrono::milliseconds{kOffTimeoutMs});
+}
+
 class GraphHandleComponentEventTest : public GraphTest
 {
     void SetConfig() override
