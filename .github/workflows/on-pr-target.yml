@@ -66,15 +66,22 @@ jobs:
     needs: testlogs
     uses: eclipse-score/cicd-workflows/.github/workflows/docs.yml@8d80e8df150cae21d53cbc8031d0f970648f7a67 # v0.0.3
     permissions:
-      contents: write
-      pages: write
-      pull-requests: write
-      id-token: write
+      contents: read
     with:
       # the bazel-target depends on your repo specific docs_targets configuration (e.g. "suffix")
       bazel-target: "--lockfile_mode=error //:docs -- --github_user=${{ github.repository_owner }} --github_repo=${{ github.event.repository.name }}"
       retention-days: 3
       tests-report-artifact: bazel-testlogs
+
+  docs-deploy:
+    name: Deploy documentation
+    needs: docs-build
+    uses: eclipse-score/cicd-workflows/.github/workflows/docs-publish.yml@8d80e8df150cae21d53cbc8031d0f970648f7a67 # v0.0.3
+    permissions:
+      contents: write
+      pages: write
+      pull-requests: write
+      id-token: write
 
   license-check:
     name: License check
