@@ -13,9 +13,8 @@
 #ifndef SAF_DAEMON_ALIVE_MONITOR_HPP_INCLUDED
 #define SAF_DAEMON_ALIVE_MONITOR_HPP_INCLUDED
 
-#include <atomic>
-
-#include "score/mw/launch_manager/alive_monitor/details/daemon/PhmDaemon.hpp"
+#include "score/mw/launch_manager/alive_monitor/details/common/EInitCode.hpp"
+#include "score/mw/launch_manager/supervision_control_client/isupervision_factory.hpp"
 
 namespace score
 {
@@ -36,9 +35,11 @@ class IAliveMonitor
     /// @return kNoError if initialization was successful, otherwise an appropriate error code.
     virtual EInitCode init() noexcept = 0;
 
-    /// @brief Run the AliveMonitor functionality in a cyclic manner until cancellation is requested.
-    /// @param cancel_thread Atomic boolean flag to signal thread cancellation.
-    virtual bool run(std::atomic_bool& cancel_thread) noexcept = 0;
+    virtual bool start() = 0;
+
+    virtual void stop() = 0;
+
+    virtual ISupervisionFactory& getSupervisionFactory() = 0;
 };
 
 }  // namespace daemon

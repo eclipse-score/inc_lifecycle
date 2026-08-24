@@ -18,8 +18,9 @@
 
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ObservableEvent.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
-#include "score/mw/launch_manager/supervision_control_client/isupervision_control_receiver.hpp"
 #include "score/mw/launch_manager/supervision_control_client/supervision_event.hpp"
+
+#include "score/result/result.h"
 
 namespace score
 {
@@ -36,12 +37,9 @@ namespace ifexm
 class ObservableEventReader
 {
   public:
-    using LcmSupervisionEvent = score::mw::lifecycle::SupervisionEvent;
-    using LcmSupervisionControlReceiver = score::mw::lifecycle::ISupervisionControlReceiver;
-
     /// @brief Constructor
     /// @param [in] f_observable_event_receiver   Process state receiver implementation
-    ObservableEventReader(std::unique_ptr<LcmSupervisionControlReceiver> f_observable_event_receiver);
+    explicit ObservableEventReader(std::shared_ptr<SupervisionBufferType> f_observable_event_receiver);
 
     /// @brief No Copy Constructor
     ObservableEventReader(const ObservableEventReader&) = delete;
@@ -76,10 +74,12 @@ class ObservableEventReader
     /// @param [in] f_event              Supervision event for which push update is needed
     /// @param [in] f_syncTimestamp      Timestamp for cyclic synchronization
     /// @return     true (sync timestamp is reached), false (sync timestamp is not yet reached)
-    bool pushUpdateTill(const LcmSupervisionEvent& f_event, const timers::NanoSecondType f_syncTimestamp) noexcept;
+    bool pushUpdateTill(const SupervisionEvent& f_event, const timers::NanoSecondType f_syncTimestamp) noexcept;
+
+    score::Result<std::optional<SupervisionEvent>> getNextSupervisionEvent() noexcept;
 
     /// @brief Process state receiver for HM thread
-    std::unique_ptr<LcmSupervisionControlReceiver> processStateReceiverHM;
+    std::shared_ptr<SupervisionBufferType> buffer_;
 
     /// @brief Map for process id and observable event object
     std::map<IdentifierHash, ObservableEvent*> processStateMap{};

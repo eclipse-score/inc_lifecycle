@@ -26,6 +26,7 @@
 #include "score/mw/launch_manager/alive_monitor/details/timers/CycleTimer.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/TimeConversion.hpp"
 #include "score/mw/launch_manager/configuration/config.hpp"
+#include "score/mw/launch_manager/supervision_control_client/isupervision_factory.hpp"
 
 namespace score
 {
@@ -36,24 +37,13 @@ namespace saf
 namespace daemon
 {
 
-/// @brief Return codes for PhmDaemon Initialization
-enum class EInitCode : std::int8_t
-{
-    kNoError,                        ///< Init Successful (no error occurred)
-    kNotInitialized,                 ///< Init was not performed
-    kCycleTimeInitFailed,            ///< Cyclic Timer initialization failed
-    kConstructFlatCfgFactoryFailed,  ///< FlatCfgFactory failed loading SWCL configurations
-    kGeneralError                    ///< General error
-};
-
 /// @brief PHM daemon main class wraps the functionality for initialization and cyclic execution.
 /// @details This is the main class responsible to execute the main functionalities of PHM daemon,
 ///          by using the necessary classes from this software component.
-class PhmDaemon
+class PhmDaemon : public ISupervisionFactory
 {
   public:
     using OsClock = score::mw::lifecycle::internal::saf::timers::OsClockInterface;
-    using SupervisionControlReceiver = score::mw::lifecycle::ISupervisionControlReceiver;
     using RecoveryClient = score::mw::lifecycle::IRecoveryClient;
     using CycleTimer = score::mw::lifecycle::internal::saf::timers::CycleTimer;
     using CycleTimeValidator = score::mw::lifecycle::internal::saf::timers::CycleTimeValidator;
@@ -69,7 +59,7 @@ class PhmDaemon
     /// in tests)
     /* RULECHECKER_comment(3,1, check_expensive_to_copy_in_parameter, "Move only types cannot be passed by const ref",
        true_no_defect) */
-    PhmDaemon(OsClock& f_osClock, std::unique_ptr<ISupervisionControlReceiver> f_observable_event_receiver);
+    explicit PhmDaemon(OsClock& f_osClock);
 
     /* RULECHECKER_comment(0, 4, check_min_instructions, "Default destructor is not provided\
        a function body", true_no_defect) */
@@ -193,6 +183,13 @@ class PhmDaemon
         return true;
     }
 
+    SupervisionHandle
+    constructSupervision(IdentifierHash id, uid_t uid, configuration::ComponentAliveSupervision config) override
+    {
+        supervisionManager.constructWorker(id, config, uid, recoveryClient, processStateReader);
+        return SupervisionHandle{id, buffer_};
+    }
+
   private:
     /// @brief Create SwCluster objects & Invoke construction of worker objects
     /// @details Create the SwclusterHandler objects and the workers for the SwclusterHandler
@@ -209,6 +206,8 @@ class PhmDaemon
 
     /// @brief For fixed time-step execution during the cyclic execution
     CycleTimer cycleTimer;
+
+    std::shared_ptr<SupervisionBufferType> buffer_;
 
     /// @brief Recovery interface to Launch Manager
     std::shared_ptr<RecoveryClient> recoveryClient;

@@ -14,12 +14,13 @@
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ObservableEventReader.hpp"
 #include "score/launch_manager/src/daemon/src/common/log.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/TimeConversion.hpp"
+#include "score/mw/lifecycle/execution_error.h"
 
 namespace score::mw::lifecycle::internal::saf::ifexm
 {
 
-ObservableEventReader::ObservableEventReader(std::unique_ptr<LcmSupervisionControlReceiver> f_observable_event_receiver)
-    : processStateReceiverHM(std::move(f_observable_event_receiver))
+ObservableEventReader::ObservableEventReader(std::shared_ptr<SupervisionBufferType> f_observable_event_receiver)
+    : buffer_(f_observable_event_receiver)
 {
 }
 
@@ -64,8 +65,7 @@ bool ObservableEventReader::distributeChanges(const timers::NanoSecondType f_syn
     bool flagContinue{true};
     do
     {
-        score::Result<std::optional<LcmSupervisionEvent>> resultEvent{
-            processStateReceiverHM->getNextSupervisionEvent()};
+        score::Result<std::optional<SupervisionEvent>> resultEvent{getNextSupervisionEvent()};
 
         if (resultEvent)
         {
@@ -93,8 +93,36 @@ bool ObservableEventReader::distributeChanges(const timers::NanoSecondType f_syn
     return flagSuccess;
 }
 
+score::Result<std::optional<SupervisionEvent>> ObservableEventReader::getNextSupervisionEvent() noexcept
+{
+    score::mw::lifecycle::SupervisionEvent event;
+    if (buffer_->getOverflowFlag())
+    {
+        LM_LOG_ERROR() << "ObservableEventReader::getNextSupervisionEvent: Overflow occurred, "
+                          "will be reported as kCommunicationError";
+        return score::Result<std::optional<score::mw::lifecycle::SupervisionEvent>>{
+            score::MakeUnexpected(score::mw::lifecycle::ExecErrc::kCommunicationError)};
+    }
+
+    if (buffer_->empty())
+    {
+        return score::Result<std::optional<score::mw::lifecycle::SupervisionEvent>>{std::nullopt};
+    }
+
+    auto res = buffer_->tryDequeue(event);
+    if (res)
+    {
+        return score::Result<std::optional<score::mw::lifecycle::SupervisionEvent>>{event};
+    }
+    else
+    {
+        return score::Result<std::optional<score::mw::lifecycle::SupervisionEvent>>{
+            score::MakeUnexpected(score::mw::lifecycle::ExecErrc::kGeneralError)};
+    }
+}
+
 bool ObservableEventReader::pushUpdateTill(
-    const LcmSupervisionEvent& f_event,
+    const SupervisionEvent& f_event,
     const timers::NanoSecondType f_syncTimestamp) noexcept
 {
     bool isSyncTimestampReached{false};

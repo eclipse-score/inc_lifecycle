@@ -19,7 +19,6 @@
 
 #include "score/mw/launch_manager/common/log.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/process_monitor.hpp"
-#include "score/mw/launch_manager/process_group_manager/ialive_monitor_thread.hpp"
 #include "score/mw/launch_manager/process_group_manager/process_group_manager.hpp"
 
 namespace score::mw::lifecycle::internal
@@ -39,9 +38,8 @@ void ProcessGroupManager::cancel()
 
 ProcessGroupManager::ProcessGroupManager(
     configuration::Config&& config,
-    std::unique_ptr<IAliveMonitorThread> alive_monitor_thread,
+    std::unique_ptr<IAliveMonitor> alive_monitor,
     std::shared_ptr<IRecoveryClient> recovery_client,
-    std::unique_ptr<score::mw::lifecycle::ISupervisionControlNotifier> supervision_control_notifier,
     std::unique_ptr<score::mw::lifecycle::internal::watchdog::IWatchdogIf> watchdog)
     : configuration_(std::move(config)),
       process_interface_(),
@@ -49,8 +47,7 @@ ProcessGroupManager::ProcessGroupManager(
       process_map_(nullptr),
       thread_pool_(nullptr),
       worker_jobs_(nullptr),
-      supervision_control_notifier_(std::move(supervision_control_notifier)),
-      alive_monitor_thread_(std::move(alive_monitor_thread)),
+      alive_monitor_(std::move(alive_monitor)),
       recovery_client_(recovery_client),
       watchdog_(std::move(watchdog))
 {

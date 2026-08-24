@@ -19,3 +19,15 @@ cc_library(
         "//score/launch_manager/src/daemon/src/alive_monitor/details/daemon:health_monitor_impl",
     ],
 )
+
+cc_library(
+    name = "i_alive_monitor",
+    hdrs = ["IAliveMonitor.hpp"],
+    include_prefix = "score/mw/launch_manager/alive_monitor",
+    strip_include_prefix = "/score/launch_manager/src/daemon/src/alive_monitor",
+    visibility = ["//score:__subpackages__"],
+    deps = [
+        "//score/launch_manager/src/daemon/src/alive_monitor/details/common:einitcode",
+        "//score/launch_manager/src/daemon/src/supervision_control_client:isupervision_factory",
+    ],
+)
