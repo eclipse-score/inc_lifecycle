@@ -82,6 +82,7 @@ jobs:
       pages: write
       pull-requests: write
       id-token: write
+      actions: read
 
   license-check:
     name: License check
