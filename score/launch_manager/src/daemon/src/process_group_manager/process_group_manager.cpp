@@ -135,12 +135,9 @@ void ProcessGroupManager::deinitialize()
     process_monitor_.reset();
     alive_monitor_thread_->stop();
 
-    // Stop and join the worker threads BEFORE destroying the graph.
-    // Worker threads run ProcessInfoNode::doWork(), which dereferences its Graph
-    // (nodeExecuted(), getState(), ...) via a raw back-pointer. If a transition is
-    // still completing on a worker thread (e.g. an in-progress switch to Off that
-    // is allowed to continue during shutdown), destroying the graph first would be
-    // a use-after-free.
+    // Join the worker threads before destroying the process groups: a worker may
+    // still be (de)activating a ProcessInfoNode owned by a graph, so tearing the
+    // graphs down first would be a use-after-free.
     thread_pool_.reset();
     worker_jobs_.reset();
 
