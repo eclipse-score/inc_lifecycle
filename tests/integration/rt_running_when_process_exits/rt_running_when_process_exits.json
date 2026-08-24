@@ -10,9 +10,6 @@
                     "number_of_attempts": 0
                 }
             },
-            "environmental_variables": {
-                "LD_LIBRARY_PATH": "/opt/lib"
-            },
             "sandbox": {
                 "uid": 0,
                 "gid": 0,
@@ -32,7 +29,6 @@
     },
     "components": {
         "control_client_test_driver": {
-            "description": "Drives the test: activates the run targets in sequence and checks that a terminated-ready component with no dependents has actually terminated before its run target reports success.",
             "component_properties": {
                 "binary_name": "control_client_test_driver",
                 "application_profile": {
@@ -41,19 +37,12 @@
                         "min_indications": 0
                     }
                 }
-            },
-            "deployment_config": {
-                "ready_timeout": 1.0,
-                "shutdown_timeout": 1.0,
-                "environmental_variables": {
-                    "PROCESSIDENTIFIER": "control_client_test_driver"
-                }
             }
         },
         "setup_filesystem_sh": {
-            "description": "Wraps setup_filesystem.sh which prepares the filesystem (here: writes a file) and then terminates. The component becomes ready only once the script process has terminated successfully. It HAS a dependent (filesystem_reader), so its Terminated ready condition is carried on the dependency edge.",
             "component_properties": {
-                "binary_name": "setup_filesystem.sh",
+                "binary_name": "touch_file.sh",
+                "process_arguments": ["--text", "filesystem is ready", "setup_filesystem_output.txt"],
                 "application_profile": {
                     "application_type": "Native",
                     "is_self_terminating": true
@@ -65,7 +54,6 @@
             }
         },
         "filesystem_reader": {
-            "description": "C++ executable that reads the file prepared by setup_filesystem.sh and verifies that the script process has already terminated.",
             "component_properties": {
                 "binary_name": "filesystem_reader",
                 "application_profile": {
@@ -78,17 +66,12 @@
                 "ready_condition": {
                     "process_state": "Running"
                 }
-            },
-            "deployment_config": {
-                "environmental_variables": {
-                    "PROCESSIDENTIFIER": "filesystem_reader"
-                }
             }
         },
         "slow_setup_sh": {
-            "description": "Wraps slow_setup.sh: a self-terminating component whose ready condition is Terminated but which has NO dependent component. It waits briefly before writing its marker file. This reproduces the bug where a run target depending directly on such a component reports success as soon as the process is started, instead of once it has terminated.",
             "component_properties": {
-                "binary_name": "slow_setup.sh",
+                "binary_name": "touch_file.sh",
+                "process_arguments": ["--sleep", "1", "--text", "slow setup done", "slow_setup_output.txt"],
                 "application_profile": {
                     "application_type": "Native",
                     "is_self_terminating": true

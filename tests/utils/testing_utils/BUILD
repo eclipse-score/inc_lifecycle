@@ -12,6 +12,11 @@
 # *******************************************************************************
 load("@rules_python//python:defs.bzl", "py_library")
 
+exports_files(
+    ["touch_file.sh"],
+    visibility = ["//tests:__subpackages__"],
+)
+
 py_library(
     name = "testing_utils",
     srcs = [

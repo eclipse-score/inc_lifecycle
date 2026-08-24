@@ -21,7 +21,7 @@
 
 namespace
 {
-/// @brief Marker file written by slow_setup.sh once it has finished (and is about to exit).
+/// @brief Marker file written by the slow setup component once it has finished (and is about to exit).
 constexpr std::string_view kSlowSetupOutput = "slow_setup_output.txt";
 }  // namespace
 
@@ -44,7 +44,7 @@ TEST(RtRunningWhenProcessExits, ControlClientTestDriver)
     score::cpp::stop_token stop_token;
 
     // kSlowSetupOutput is checked too: its later presence must be a reliable signal that
-    // slow_setup.sh terminated during *this* run, not leftover from a previous one.
+    // the slow setup component terminated during *this* run, not leftover from a previous one.
     ASSERT_TRUE(check_clean({test_end_location, kSlowSetupOutput}));
 
     TEST_STEP("Report running")
@@ -60,17 +60,17 @@ TEST(RtRunningWhenProcessExits, ControlClientTestDriver)
         EXPECT_TRUE(result.has_value()) << "Activating run_target_reader failed: " << result.error().Message();
     }
 
-    // The no-dependents case: activation must only complete once slow_setup.sh has terminated.
+    // The no-dependents case: activation must only complete once the slow setup component has terminated.
     TEST_STEP("Activate run target with a terminated-ready component that has NO dependent")
     {
         auto result = client.ActivateRunTarget("run_target_slow_setup").Get(stop_token);
         EXPECT_TRUE(result.has_value()) << "Activating run_target_slow_setup failed: " << result.error().Message();
     }
 
-    TEST_STEP("Verify slow_setup.sh had terminated before activation completed")
+    TEST_STEP("Verify the slow setup component had terminated before activation completed")
     {
         EXPECT_TRUE(std::filesystem::exists(kSlowSetupOutput))
-            << "run_target_slow_setup reported success while slow_setup.sh was still running: its "
+            << "run_target_slow_setup reported success while the slow setup component was still running: its "
                "output file has not been written yet. A run target depending on a terminated-ready "
                "component must only become ready once that component's process has actually exited.";
     }

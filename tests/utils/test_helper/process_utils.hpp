@@ -33,11 +33,10 @@
 namespace test_helper::detail
 {
 // Not tested
-#ifdef __QNXNTO__
 /// @brief Returns the executable path of the process owning @p proc_entry (e.g. /proc/1234).
-/// @details QNX has no /proc/<pid>/cmdline, so the executable path is read via the procfs debug interface.
 inline std::string process_identity(const std::filesystem::path& proc_entry)
 {
+#ifdef __QNXNTO__
     const int fd = ::open((proc_entry / "as").c_str(), O_RDONLY);
     if (fd == -1)
     {
@@ -57,11 +56,7 @@ inline std::string process_identity(const std::filesystem::path& proc_entry)
     }
     ::close(fd);
     return identity;
-}
 #else
-/// @brief Returns the null-separated command line of the process owning @p proc_entry (e.g. /proc/1234).
-inline std::string process_identity(const std::filesystem::path& proc_entry)
-{
     std::ifstream cmdline{proc_entry / "cmdline", std::ios::binary};
     if (!cmdline)
     {
@@ -70,8 +65,8 @@ inline std::string process_identity(const std::filesystem::path& proc_entry)
     std::stringstream buffer;
     buffer << cmdline.rdbuf();
     return buffer.str();
-}
 #endif
+}
 }  // namespace test_helper::detail
 
 namespace test_helper

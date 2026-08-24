@@ -42,9 +42,8 @@ integration_test(
     binaries = [
         ":control_client_test_driver",
         ":filesystem_reader",
-        ":setup_filesystem.sh",
-        ":slow_setup.sh",
         "//score/launch_manager",
+        "//tests/utils/testing_utils:touch_file.sh",
     ],
     config = ":rt_running_when_process_exits.json",
 )

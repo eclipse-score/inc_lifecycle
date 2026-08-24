@@ -24,19 +24,17 @@
 namespace
 {
 
-constexpr std::string_view kSetupScriptName = "setup_filesystem.sh";
 constexpr std::string_view kSetupOutputFile = "setup_filesystem_output.txt";
 
 }  // namespace
 
 // Given a configuration with:
-//   - A self-terminating component "setup_filesystem_sh" (wrapping setup_filesystem.sh) whose
-//     ready condition is "Terminated".
+//   - A self-terminating component "setup_filesystem_sh" whose ready condition is "Terminated".
 //   - A component "filesystem_reader" that depends on "setup_filesystem_sh".
 //   - An initial Run Target "Startup" that depends on "filesystem_reader".
 //
-// When the Launch Manager activates "Startup", it must first run setup_filesystem.sh to completion
-// (the script writes a marker file and exits) before starting filesystem_reader.
+// When the Launch Manager activates "Startup", it must first run the setup component to completion
+// (it writes a marker file and exits) before starting filesystem_reader.
 TEST(RtRunningWhenProcessExits, FilesystemReader)
 {
     ASSERT_TRUE(check_clean({test_end_location}));
@@ -46,10 +44,10 @@ TEST(RtRunningWhenProcessExits, FilesystemReader)
         score::mw::lifecycle::report_running();
     }
 
-    TEST_STEP("Read file prepared by setup_filesystem.sh")
+    TEST_STEP("Read file prepared by the setup component")
     {
         ASSERT_TRUE(std::filesystem::exists(kSetupOutputFile))
-            << "The file prepared by setup_filesystem.sh does not exist; the dependency was not "
+            << "The file prepared by the setup component does not exist; the dependency was not "
                "started/finished before filesystem_reader";
 
         std::ifstream output{std::filesystem::path{kSetupOutputFile}};
@@ -59,11 +57,11 @@ TEST(RtRunningWhenProcessExits, FilesystemReader)
         EXPECT_EQ(content, "filesystem is ready") << "Unexpected content in " << kSetupOutputFile;
     }
 
-    TEST_STEP("Verify setup_filesystem.sh process has already terminated")
+    TEST_STEP("Verify the setup process has already terminated")
     {
-        EXPECT_FALSE(test_helper::process_is_running(kSetupScriptName))
-            << "The setup_filesystem.sh process is still running; filesystem_reader was started "
-               "before its dependency terminated";
+        EXPECT_FALSE(test_helper::process_is_running(kSetupOutputFile))
+            << "The setup process is still running; filesystem_reader was started before its "
+               "dependency terminated";
     }
 }
 

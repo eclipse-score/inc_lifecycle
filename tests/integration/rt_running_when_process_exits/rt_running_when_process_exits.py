@@ -39,13 +39,18 @@ def test_rt_running_when_process_exits(
                                component HAS a dependent, so filesystem_reader finds the prepared
                                file and confirms the script process is gone.
       - run_target_slow_setup: depends directly on slow_setup_sh (self-terminating, ready
-                               "Terminated") which has NO dependent. slow_setup.sh waits briefly
+                               "Terminated") which has NO dependent. slow_setup_sh waits briefly
                                before writing its marker file; the control client verifies that
                                the marker exists once activation completes, i.e. the run target
                                only became ready once the process had terminated.
 
     Expected Behaviour: Both activations complete only after the respective terminated-ready
     component's process has exited.
+
+    Note: The two self-terminating components (setup_filesystem_sh and slow_setup_sh) are implemented as
+    dummy shell scripts which write a file on completion, emulating a real use case like setting up a
+    filesystem or performing a slow setup operation.
+
     """
 
     # launch manager will simply ignore the arguments if run with --//config:use_new_configuration=False.
@@ -59,7 +64,7 @@ def test_rt_running_when_process_exits(
         file_path=remote_test_dir.parent / "test_end",
         cwd=str(remote_test_dir),
         args=["-c", new_config_path],
-        timeout_s=8.0,
+        timeout_s=3.0,
     )
 
     assert_test_results({"control_client_test_driver.xml", "filesystem_reader.xml"})
