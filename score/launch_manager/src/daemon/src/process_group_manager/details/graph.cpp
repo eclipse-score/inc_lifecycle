@@ -42,7 +42,8 @@ void CreateDependencyGraph(
     DependencyGraph<Graph::Component>& graph,
     configuration::Config& config,
     ProcessHandling process_handling,
-    std::unordered_map<std::size_t, GraphIndex>& run_target_map)
+    std::unordered_map<std::size_t, GraphIndex>& run_target_map,
+    std::chrono::milliseconds& off_state_transition_timeout)
 {
     // this is a temporary (bad) implementation, all shall be cleandup
     // on https://github.com/eclipse-score/lifecycle/issues/463
@@ -83,7 +84,12 @@ void CreateDependencyGraph(
         const auto index = graph.emplace(std::in_place_type<RunTarget>, graph.size());
         LM_LOG_DEBUG() << "Created RunTarget node:" << run_target.name << "at index" << index;
 
-        off_rt_defined |= bool(run_target.name == Graph::off_state_name);
+        if (run_target.name == Graph::off_state_name)
+        {
+            off_rt_defined = true;
+            LM_LOG_DEBUG() << "Off state transition timeout in cfg:" << run_target.transition_timeout_ms;
+            off_state_transition_timeout = std::chrono::milliseconds(run_target.transition_timeout_ms);
+        }
         name_to_index[run_target.name] = index;
         run_target_map.insert({IdentifierHash{run_target.name}.data(), index});
         pending_dependencies.emplace_back(index, std::move(run_target.depends_on));
@@ -92,8 +98,10 @@ void CreateDependencyGraph(
     // handle the off target
     if (!off_rt_defined)
     {
+        LM_LOG_DEBUG() << "Creating off RunTarget node with default timeout:" << 3000;
         const auto off_index = graph.emplace(std::in_place_type<RunTarget>, graph.size());
         run_target_map.insert({IdentifierHash{Graph::off_state_name}.data(), off_index});
+        off_state_transition_timeout = std::chrono::milliseconds(3000);
     }
 
     // handle the fallback target
@@ -138,7 +146,7 @@ Graph::Graph(
     last_state_manager_.process_index_ = 0xFFFFU;  // an invalid state manager
     last_state_manager_.process_group_index_ = 0xFFFFU;
     cancel_message_.request_or_response_ = ControlClientCode::kNotSet;
-    CreateDependencyGraph(nodes_, configuration_, process_handling_, run_targets_);
+    CreateDependencyGraph(nodes_, configuration_, process_handling_, run_targets_, off_state_transition_timeout_);
 }
 
 Graph::~Graph()
@@ -486,23 +494,6 @@ void Graph::forceKillProcesses()
     }
 }
 
-std::chrono::milliseconds Graph::getMaxTerminationTimeout()
-{
-    std::chrono::milliseconds max_timeout{0};
-    for (const auto& component : nodes_)
-    {
-        if (const ProcessInfoNode* process = std::get_if<ProcessInfoNode>(&component))
-        {
-            // Only processes with a live OS process still to stop count
-            if (process->getPid() > 0 && process->getState() < ProcessState::kTerminated)
-            {
-                max_timeout = std::max(max_timeout, process->getTerminationTimeout());
-            }
-        }
-    }
-    return max_timeout;
-}
-
 void Graph::updateCancelMessage()
 {
     ControlClientCode code = getPendingEvent();
@@ -656,6 +647,11 @@ void Graph::setRequestStartTime()
 std::chrono::time_point<std::chrono::steady_clock> Graph::getRequestStartTime()
 {
     return request_start_time_;
+}
+
+std::chrono::milliseconds Graph::getOffStateTransitionTimeout() const
+{
+    return off_state_transition_timeout_;
 }
 
 }  // namespace score::mw::lifecycle::internal

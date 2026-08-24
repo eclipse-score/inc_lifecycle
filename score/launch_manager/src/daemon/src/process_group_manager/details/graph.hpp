@@ -285,9 +285,11 @@ class Graph final
     /// @brief For forced shutdown, kill all leftover processes
     void forceKillProcesses();
 
-    /// @brief Returns the largest configured shutdown_timeout across all running processes
-    /// @return The timeout in milliseconds, or zero if there are no live processes to stop.
-    std::chrono::milliseconds getMaxTerminationTimeout();
+    /// @brief Returns the configured transition timeout for the Off state
+    /// @details This is the timeout configured for the RunTarget named "Off" in the configuration, or a default value
+    /// if not configured.
+    /// @return The timeout in milliseconds, or zero if there is no configured timeout.
+    std::chrono::milliseconds getOffStateTransitionTimeout() const;
 
   private:
     /// @brief Reports that a node has finished executing, enqueuing successors or updating the graph state if a
@@ -396,6 +398,9 @@ class Graph final
 
     /// @brief Stop token generator for transitions.
     score::cpp::stop_source stop_source_;
+
+    /// @brief Transition timeout for Off state
+    std::chrono::milliseconds off_state_transition_timeout_{0};
 };
 
 }  // namespace internal

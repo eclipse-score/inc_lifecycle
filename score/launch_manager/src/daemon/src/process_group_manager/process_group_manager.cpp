@@ -380,11 +380,9 @@ void ProcessGroupManager::allProcessGroupsOff()
 
     LM_LOG_DEBUG() << "Wait for process group to complete the transition";
 
-    // Bound the whole transition-to-Off wait by the slowest still-running process's
-    // shutdown_timeout (plus the SIGKILL grace), so every component's configured
-    // timeout is honoured. Processes deactivate in parallel.
-    const auto off_transition_timeout = graph_->getMaxTerminationTimeout() + kMaxSigKillDelay;
-    if (!waitForStateCompletion(GraphState::kInTransition, static_cast<int32_t>(off_transition_timeout.count())))
+    const auto overall_off_transition_timeout = graph_->getOffStateTransitionTimeout() + kMaxSigKillDelay;
+    if (!waitForStateCompletion(
+            GraphState::kInTransition, static_cast<int32_t>(overall_off_transition_timeout.count())))
     {
         // Last resort: a process ignored even SIGKILL within its budget. Force-kill
         // whatever is left and tear down the worker pool so shutdown can still proceed.
