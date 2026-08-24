@@ -28,7 +28,7 @@ apply various features effectively.
 
 .. dropdown:: example_conf.json
 
-   .. literalinclude:: ../../../../score/launch_manager/src/daemon/src/configuration/config_schema/examples/example_conf.json
+   .. literalinclude:: examples/example_conf.json
       :language: json
 
 The `example_conf.json` file is a fundamental example within the **Launch

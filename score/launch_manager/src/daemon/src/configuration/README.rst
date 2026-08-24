@@ -30,11 +30,18 @@ The project is structured to provide a clear organization for the schema, defaul
 ::
 
     .
-    |-- default_values/             # Default values for various configuration aspects.
-    |-- docs/                       # Comprehensive documentation for Launch Manager configuration.
-    |-- examples/                   # Illustrative example configuration files for the schema.
     |-- launch_manager.schema.json  # The Launch Manager schema definition.
     `-- scripts/                    # Utility scripts, including a validation tool.
+
+Default values, examples and the user documentation live in the **Launch Manager** documentation bundle, so that the rendered documentation stays self-contained:
+
+::
+
+    score/launch_manager/docs/user_guide/
+    |-- default_values/             # Default values for various configuration aspects.
+    |-- examples/                   # Illustrative example configuration files for the schema.
+    |-- configuration.rst           # Comprehensive documentation for Launch Manager configuration.
+    `-- examples.rst                # Explanations and context for the example configurations.
 
 Quick Start
 ***********
@@ -45,7 +52,7 @@ For Users and Developers
 Whether you are validating a **Launch Manager** configuration against the schema or actively developing and modifying the schema itself, here is how to interact with this project:
 
 1. **Locate the Schema:** The complete schema definition resides in ``launch_manager.schema.json``. This file is the authoritative source for defining the structure of **Launch Manager** configurations.
-2. **Explore Examples:** The ``examples/`` folder provides various sample **Launch Manager** configuration files. These examples are invaluable for understanding how the schema applies in practice and how to structure your own configurations.
+2. **Explore Examples:** The ``docs/user_guide/examples/`` folder of the **Launch Manager** component provides various sample **Launch Manager** configuration files. These examples are invaluable for understanding how the schema applies in practice and how to structure your own configurations.
 3. **Validate Your Configuration:** Use the provided validation script to check if your configuration file conforms to the schema:
 
     .. code-block:: bash
@@ -55,20 +62,20 @@ Whether you are validating a **Launch Manager** configuration against the schema
 Documentation
 *************
 
-The ``docs`` folder contains comprehensive documentation related to the **Launch Manager** configuration. It is highly recommended to consult these resources for detailed explanations and advanced usage patterns.
+The **Launch Manager** user guide contains comprehensive documentation related to the **Launch Manager** configuration. It is highly recommended to consult these resources for detailed explanations and advanced usage patterns.
 
-* `launch_manager_configuration.rst <docs/launch_manager_configuration.rst>`_: Provides in-depth information about configuring the **Launch Manager**.
-* `examples.rst <docs/examples.rst>`_: Offers further explanations and context for the examples provided in the ``examples/`` directory.
+* `configuration.rst <../../../../docs/user_guide/configuration.rst>`_: Provides in-depth information about configuring the **Launch Manager**.
+* `examples.rst <../../../../docs/user_guide/examples.rst>`_: Offers further explanations and context for the examples provided in the ``docs/user_guide/examples/`` directory.
 
 Default Values
 **************
 
-The ``default_values`` folder contains JSON files specifying default settings for various components of the **Launch Manager**. These defaults are crucial for understanding the baseline behavior of the system and for configuring specific aspects like **Run Target** settings.
+The `docs/user_guide/default_values <../../../../docs/user_guide/default_values>`_ folder contains JSON files specifying default settings for various components of the **Launch Manager**. These defaults are crucial for understanding the baseline behavior of the system and for configuring specific aspects like **Run Target** settings.
 
 Examples
 ********
 
-The ``examples`` folder contains a set of sample **Launch Manager** configuration files. Each example demonstrates valid configurations according to the ``launch_manager.schema.json``.
+The `docs/user_guide/examples <../../../../docs/user_guide/examples>`_ folder contains a set of sample **Launch Manager** configuration files. Each example demonstrates valid configurations according to the ``launch_manager.schema.json``.
 
 **Recommendation:** If you are new to **Launch Manager** configurations, **start by reviewing these examples**. They offer practical insight into the expected structure, available properties, and common use cases defined by the schema.
 
@@ -84,12 +91,14 @@ The ``validate.py`` script is a crucial tool for verifying that any given **Laun
 
 **Usage:**
 
-To validate a configuration file (e.g., ``example_conf.json`` from the ``examples`` folder) against the schema:
+To validate a configuration file (e.g., ``example_conf.json`` from the user guide's ``examples`` folder) against the schema:
 
 .. code-block:: bash
 
-   scripts/validate.py --schema launch_manager.schema.json --instance examples/example_conf.json
-   Success --> examples/example_conf.json: valid
+   # from within config_schema/
+   scripts/validate.py --schema launch_manager.schema.json \
+       --instance ../../../../../docs/user_guide/examples/example_conf.json
+   Success --> ../../../../../docs/user_guide/examples/example_conf.json: valid
 
 **When to Use:**
 
