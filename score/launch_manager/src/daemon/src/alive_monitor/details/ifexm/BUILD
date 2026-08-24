@@ -22,7 +22,7 @@ cc_library(
     deps = [
         "//score/launch_manager/src/daemon/src/alive_monitor/details/common:observer",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/timers:timers_os_clock",
-        "//score/launch_manager/src/daemon/src/supervision_control_client",
+        "//score/launch_manager/src/daemon/src/supervision_control_client:supervision_event",
     ],
 )
 
@@ -35,9 +35,10 @@ cc_library(
     visibility = ["//score/launch_manager/src/daemon/src/alive_monitor:__subpackages__"],
     deps = [
         ":observable_event",
+        "//score/launch_manager:error_event",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/timers:time_conversion",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/timers:timers_os_clock",
         "//score/launch_manager/src/daemon/src/common:log",
-        "//score/launch_manager/src/daemon/src/supervision_control_client",
+        "//score/launch_manager/src/daemon/src/supervision_control_client:supervision_event",
     ],
 )

@@ -20,10 +20,8 @@
 #include "score/mw/launch_manager/alive_monitor/details/daemon/AliveMonitorImpl.hpp"
 #include "score/mw/launch_manager/common/log.hpp"
 #include "score/mw/launch_manager/configuration/flatbuffer_config_loader.hpp"
-#include "score/mw/launch_manager/process_group_manager/alive_monitor_thread.hpp"
 #include "score/mw/launch_manager/process_group_manager/process_group_manager.hpp"
 #include "score/mw/launch_manager/recovery_client/recovery_client.hpp"
-#include "score/mw/launch_manager/supervision_control_client/supervision_control_notifier.hpp"
 #include "score/mw/launch_manager/watchdog/WatchdogFactory.hpp"
 
 using namespace std;
@@ -161,23 +159,14 @@ int main(int argc, const char* argv[])
 
         std::shared_ptr<IRecoveryClient> recoveryClient{std::make_shared<RecoveryClient>()};
 
-        auto supervision_control_notifier = std::make_unique<SupervisionControlNotifier>();
-
         // currently this is copying the config.
-        std::unique_ptr<saf::daemon::IAliveMonitor> healthMonitor{std::make_unique<saf::daemon::AliveMonitorImpl>(
-            recoveryClient, supervision_control_notifier->constructReceiver(), *config_result)};
+        std::unique_ptr<saf::daemon::IAliveMonitor> healthMonitor{
+            std::make_unique<saf::daemon::AliveMonitorImpl>(recoveryClient, *config_result)};
         static_cast<void>(config_result.value().takeAliveSupervision());
-
-        std::unique_ptr<IAliveMonitorThread> aliveMonitorThread{
-            std::make_unique<AliveMonitorThread>(std::move(healthMonitor))};
 
         auto watchdog = watchdog::createWatchdog();
         auto process_group_manager = std::make_unique<ProcessGroupManager>(
-            std::move(config_result).value(),
-            std::move(aliveMonitorThread),
-            recoveryClient,
-            std::move(supervision_control_notifier),
-            std::move(watchdog));
+            std::move(config_result).value(), std::move(healthMonitor), recoveryClient, std::move(watchdog));
 
         if (process_group_manager->initialize())
         {

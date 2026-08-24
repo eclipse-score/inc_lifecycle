@@ -31,6 +31,14 @@ cc_library(
 )
 
 cc_library(
+    name = "einitcode",
+    hdrs = ["EInitCode.hpp"],
+    include_prefix = "score/mw/launch_manager/alive_monitor/details/common",
+    strip_include_prefix = "/score/launch_manager/src/daemon/src/alive_monitor/details/common",
+    visibility = ["//score/launch_manager/src/daemon/src/alive_monitor:__subpackages__"],
+)
+
+cc_library(
     name = "locked_vector",
     hdrs = ["LockedVector.hpp"],
     include_prefix = "score/mw/launch_manager/alive_monitor/details/common",

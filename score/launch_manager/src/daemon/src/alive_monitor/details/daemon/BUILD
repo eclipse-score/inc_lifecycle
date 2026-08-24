@@ -51,6 +51,7 @@ cc_library(
     deps = [
         ":phm_daemon_config",
         ":sw_cluster_handler",
+        "//score/launch_manager/src/daemon/src/alive_monitor/details/common:einitcode",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/factory:flat_cfg_factory",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/ifappl:monitor_if_daemon",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/ifexm:observable_event_reader",
@@ -59,16 +60,8 @@ cc_library(
         "//score/launch_manager/src/daemon/src/alive_monitor/details/timers:cycle_timer",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/timers:timers_os_clock",
         "//score/launch_manager/src/daemon/src/common:log",
+        "//score/launch_manager/src/daemon/src/supervision_control_client:isupervision_factory",
     ],
-)
-
-cc_library(
-    name = "i_health_monitor",
-    hdrs = ["IAliveMonitor.hpp"],
-    include_prefix = "score/mw/launch_manager/alive_monitor/details/daemon",
-    strip_include_prefix = "/score/launch_manager/src/daemon/src/alive_monitor/details/daemon",
-    visibility = ["//score/launch_manager/src/daemon:__subpackages__"],
-    deps = [":phm_daemon"],
 )
 
 cc_library(
@@ -79,7 +72,8 @@ cc_library(
     strip_include_prefix = "/score/launch_manager/src/daemon/src/alive_monitor/details/daemon",
     visibility = ["//score/launch_manager/src/daemon:__subpackages__"],
     deps = [
-        ":i_health_monitor",
+        ":phm_daemon",
+        "//score/launch_manager/src/daemon/src/alive_monitor:i_alive_monitor",
         "//score/launch_manager/src/daemon/src/configuration:config",
         "@score_baselibs//score/language/futurecpp",
     ],

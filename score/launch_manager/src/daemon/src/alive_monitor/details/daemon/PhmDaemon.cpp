@@ -27,13 +27,14 @@ namespace score::mw::lifecycle::internal::saf::daemon
    true_no_defect) */
 /* RULECHECKER_comment(0, 4, check_incomplete_data_member_construction, "Default constructor is used for\
  processStateReader.", true_no_defect) */
-PhmDaemon::PhmDaemon(OsClock& f_osClock, std::unique_ptr<ISupervisionControlReceiver> f_observable_event_receiver)
+PhmDaemon::PhmDaemon(OsClock& f_osClock)
     : osClock{f_osClock},
       cycleTimer{&osClock},
+      buffer_(std::make_shared<SupervisionBufferType>()),
       supervisionManager{std::make_unique<factory::FlatCfgFactory>()},
-      processStateReader{std::move(f_observable_event_receiver)}
+      processStateReader{buffer_}
 {
-    static_cast<void>(f_osClock);
+    buffer_->initialize();
 }
 
 void PhmDaemon::performCyclicTriggers(void)
