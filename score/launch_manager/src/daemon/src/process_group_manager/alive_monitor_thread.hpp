@@ -31,7 +31,7 @@ namespace internal
 class AliveMonitorThread final : public IAliveMonitorThread
 {
   public:
-    AliveMonitorThread(std::unique_ptr<saf::daemon::IAliveMonitor> health_monitor);
+    explicit AliveMonitorThread(std::unique_ptr<saf::daemon::IAliveMonitor> health_monitor);
 
     /// @brief Starts the Alive Monitor thread.
     /// @return true if the Alive Monitor started successfully, false otherwise.
@@ -49,8 +49,7 @@ class AliveMonitorThread final : public IAliveMonitorThread
     std::unique_ptr<saf::daemon::IAliveMonitor> m_health_monitor{nullptr};
     std::thread alive_monitor_thread_{};
     std::atomic_bool stop_thread_{false};
-    std::mutex m_initialization_mutex{};
-    std::condition_variable m_initialization_cv{};
+    saf::daemon::EInitCode initResult{saf::daemon::EInitCode::kNotInitialized};
 };
 
 }  // namespace internal

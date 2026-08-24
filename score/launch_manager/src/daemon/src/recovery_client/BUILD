@@ -14,13 +14,9 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 load("//tests/utils/bazel:unit_test.bzl", "lm_cc_test")
 
 cc_library(
-    name = "recovery_client",
-    srcs = [
-        "recovery_client.cpp",
-    ],
+    name = "irecovery_client",
     hdrs = [
         "irecovery_client.h",
-        "recovery_client.hpp",
     ],
     include_prefix = "score/mw/launch_manager/recovery_client",
     strip_include_prefix = "/score/launch_manager/src/daemon/src/recovery_client",
@@ -29,6 +25,24 @@ cc_library(
     ],
     deps = [
         "//score/launch_manager/src/daemon/src/common:identifier_hash",
+    ],
+)
+
+cc_library(
+    name = "recovery_client",
+    srcs = [
+        "recovery_client.cpp",
+    ],
+    hdrs = [
+        "recovery_client.hpp",
+    ],
+    include_prefix = "score/mw/launch_manager/recovery_client",
+    strip_include_prefix = "/score/launch_manager/src/daemon/src/recovery_client",
+    visibility = [
+        "//score:__subpackages__",
+    ],
+    deps = [
+        ":irecovery_client",
     ],
 )
 

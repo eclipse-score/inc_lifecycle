@@ -22,15 +22,13 @@ cc_library(
 
 cc_library(
     name = "sw_cluster_handler",
-    srcs = ["SwClusterHandler.cpp"],
-    hdrs = ["SwClusterHandler.hpp"],
+    srcs = ["SupervisionManager.cpp"],
+    hdrs = ["SupervisionManager.hpp"],
     include_prefix = "score/mw/launch_manager/alive_monitor/details/daemon",
     strip_include_prefix = "/score/launch_manager/src/daemon/src/alive_monitor/details/daemon",
     visibility = ["//score/launch_manager/src/daemon/src/alive_monitor:__subpackages__"],
     deps = [
-        "//score/launch_manager/src/daemon/src/alive_monitor/details/common:alive_monitor_config",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/factory:flat_cfg_factory",
-        "//score/launch_manager/src/daemon/src/alive_monitor/details/factory:static_config",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/ifappl:checkpoint",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/ifappl:data_structures",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/ifappl:monitor_if_daemon",
@@ -39,6 +37,7 @@ cc_library(
         "//score/launch_manager/src/daemon/src/alive_monitor/details/supervision:alive",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/timers:timers_os_clock",
         "//score/launch_manager/src/daemon/src/common:log",
+        "//score/launch_manager/src/daemon/src/configuration:config",
     ],
 )
 
@@ -52,9 +51,7 @@ cc_library(
     deps = [
         ":phm_daemon_config",
         ":sw_cluster_handler",
-        "//score/launch_manager/src/daemon/src/alive_monitor/details/common:alive_monitor_config",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/factory:flat_cfg_factory",
-        "//score/launch_manager/src/daemon/src/alive_monitor/details/factory:static_config",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/ifappl:monitor_if_daemon",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/ifexm:observable_event_reader",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/supervision:alive",
@@ -83,7 +80,6 @@ cc_library(
     visibility = ["//score/launch_manager/src/daemon:__subpackages__"],
     deps = [
         ":i_health_monitor",
-        "//score/launch_manager/src/daemon/src/alive_monitor/details/common:alive_monitor_config",
         "//score/launch_manager/src/daemon/src/configuration:config",
         "@score_baselibs//score/language/futurecpp",
     ],
