@@ -192,3 +192,7 @@ git_override(
 # Needed to fix bazel mod errors
 # see https://github.com/grpc/grpc-java/issues/12165
 bazel_dep(name = "grpc-java", version = "1.78.0")
+bazel_dep(
+    name = "score_devcontainer",
+    version = "1.10.0",
+)
