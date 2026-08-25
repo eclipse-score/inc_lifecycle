@@ -51,7 +51,7 @@ TEST(RtRunningWhenProcessExits, FilesystemReader)
             << "The file prepared by the setup component does not exist; the dependency was not "
                "started/finished before filesystem_reader";
 
-        std::ifstream output{std::filesystem::path{kSetupOutputFile}};
+        std::ifstream output{std::string{kSetupOutputFile}};
         ASSERT_TRUE(output.is_open()) << "Could not open " << kSetupOutputFile;
         std::string content;
         std::getline(output, content);

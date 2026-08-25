@@ -57,14 +57,14 @@ TEST(RtRunningWhenProcessExits, ControlClientTestDriver)
     TEST_STEP("Activate run target with a terminated-ready component that HAS a dependent")
     {
         auto result = client.ActivateRunTarget("run_target_reader").Get(stop_token);
-        EXPECT_TRUE(result.has_value()) << "Activating run_target_reader failed: " << result.error().Message();
+        EXPECT_TRUE(result.has_value()) << "Activating run_target_reader failed: " << result.error();
     }
 
     // The no-dependents case: activation must only complete once the slow setup component has terminated.
     TEST_STEP("Activate run target with a terminated-ready component that has NO dependent")
     {
         auto result = client.ActivateRunTarget("run_target_slow_setup").Get(stop_token);
-        EXPECT_TRUE(result.has_value()) << "Activating run_target_slow_setup failed: " << result.error().Message();
+        EXPECT_TRUE(result.has_value()) << "Activating run_target_slow_setup failed: " << result.error();
     }
 
     TEST_STEP("Verify the slow setup component had terminated before activation completed")
