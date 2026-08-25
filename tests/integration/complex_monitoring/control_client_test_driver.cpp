@@ -17,7 +17,7 @@
 #include <score/mw/lifecycle/control_client.h>
 #include <score/mw/lifecycle/report_running.h>
 
-TEST(ComplexMonitoring, ControlClientMock)
+TEST(ComplexMonitoring, ControlClientTestDriver)
 {
     score::mw::lifecycle::ControlClient client;
 

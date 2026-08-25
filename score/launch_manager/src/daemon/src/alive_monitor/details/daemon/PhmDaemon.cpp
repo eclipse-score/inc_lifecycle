@@ -11,6 +11,8 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
+#include <algorithm>
+
 #include "score/mw/launch_manager/alive_monitor/details/daemon/PhmDaemon.hpp"
 
 #include "score/mw/launch_manager/alive_monitor/details/factory/FlatCfgFactory.hpp"
@@ -28,7 +30,7 @@ namespace score::mw::lifecycle::internal::saf::daemon
 PhmDaemon::PhmDaemon(OsClock& f_osClock, std::unique_ptr<ISupervisionControlReceiver> f_observable_event_receiver)
     : osClock{f_osClock},
       cycleTimer{&osClock},
-      swClusterHandlers{},
+      supervisionManager{std::make_unique<factory::FlatCfgFactory>()},
       processStateReader{std::move(f_observable_event_receiver)}
 {
     static_cast<void>(f_osClock);
@@ -46,10 +48,7 @@ void PhmDaemon::performCyclicTriggers(void)
 
     if (processStateReader.distributeChanges(syncTimestamp))
     {
-        for (auto& phmHandler : swClusterHandlers)
-        {
-            phmHandler.performCyclicTriggers(syncTimestamp);
-        }
+        supervisionManager.performCyclicTriggers(syncTimestamp);
     }
     else
     {
@@ -58,42 +57,38 @@ void PhmDaemon::performCyclicTriggers(void)
     }
 }
 
-bool PhmDaemon::construct(const AliveMonitorConfig& config, const SupervisionBufferConfig& f_bufferConfig_r) noexcept(
-    false)
+bool PhmDaemon::construct(const std::vector<configuration::ComponentConfig>& config) noexcept(false)
 {
-    bool isSuccess{true};
+    const std::size_t supervised_components =
+        std::count_if(config.begin(), config.end(), [](const configuration::ComponentConfig& component) {
+            return component.component_properties.application_profile.alive_supervision.has_value();
+        });
 
-    score::Result<std::vector<std::string>> listSwClustersPhm{{"MainCluster"}};
-    if (!listSwClustersPhm.has_value())
+    supervisionManager.reserve(supervised_components);
+
+    // In a later refactoring step, components will register their own alive supervision and provide their identifier.
+    // For now, we iterate through them all here.
+
+    LM_LOG_DEBUG() << "Supervision manager starts constructing workers";
+
+    for (const auto& comp : config)
     {
-        LM_LOG_ERROR() << "Phm Daemon: retrieving the list of PHM software cluster configurations failed with error:"
-                       << listSwClustersPhm.error().Message();
-        isSuccess = false;
-    }
-    else
-    {
-        if (listSwClustersPhm.value().size() == 0U)
+        if (!comp.component_properties.application_profile.alive_supervision.has_value())
         {
-            LM_LOG_WARN() << "Phm Daemon: is starting without any software cluster configurations!";
+            continue;
         }
-
-        // Reserve the vector swClusterHandlers obtained from flatcfg before constructing the SwClusters
-        swClusterHandlers.reserve(listSwClustersPhm.value().size());
-
-        for (auto strSwClusterName : listSwClustersPhm.value())
+        const auto& alive = comp.component_properties.application_profile.alive_supervision.value();
+        const IdentifierHash name{comp.name};
+        const auto uid = comp.deployment_config.sandbox.uid;
+        if (!supervisionManager.constructWorker(name, alive, uid, recoveryClient, processStateReader))
         {
-            swClusterHandlers.emplace_back(strSwClusterName);
-            isSuccess =
-                swClusterHandlers.back().constructWorkers(config, recoveryClient, processStateReader, f_bufferConfig_r);
-            if (!isSuccess)
-            {
-                LM_LOG_ERROR() << "Phm Daemon: failed to create worker objects for swclusterhandler:"
-                               << strSwClusterName;
-                break;
-            }
+
+            LM_LOG_ERROR() << "Supervision manager is unable to construct the required worker objects.";
+            return false;
         }
     }
-    return isSuccess;
+
+    return true;
 }
 
 }  // namespace score::mw::lifecycle::internal::saf::daemon

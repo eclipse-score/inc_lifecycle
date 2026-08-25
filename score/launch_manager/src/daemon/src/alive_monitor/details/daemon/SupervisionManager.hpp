@@ -14,13 +14,12 @@
 #ifndef SWCLUSTERHANDLER_HPP_INCLUDED
 #define SWCLUSTERHANDLER_HPP_INCLUDED
 
-#include "score/mw/launch_manager/alive_monitor/details/factory/StaticConfig.hpp"
+#include "score/mw/launch_manager/alive_monitor/details/factory/IPhmFactory.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifappl/DataStructures.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ObservableEvent.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ObservableEventReader.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
-
-#include "score/mw/launch_manager/alive_monitor/details/common/AliveMonitorConfig.hpp"
+#include "score/mw/launch_manager/configuration/config.hpp"
 #include <string>
 #include <vector>
 
@@ -54,30 +53,27 @@ class Alive;
 namespace daemon
 {
 
-using AliveMonitorConfig = score::mw::lifecycle::internal::alive::AliveMonitorConfig;
+using mw::lifecycle::internal::configuration::AliveSupervisionConfig;
+using mw::lifecycle::internal::configuration::ComponentAliveSupervision;
 
-/// @brief Software Cluster Handler wraps the full PHM Supervision and Recovery Notification functionality for one
-///        Software Cluster.
-/// @details This class requests construction of all required objects to do the Supervisions and Recovery Notifications
-///          for a given Software Cluster. It also provides an abstracted interface to trigger the cyclic evaluation.
-class SwClusterHandler
+/// @brief Supervision manager wraps the full PHM Supervision and Recovery Notification functionality.
+/// @details This class requests construction of all required objects to do the Supervisions and Recovery Notifications.
+/// It also provides an abstract interface to trigger the cyclic evaluation.
+class SupervisionManager
 {
   public:
-    /// @brief No Default Constructor
-    SwClusterHandler() = delete;
-
     /// @brief Constructor
-    /// @param [in] f_swClusterName_r   Software Cluster name which shall be handled
-    explicit SwClusterHandler(const std::string& f_swClusterName_r);
+    /// @param[in] factory Factory moved into the object to construct required alive supervision components
+    explicit SupervisionManager(std::unique_ptr<factory::IPhmFactory> factory);
 
     /// @brief Destroys the workers
-    virtual ~SwClusterHandler();
+    virtual ~SupervisionManager();
 
     /// @brief No Copy Constructor
-    SwClusterHandler(const SwClusterHandler&) = delete;
+    SupervisionManager(const SupervisionManager&) = delete;
 
     /// @brief No Copy Assignment
-    SwClusterHandler& operator=(const SwClusterHandler&) = delete;
+    SupervisionManager& operator=(const SupervisionManager&) = delete;
 
     /// @brief Move Constructor
     /* RULECHECKER_comment(0, 7, check_min_instructions, "Default constructor is not provided\
@@ -86,25 +82,32 @@ class SwClusterHandler
        the member initializer", false) */
     /* RULECHECKER_comment(0, 46, check_copy_in_move_constructor, "The default move constructor invokes parameterised\
        constructor internally. This invokes std::string copy construction", true_no_defect) */
-    SwClusterHandler(SwClusterHandler&&) = default;
+    SupervisionManager(SupervisionManager&&) = default;
 
     /// @brief No Move Assignment
-    SwClusterHandler& operator=(SwClusterHandler&&) = delete;
+    SupervisionManager& operator=(SupervisionManager&&) = delete;
 
-    /// @brief Construct required worker objects for the Software Cluster
+    /// @brief Allocate all the vectors needed to store alive supervision components
+    /// @param[in] size Number of supervised components
+    void reserve(std::size_t size);
+
+    /// @brief Construct required worker objects for provided component
     /// @details Construct the interfaces, checkpoints, supervisions and recovery notifications
+    /// @param [in] id Identifier of the component
+    /// @param [in] component_config Alive supervision configuration for the component
+    /// @param [in] uid The configured uid of the component. Used for IPC access control
     /// @param [in] f_recoveryClient_r       Interface to the launch manager for recovery
     /// @param [in] f_processStateReader_r   Process state reader object for PHM daemon
-    /// @param [in] f_bufferConfig_r           Configuration settings for constructing workers
     /// @return                              Construction is successful (true), otherwise failure (false)
-    bool constructWorkers(
-        const AliveMonitorConfig& config,
-        std::shared_ptr<score::mw::lifecycle::IRecoveryClient> f_recoveryClient_r,
-        ifexm::ObservableEventReader& f_processStateReader_r,
-        const factory::SupervisionBufferConfig& f_bufferConfig_r) noexcept(false);
+    bool constructWorker(
+        const IdentifierHash& id,
+        const ComponentAliveSupervision& component_config,
+        const uid_t uid,
+        std::shared_ptr<mw::lifecycle::IRecoveryClient> f_recoveryClient_r,
+        ifexm::ObservableEventReader& f_processStateReader_r) noexcept(false);
 
     /// @brief Perform cyclic execution
-    /// @details Perform cyclic execution required for supervision of the Software Cluster
+    /// @details Perform cyclic execution required for alive supervision
     /// @param [in] f_syncTimestamp   Timestamp for cyclic synchronization
     void performCyclicTriggers(const timers::NanoSecondType f_syncTimestamp);
 
@@ -123,9 +126,6 @@ class SwClusterHandler
     /// @param [in] f_syncTimestamp   Timestamp for cyclic synchronization
     void evaluateSupervisions(const timers::NanoSecondType f_syncTimestamp);
 
-    /// SwCluster Name for this SwCLusterHandler Object
-    const std::string f_swClusterName;
-
     /// Vector of Process states
     std::vector<ifexm::ObservableEvent> processStates;
 
@@ -140,6 +140,8 @@ class SwClusterHandler
 
     /// Vector of Alive Supervisions
     std::vector<supervision::Alive> aliveSupervisions;
+
+    std::unique_ptr<factory::IPhmFactory> flatCfgFactory;
 };
 
 }  // namespace daemon

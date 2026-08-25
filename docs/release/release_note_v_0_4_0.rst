@@ -90,14 +90,13 @@ Known Vulnerabilities
 Upgrade Instructions
 ~~~~~~~~~~~~~~~~~~~~
 
-- Update include paths and BUILD labels for public mocks.
-   - Rename all usage of `//score/launch_manager:applicationcontext_mock_c` to `//score/launch_manager:mock_applicationcontext_cc`.
+- Update include paths and BUILD labels for public mocks. These changes introduce a consistent naming convention for the test doubles in the lifecycle repository. More information in `#422 <https://github.com/eclipse-score/lifecycle/issues/422>`_
+   - Rename all usage of `//score/launch_manager:applicationcontext_mock_c` to `//score/launch_manager:mock_application_context_cc`.
    - Rename all usage of `//score/launch_manager:lifecycle_mock_cc` to `//score/launch_manager:mock_lifecycle_cc`.
-   - Rename all usage of  `//score/launch_manager:report_running_mock_cc` to `//score/launch_manager:mock_lifecycle_cc`.
-   - Rename all usage of `applicationcontextmock.h` to `mock_applicationcontext.h`.
-   - Rename all usage of `lifecyclemanagermock.h` to `mock_lifecyclemanager.h`.
+   - Rename all usage of  `//score/launch_manager:report_running_mock_cc` to `//score/launch_manager:mock_report_running_cc`.
+   - Rename all usage of `applicationcontextmock.h` to `mock_application_context.h`.
+   - Rename all usage of `lifecyclemanagermock.h` to `mock_lifecycle_manager.h`.
    - Rename all usage of `report_running_mock.h` to `mock_report_running.h`.
-   - These changes introduce a consistent naming convention for the test doubles in the lifecycle repository. More information in `#422 <https://github.com/eclipse-score/lifecycle/issues/422>`_
 
 - Backward compatibility with the previous release is not guaranteed.
 

@@ -19,14 +19,14 @@
 #include <memory>
 
 #include "score/launch_manager/src/daemon/src/common/log.hpp"
-#include "score/mw/launch_manager/alive_monitor/details/common/AliveMonitorConfig.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/daemon/PhmDaemonConfig.hpp"
-#include "score/mw/launch_manager/alive_monitor/details/daemon/SwClusterHandler.hpp"
-#include "score/mw/launch_manager/alive_monitor/details/factory/StaticConfig.hpp"
+#include "score/mw/launch_manager/alive_monitor/details/daemon/SupervisionManager.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ObservableEventReader.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/CycleTimeValidator.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/CycleTimer.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/TimeConversion.hpp"
+#include "score/mw/launch_manager/configuration/config.hpp"
+
 namespace score
 {
 namespace mw::lifecycle::internal
@@ -55,12 +55,11 @@ class PhmDaemon
     using OsClock = score::mw::lifecycle::internal::saf::timers::OsClockInterface;
     using SupervisionControlReceiver = score::mw::lifecycle::ISupervisionControlReceiver;
     using RecoveryClient = score::mw::lifecycle::IRecoveryClient;
-    using SupervisionBufferConfig = factory::SupervisionBufferConfig;
     using CycleTimer = score::mw::lifecycle::internal::saf::timers::CycleTimer;
     using CycleTimeValidator = score::mw::lifecycle::internal::saf::timers::CycleTimeValidator;
     using NanoSecondType = score::mw::lifecycle::internal::saf::timers::NanoSecondType;
     using ObservableEventReader = score::mw::lifecycle::internal::saf::ifexm::ObservableEventReader;
-    using AliveMonitorConfig = score::mw::lifecycle::internal::alive::AliveMonitorConfig;
+    using Config = score::mw::lifecycle::internal::configuration::Config;
 
     /* RULECHECKER_comment(0, 4, check_expensive_to_copy_in_parameter, "f_supervisionErrorInfo name is passed by value\
      as same as generated function", true_no_defect) */
@@ -89,18 +88,19 @@ class PhmDaemon
     /// @brief Wraps the initialization steps of the PHM daemon
     /// (Constructing the workers, adjusting the cycle time, initialization of fixed step timer)
     /// @param[in] recovery_client Shared pointer to recovery client
+    /// @param[in] config Config holding alive monitor and component configuration
     /// @return See EInitCode definition
-    EInitCode init(std::shared_ptr<RecoveryClient> recovery_client, const AliveMonitorConfig& config) noexcept(false)
+    EInitCode init(std::shared_ptr<RecoveryClient> recovery_client, const Config& config) noexcept(false)
     {
         recoveryClient = recovery_client;
 
-        if (!construct(config, factory::StaticConfig::kDefaultSupervisionBufferConfig))
+        if (!construct(config.components()))
         {
             return EInitCode::kConstructFlatCfgFactoryFailed;
         }
 
-        int64_t cycleTimeModified{
-            static_cast<std::int64_t>(timers::TimeConversion::convertMilliSecToNanoSec(config.evaluation_cycle_ms))};
+        int64_t cycleTimeModified{static_cast<std::int64_t>(
+            timers::TimeConversion::convertMilliSecToNanoSec(config.aliveSupervision().evaluation_cycle_ms))};
 
         cycleTimeModified = CycleTimeValidator::adjustCycleTimeOnClockAccuracy(cycleTimeModified, osClock);
 
@@ -196,9 +196,9 @@ class PhmDaemon
   private:
     /// @brief Create SwCluster objects & Invoke construction of worker objects
     /// @details Create the SwclusterHandler objects and the workers for the SwclusterHandler
-    /// @param[in] f_bufferConfig_r The buffer configuration used for worker construction
+    /// @param[in] config Config for all components
     /// @return bool true if workers creation succeeded, false otherwise
-    bool construct(const AliveMonitorConfig& config, const SupervisionBufferConfig& f_bufferConfig_r) noexcept(false);
+    bool construct(const std::vector<configuration::ComponentConfig>& config) noexcept(false);
 
     /// @brief Perform cyclic execution of Phm daemon
     /// @details Perform cyclic execution of Phm daemon functionalities, for e.g., evaluation of supervisions.
@@ -213,8 +213,8 @@ class PhmDaemon
     /// @brief Recovery interface to Launch Manager
     std::shared_ptr<RecoveryClient> recoveryClient;
 
-    /// @brief Vector of SwCluster handler
-    std::vector<SwClusterHandler> swClusterHandlers;
+    /// @brief Handler to construct and store objects needed for alive supervision
+    SupervisionManager supervisionManager;
 
     /// @brief Observable Event Reader for PHM daemon
     ObservableEventReader processStateReader;

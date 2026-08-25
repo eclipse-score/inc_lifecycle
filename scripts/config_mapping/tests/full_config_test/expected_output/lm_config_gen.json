@@ -86,7 +86,11 @@
                     "--option"
                 ],
                 "ready_condition": {
-                    "process_state": "Running"
+                    "file_state": {
+                        "state": "Exists",
+                        "polling_interval": 0.01,
+                        "file_path": "/var/run/b/ready"
+                    }
                 }
             },
             "deployment_config": {
@@ -143,7 +147,11 @@
                 ],
                 "process_arguments": [],
                 "ready_condition": {
-                    "process_state": "Running"
+                    "file_state": {
+                        "state": "NotExisting",
+                        "polling_interval": 0.5,
+                        "file_path": "/var/run/c/startup.lock"
+                    }
                 }
             },
             "deployment_config": {

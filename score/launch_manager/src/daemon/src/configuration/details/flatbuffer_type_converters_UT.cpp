@@ -75,7 +75,7 @@ TEST_F(SecondsToMsTest, ConvertsPositiveValue)
 {
     RecordProperty("Description", "A positive seconds value converts to milliseconds.");
 
-    auto result = details::secondsToMs(1.5);
+    auto result = secondsToMs(1.5);
 
     ASSERT_THAT(result.has_value(), IsTrue());
     EXPECT_THAT(*result, Eq(1500U));
@@ -85,7 +85,7 @@ TEST_F(SecondsToMsTest, ConvertsZero)
 {
     RecordProperty("Description", "Zero seconds converts to zero milliseconds.");
 
-    auto result = details::secondsToMs(0.0);
+    auto result = secondsToMs(0.0);
 
     ASSERT_THAT(result.has_value(), IsTrue());
     EXPECT_THAT(*result, Eq(0U));
@@ -95,7 +95,7 @@ TEST_F(SecondsToMsTest, RejectsNegativeValue)
 {
     RecordProperty("Description", "A negative seconds value returns InvalidFormat.");
 
-    auto result = details::secondsToMs(-1.0);
+    auto result = secondsToMs(-1.0);
 
     ASSERT_THAT(result.has_value(), IsFalse());
     EXPECT_THAT(result.error(), Eq(IConfigLoader::Error::InvalidFormat));
@@ -105,7 +105,7 @@ TEST_F(SecondsToMsTest, RejectsOverflow)
 {
     RecordProperty("Description", "A value exceeding uint32_t max milliseconds returns InvalidFormat.");
 
-    auto result = details::secondsToMs(5000000.0);
+    auto result = secondsToMs(5000000.0);
 
     ASSERT_THAT(result.has_value(), IsFalse());
     EXPECT_THAT(result.error(), Eq(IConfigLoader::Error::InvalidFormat));
@@ -115,7 +115,7 @@ TEST_F(SecondsToMsTest, RejectsSubMillisecond)
 {
     RecordProperty("Description", "A positive value that rounds to 0ms returns InvalidFormat.");
 
-    auto result = details::secondsToMs(0.0001);
+    auto result = secondsToMs(0.0001);
 
     ASSERT_THAT(result.has_value(), IsFalse());
     EXPECT_THAT(result.error(), Eq(IConfigLoader::Error::InvalidFormat));
@@ -144,7 +144,7 @@ TEST_P(ApplicationTypeTest, ConvertsToExpectedValue)
 {
     RecordProperty("Description", "ApplicationType enum maps to correct config value.");
 
-    EXPECT_THAT(details::convertApplicationType(GetParam().fb_type), Eq(GetParam().expected));
+    EXPECT_THAT(convertApplicationType(GetParam().fb_type), Eq(GetParam().expected));
 }
 
 INSTANTIATE_TEST_SUITE_P(
@@ -177,7 +177,7 @@ TEST_P(ProcessStateTest, ConvertsToExpectedValue)
 {
     RecordProperty("Description", "ProcessState enum maps to correct config value.");
 
-    EXPECT_THAT(details::convertProcessState(GetParam().fb_state), Eq(GetParam().expected));
+    EXPECT_THAT(convertProcessState(GetParam().fb_state), Eq(GetParam().expected));
 }
 
 INSTANTIATE_TEST_SUITE_P(
@@ -206,7 +206,7 @@ TEST_P(SchedulingPolicyTest, ConvertsToExpectedPosixValue)
 {
     RecordProperty("Description", "Scheduling policy enum maps to correct POSIX value.");
 
-    auto result = details::convertSchedulingPolicy(GetParam().fb_policy);
+    auto result = convertSchedulingPolicy(GetParam().fb_policy);
     ASSERT_THAT(result.has_value(), IsTrue());
     EXPECT_THAT(*result, Eq(GetParam().expected_posix_value));
 }
@@ -225,7 +225,7 @@ INSTANTIATE_TEST_SUITE_P(
 TEST_F(EnumConversionTest, ConvertSchedulingPolicyUnsupported)
 {
     RecordProperty("Description", "An unsupported scheduling policy value returns InvalidFormat.");
-    auto result = details::convertSchedulingPolicy(static_cast<fb::SchedulingPolicy>(99));
+    auto result = convertSchedulingPolicy(static_cast<fb::SchedulingPolicy>(99));
     ASSERT_THAT(result.has_value(), IsFalse());
     EXPECT_THAT(result.error(), Eq(IConfigLoader::Error::InvalidFormat));
 }
@@ -245,26 +245,26 @@ TEST_F(StringHelperTest, SafeStringReturnsValueWhenNotNull)
     auto str = fbb.CreateString("hello");
     fbb.Finish(str);
     const auto* ptr = ::flatbuffers::GetRoot<::flatbuffers::String>(fbb.GetBufferPointer());
-    EXPECT_THAT(details::safeString(ptr), Eq("hello"));
+    EXPECT_THAT(safeString(ptr), Eq("hello"));
 }
 
 TEST_F(StringHelperTest, SafeStringReturnsEmptyWhenNull)
 {
     RecordProperty("Description", "safeString returns empty string when pointer is null.");
-    EXPECT_THAT(details::safeString(nullptr), Eq(""));
+    EXPECT_THAT(safeString(nullptr), Eq(""));
 }
 
 TEST_F(StringHelperTest, ConvertStringVectorReturnsEmptyWhenNull)
 {
     RecordProperty("Description", "convertStringVector returns empty vector when pointer is null.");
-    auto result = details::convertStringVector(nullptr);
+    auto result = convertStringVector(nullptr);
     EXPECT_THAT(result.empty(), IsTrue());
 }
 
 TEST_F(StringHelperTest, ConvertGidVectorReturnsEmptyWhenNull)
 {
     RecordProperty("Description", "convertGidVector returns empty vector when pointer is null.");
-    auto result = details::convertGidVector(nullptr);
+    auto result = convertGidVector(nullptr);
     ASSERT_THAT(result.has_value(), IsTrue());
     EXPECT_THAT(result->empty(), IsTrue());
 }
@@ -285,8 +285,7 @@ TYPED_TEST(ValidateRangeTest, AcceptsMinBoundary)
 {
     this->RecordProperty("Description", "The minimum value of the target type is accepted.");
 
-    auto result =
-        details::validateRange<TypeParam>(static_cast<int64_t>(std::numeric_limits<TypeParam>::min()), "test_field");
+    auto result = validateRange<TypeParam>(static_cast<int64_t>(std::numeric_limits<TypeParam>::min()), "test_field");
 
     ASSERT_THAT(result.has_value(), IsTrue());
     EXPECT_THAT(*result, Eq(std::numeric_limits<TypeParam>::min()));
@@ -296,8 +295,7 @@ TYPED_TEST(ValidateRangeTest, AcceptsMaxBoundary)
 {
     this->RecordProperty("Description", "The maximum value of the target type is accepted.");
 
-    auto result =
-        details::validateRange<TypeParam>(static_cast<int64_t>(std::numeric_limits<TypeParam>::max()), "test_field");
+    auto result = validateRange<TypeParam>(static_cast<int64_t>(std::numeric_limits<TypeParam>::max()), "test_field");
 
     ASSERT_THAT(result.has_value(), IsTrue());
     EXPECT_THAT(*result, Eq(std::numeric_limits<TypeParam>::max()));
@@ -307,7 +305,7 @@ TYPED_TEST(ValidateRangeTest, AcceptsZero)
 {
     this->RecordProperty("Description", "Zero is accepted for all target types.");
 
-    auto result = details::validateRange<TypeParam>(0, "test_field");
+    auto result = validateRange<TypeParam>(0, "test_field");
 
     ASSERT_THAT(result.has_value(), IsTrue());
     EXPECT_THAT(*result, Eq(static_cast<TypeParam>(0)));
@@ -323,8 +321,8 @@ TYPED_TEST(ValidateRangeTest, RejectsValueAboveMax)
     }
     else
     {
-        auto result = details::validateRange<TypeParam>(
-            static_cast<int64_t>(std::numeric_limits<TypeParam>::max()) + 1, "test_field");
+        auto result =
+            validateRange<TypeParam>(static_cast<int64_t>(std::numeric_limits<TypeParam>::max()) + 1, "test_field");
 
         ASSERT_THAT(result.has_value(), IsFalse());
         EXPECT_THAT(result.error(), Eq(IConfigLoader::Error::InvalidFormat));
@@ -341,8 +339,8 @@ TYPED_TEST(ValidateRangeTest, RejectsValueBelowMin)
     }
     else
     {
-        auto result = details::validateRange<TypeParam>(
-            static_cast<int64_t>(std::numeric_limits<TypeParam>::min()) - 1, "test_field");
+        auto result =
+            validateRange<TypeParam>(static_cast<int64_t>(std::numeric_limits<TypeParam>::min()) - 1, "test_field");
 
         ASSERT_THAT(result.has_value(), IsFalse());
         EXPECT_THAT(result.error(), Eq(IConfigLoader::Error::InvalidFormat));
@@ -360,7 +358,7 @@ class ConverterTest : public TypeConverterTestBase
 TEST_F(ConverterTest, ConvertRestartActionNullReturnsNullopt)
 {
     RecordProperty("Description", "convertRestartAction with nullptr returns nullopt.");
-    auto result = details::convertRestartAction(nullptr);
+    auto result = convertRestartAction(nullptr);
     ASSERT_THAT(result.has_value(), IsTrue());
     EXPECT_THAT(result->has_value(), IsFalse());
 }
@@ -373,7 +371,7 @@ TEST_F(ConverterTest, ConvertRestartActionValid)
     fbb.Finish(ra);
     const auto* ptr = ::flatbuffers::GetRoot<fb::RestartAction>(fbb.GetBufferPointer());
 
-    auto result = details::convertRestartAction(ptr);
+    auto result = convertRestartAction(ptr);
     ASSERT_THAT(result.has_value(), IsTrue());
     ASSERT_THAT(result->has_value(), IsTrue());
     EXPECT_THAT(result->value().number_of_attempts, Eq(3U));
@@ -388,7 +386,7 @@ TEST_F(ConverterTest, ConvertRestartActionMissingFieldsReturnsError)
     fbb.Finish(ra);
     const auto* ptr = ::flatbuffers::GetRoot<fb::RestartAction>(fbb.GetBufferPointer());
 
-    auto result = details::convertRestartAction(ptr);
+    auto result = convertRestartAction(ptr);
     ASSERT_THAT(result.has_value(), IsFalse());
     EXPECT_THAT(result.error(), Eq(IConfigLoader::Error::InvalidFormat));
 }
@@ -396,7 +394,7 @@ TEST_F(ConverterTest, ConvertRestartActionMissingFieldsReturnsError)
 TEST_F(ConverterTest, ConvertSwitchRunTargetActionNullReturnsNullopt)
 {
     RecordProperty("Description", "convertSwitchRunTargetAction with nullptr returns nullopt.");
-    auto result = details::convertSwitchRunTargetAction(nullptr);
+    auto result = convertSwitchRunTargetAction(nullptr);
     EXPECT_THAT(result.has_value(), IsFalse());
 }
 
@@ -409,7 +407,7 @@ TEST_F(ConverterTest, ConvertSwitchRunTargetActionValid)
     fbb.Finish(sa);
     const auto* ptr = ::flatbuffers::GetRoot<fb::SwitchRunTargetAction>(fbb.GetBufferPointer());
 
-    auto result = details::convertSwitchRunTargetAction(ptr);
+    auto result = convertSwitchRunTargetAction(ptr);
     ASSERT_THAT(result.has_value(), IsTrue());
     EXPECT_THAT(result->run_target, Eq("Fallback"));
 }
@@ -417,7 +415,7 @@ TEST_F(ConverterTest, ConvertSwitchRunTargetActionValid)
 TEST_F(ConverterTest, ConvertComponentAliveSupervisionNullReturnsDefault)
 {
     RecordProperty("Description", "convertComponentAliveSupervision with nullptr returns default-constructed value.");
-    auto result = details::convertComponentAliveSupervision(nullptr);
+    auto result = convertComponentAliveSupervision(nullptr);
     ASSERT_THAT(result.has_value(), IsTrue());
     EXPECT_THAT(result->reporting_cycle_ms, Eq(0U));
     EXPECT_THAT(result->failed_cycles_tolerance, Eq(0U));
@@ -432,7 +430,7 @@ TEST_F(ConverterTest, ConvertComponentAliveSupervisionValid)
     fbb.Finish(cas);
     const auto* ptr = ::flatbuffers::GetRoot<fb::ComponentAliveSupervision>(fbb.GetBufferPointer());
 
-    auto result = details::convertComponentAliveSupervision(ptr);
+    auto result = convertComponentAliveSupervision(ptr);
     ASSERT_THAT(result.has_value(), IsTrue());
     EXPECT_THAT(result->reporting_cycle_ms, Eq(500U));
     EXPECT_THAT(result->failed_cycles_tolerance, Eq(2U));
@@ -451,7 +449,7 @@ TEST_F(ConverterTest, ConvertComponentAliveSupervisionMissingReportingCycleRetur
     fbb.Finish(cas);
     const auto* ptr = ::flatbuffers::GetRoot<fb::ComponentAliveSupervision>(fbb.GetBufferPointer());
 
-    auto result = details::convertComponentAliveSupervision(ptr);
+    auto result = convertComponentAliveSupervision(ptr);
     ASSERT_THAT(result.has_value(), IsFalse());
     EXPECT_THAT(result.error(), Eq(IConfigLoader::Error::InvalidFormat));
 }
@@ -465,7 +463,7 @@ TEST_F(ConverterTest, ConvertComponentAliveSupervisionMissingToleranceReturnsErr
     fbb.Finish(cas);
     const auto* ptr = ::flatbuffers::GetRoot<fb::ComponentAliveSupervision>(fbb.GetBufferPointer());
 
-    auto result = details::convertComponentAliveSupervision(ptr);
+    auto result = convertComponentAliveSupervision(ptr);
     ASSERT_THAT(result.has_value(), IsFalse());
     EXPECT_THAT(result.error(), Eq(IConfigLoader::Error::InvalidFormat));
 }
@@ -478,7 +476,7 @@ TEST_F(ConverterTest, ConvertComponentAliveSupervisionBothIndicationsAbsentRetur
     fbb.Finish(cas);
     const auto* ptr = ::flatbuffers::GetRoot<fb::ComponentAliveSupervision>(fbb.GetBufferPointer());
 
-    auto result = details::convertComponentAliveSupervision(ptr);
+    auto result = convertComponentAliveSupervision(ptr);
     ASSERT_THAT(result.has_value(), IsFalse());
     EXPECT_THAT(result.error(), Eq(IConfigLoader::Error::InvalidFormat));
 }
@@ -492,7 +490,7 @@ TEST_F(ConverterTest, ConvertComponentAliveSupervisionOnlyMinIndicationsPresent)
     fbb.Finish(cas);
     const auto* ptr = ::flatbuffers::GetRoot<fb::ComponentAliveSupervision>(fbb.GetBufferPointer());
 
-    auto result = details::convertComponentAliveSupervision(ptr);
+    auto result = convertComponentAliveSupervision(ptr);
     ASSERT_THAT(result.has_value(), IsTrue());
     ASSERT_THAT(result->min_indications.has_value(), IsTrue());
     EXPECT_THAT(*result->min_indications, Eq(2U));
@@ -512,7 +510,7 @@ TEST_F(ConverterTest, ConvertComponentAliveSupervisionOnlyMaxIndicationsPresent)
     fbb.Finish(cas);
     const auto* ptr = ::flatbuffers::GetRoot<fb::ComponentAliveSupervision>(fbb.GetBufferPointer());
 
-    auto result = details::convertComponentAliveSupervision(ptr);
+    auto result = convertComponentAliveSupervision(ptr);
     ASSERT_THAT(result.has_value(), IsTrue());
     EXPECT_THAT(result->min_indications.has_value(), IsFalse());
     ASSERT_THAT(result->max_indications.has_value(), IsTrue());
@@ -528,7 +526,7 @@ TEST_F(ConverterTest, ConvertApplicationProfileValid)
     fbb.Finish(ap);
     const auto* ptr = ::flatbuffers::GetRoot<fb::ApplicationProfile>(fbb.GetBufferPointer());
 
-    auto result = details::convertApplicationProfile(ptr);
+    auto result = convertApplicationProfile(ptr);
     ASSERT_THAT(result.has_value(), IsTrue());
     EXPECT_THAT(result->application_type, Eq(ApplicationType::ReportingAndSupervised));
     EXPECT_THAT(result->is_self_terminating, IsTrue());
@@ -543,7 +541,7 @@ TEST_F(ConverterTest, ConvertApplicationProfileMissingTypeReturnsError)
     fbb.Finish(ap);
     const auto* ptr = ::flatbuffers::GetRoot<fb::ApplicationProfile>(fbb.GetBufferPointer());
 
-    auto result = details::convertApplicationProfile(ptr);
+    auto result = convertApplicationProfile(ptr);
     ASSERT_THAT(result.has_value(), IsFalse());
     EXPECT_THAT(result.error(), Eq(IConfigLoader::Error::InvalidFormat));
 }
@@ -557,12 +555,18 @@ TEST_F(ConverterTest, ConvertApplicationProfileMissingSelfTerminatingReturnsErro
     fbb.Finish(ap);
     const auto* ptr = ::flatbuffers::GetRoot<fb::ApplicationProfile>(fbb.GetBufferPointer());
 
-    auto result = details::convertApplicationProfile(ptr);
+    auto result = convertApplicationProfile(ptr);
     ASSERT_THAT(result.has_value(), IsFalse());
     EXPECT_THAT(result.error(), Eq(IConfigLoader::Error::InvalidFormat));
 }
 
-TEST_F(ConverterTest, ConvertReadyConditionValid)
+TEST_F(ConverterTest, ConvertReadyConditionNullDeath)
+{
+    RecordProperty("Description", "convertReadyCondition fires an assertion when passed nullptr.");
+    EXPECT_DEATH(static_cast<void>(convertReadyCondition(nullptr)), ".*");
+}
+
+TEST_F(ConverterTest, ConvertReadyConditionWithProcessState)
 {
     RecordProperty("Description", "convertReadyCondition maps process_state correctly.");
     ::flatbuffers::FlatBufferBuilder fbb;
@@ -570,20 +574,151 @@ TEST_F(ConverterTest, ConvertReadyConditionValid)
     fbb.Finish(rc);
     const auto* ptr = ::flatbuffers::GetRoot<fb::ReadyCondition>(fbb.GetBufferPointer());
 
-    auto result = details::convertReadyCondition(ptr);
+    auto result = convertReadyCondition(ptr);
     ASSERT_THAT(result.has_value(), IsTrue());
-    EXPECT_THAT(result->process_state, Eq(ProcessState::Terminated));
+    EXPECT_THAT(*result, ::testing::VariantWith<ProcessState>(ProcessState::Terminated));
 }
 
-TEST_F(ConverterTest, ConvertReadyConditionMissingProcessStateReturnsError)
+TEST_F(ConverterTest, ConvertReadyConditionWithFileState)
 {
-    RecordProperty("Description", "Missing process_state returns InvalidFormat.");
+    RecordProperty("Description", "convertReadyCondition maps file_state correctly.");
+    ::flatbuffers::FlatBufferBuilder fbb;
+    auto fs = fb::CreateFileStateDirect(fbb, "/tmp/ready", fb::FileExistenceState::Exists, 0.01 /*polling_interval*/);
+    auto rc = fb::CreateReadyCondition(fbb, ::flatbuffers::nullopt /*process_state*/, fs);
+    fbb.Finish(rc);
+    const auto* ptr = ::flatbuffers::GetRoot<fb::ReadyCondition>(fbb.GetBufferPointer());
+
+    auto result = convertReadyCondition(ptr);
+    ASSERT_THAT(result.has_value(), IsTrue());
+    EXPECT_THAT(*result, ::testing::VariantWith<FileState>(::testing::Field(&FileState::file_path, Eq("/tmp/ready"))));
+}
+
+TEST_F(ConverterTest, ConvertReadyConditionWithBothStatesReturnsError)
+{
+    RecordProperty(
+        "Description", "convertReadyCondition with both process_state and file_state returns InvalidFormat.");
+    ::flatbuffers::FlatBufferBuilder fbb;
+    auto fs = fb::CreateFileStateDirect(fbb, "/tmp/ready", fb::FileExistenceState::Exists);
+    auto rc = fb::CreateReadyCondition(fbb, fb::ProcessState::Running, fs);
+    fbb.Finish(rc);
+    const auto* ptr = ::flatbuffers::GetRoot<fb::ReadyCondition>(fbb.GetBufferPointer());
+
+    auto result = convertReadyCondition(ptr);
+    ASSERT_THAT(result.has_value(), IsFalse());
+    EXPECT_THAT(result.error(), Eq(IConfigLoader::Error::InvalidFormat));
+}
+
+TEST_F(ConverterTest, ConvertReadyConditionWithNeitherStateDeath)
+{
+    RecordProperty(
+        "Description",
+        "convertReadyCondition fires an assertion if neither process_state nor file_state is configured, as the "
+        "configuration script always defaults one of them.");
     ::flatbuffers::FlatBufferBuilder fbb;
     auto rc = fb::CreateReadyCondition(fbb);
     fbb.Finish(rc);
     const auto* ptr = ::flatbuffers::GetRoot<fb::ReadyCondition>(fbb.GetBufferPointer());
 
-    auto result = details::convertReadyCondition(ptr);
+    EXPECT_DEATH(static_cast<void>(convertReadyCondition(ptr)), ".*");
+}
+
+TEST_F(ConverterTest, ConvertReadyConditionWithInvalidPollingIntervalReturnsError)
+{
+    RecordProperty("Description", "convertReadyCondition propagates an invalid FileState::polling_interval.");
+    ::flatbuffers::FlatBufferBuilder fbb;
+    auto fs = fb::CreateFileStateDirect(fbb, "/tmp/ready", fb::FileExistenceState::Exists, -1.0 /*polling_interval*/);
+    auto rc = fb::CreateReadyCondition(fbb, ::flatbuffers::nullopt /*process_state*/, fs);
+    fbb.Finish(rc);
+    const auto* ptr = ::flatbuffers::GetRoot<fb::ReadyCondition>(fbb.GetBufferPointer());
+
+    auto result = convertReadyCondition(ptr);
+    ASSERT_THAT(result.has_value(), IsFalse());
+    EXPECT_THAT(result.error(), Eq(IConfigLoader::Error::InvalidFormat));
+}
+
+TEST_F(ConverterTest, ConvertFileExistenceStateMapsDeath)
+{
+    RecordProperty("Description", "convertFileExistenceState Fires an assertion if an undefined enum is given.");
+    EXPECT_DEATH(
+        static_cast<void>(convertFileExistenceState(
+            static_cast<fb::FileExistenceState>(static_cast<int>(fb::FileExistenceState::MAX) + 1))),
+        ".*");
+}
+
+TEST_F(ConverterTest, ConvertFileExistenceStateMapsBothValues)
+{
+    RecordProperty("Description", "convertFileExistenceState maps both enum values correctly.");
+    EXPECT_THAT(convertFileExistenceState(fb::FileExistenceState::Exists), Eq(FileExistenceState::Exists));
+    EXPECT_THAT(convertFileExistenceState(fb::FileExistenceState::NotExisting), Eq(FileExistenceState::NotExisting));
+}
+
+TEST_F(ConverterTest, ConvertFileStateValid)
+{
+    RecordProperty("Description", "convertFileState maps file_path, an explicit state and polling_interval correctly.");
+    ::flatbuffers::FlatBufferBuilder fbb;
+    auto fs =
+        fb::CreateFileStateDirect(fbb, "/tmp/ready", fb::FileExistenceState::NotExisting, 0.3 /*polling_interval*/);
+    fbb.Finish(fs);
+    const auto* ptr = ::flatbuffers::GetRoot<fb::FileState>(fbb.GetBufferPointer());
+
+    auto result = convertFileState(*ptr);
+    ASSERT_THAT(result.has_value(), IsTrue());
+    EXPECT_THAT(result->file_path, Eq("/tmp/ready"));
+    EXPECT_THAT(result->state, Eq(FileExistenceState::NotExisting));
+    EXPECT_THAT(result->polling_interval, Eq(std::chrono::milliseconds{300}));
+}
+
+TEST_F(ConverterTest, ConvertFileStateDefaultsToExists)
+{
+    RecordProperty("Description", "convertFileState defaults state to Exists if it is not set.");
+    ::flatbuffers::FlatBufferBuilder fbb;
+    // state is omitted from the buffer since it matches the schema default
+    auto fs = fb::CreateFileStateDirect(fbb, "/tmp/ready", fb::FileExistenceState::Exists, 0.01 /*polling_interval*/);
+    fbb.Finish(fs);
+    const auto* ptr = ::flatbuffers::GetRoot<fb::FileState>(fbb.GetBufferPointer());
+
+    auto result = convertFileState(*ptr);
+    ASSERT_THAT(result.has_value(), IsTrue());
+    EXPECT_THAT(result->state, Eq(FileExistenceState::Exists));
+    EXPECT_THAT(result->polling_interval, Eq(std::chrono::milliseconds{10}));
+}
+
+TEST_F(ConverterTest, ConvertFileStateWithoutPollingIntervalDeath)
+{
+    RecordProperty(
+        "Description",
+        "convertFileState fires an assertion if polling_interval is not configured, as the configuration script "
+        "always defaults it.");
+    ::flatbuffers::FlatBufferBuilder fbb;
+    auto fs = fb::CreateFileStateDirect(fbb, "/tmp/ready");
+    fbb.Finish(fs);
+    const auto* ptr = ::flatbuffers::GetRoot<fb::FileState>(fbb.GetBufferPointer());
+
+    EXPECT_DEATH(static_cast<void>(convertFileState(*ptr)), ".*");
+}
+
+TEST_F(ConverterTest, ConvertFileStateNegativePollingIntervalReturnsError)
+{
+    RecordProperty("Description", "convertFileState returns InvalidFormat for a negative polling_interval.");
+    ::flatbuffers::FlatBufferBuilder fbb;
+    auto fs = fb::CreateFileStateDirect(fbb, "/tmp/ready", fb::FileExistenceState::Exists, -0.5 /*polling_interval*/);
+    fbb.Finish(fs);
+    const auto* ptr = ::flatbuffers::GetRoot<fb::FileState>(fbb.GetBufferPointer());
+
+    auto result = convertFileState(*ptr);
+    ASSERT_THAT(result.has_value(), IsFalse());
+    EXPECT_THAT(result.error(), Eq(IConfigLoader::Error::InvalidFormat));
+}
+
+TEST_F(ConverterTest, ConvertFileStateSubMillisecondPollingIntervalReturnsError)
+{
+    RecordProperty("Description", "convertFileState returns InvalidFormat for a sub-millisecond polling_interval.");
+    ::flatbuffers::FlatBufferBuilder fbb;
+    auto fs = fb::CreateFileStateDirect(fbb, "/tmp/ready", fb::FileExistenceState::Exists, 0.0001 /*polling_interval*/);
+    fbb.Finish(fs);
+    const auto* ptr = ::flatbuffers::GetRoot<fb::FileState>(fbb.GetBufferPointer());
+
+    auto result = convertFileState(*ptr);
     ASSERT_THAT(result.has_value(), IsFalse());
     EXPECT_THAT(result.error(), Eq(IConfigLoader::Error::InvalidFormat));
 }
@@ -607,7 +742,7 @@ TEST_F(ConverterTest, ConvertSandboxValid)
     fbb.Finish(sandbox);
     const auto* ptr = ::flatbuffers::GetRoot<fb::Sandbox>(fbb.GetBufferPointer());
 
-    auto result = details::convertSandbox(ptr);
+    auto result = convertSandbox(ptr);
     ASSERT_THAT(result.has_value(), IsTrue());
     EXPECT_THAT(result->uid, Eq(1000U));
     EXPECT_THAT(result->gid, Eq(1000U));
@@ -637,7 +772,7 @@ TEST_F(ConverterTest, ConvertSandboxMissingUidReturnsError)
     fbb.Finish(sandbox);
     const auto* ptr = ::flatbuffers::GetRoot<fb::Sandbox>(fbb.GetBufferPointer());
 
-    auto result = details::convertSandbox(ptr);
+    auto result = convertSandbox(ptr);
     ASSERT_THAT(result.has_value(), IsFalse());
     EXPECT_THAT(result.error(), Eq(IConfigLoader::Error::InvalidFormat));
 }
@@ -657,7 +792,7 @@ TEST_F(ConverterTest, ConvertSandboxMissingGidReturnsError)
     fbb.Finish(sandbox);
     const auto* ptr = ::flatbuffers::GetRoot<fb::Sandbox>(fbb.GetBufferPointer());
 
-    auto result = details::convertSandbox(ptr);
+    auto result = convertSandbox(ptr);
     ASSERT_THAT(result.has_value(), IsFalse());
     EXPECT_THAT(result.error(), Eq(IConfigLoader::Error::InvalidFormat));
 }
@@ -677,7 +812,7 @@ TEST_F(ConverterTest, ConvertSandboxMissingSchedulingPolicyReturnsError)
     fbb.Finish(sandbox);
     const auto* ptr = ::flatbuffers::GetRoot<fb::Sandbox>(fbb.GetBufferPointer());
 
-    auto result = details::convertSandbox(ptr);
+    auto result = convertSandbox(ptr);
     ASSERT_THAT(result.has_value(), IsFalse());
     EXPECT_THAT(result.error(), Eq(IConfigLoader::Error::InvalidFormat));
 }
@@ -697,7 +832,7 @@ TEST_F(ConverterTest, ConvertSandboxMissingSchedulingPriorityReturnsError)
     fbb.Finish(sandbox);
     const auto* ptr = ::flatbuffers::GetRoot<fb::Sandbox>(fbb.GetBufferPointer());
 
-    auto result = details::convertSandbox(ptr);
+    auto result = convertSandbox(ptr);
     ASSERT_THAT(result.has_value(), IsFalse());
     EXPECT_THAT(result.error(), Eq(IConfigLoader::Error::InvalidFormat));
 }
@@ -718,7 +853,7 @@ TEST_F(ConverterTest, ConvertSandboxUidOutOfRangeReturnsError)
     fbb.Finish(sandbox);
     const auto* ptr = ::flatbuffers::GetRoot<fb::Sandbox>(fbb.GetBufferPointer());
 
-    auto result = details::convertSandbox(ptr);
+    auto result = convertSandbox(ptr);
     ASSERT_THAT(result.has_value(), IsFalse());
     EXPECT_THAT(result.error(), Eq(IConfigLoader::Error::InvalidFormat));
 }
@@ -740,7 +875,7 @@ TEST_F(ConverterTest, ConvertSandboxSupplementaryGidOutOfRangeReturnsError)
     fbb.Finish(sandbox);
     const auto* ptr = ::flatbuffers::GetRoot<fb::Sandbox>(fbb.GetBufferPointer());
 
-    auto result = details::convertSandbox(ptr);
+    auto result = convertSandbox(ptr);
     ASSERT_THAT(result.has_value(), IsFalse());
     EXPECT_THAT(result.error(), Eq(IConfigLoader::Error::InvalidFormat));
 }
@@ -765,7 +900,7 @@ TEST_F(ConverterTest, ConvertDeploymentConfigValid)
     fbb.Finish(deploy);
     const auto* ptr = ::flatbuffers::GetRoot<fb::DeploymentConfig>(fbb.GetBufferPointer());
 
-    auto result = details::convertDeploymentConfig(ptr);
+    auto result = convertDeploymentConfig(ptr);
     ASSERT_THAT(result.has_value(), IsTrue());
     EXPECT_THAT(result->ready_timeout_ms, Eq(1500U));
     EXPECT_THAT(result->shutdown_timeout_ms, Eq(2500U));
@@ -795,7 +930,7 @@ TEST_F(ConverterTest, ConvertDeploymentConfigMissingReadyTimeoutReturnsError)
     fbb.Finish(deploy);
     const auto* ptr = ::flatbuffers::GetRoot<fb::DeploymentConfig>(fbb.GetBufferPointer());
 
-    auto result = details::convertDeploymentConfig(ptr);
+    auto result = convertDeploymentConfig(ptr);
     ASSERT_THAT(result.has_value(), IsFalse());
     EXPECT_THAT(result.error(), Eq(IConfigLoader::Error::InvalidFormat));
 }
@@ -820,7 +955,7 @@ TEST_F(ConverterTest, ConvertDeploymentConfigMissingShutdownTimeoutReturnsError)
     fbb.Finish(deploy);
     const auto* ptr = ::flatbuffers::GetRoot<fb::DeploymentConfig>(fbb.GetBufferPointer());
 
-    auto result = details::convertDeploymentConfig(ptr);
+    auto result = convertDeploymentConfig(ptr);
     ASSERT_THAT(result.has_value(), IsFalse());
     EXPECT_THAT(result.error(), Eq(IConfigLoader::Error::InvalidFormat));
 }
@@ -856,7 +991,7 @@ TEST_F(ConverterTest, ConvertComponentValid)
     fbb.Finish(component);
     const auto* ptr = ::flatbuffers::GetRoot<fb::Component>(fbb.GetBufferPointer());
 
-    auto result = details::convertComponent(ptr);
+    auto result = convertComponent(ptr);
     ASSERT_THAT(result.has_value(), IsTrue());
     EXPECT_THAT(result->name, Eq("TestComp"));
     EXPECT_THAT(result->description, Eq("A test component"));
@@ -901,7 +1036,7 @@ TEST_F(ConverterTest, ConvertComponentsValid)
     const auto* ptr =
         ::flatbuffers::GetRoot<::flatbuffers::Vector<::flatbuffers::Offset<fb::Component>>>(fbb.GetBufferPointer());
 
-    auto result = details::convertComponents(ptr);
+    auto result = convertComponents(ptr);
     ASSERT_THAT(result.has_value(), IsTrue());
     ASSERT_THAT(result->size(), Eq(3U));
     EXPECT_THAT((*result)[0].name, Eq("CompA"));
@@ -940,7 +1075,7 @@ TEST_F(ConverterTest, ConvertComponentsWithInvalidComponentReturnsError)
     const auto* ptr =
         ::flatbuffers::GetRoot<::flatbuffers::Vector<::flatbuffers::Offset<fb::Component>>>(fbb.GetBufferPointer());
 
-    auto result = details::convertComponents(ptr);
+    auto result = convertComponents(ptr);
     ASSERT_THAT(result.has_value(), IsFalse());
     EXPECT_THAT(result.error(), Eq(IConfigLoader::Error::InvalidFormat));
 }
@@ -965,7 +1100,7 @@ TEST_F(ConverterTest, ConvertRunTargetsValid)
     const auto* ptr =
         ::flatbuffers::GetRoot<::flatbuffers::Vector<::flatbuffers::Offset<fb::RunTarget>>>(fbb.GetBufferPointer());
 
-    auto result = details::convertRunTargets(ptr);
+    auto result = convertRunTargets(ptr);
     ASSERT_THAT(result.has_value(), IsTrue());
     ASSERT_THAT(result->size(), Eq(2U));
     EXPECT_THAT((*result)[0].name, Eq("Startup"));
@@ -994,7 +1129,7 @@ TEST_F(ConverterTest, ConvertRunTargetsWithInvalidRunTargetReturnsError)
     const auto* ptr =
         ::flatbuffers::GetRoot<::flatbuffers::Vector<::flatbuffers::Offset<fb::RunTarget>>>(fbb.GetBufferPointer());
 
-    auto result = details::convertRunTargets(ptr);
+    auto result = convertRunTargets(ptr);
     ASSERT_THAT(result.has_value(), IsFalse());
     EXPECT_THAT(result.error(), Eq(IConfigLoader::Error::InvalidFormat));
 }
@@ -1014,7 +1149,7 @@ TEST_F(ConverterTest, ConvertRunTargetValid)
     fbb.Finish(rt);
     const auto* ptr = ::flatbuffers::GetRoot<fb::RunTarget>(fbb.GetBufferPointer());
 
-    auto result = details::convertRunTarget(ptr);
+    auto result = convertRunTarget(ptr);
     ASSERT_THAT(result.has_value(), IsTrue());
     EXPECT_THAT(result->name, Eq("Startup"));
     EXPECT_THAT(result->description, Eq("Initial state"));
@@ -1041,7 +1176,7 @@ TEST_F(ConverterTest, ConvertRunTargetMissingTransitionTimeoutReturnsError)
     fbb.Finish(rt);
     const auto* ptr = ::flatbuffers::GetRoot<fb::RunTarget>(fbb.GetBufferPointer());
 
-    auto result = details::convertRunTarget(ptr);
+    auto result = convertRunTarget(ptr);
     ASSERT_THAT(result.has_value(), IsFalse());
     EXPECT_THAT(result.error(), Eq(IConfigLoader::Error::InvalidFormat));
 }
@@ -1057,7 +1192,7 @@ TEST_F(ConverterTest, ConvertFallbackRunTargetValid)
     fbb.Finish(frt);
     const auto* ptr = ::flatbuffers::GetRoot<fb::FallbackRunTarget>(fbb.GetBufferPointer());
 
-    auto result = details::convertFallbackRunTarget(ptr);
+    auto result = convertFallbackRunTarget(ptr);
     ASSERT_THAT(result.has_value(), IsTrue());
     EXPECT_THAT(result->description, Eq("Fallback state"));
     ASSERT_THAT(result->depends_on.size(), Eq(1U));
@@ -1073,7 +1208,7 @@ TEST_F(ConverterTest, ConvertFallbackRunTargetMissingTimeoutReturnsError)
     fbb.Finish(frt);
     const auto* ptr = ::flatbuffers::GetRoot<fb::FallbackRunTarget>(fbb.GetBufferPointer());
 
-    auto result = details::convertFallbackRunTarget(ptr);
+    auto result = convertFallbackRunTarget(ptr);
     ASSERT_THAT(result.has_value(), IsFalse());
     EXPECT_THAT(result.error(), Eq(IConfigLoader::Error::InvalidFormat));
 }
@@ -1081,7 +1216,7 @@ TEST_F(ConverterTest, ConvertFallbackRunTargetMissingTimeoutReturnsError)
 TEST_F(ConverterTest, ConvertAliveSupervisionNullReturnsDefault)
 {
     RecordProperty("Description", "convertAliveSupervision with nullptr returns default.");
-    auto result = details::convertAliveSupervision(nullptr);
+    auto result = convertAliveSupervision(nullptr);
     ASSERT_THAT(result.has_value(), IsTrue());
     EXPECT_THAT(result->evaluation_cycle_ms, Eq(0U));
 }
@@ -1094,7 +1229,7 @@ TEST_F(ConverterTest, ConvertAliveSupervisionValid)
     fbb.Finish(as);
     const auto* ptr = ::flatbuffers::GetRoot<fb::AliveSupervision>(fbb.GetBufferPointer());
 
-    auto result = details::convertAliveSupervision(ptr);
+    auto result = convertAliveSupervision(ptr);
     ASSERT_THAT(result.has_value(), IsTrue());
     EXPECT_THAT(result->evaluation_cycle_ms, Eq(250U));
 }
@@ -1107,7 +1242,7 @@ TEST_F(ConverterTest, ConvertAliveSupervisionMissingCycleReturnsError)
     fbb.Finish(as);
     const auto* ptr = ::flatbuffers::GetRoot<fb::AliveSupervision>(fbb.GetBufferPointer());
 
-    auto result = details::convertAliveSupervision(ptr);
+    auto result = convertAliveSupervision(ptr);
     ASSERT_THAT(result.has_value(), IsFalse());
     EXPECT_THAT(result.error(), Eq(IConfigLoader::Error::InvalidFormat));
 }
@@ -1115,7 +1250,7 @@ TEST_F(ConverterTest, ConvertAliveSupervisionMissingCycleReturnsError)
 TEST_F(ConverterTest, ConvertWatchdogNullReturnsNullopt)
 {
     RecordProperty("Description", "convertWatchdog with nullptr returns nullopt.");
-    auto result = details::convertWatchdog(nullptr);
+    auto result = convertWatchdog(nullptr);
     ASSERT_THAT(result.has_value(), IsTrue());
     EXPECT_THAT(result->has_value(), IsFalse());
 }
@@ -1129,7 +1264,7 @@ TEST_F(ConverterTest, ConvertWatchdogValid)
     fbb.Finish(wd);
     const auto* ptr = ::flatbuffers::GetRoot<fb::Watchdog>(fbb.GetBufferPointer());
 
-    auto result = details::convertWatchdog(ptr);
+    auto result = convertWatchdog(ptr);
     ASSERT_THAT(result.has_value(), IsTrue());
     ASSERT_THAT(result->has_value(), IsTrue());
     EXPECT_THAT(result->value().device_file_path, Eq("/dev/watchdog0"));
@@ -1152,7 +1287,7 @@ TEST_F(ConverterTest, ConvertWatchdogMissingMaxTimeoutReturnsError)
     fbb.Finish(wd);
     const auto* ptr = ::flatbuffers::GetRoot<fb::Watchdog>(fbb.GetBufferPointer());
 
-    auto result = details::convertWatchdog(ptr);
+    auto result = convertWatchdog(ptr);
     ASSERT_THAT(result.has_value(), IsFalse());
     EXPECT_THAT(result.error(), Eq(IConfigLoader::Error::InvalidFormat));
 }
@@ -1171,7 +1306,7 @@ TEST_F(ConverterTest, ConvertWatchdogMissingDeactivateReturnsError)
     fbb.Finish(wd);
     const auto* ptr = ::flatbuffers::GetRoot<fb::Watchdog>(fbb.GetBufferPointer());
 
-    auto result = details::convertWatchdog(ptr);
+    auto result = convertWatchdog(ptr);
     ASSERT_THAT(result.has_value(), IsFalse());
     EXPECT_THAT(result.error(), Eq(IConfigLoader::Error::InvalidFormat));
 }
@@ -1190,7 +1325,7 @@ TEST_F(ConverterTest, ConvertWatchdogMissingMagicCloseReturnsError)
     fbb.Finish(wd);
     const auto* ptr = ::flatbuffers::GetRoot<fb::Watchdog>(fbb.GetBufferPointer());
 
-    auto result = details::convertWatchdog(ptr);
+    auto result = convertWatchdog(ptr);
     ASSERT_THAT(result.has_value(), IsFalse());
     EXPECT_THAT(result.error(), Eq(IConfigLoader::Error::InvalidFormat));
 }
@@ -1210,7 +1345,7 @@ TEST_F(ConverterTest, ConvertEnvironmentalVariables)
     const auto* ptr = ::flatbuffers::GetRoot<::flatbuffers::Vector<::flatbuffers::Offset<fb::EnvironmentalVariable>>>(
         fbb.GetBufferPointer());
 
-    auto result = details::convertEnvironmentalVariables(ptr);
+    auto result = convertEnvironmentalVariables(ptr);
     ASSERT_THAT(result.size(), Eq(2U));
     auto it = result.begin();
     EXPECT_THAT(it->key(), Eq("PATH"));
@@ -1223,7 +1358,7 @@ TEST_F(ConverterTest, ConvertEnvironmentalVariables)
 TEST_F(ConverterTest, ConvertEnvironmentalVariablesNullReturnsEmpty)
 {
     RecordProperty("Description", "convertEnvironmentalVariables with nullptr returns empty Environment.");
-    auto result = details::convertEnvironmentalVariables(nullptr);
+    auto result = convertEnvironmentalVariables(nullptr);
     EXPECT_THAT(result.size(), Eq(0U));
 }
 

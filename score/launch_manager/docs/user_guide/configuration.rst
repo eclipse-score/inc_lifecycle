@@ -208,6 +208,21 @@ component_properties (object)
             * **Allowed Values:**
                 * ``"Running"``: The process has started and reached its running state.
                 * ``"Terminated"``: The process has started, reached its running state, and then terminated successfully.
+        * **file_state** (object, optional)
+            * **Description:** Specifies a ready condition based on the existence of a file at a given path.
+            * **Properties:**
+                * **file_path** (string, required)
+                    * **Description:** Specifies the absolute path to the file being watched.
+                * **state** (string, optional)
+                    * **Description:** Specifies the required existence state of the file.
+                    * **Allowed Values:**
+                        * ``"Exists"``: The component is ready when the file at ``file_path`` exists.
+                        * ``"NotExisting"``: The component is ready when the file at ``file_path`` does not exist.
+                    * **Default:** ``"Exists"``
+                * **polling_interval** (number, optional)
+                    * **Description:** Specifies the time interval, in seconds (e.g., ``0.3`` for 300 milliseconds), at which the **Launch Manager** checks the file existence state.
+                    * **Constraint:** Must be greater than 0.
+                    * **Default:** ``0.01``
 
 .. _lm_conf_deployment_config_object_:
 
@@ -432,7 +447,7 @@ alive_supervision
 
   .. dropdown:: alive_supervision_defaults.json
 
-     .. literalinclude:: ../../../../score/launch_manager/src/daemon/src/configuration/config_schema/default_values/alive_supervision_defaults.json
+     .. literalinclude:: default_values/alive_supervision_defaults.json
         :language: json
 
 watchdog
@@ -442,7 +457,7 @@ watchdog
 
   .. dropdown:: watchdog_defaults.json
 
-     .. literalinclude:: ../../../../score/launch_manager/src/daemon/src/configuration/config_schema/default_values/watchdog_defaults.json
+     .. literalinclude:: default_values/watchdog_defaults.json
         :language: json
 
 run_target
@@ -450,7 +465,7 @@ run_target
 
   .. dropdown:: run_target_defaults.json
 
-     .. literalinclude:: ../../../../score/launch_manager/src/daemon/src/configuration/config_schema/default_values/run_target_defaults.json
+     .. literalinclude:: default_values/run_target_defaults.json
         :language: json
 
 component_properties
@@ -458,7 +473,7 @@ component_properties
 
   .. dropdown:: component_properties_defaults.json
 
-     .. literalinclude:: ../../../../score/launch_manager/src/daemon/src/configuration/config_schema/default_values/component_properties_defaults.json
+     .. literalinclude:: default_values/component_properties_defaults.json
         :language: json
 
 deployment_config
@@ -466,7 +481,7 @@ deployment_config
 
   .. dropdown:: deployment_config_defaults.json
 
-     .. literalinclude:: ../../../../score/launch_manager/src/daemon/src/configuration/config_schema/default_values/deployment_config_defaults.json
+     .. literalinclude:: default_values/deployment_config_defaults.json
         :language: json
 
 fallback_run_target

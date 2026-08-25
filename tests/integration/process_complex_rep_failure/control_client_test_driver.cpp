@@ -26,14 +26,14 @@
 //   containing "control_client_test_driver" and
 //   "component_does_not_report_krunning_in_time"
 
-TEST(RecoveryActionComplexRepFailure, ControlClientMock)
+TEST(RecoveryActionComplexRepFailure, ControlClientTestDriver)
 {
     score::mw::lifecycle::ControlClient client;
 
     ASSERT_TRUE(check_clean({test_end_location, fallback_file}));
 
     // Establish communication with launch manager
-    TEST_STEP("Report running from ControlClientMock")
+    TEST_STEP("Report running from ControlClientTestDriver")
     {
         score::mw::lifecycle::report_running();
     }

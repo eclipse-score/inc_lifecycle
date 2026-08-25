@@ -32,7 +32,7 @@
 // component D is contained), *component* A only depends on component B.
 // Component E is not included in any run target, so it should never be launched.
 
-TEST(SwitchRunTarget, ControlClientMock)
+TEST(SwitchRunTarget, ControlClientTestDriver)
 {
     score::mw::lifecycle::ControlClient client;
 

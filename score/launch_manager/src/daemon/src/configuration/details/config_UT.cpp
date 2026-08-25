@@ -256,5 +256,30 @@ TEST_F(EnvironmentTest, RangeBasedForLoopWorks)
     EXPECT_THAT(count, Eq(2U));
 }
 
+class ConfigTest : public ::testing::Test
+{
+  protected:
+    void SetUp() override
+    {
+        RecordProperty("TestType", "interface-test");
+        RecordProperty("DerivationTechnique", "explorative-testing");
+    }
+};
+
+TEST_F(ConfigTest, MoveAssignmentTransfersState)
+{
+    RecordProperty("Description", "A move-assigned Config holds the state of the moved-from Config.");
+
+    const RunTargetConfig off{"Off", "", {}, 10U, {}};
+    Config source = ConfigBuilder{}.setInitialRunTarget("Startup").setRunTargets({off}).build();
+    Config target = ConfigBuilder{}.setInitialRunTarget("Other").build();
+
+    target = std::move(source);
+
+    EXPECT_THAT(target.initialRunTarget(), Eq("Startup"));
+    ASSERT_THAT(target.runTargets().size(), Eq(1U));
+    EXPECT_THAT(target.runTargets()[0].name, Eq("Off"));
+}
+
 }  // namespace
 }  // namespace score::mw::lifecycle::internal::configuration

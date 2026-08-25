@@ -47,8 +47,6 @@ class CheckpointMock : public common::Observer<ifappl::Checkpoint>
 
 struct MonitorIfDaemonFixture
 {
-    static constexpr std::string_view kCheckpointName = "test_cp";
-    static constexpr uint32_t kCheckpointId = 1U;
     inline static const IdentifierHash kProcessId{"test_proc"};
     static constexpr std::string_view kInterfaceName = "test_interface";
 
@@ -59,10 +57,7 @@ struct MonitorIfDaemonFixture
     CheckpointMock checkpointMock;
 
     MonitorIfDaemonFixture()
-        : processState(kProcessId),
-          checkpoint(kCheckpointName.data(), kCheckpointId, &processState),
-          ipcServer{},
-          monitor(ipcServer, kInterfaceName.data())
+        : processState(kProcessId), checkpoint(&processState), ipcServer{}, monitor(ipcServer, kInterfaceName.data())
     {
         processState.attachObserver(monitor);
         monitor.attachCheckpoint(checkpoint);
@@ -93,9 +88,9 @@ struct MonitorIfDaemonFixture
     }
 
     /// Write a single checkpoint element into the IPC ring buffer.
-    void sendCheckpoint(uint32_t id, timers::NanoSecondType ts)
+    void sendCheckpoint(timers::NanoSecondType ts)
     {
-        ipcServer.sendEmplace(ts, id);
+        ipcServer.sendEmplace(ts);
     }
 
     /// Fill the IPC ring buffer past its capacity to set the overflow flag.
@@ -104,7 +99,7 @@ struct MonitorIfDaemonFixture
         // Sending one element beyond capacity sets the ring-buffer overflow flag.
         for (uint32_t i = 0U; i <= ifappl::k_maxCheckpointBufferElements; ++i)
         {
-            ipcServer.sendEmplace(static_cast<timers::NanoSecondType>(i), 0U);
+            ipcServer.sendEmplace(static_cast<timers::NanoSecondType>(i));
         }
     }
 };
@@ -187,7 +182,7 @@ TEST_F(MonitorIfDaemonTest, DeactivationBeforeActivation_RemainsInactive)
     fix.deactivateProcess(mockClock());
     fix.monitor.checkForNewData(mockClock());
 
-    fix.sendCheckpoint(MonitorIfDaemonFixture::kCheckpointId, mockClockOffset());
+    fix.sendCheckpoint(mockClockOffset());
     fix.monitor.checkForNewData(mockClock());
 }
 
@@ -203,7 +198,7 @@ TEST_F(MonitorIfDaemonTest, ActivationEvent_ActivatesMonitorOnNextCheckForNewDat
     fix.initIpc();
     fix.activateProcess(mockClock());
     const auto checkpoint_time = mockClockOffset();
-    fix.sendCheckpoint(MonitorIfDaemonFixture::kCheckpointId, checkpoint_time);
+    fix.sendCheckpoint(checkpoint_time);
     fix.monitor.checkForNewData(mockClock());  // activates AND reads in the same call
 
     EXPECT_EQ(fix.checkpoint.getTimestamp(), checkpoint_time);
@@ -227,7 +222,7 @@ TEST_F(MonitorIfDaemonTest, DeactivationEvent_DeactivatesMonitor_NoFurtherDataFo
     fix.monitor.checkForNewData(mockClock());  // reads remaining data, then -> kInactive
 
     // Data written AFTER the deactivation cycle must not reach the checkpoint.
-    fix.sendCheckpoint(MonitorIfDaemonFixture::kCheckpointId, mockClockOffset());
+    fix.sendCheckpoint(mockClockOffset());
     fix.monitor.checkForNewData(mockClock());  // kInactive, nothing read
 }
 
@@ -243,7 +238,7 @@ TEST_F(MonitorIfDaemonTest, Active_CheckpointDataForwarded)
     fix.initIpc();
     fix.activateProcess(mockClock());
     const auto checkpoint_time = mockClock();
-    fix.sendCheckpoint(MonitorIfDaemonFixture::kCheckpointId, checkpoint_time);
+    fix.sendCheckpoint(checkpoint_time);
     fix.monitor.checkForNewData(mockClock());
 
     EXPECT_EQ(fix.checkpoint.getTimestamp(), checkpoint_time);
@@ -259,7 +254,7 @@ TEST_F(MonitorIfDaemonTest, Active_FutureTimestamp_NotForwardedInCurrentCycle)
     EXPECT_CALL(fix.checkpointMock, updateData).Times(Exactly(0));
     fix.initIpc();
     fix.activateProcess(mockClock());
-    fix.sendCheckpoint(MonitorIfDaemonFixture::kCheckpointId, mockClockFuture(5));
+    fix.sendCheckpoint(mockClockFuture(5));
     fix.monitor.checkForNewData(mockClock());  // future checkpoint not consumed
 }
 
@@ -275,28 +270,11 @@ TEST_F(MonitorIfDaemonTest, Active_FutureTimestampCheckpoint_ConsumedInLaterCycl
     fix.initIpc();
     fix.activateProcess(mockClock());
     const auto future_time = mockClockFuture(2);
-    fix.sendCheckpoint(MonitorIfDaemonFixture::kCheckpointId, future_time);
+    fix.sendCheckpoint(future_time);
     fix.monitor.checkForNewData(mockClock());  // not consumed yet
     mockClockSkip(2);
     fix.monitor.checkForNewData(mockClock());  // now within window -> consumed
     EXPECT_EQ(fix.checkpoint.getTimestamp(), future_time);
-}
-
-TEST_F(MonitorIfDaemonTest, Active_NonMatchingCheckpointId_NotForwarded)
-{
-    RecordProperty(
-        "Description",
-        "An IPC element whose checkpointId does not match any attached "
-        "Checkpoint must be silently discarded.");
-
-    constexpr uint32_t kNonMatchingId = 99U;
-
-    MonitorIfDaemonFixture fix;
-    EXPECT_CALL(fix.checkpointMock, updateData).Times(Exactly(0));
-    fix.initIpc();
-    fix.activateProcess(mockClock());
-    fix.sendCheckpoint(kNonMatchingId, mockClock());
-    fix.monitor.checkForNewData(mockClock());
 }
 
 TEST_F(MonitorIfDaemonTest, Active_MultipleCheckpointsInOneCycle_AllForwarded)
@@ -310,35 +288,9 @@ TEST_F(MonitorIfDaemonTest, Active_MultipleCheckpointsInOneCycle_AllForwarded)
     EXPECT_CALL(fix.checkpointMock, updateData).Times(3);
     fix.initIpc();
     fix.activateProcess(mockClock());
-    fix.sendCheckpoint(MonitorIfDaemonFixture::kCheckpointId, mockClock());
-    fix.sendCheckpoint(MonitorIfDaemonFixture::kCheckpointId, mockClock());
-    fix.sendCheckpoint(MonitorIfDaemonFixture::kCheckpointId, mockClock());
-    fix.monitor.checkForNewData(mockClock());
-}
-
-TEST_F(MonitorIfDaemonTest, Active_TwoAttachedCheckpoints_RoutedByCheckpointId)
-{
-    RecordProperty(
-        "Description",
-        "When two Checkpoints with different IDs are attached, each IPC "
-        "element must be forwarded only to the Checkpoint whose ID matches.");
-
-    constexpr uint32_t kCheckpointId2 = 2U;
-
-    MonitorIfDaemonFixture fix;
-    EXPECT_CALL(fix.checkpointMock, updateData).Times(1);
-    fix.initIpc();
-
-    ifappl::Checkpoint checkpoint2("test_cp2", kCheckpointId2, &fix.processState);
-    CheckpointMock mock2;
-    EXPECT_CALL(mock2, updateData).Times(1);
-    checkpoint2.attachObserver(mock2);
-    fix.monitor.attachCheckpoint(checkpoint2);
-
-    fix.activateProcess(mockClock());
-    const auto checkpoint_time = mockClock();
-    fix.sendCheckpoint(MonitorIfDaemonFixture::kCheckpointId, checkpoint_time);
-    fix.sendCheckpoint(kCheckpointId2, checkpoint_time);
+    fix.sendCheckpoint(mockClock());
+    fix.sendCheckpoint(mockClock());
+    fix.sendCheckpoint(mockClock());
     fix.monitor.checkForNewData(mockClock());
 }
 

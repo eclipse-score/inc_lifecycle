@@ -31,12 +31,17 @@ namespace
 namespace fb = score::mw::lifecycle::internal::configuration::fb;
 
 using ::testing::Eq;
+using ::testing::FieldsAre;
 using ::testing::IsFalse;
 using ::testing::IsNull;
 using ::testing::IsTrue;
 using ::testing::StrEq;
+using ::testing::VariantWith;
 
 const score::filesystem::Path kTestPath{"/tmp/test_config.bin"};
+
+/// Name of the run target the loader appends when the configuration does not provide it.
+constexpr const char* kOffRunTargetName = "Off";
 
 std::vector<uint8_t> finishBuffer(
     ::flatbuffers::FlatBufferBuilder& fbb,
@@ -257,12 +262,56 @@ TEST_F(FlatbufferConfigLoaderTest, LoadSingleComponent)
     EXPECT_THAT(comp.component_properties.depends_on[0], Eq("other_comp"));
     ASSERT_THAT(comp.component_properties.process_arguments.size(), Eq(1U));
     EXPECT_THAT(comp.component_properties.process_arguments[0], Eq("--verbose"));
-    ASSERT_THAT(comp.component_properties.ready_condition.has_value(), IsTrue());
-    EXPECT_THAT(comp.component_properties.ready_condition->process_state, Eq(ProcessState::Running));
+    EXPECT_THAT(comp.component_properties.ready_condition, VariantWith<ProcessState>(Eq(ProcessState::Running)));
     EXPECT_THAT(comp.deployment_config.ready_timeout_ms, Eq(1500U));
     EXPECT_THAT(comp.deployment_config.shutdown_timeout_ms, Eq(2500U));
     EXPECT_THAT(comp.deployment_config.bin_dir, Eq("/opt/bin"));
     EXPECT_THAT(comp.deployment_config.working_dir, Eq("/tmp"));
+}
+
+TEST_F(FlatbufferConfigLoaderTest, LoadSingleComponentWithFileState)
+{
+    RecordProperty("Description", "Loads a component whose ready_condition includes a file_state.");
+
+    ::flatbuffers::FlatBufferBuilder fbb;
+
+    auto app_profile = fb::CreateApplicationProfile(fbb, fb::ApplicationType::Native, false /*is_self_terminating*/);
+    auto bin_name = fbb.CreateString("my_binary");
+    auto file_state =
+        fb::CreateFileStateDirect(fbb, "/tmp/ready", fb::FileExistenceState::Exists, 0.01 /*polling_interval*/);
+    auto ready_cond = fb::CreateReadyCondition(fbb, std::nullopt, file_state);
+    auto comp_props = fb::CreateComponentProperties(
+        fbb, bin_name, app_profile, 0 /*depends_on*/, 0 /*process_arguments*/, ready_cond);
+
+    auto bin_dir = fbb.CreateString("/opt/bin");
+    auto work_dir = fbb.CreateString("/tmp");
+    auto sandbox = buildDefaultSandbox(fbb);
+    auto deploy = fb::CreateDeploymentConfig(
+        fbb,
+        1.5 /*ready_timeout*/,
+        2.5 /*shutdown_timeout*/,
+        0 /*environmental_variables*/,
+        bin_dir,
+        work_dir,
+        0 /*ready_recovery_action*/,
+        0 /*recovery_action*/,
+        sandbox);
+
+    auto comp_name = fbb.CreateString("TestComponent");
+    auto comp_desc = fbb.CreateString("A test component");
+    auto component = fb::CreateComponent(fbb, comp_name, comp_desc, comp_props, deploy);
+    auto comps = fbb.CreateVector(std::vector<::flatbuffers::Offset<fb::Component>>{component});
+
+    auto result = loadBuffer(buildConfigWithComponents(fbb, comps));
+
+    ASSERT_THAT(result.has_value(), IsTrue());
+    ASSERT_THAT(result->components().size(), Eq(1U));
+
+    const auto& comp = result->components()[0];
+    EXPECT_THAT(
+        comp.component_properties.ready_condition,
+        VariantWith<FileState>(
+            FieldsAre(Eq("/tmp/ready"), Eq(FileExistenceState::Exists), Eq(std::chrono::milliseconds{10}))));
 }
 
 TEST_F(FlatbufferConfigLoaderTest, LoadRunTargets)
@@ -292,6 +341,28 @@ TEST_F(FlatbufferConfigLoaderTest, LoadRunTargets)
     EXPECT_THAT(target.depends_on[0], Eq("component_a"));
     EXPECT_THAT(target.transition_timeout_ms, Eq(5000U));
     EXPECT_THAT(target.recovery_action.run_target, Eq("SafeState"));
+}
+
+TEST_F(FlatbufferConfigLoaderTest, ConfiguredOffRunTargetIsLoadedVerbatim)
+{
+    RecordProperty("Description", "An explicitly configured \"Off\" run target is loaded like any other run target.");
+
+    ::flatbuffers::FlatBufferBuilder fbb;
+
+    auto switch_target = fbb.CreateString("SafeState");
+    auto switch_action = fb::CreateSwitchRunTargetAction(fbb, switch_target);
+    auto rt_name = fbb.CreateString(kOffRunTargetName);
+    auto rt_desc = fbb.CreateString("Configured off state");
+    auto rt = fb::CreateRunTarget(fbb, rt_name, rt_desc, 0 /*depends_on*/, 2.0 /*transition_timeout*/, switch_action);
+    auto rts = fbb.CreateVector(std::vector<::flatbuffers::Offset<fb::RunTarget>>{rt});
+
+    auto result = loadBuffer(buildConfigWithRunTargets(fbb, rts));
+
+    ASSERT_THAT(result.has_value(), IsTrue());
+    ASSERT_THAT(result->runTargets().size(), Eq(1U));
+    EXPECT_THAT(result->runTargets()[0].name, Eq(kOffRunTargetName));
+    EXPECT_THAT(result->runTargets()[0].description, Eq("Configured off state"));
+    EXPECT_THAT(result->runTargets()[0].transition_timeout_ms, Eq(2000U));
 }
 
 TEST_F(FlatbufferConfigLoaderTest, LoadFallbackRunTarget)
@@ -595,7 +666,8 @@ TEST_F(FlatbufferConfigLoaderTest, OptionalWatchdogAbsent)
 
 TEST_F(FlatbufferConfigLoaderTest, OptionalReadyConditionAbsent)
 {
-    RecordProperty("Description", "When no ready_condition is present on a component, it is nullopt.");
+    RecordProperty(
+        "Description", "When no ready_condition is present on a component, it defaults to ProcessState::Running.");
 
     ::flatbuffers::FlatBufferBuilder fbb;
 
@@ -609,7 +681,9 @@ TEST_F(FlatbufferConfigLoaderTest, OptionalReadyConditionAbsent)
     auto result = loadBuffer(buildConfigWithComponents(fbb, comps));
 
     ASSERT_THAT(result.has_value(), IsTrue());
-    EXPECT_THAT(result->components()[0].component_properties.ready_condition.has_value(), IsFalse());
+    EXPECT_THAT(
+        result->components()[0].component_properties.ready_condition,
+        VariantWith<ProcessState>(Eq(ProcessState::Running)));
 }
 
 // ============================================================================

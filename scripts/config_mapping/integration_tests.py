@@ -172,8 +172,6 @@ def test_custom_validation_failures(schema_file):
     * The run target "Minimal" has a recovery action that switches to a run target "Fallback" instead of "fallback_run_target"
     * The mandatory "fallback_run_target" is missing from the configuration
     * Reserved name "fallback_run_target" is used for a RunTarget name which is not allowed
-    * Initial RunTarget is not configured to "Startup"
-    * The "Startup" RunTarget is missing from the configuration, which is mandatory
     """
     test_name = "custom_validation_failures_test"
     input_file = tests_dir / test_name / "input" / "lm_config.json"
@@ -192,8 +190,6 @@ def test_custom_validation_failures(schema_file):
             'recovery RunTarget must be set to "fallback_run_target"',
             "fallback_run_target is a mandatory configuration",
             'RunTarget name "fallback_run_target" is reserved',
-            "initial_run_target must be configured to 'Startup'",
-            '"Startup" is a mandatory RunTarget',
         ]
         actual_error_output = e.stderr
         for expected_error in expected_errors:

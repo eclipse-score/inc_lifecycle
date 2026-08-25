@@ -14,10 +14,13 @@
 #ifndef _INCLUDED_PROCESSINFONODE_
 #define _INCLUDED_PROCESSINFONODE_
 
-#include "score/mw/launch_manager/configuration/configuration_adapter.hpp"
+#include "score/launch_manager/src/daemon/src/configuration/component_config.hpp"
+#include "score/mw/launch_manager/configuration/component_config.hpp"
 #include "score/mw/launch_manager/control/control_client_channel.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/icomponent.hpp"
+#include "score/mw/launch_manager/process_group_manager/details/process_handling.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/safe_process_map.hpp"
+#include "score/mw/launch_manager/process_group_manager/process_state.hpp"
 #include "score/mw/launch_manager/supervision_control_client/isupervision_event_publisher.hpp"
 #include <score/stop_token.hpp>
 #include <atomic>
@@ -37,27 +40,12 @@ namespace score::mw::lifecycle::internal
 class ProcessInfoNode final : public IComponent
 {
   public:
-    /// @brief The criteria for when a process is considered "ready"
-    enum class ReadyCondition : uint8_t
-    {
-        kRunning,     // Running reported in the case of a reporting process, process launched if non-reporting
-        kTerminated,  // Process has terminated with status 0
-    };
-
     /// @brief Constructs a ProcessInfoNode.
     /// @param config Configuration for the OS process.
     /// @param index The process index within its process group.
     /// @param ready_condition Whether this process is considered ready when running or when terminated.
-    /// @param state_publisher Interface used to report state changes to the platform health manager.
-    /// @param process_interface The OS process interface used to start and stop the process.
-    /// @param process_map The shared process map used to track process pids.
-    ProcessInfoNode(
-        const OsProcess* config,
-        uint32_t index,
-        ReadyCondition ready_condition,
-        ISupervisionEventPublisher& state_publisher,
-        osal::IProcess* process_interface,
-        std::shared_ptr<SafeProcessMapInserter> process_map);
+    /// @param process_handling The interfaces used to start, stop and report on the OS process.
+    ProcessInfoNode(configuration::ComponentConfig&& config, uint32_t index, ProcessHandling process_handling);
 
     /// @brief Explicit move constructor required due to atomics. PIN must be moveable to exist in the graph
     ProcessInfoNode(ProcessInfoNode&& other) noexcept
@@ -68,13 +56,10 @@ class ProcessInfoNode final : public IComponent
           status_(other.status_.load()),
           process_state_(other.process_state_.load()),
           reached_ready_(other.reached_ready_.load()),
-          ready_condition_(other.ready_condition_),
-          config_(other.config_),
+          config_(std::move(other.config_)),
           control_client_channel_(std::move(other.control_client_channel_)),
           sync_(std::move(other.sync_)),
-          state_publisher_(other.state_publisher_),
-          process_interface_(other.process_interface_),
-          process_map_(std::move(other.process_map_))
+          process_handling_(std::move(other.process_handling_))
     {
     }
 
@@ -83,7 +68,7 @@ class ProcessInfoNode final : public IComponent
     ProcessInfoNode& operator=(ProcessInfoNode&& other) = delete;
     ~ProcessInfoNode() = default;
 
-    uint32_t getIndex() const override;
+    [[nodiscard]] uint32_t getIndex() const override;
 
     RequestResult activate(score::cpp::stop_token stop_token) override;
 
@@ -91,16 +76,16 @@ class ProcessInfoNode final : public IComponent
 
     RequestResult tryHandleTermination(int32_t process_status) override;
 
-    bool active() const override;
+    [[nodiscard]] bool active() const override;
 
     /// @return The OS process ID, or zero if the process has never been started.
-    osal::ProcessID getPid() const;
+    [[nodiscard]] osal::ProcessID getPid() const;
 
     /// @return The current state of this process.
-    score::mw::lifecycle::ProcessState getState() const;
+    [[nodiscard]] score::mw::lifecycle::ProcessState getState() const;
 
     /// @return The ControlClientChannel for this process, or nullptr if none exists.
-    ControlClientChannelP getControlClientChannel() const;
+    [[nodiscard]] ControlClientChannelP getControlClientChannel() const;
 
   private:
     /// @brief Atomically transitions to new_state if the transition is valid. For reporting
@@ -186,11 +171,8 @@ class ProcessInfoNode final : public IComponent
     /// The flag is reset when deactivate() is called.
     std::atomic_bool reached_ready_{false};
 
-    /// @brief Enum representing the criteria for this process to be considered "ready"
-    ReadyCondition ready_condition_;
-
     /// @brief Pointer to config for this process
-    const OsProcess* config_{nullptr};
+    configuration::ComponentConfig config_;
 
     /// @brief Pointer to the ControlClientChannel object if it exists
     ControlClientChannelP control_client_channel_{nullptr};
@@ -198,17 +180,14 @@ class ProcessInfoNode final : public IComponent
     /// @brief Pointer to the comms for this process
     osal::IpcCommsP sync_{nullptr};
 
-    /// @brief Interface for reporting component state to health monitor
-    ISupervisionEventPublisher& state_publisher_;
-
     /// @brief True if we have returned a success or failure for the current activation/deactivation
     std::atomic_flag success_returned_{false};
 
-    /// @brief Handle to manage the underlying posix process
-    osal::IProcess* process_interface_{nullptr};
+    /// @brief The interfaces used to control a OS process.
+    ProcessHandling process_handling_;
 
-    /// @brief Map this node will be stored in
-    std::shared_ptr<SafeProcessMapInserter> process_map_;
+    /// @brief Number ot times to try run the process.
+    std::uint8_t start_tries_{1U};
 };
 
 }  // namespace score::mw::lifecycle::internal

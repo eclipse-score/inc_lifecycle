@@ -71,7 +71,7 @@ score::concurrency::InterruptibleFuture<void> ControlClient::ActivateRunTarget(
     if (control_client_impl_ != nullptr)
     {
         static score::mw::lifecycle::IdentifierHash pg_name{"MainPG"};
-        score::mw::lifecycle::IdentifierHash pg_state{"MainPG/" + std::string(runTargetName)};
+        score::mw::lifecycle::IdentifierHash pg_state{runTargetName};
         retVal_ = control_client_impl_->SetState(pg_name, pg_state);
     }
     else

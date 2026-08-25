@@ -14,166 +14,26 @@
 #define CONFIG_HPP
 
 #include <sys/types.h>
+#include <chrono>
 #include <cstdint>
 #include <optional>
 #include <string>
 #include <string_view>
+#include <variant>
 #include <vector>
+
+#include "score/mw/launch_manager/configuration/component_config.hpp"
+#include "score/mw/launch_manager/configuration/watchdog_config.hpp"
 
 namespace score::mw::lifecycle::internal::configuration
 {
-
-enum class ApplicationType : uint8_t
-{
-    Native = 0,
-    Reporting = 1,
-    ReportingAndSupervised = 2,
-    StateManager = 3
-};
-
-enum class ProcessState : uint8_t
-{
-    Running = 0,
-    Terminated = 1
-};
-
-struct ComponentAliveSupervision
-{
-    uint32_t reporting_cycle_ms{};
-    uint32_t failed_cycles_tolerance{};
-    std::optional<uint32_t> min_indications;
-    std::optional<uint32_t> max_indications;
-};
-
-struct ApplicationProfile
-{
-    ApplicationType application_type{ApplicationType::Native};
-    bool is_self_terminating{};
-    std::optional<ComponentAliveSupervision> alive_supervision;
-};
-
-struct ReadyCondition
-{
-    ProcessState process_state{ProcessState::Running};
-};
-
-struct ComponentProperties
-{
-    std::string binary_name;
-    ApplicationProfile application_profile;
-    std::vector<std::string> depends_on;
-    std::vector<std::string> process_arguments;
-    std::optional<ReadyCondition> ready_condition;
-};
-
-/// @brief A single environment variable
-class EnvironmentVariable
-{
-  public:
-    /// @brief Constructs an environment variable from a key and value.
-    EnvironmentVariable(std::string_view key, std::string_view value);
-
-    /// @brief Returns the key portion.
-    std::string_view key() const;
-    /// @brief Returns the value portion.
-    std::string_view value() const;
-    /// @brief Returns the full "key=value" as a null-terminated C string.
-    const char* c_str() const;
-
-  private:
-    std::string entry_;
-    std::size_t key_length_;
-};
-
-/// @brief Stores configured environment variables.
-///
-/// Provides read access via key/value iteration and a null-terminated pointer array
-/// suitable for use with the @c execve system call via @ref envp().
-class Environment
-{
-  public:
-    using const_iterator = std::vector<EnvironmentVariable>::const_iterator;
-
-    Environment() = default;
-
-    Environment(const Environment&) = delete;
-    Environment& operator=(const Environment&) = delete;
-    Environment(Environment&& other) noexcept;
-    Environment& operator=(Environment&& other) noexcept;
-
-    ~Environment() = default;
-
-    /// @brief Pre-allocates storage for @p count environment variables.
-    void reserve(std::size_t count);
-    /// @brief Adds an environment variable with the given key and value.
-    void add(std::string_view key, std::string_view value);
-
-    /// @brief Returns an iterator to the first environment variable.
-    const_iterator begin() const;
-    /// @brief Returns an iterator past the last environment variable.
-    const_iterator end() const;
-    /// @brief Returns the number of stored environment variables.
-    std::size_t size() const;
-
-    /// @brief Returns a null-terminated array of "key=value" C strings for use with @c execve.
-    char* const* envp() const;
-
-  private:
-    void rebuildPointers() const;
-    std::vector<EnvironmentVariable> entries_;
-    mutable std::vector<const char*> pointers_;
-};
-
-struct RestartAction
-{
-    uint32_t number_of_attempts{};
-    uint32_t delay_before_restart_ms{};
-};
-
-struct SwitchRunTargetAction
-{
-    std::string run_target;
-};
-
-struct Sandbox
-{
-    uid_t uid{};
-    gid_t gid{};
-    std::vector<gid_t> supplementary_group_ids;
-    std::optional<std::string> security_policy;
-    int32_t scheduling_policy;
-    int32_t scheduling_priority{};
-    std::optional<uint64_t> max_memory_usage;
-    std::optional<uint32_t> max_cpu_usage;
-};
-
-struct DeploymentConfig
-{
-    uint32_t ready_timeout_ms{};
-    uint32_t shutdown_timeout_ms{};
-    Environment environmental_variables;
-    std::string bin_dir;
-    std::string working_dir;
-    std::optional<RestartAction> ready_recovery_action;
-    // Currently only SwitchRunTargetAction is supported here, RestartAction to be added in the future
-    std::optional<SwitchRunTargetAction> recovery_action;
-    Sandbox sandbox;
-};
-
-struct ComponentConfig
-{
-    std::string name;
-    std::string description;
-    ComponentProperties component_properties;
-    DeploymentConfig deployment_config;
-};
 
 struct RunTargetConfig
 {
     std::string name;
     std::string description;
     std::vector<std::string> depends_on;
-    uint32_t transition_timeout_ms{};
+    std::uint32_t transition_timeout_ms{};
     SwitchRunTargetAction recovery_action;
 };
 
@@ -181,20 +41,12 @@ struct FallbackRunTargetConfig
 {
     std::string description;
     std::vector<std::string> depends_on;
-    uint32_t transition_timeout_ms{};
+    std::uint32_t transition_timeout_ms{};
 };
 
 struct AliveSupervisionConfig
 {
-    uint32_t evaluation_cycle_ms{};
-};
-
-struct WatchdogConfig
-{
-    std::string device_file_path;
-    uint32_t max_timeout_ms{};
-    bool deactivate_on_shutdown{};
-    bool require_magic_close{};
+    std::uint32_t evaluation_cycle_ms{};
 };
 
 class ConfigBuilder;
@@ -217,30 +69,30 @@ class Config
     Config& operator=(Config&&) = default;
 
     /// @brief Returns the component configurations.
-    const std::vector<ComponentConfig>& components() const;
+    [[nodiscard]] const std::vector<ComponentConfig>& components() const;
     /// @brief Returns the run target configurations.
-    const std::vector<RunTargetConfig>& runTargets() const;
+    [[nodiscard]] const std::vector<RunTargetConfig>& runTargets() const;
     /// @brief Returns the name of the initial run target.
-    std::string_view initialRunTarget() const;
+    [[nodiscard]] std::string_view initialRunTarget() const;
     /// @brief Returns the fallback run target configuration.
-    const FallbackRunTargetConfig& fallbackRunTarget() const;
+    [[nodiscard]] const FallbackRunTargetConfig& fallbackRunTarget() const;
     /// @brief Returns the global alive supervision configuration.
-    const AliveSupervisionConfig& aliveSupervision() const;
+    [[nodiscard]] const AliveSupervisionConfig& aliveSupervision() const;
     /// @brief Returns the watchdog configuration, if present.
-    const std::optional<WatchdogConfig>& watchdog() const;
+    [[nodiscard]] const std::optional<WatchdogConfig>& watchdog() const;
 
     /// @brief Moves out the component configurations. Source is left in a moved-from state.
-    std::vector<ComponentConfig> takeComponents();
+    [[nodiscard]] std::vector<ComponentConfig> takeComponents();
     /// @brief Moves out the run target configurations. Source is left in a moved-from state.
-    std::vector<RunTargetConfig> takeRunTargets();
+    [[nodiscard]] std::vector<RunTargetConfig> takeRunTargets();
     /// @brief Moves out the initial run target name. Source is left in a moved-from state.
-    std::string takeInitialRunTarget();
+    [[nodiscard]] std::string takeInitialRunTarget();
     /// @brief Moves out the fallback run target configuration. Source is left in a moved-from state.
-    FallbackRunTargetConfig takeFallbackRunTarget();
+    [[nodiscard]] FallbackRunTargetConfig takeFallbackRunTarget();
     /// @brief Moves out the alive supervision configuration. Source is left in a moved-from state.
-    AliveSupervisionConfig takeAliveSupervision();
+    [[nodiscard]] AliveSupervisionConfig takeAliveSupervision();
     /// @brief Moves out the watchdog configuration. Source is left in a moved-from state.
-    std::optional<WatchdogConfig> takeWatchdog();
+    [[nodiscard]] std::optional<WatchdogConfig> takeWatchdog();
 
   private:
     friend class ConfigBuilder;

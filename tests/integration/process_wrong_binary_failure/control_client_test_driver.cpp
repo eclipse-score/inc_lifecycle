@@ -16,13 +16,13 @@
 #include <score/mw/lifecycle/control_client.h>
 #include <score/mw/lifecycle/report_running.h>
 
-TEST(MissingBinaryFailure, ControlClientMock)
+TEST(MissingBinaryFailure, ControlClientTestDriver)
 {
     score::mw::lifecycle::ControlClient client;
 
     ASSERT_TRUE(check_clean({test_end_location, fallback_file}));
 
-    TEST_STEP("Report kRunning from ControlClientMock")
+    TEST_STEP("Report kRunning from ControlClientTestDriver")
     {
         score::mw::lifecycle::report_running();
     }

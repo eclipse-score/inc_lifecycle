@@ -38,8 +38,6 @@ Component
 Run target
 ----------
 
-* The initial Run Target must be named ``Startup`` and the
-  ``initial_run_target`` must be configured to ``Startup``.
 * The parameter ``run_targets/<RunTarget>/transition_timeout`` is currently not
   supported and is ignored.
 * The ``recovery_action`` only supports ``switch_run_target`` with the

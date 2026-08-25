@@ -16,6 +16,7 @@
 
 #include <cstdint>
 
+#include "score/mw/launch_manager/configuration/config.hpp"
 #include "score/mw/launch_manager/watchdog/IWatchdogIf.hpp"
 #include "score/os/fcntl.h"
 #include "score/os/ioctl.h"
@@ -73,7 +74,7 @@ class WatchdogImpl : public IWatchdogIf
 
     /// @copydoc IWatchdogIf::init()
     bool init(
-        const score::mw::lifecycle::internal::configuration::WatchdogConfig& watchdog_config,
+        const score::mw::lifecycle::internal::configuration::WatchdogConfig&& watchdog_config,
         std::int64_t cycle_time_ns) noexcept override;
 
     /// @copydoc IWatchdogIf::enable()
