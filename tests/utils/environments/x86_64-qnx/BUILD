@@ -17,6 +17,7 @@ load("@score_rules_imagefs//rules/qnx:ifs.bzl", "qnx_ifs")
 exports_files(
     ["qemu_config.json"],
     visibility = [
+        "//config:__pkg__",
         "//examples:__subpackages__",
         "//tests:__subpackages__",
     ],
@@ -34,6 +35,7 @@ qnx_ifs(
     build_file = ":init.build",
     target_compatible_with = ["@platforms//os:qnx"],
     visibility = [
+        "//config:__pkg__",
         "//examples:__subpackages__",
         "//tests:__subpackages__",
     ],

@@ -38,7 +38,6 @@ integration_test(
     name = "fallback_to_same_target_restarts",
     srcs = ["fallback_to_same_target_restarts.py"],
     binaries = [
-        ":config",
         ":control_client_test_driver",
         ":process_crashing_once",
         "//score/launch_manager",
