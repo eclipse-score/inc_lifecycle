@@ -54,6 +54,9 @@ constexpr std::chrono::milliseconds kControlClientMaxIpcDelay{
            ///< kCommunicationError will be returned
 constexpr std::chrono::milliseconds kControlClientBgThreadSleepTime{100};
 
+constexpr std::chrono::milliseconds kDefaultOffStateTransitionTimeout{
+    3000};  ///< Default timeout for Off state transition
+
 constexpr std::int64_t kMainLoopCycleTimeMs{50};  ///< The period at which the main loop services the watchdog
 constexpr std::int64_t kMainLoopCycleTimeNs{kMainLoopCycleTimeMs * 1'000'000LL};
 

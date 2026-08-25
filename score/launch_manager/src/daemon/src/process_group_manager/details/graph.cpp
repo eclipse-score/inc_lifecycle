@@ -99,7 +99,7 @@ void CreateDependencyGraph(
     {
         const auto off_index = graph.emplace(std::in_place_type<RunTarget>, graph.size());
         run_target_map.insert({IdentifierHash{Graph::off_state_name}.data(), off_index});
-        off_state_transition_timeout = std::chrono::milliseconds(3000);
+        off_state_transition_timeout = internal::kDefaultOffStateTransitionTimeout;
     }
 
     // handle the fallback target
