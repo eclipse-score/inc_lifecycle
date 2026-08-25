@@ -33,8 +33,8 @@ namespace mw::lifecycle
 namespace internal
 {
 
-/// @brief Function to access global logging context, for Launch Manager.
-/// Launch Manager (LM) daemon, uses a single global logging context.
+/// @brief Function to access global logging context, for Launch Manager and its libraries.
+/// Launch Manager (LM) daemon and libraries use a single global logging context.
 /// This context is stored as a static variable inside this function and used all over LM daemon implementation.
 /// Please note that code should not call this function directly, but should use a set of wrapper macros.
 /// More information can be found in docs/architecture/concepts/logging/logging.rst file.
