@@ -96,7 +96,8 @@ class BasicLmControlImpl final : public ILmControl
     /// @return void once discovery is running, or the error that prevented setup.
     /// @error kInvalidArguments    instance_specifier is empty or malformed.
     /// @error kCommunicationError  the service discovery could not be started.
-    score::Result<void> init(std::string_view instance_specifier) noexcept
+    /// @throws std::bad_alloc      if allocation fails during setup.
+    score::Result<void> init(std::string_view instance_specifier)
     {
         SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(!find_handle_.has_value(), "LmControl::init() called more than once");
 

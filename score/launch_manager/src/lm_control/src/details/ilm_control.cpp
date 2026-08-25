@@ -14,18 +14,33 @@
 #include "score/mw/lifecycle/ilm_control.hpp"
 #include "score/mw/lifecycle/details/lm_control_impl.hpp"
 
+#include <exception>
+
 namespace score::mw::lifecycle
 {
 
 score::Result<std::unique_ptr<ILmControl>> ILmControl::Create(std::string_view instance_specifier)
 {
-    auto instance = std::make_unique<internal::LmControlImpl>();
-    const auto init_result = instance->init(instance_specifier);
-    if (!init_result.has_value())
+    try
     {
-        return score::MakeUnexpected<std::unique_ptr<ILmControl>>(init_result.error());
+        auto instance = std::make_unique<internal::LmControlImpl>();
+        const auto init_result = instance->init(instance_specifier);
+        if (!init_result.has_value())
+        {
+            return score::MakeUnexpected<std::unique_ptr<ILmControl>>(init_result.error());
+        }
+        return instance;
     }
-    return instance;
+    catch (const std::exception& ex)
+    {
+        LM_LOG_ERROR() << "LmControl: Create failed with exception:" << ex.what();
+        return score::MakeUnexpected<std::unique_ptr<ILmControl>>(ExecErrc::kGeneralError);
+    }
+    catch (...)
+    {
+        LM_LOG_ERROR() << "LmControl: Create failed with an unknown exception";
+        return score::MakeUnexpected<std::unique_ptr<ILmControl>>(ExecErrc::kGeneralError);
+    }
 }
 
 }  // namespace score::mw::lifecycle
