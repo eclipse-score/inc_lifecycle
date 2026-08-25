@@ -96,40 +96,55 @@ class BasicLmControlImpl final : public ILmControl
     /// @return void once discovery is running, or the error that prevented setup.
     /// @error kInvalidArguments    instance_specifier is empty or malformed.
     /// @error kCommunicationError  the service discovery could not be started.
-    /// @throws std::bad_alloc      if allocation fails during setup.
-    score::Result<void> init(std::string_view instance_specifier)
+    /// @error kGeneralError        an exception (e.g. std::bad_alloc on allocation failure) occurred during setup.
+    /// @note Any exception thrown during setup is caught internally and reported as kGeneralError, so this
+    ///       function is noexcept.
+    score::Result<void> init(std::string_view instance_specifier) noexcept
     {
         SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(!find_handle_.has_value(), "LmControl::init() called more than once");
 
-        auto specifier_result = score::mw::com::InstanceSpecifier::Create(std::string{instance_specifier});
-        if (!specifier_result.has_value())
+        try
         {
-            LM_LOG_ERROR() << "LmControl: Invalid instance specifier" << instance_specifier
-                           << "Error: " << specifier_result.error();
-            return score::MakeUnexpected(ExecErrc::kInvalidArguments);
+            auto specifier_result = score::mw::com::InstanceSpecifier::Create(std::string{instance_specifier});
+            if (!specifier_result.has_value())
+            {
+                LM_LOG_ERROR() << "LmControl: Invalid instance specifier" << instance_specifier
+                               << "Error: " << specifier_result.error();
+                return score::MakeUnexpected(ExecErrc::kInvalidArguments);
+            }
+
+            // Bind the discovery callback to discovery_scope_, so that the destructor can wait for
+            // its execution to finish.
+            const auto scoped_handler =
+                std::make_shared<ScopedDiscoveryHandler>(discovery_scope_, [this](HandleContainer handles) noexcept {
+                    onServiceFound(std::move(handles));
+                });
+
+            const score::Result<FindServiceHandle> start_result = Traits::StartFindService(
+                [scoped_handler](HandleContainer handles, FindServiceHandle) noexcept {
+                    score::cpp::ignore = (*scoped_handler)(std::move(handles));
+                },
+                std::move(specifier_result).value());
+
+            if (!start_result.has_value())
+            {
+                LM_LOG_ERROR() << "LmControl: StartFindService failed with error" << start_result.error();
+                return score::MakeUnexpected(ExecErrc::kCommunicationError);
+            }
+
+            find_handle_ = start_result.value();
+            return {};
         }
-
-        // Bind the discovery callback to discovery_scope_, so that the destructor can wait for
-        // its execution to finish.
-        const auto scoped_handler =
-            std::make_shared<ScopedDiscoveryHandler>(discovery_scope_, [this](HandleContainer handles) noexcept {
-                onServiceFound(std::move(handles));
-            });
-
-        const score::Result<FindServiceHandle> start_result = Traits::StartFindService(
-            [scoped_handler](HandleContainer handles, FindServiceHandle) noexcept {
-                score::cpp::ignore = (*scoped_handler)(std::move(handles));
-            },
-            std::move(specifier_result).value());
-
-        if (!start_result.has_value())
+        catch (const std::exception& ex)
         {
-            LM_LOG_ERROR() << "LmControl: StartFindService failed with error" << start_result.error();
-            return score::MakeUnexpected(ExecErrc::kCommunicationError);
+            LM_LOG_ERROR() << "LmControl: init failed with exception:" << ex.what();
+            return score::MakeUnexpected(ExecErrc::kGeneralError);
         }
-
-        find_handle_ = start_result.value();
-        return {};
+        catch (...)
+        {
+            LM_LOG_ERROR() << "LmControl: init failed with an unknown exception";
+            return score::MakeUnexpected(ExecErrc::kGeneralError);
+        }
     }
 
     ~BasicLmControlImpl() noexcept override

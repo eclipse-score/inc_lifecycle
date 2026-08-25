@@ -18,6 +18,7 @@
 #include <cstddef>
 #include <functional>
 #include <memory>
+#include <new>
 #include <optional>
 #include <stdexcept>
 #include <string_view>
@@ -39,6 +40,7 @@ using ::testing::Invoke;
 using ::testing::NiceMock;
 using ::testing::Return;
 using ::testing::SaveArg;
+using ::testing::Throw;
 
 // Opaque stand-ins for the mw::com discovery handle types.
 struct FakeHandle
@@ -306,6 +308,38 @@ TEST_F(LmControlUT, StartFindServiceFailureIsReportedByInit)
     const auto result = sut.init(kValidSpecifier);
     ASSERT_FALSE(result.has_value());
     EXPECT_EQ(result.error(), ExecErrc::kCommunicationError);
+}
+
+TEST_F(LmControlUT, StdExceptionDuringSetupIsReportedAsGeneralError)
+{
+    RecordProperty(
+        "Description",
+        "When a std::exception (e.g. std::bad_alloc on allocation failure) is thrown during setup, init() catches "
+        "it and returns kGeneralError instead of propagating.");
+
+    EXPECT_CALL(mock_, StartFindService(_)).WillOnce(Throw(std::bad_alloc{}));
+
+    LmControlImplType sut{};
+    const auto result = sut.init(kValidSpecifier);
+    ASSERT_FALSE(result.has_value());
+    EXPECT_EQ(result.error(), ExecErrc::kGeneralError);
+}
+
+TEST_F(LmControlUT, NonStdExceptionDuringSetupIsReportedAsGeneralError)
+{
+    RecordProperty(
+        "Description",
+        "When something not derived from std::exception is thrown during setup, init() still catches it and "
+        "returns kGeneralError.");
+
+    EXPECT_CALL(mock_, StartFindService(_)).WillOnce(Invoke([](FindHandler) -> score::Result<FakeFindHandle> {
+        throw 42;
+    }));
+
+    LmControlImplType sut{};
+    const auto result = sut.init(kValidSpecifier);
+    ASSERT_FALSE(result.has_value());
+    EXPECT_EQ(result.error(), ExecErrc::kGeneralError);
 }
 
 TEST_F(LmControlUT, InitStartsBackgroundDiscovery)
