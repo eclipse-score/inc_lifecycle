@@ -139,8 +139,6 @@ jobs:
           command: clippy
           args: --all-features --all-targets --workspace -- -D warnings
 
-  # Unified LLVM source-based coverage (C++ and Rust in one report), replacing
-  # the removed `//:rust_coverage` blanket flow and the separate C++ (gcov) job.
   coverage:
     uses: ./.github/workflows/code_coverage.yml
     permissions:

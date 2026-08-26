@@ -12,10 +12,6 @@
 # *******************************************************************************
 #
 # Reusable unified LLVM source-based coverage (C++ and Rust in one report),
-# replacing the removed `//:rust_coverage` blanket flow and the separate C++
-# (gcov) job. The report scope is defined by the `//:coverage_scope` target
-# (//score/...); expand it there and widen the target set below to add more
-# components. Publishes the HTML report as the `coverage-html` artifact.
 
 name: Code coverage
 
@@ -51,20 +47,14 @@ jobs:
           unique-cache-name: ${{ github.workflow }}-${{ github.job }}
 
       - name: Collect coverage
-        # miri_tests is excluded: it has no matching toolchain under the coverage
-        # configuration (miri toolchain is not registered for llvm_cov).
         run: |
           bazel coverage \
             --config=llvm_cov \
             --lockfile_mode=error \
             --build_tests_only \
-            -- //score/... \
-            -//score/health_monitor/src/rust:miri_tests
+            //score/...
 
       - name: Generate report and enforce threshold
-        # Threshold reflects the combined C++/Rust //score/... scope and
-        # supersedes the separate Rust (93%) and C++ (66%) gates. Raise it as
-        # coverage improves.
         env:
           COVERAGE_THRESHOLD: ${{ inputs.coverage-threshold }}
         run: |

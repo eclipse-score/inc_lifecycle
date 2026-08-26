@@ -88,12 +88,8 @@ bazel_dep(name = "toolchains_llvm", version = "1.8.0", dev_dependency = True)
 llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm", dev_dependency = True)
 llvm.toolchain(
     cxx_standard = {"": "c++17"},
-    extra_enabled_features = [
-        ":clang_minimal_warnings",
-    ],
     extra_known_features = [
         "@score_tooling//coverage:enable_llvm_coverage_for_death_tests",
-        "//:minimal_warnings",
     ],
     llvm_version = "22.1.7",
     stdlib = {"": "stdc++"},
