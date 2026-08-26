@@ -58,6 +58,8 @@ copyright_checker(
     name = "copyright",
     srcs = [
         ".github",
+        "BUILD",
+        "MODULE.bazel",
         "docs",
         "examples",
         "externals",
@@ -65,8 +67,6 @@ copyright_checker(
         "score",
         "scripts",
         "tests",
-        "//:BUILD",
-        "//:MODULE.bazel",
     ],
     config = "@score_tooling//cr_checker/resources:config",
     exclusion = "//:cr_checker_exclusion",
