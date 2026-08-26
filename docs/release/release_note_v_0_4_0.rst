@@ -44,22 +44,30 @@ Changes to the Module
 New Features
 ~~~~~~~~~~~~
 
-- None
+- **Working directory support:** Support the ``deployment_config/working_dir`` value to set a process working directory. `#356 <https://github.com/eclipse-score/lifecycle/pull/356>`_
 
 Improvements
 ~~~~~~~~~~~~
 
-- None
+- **Lifecycle mock for OSS consumers:** Add ``MwLifeCycleManagerMock`` to allow unit tests to set expectations on ``report_running()`` and ``report_shutdown()`` without real IPC. `#391 <https://github.com/eclipse-score/lifecycle/pull/391>`_
+- **CPU affinity up to 64 cores:** Extend the default CPU affinity mask from 32 to 64 cores. `#286 <https://github.com/eclipse-score/lifecycle/pull/286>`_
+- **Internal refactoring:**
+  - **Config simplification:** Removes the legacy flattbuffer Launch Manager config. `#409 <https://github.com/eclipse-score/lifecycle/pull/409>`_
+  - **Remove the internal config adapter:** `#455 <https://github.com/eclipse-score/lifecycle/pull/455>`_
+  - **Watchdog integration:** Refactor existing watchdog code into ``ProcessGroupManager`` and replace the custom watchdog OSAL with the baselibs OSAL. `#403 <https://github.com/eclipse-score/lifecycle/pull/403>`_
+  - Various refactorings to improve code quality and maintainability.
+- **Testing and documentation** updates, including QNX integration tests via QEMU. `#328 <https://github.com/eclipse-score/lifecycle/pull/328>`_
 
 Bug Fixes
 ~~~~~~~~~
 
-- None
+- Bug fix: Avoid deadlocks after ``fork()``. `#303 <https://github.com/eclipse-score/lifecycle/pull/303>`_
+- Bug fix: Fix missed restart. `#416 <https://github.com/eclipse-score/lifecycle/pull/416>`_
+- Bug fix: Lock ``IdentifierHash`` mutex before every ``get_registry`` call. `#384 <https://github.com/eclipse-score/lifecycle/pull/384>`_
+- Bug fix: Add missing read protection. `#501 <https://github.com/eclipse-score/lifecycle/pull/501>`_
 
 Other Changes by Label
 ~~~~~~~~~~~~~~~~~~~~~~
-
-- None
 
 Compatibility
 ~~~~~~~~~~~~~
@@ -97,6 +105,8 @@ Upgrade Instructions
    - Rename all usage of `applicationcontextmock.h` to `mock_application_context.h`.
    - Rename all usage of `lifecyclemanagermock.h` to `mock_lifecycle_manager.h`.
    - Rename all usage of `report_running_mock.h` to `mock_report_running.h`.
+
+- **C and Rust ``report_running`` APIs renamed** to match the C++ API. Update callers of the C/Rust APIs. `#318 <https://github.com/eclipse-score/lifecycle/pull/318>`_
 
 - Backward compatibility with the previous release is not guaranteed.
 
