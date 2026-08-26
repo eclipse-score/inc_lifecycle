@@ -86,11 +86,6 @@ struct GetActiveRunTargetResponse
     /// @brief The currently active Run Target.
     ///        Only meaningful when status == QueryStatus::kAvailable.
     RunTargetName run_target;
-
-    /// @brief Reason the active Run Target is not available.
-    ///        Only meaningful when status == QueryStatus::kNotAvailable.
-    ///        Expected value: kActivationInProgress.
-    ExecErrc rejection_reason{ExecErrc::kGeneralError};
 };
 
 // ============================================================================
@@ -140,9 +135,8 @@ class LmControlService : public Trait::Base
     /// @brief Query the currently active Run Target.
     ///
     /// Returns a `GetActiveRunTargetResponse` synchronously. If an activation is
-    /// in progress, status is QueryStatus::kNotAvailable and rejection_reason
-    /// carries kActivationInProgress. The caller should wait for the
-    /// activation_result event and retry if needed.
+    /// in progress, status is QueryStatus::kNotAvailable. The caller should wait
+    /// for the activation_result event and retry if needed.
     typename Trait::template Method<GetActiveRunTargetResponse()> get_active_run_target{*this, "GetActiveRunTarget"};
 
     /// @brief Event fired by the Launch Manager when a Run Target activation completes.

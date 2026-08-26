@@ -230,9 +230,8 @@ class BasicLmControlImpl final : public ILmControl
         const auto& response = *result.value();
         if (response.status == QueryStatus::kNotAvailable)
         {
-            LM_LOG_DEBUG() << "LmControl: get_active_run_target: Status not available, reason:"
-                           << response.rejection_reason;
-            return score::MakeUnexpected(response.rejection_reason);
+            LM_LOG_DEBUG() << "LmControl: get_active_run_target: Status not available, activation in progress";
+            return score::MakeUnexpected(ExecErrc::kActivationInProgress);
         }
 
         LM_LOG_DEBUG() << "LmControl: get_active_run_target:" << response.run_target;

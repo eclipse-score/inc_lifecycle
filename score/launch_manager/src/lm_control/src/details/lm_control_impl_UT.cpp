@@ -198,7 +198,7 @@ ActivateRunTargetResponse Accepted()
 
 GetActiveRunTargetResponse Available(RunTargetName name)
 {
-    return GetActiveRunTargetResponse{QueryStatus::kAvailable, name, ExecErrc::kGeneralError};
+    return GetActiveRunTargetResponse{QueryStatus::kAvailable, name};
 }
 
 /// @brief Builds a batch of activation results, one per run target name.
@@ -593,17 +593,15 @@ TEST_F(LmControlUT, GetActiveRunTargetReturnsName)
     EXPECT_EQ(result.value(), "Running");
 }
 
-TEST_F(LmControlUT, GetActiveRunTargetNotAvailableSurfacesReason)
+TEST_F(LmControlUT, GetActiveRunTargetNotAvailableReturnsActivationInProgress)
 {
     RecordProperty(
-        "Description",
-        "When no active run target is available, get_active_run_target surfaces the reason as the error.");
+        "Description", "When no active run target is available, get_active_run_target reports kActivationInProgress.");
 
     auto sut = MakeConnected();
 
     EXPECT_CALL(mock_, GetActiveRunTarget())
-        .WillOnce(Return(
-            GetActiveRunTargetResponse{QueryStatus::kNotAvailable, RunTargetName{}, ExecErrc::kActivationInProgress}));
+        .WillOnce(Return(GetActiveRunTargetResponse{QueryStatus::kNotAvailable, RunTargetName{}}));
 
     auto result = sut->get_active_run_target();
     ASSERT_FALSE(result.has_value());
