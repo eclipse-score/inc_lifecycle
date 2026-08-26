@@ -1,0 +1,112 @@
+{
+    "schema_version": 1,
+    "defaults": {
+        "deployment_config": {
+            "bin_dir": "/tmp/tests/rt_running_when_process_exits",
+            "ready_timeout": 2.0,
+            "shutdown_timeout": 1.0,
+            "ready_recovery_action": {
+                "restart": {
+                    "number_of_attempts": 0
+                }
+            },
+            "sandbox": {
+                "uid": 0,
+                "gid": 0,
+                "scheduling_policy": "SCHED_OTHER",
+                "scheduling_priority": 0
+            }
+        },
+        "component_properties": {
+            "application_profile": {
+                "application_type": "Reporting",
+                "is_self_terminating": true
+            },
+            "ready_condition": {
+                "process_state": "Running"
+            }
+        }
+    },
+    "components": {
+        "control_client_test_driver": {
+            "component_properties": {
+                "binary_name": "control_client_test_driver",
+                "application_profile": {
+                    "application_type": "State_Manager",
+                    "alive_supervision": {
+                        "min_indications": 0
+                    }
+                }
+            }
+        },
+        "setup_filesystem_sh": {
+            "component_properties": {
+                "binary_name": "touch_file.sh",
+                "process_arguments": ["--text", "filesystem is ready", "setup_filesystem_output.txt"],
+                "application_profile": {
+                    "application_type": "Native",
+                    "is_self_terminating": true
+                },
+                "depends_on": [],
+                "ready_condition": {
+                    "process_state": "Terminated"
+                }
+            }
+        },
+        "filesystem_reader": {
+            "component_properties": {
+                "binary_name": "filesystem_reader",
+                "application_profile": {
+                    "application_type": "Reporting",
+                    "is_self_terminating": true
+                },
+                "depends_on": [
+                    "setup_filesystem_sh"
+                ],
+                "ready_condition": {
+                    "process_state": "Running"
+                }
+            }
+        },
+        "slow_setup_sh": {
+            "component_properties": {
+                "binary_name": "touch_file.sh",
+                "process_arguments": ["--sleep", "1", "--text", "slow setup done", "slow_setup_output.txt"],
+                "application_profile": {
+                    "application_type": "Native",
+                    "is_self_terminating": true
+                },
+                "depends_on": [],
+                "ready_condition": {
+                    "process_state": "Terminated"
+                }
+            }
+        }
+    },
+    "run_targets": {
+        "Startup": {
+            "depends_on": [
+                "control_client_test_driver"
+            ]
+        },
+        "run_target_reader": {
+            "depends_on": [
+                "control_client_test_driver",
+                "filesystem_reader"
+            ]
+        },
+        "run_target_slow_setup": {
+            "depends_on": [
+                "control_client_test_driver",
+                "slow_setup_sh"
+            ]
+        },
+        "Off": {
+            "depends_on": []
+        }
+    },
+    "initial_run_target": "Startup",
+    "fallback_run_target": {
+        "depends_on": []
+    }
+}

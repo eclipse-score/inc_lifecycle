@@ -1,0 +1,98 @@
+{
+    "schema_version": 1,
+    "defaults": {
+        "deployment_config": {
+            "bin_dir": "/tmp/tests/lm_shutdown_during_switch_to_off",
+            "ready_timeout": 1.0,
+            "shutdown_timeout": 1.0,
+            "ready_recovery_action": {
+                "restart": {
+                    "number_of_attempts": 0
+                }
+            },
+            "recovery_action": {
+                "switch_run_target": {
+                    "run_target": "fallback_run_target"
+                }
+            },
+            "environmental_variables": {
+                "LD_LIBRARY_PATH": "/opt/lib"
+            },
+            "sandbox": {
+                "uid": 0,
+                "gid": 0,
+                "scheduling_policy": "SCHED_OTHER",
+                "scheduling_priority": 0
+            }
+        },
+        "component_properties": {
+            "application_profile": {
+                "application_type": "Reporting",
+                "is_self_terminating": false,
+                "alive_supervision": {
+                    "reporting_cycle": 0.1,
+                    "min_indications": 1,
+                    "max_indications": 3,
+                    "failed_cycles_tolerance": 1
+                }
+            },
+            "ready_condition": {
+                "process_state": "Running"
+            }
+        }
+    },
+    "components": {
+        "component_initial": {
+            "component_properties": {
+                "binary_name": "control_client_test_driver",
+                "application_profile": {
+                    "application_type": "State_Manager",
+                    "alive_supervision": {
+                        "min_indications": 0
+                    }
+                }
+            },
+            "deployment_config": {
+                "ready_timeout": 1.0,
+                "shutdown_timeout": 5.0,
+                "environmental_variables": {
+                    "PROCESSIDENTIFIER": "control_client_test_driver"
+                }
+            }
+        },
+        "component_a": {
+            "component_properties": {
+                "binary_name": "process_hanging_on_sigterm"
+            },
+            "deployment_config": {
+                "shutdown_timeout": 5.0,
+                "environmental_variables": {
+                    "PROCESSIDENTIFIER": "component_a"
+                }
+            }
+        }
+    },
+    "run_targets": {
+        "Startup": {
+            "depends_on": [
+                "component_initial"
+            ]
+        },
+        "run_target_a": {
+            "depends_on": [
+                "component_initial",
+                "component_a"
+            ]
+        },
+        "Off": {
+            "depends_on": []
+        }
+    },
+    "initial_run_target": "Startup",
+    "alive_supervision": {
+        "evaluation_cycle": 0.05
+    },
+    "fallback_run_target": {
+        "depends_on": []
+    }
+}

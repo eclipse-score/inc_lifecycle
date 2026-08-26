@@ -33,6 +33,12 @@ cc_library(
     ],
 )
 
+cc_library(
+    name = "process_utils",
+    hdrs = ["process_utils.hpp"],
+    visibility = ["//tests:__subpackages__"],
+)
+
 cc_binary(
     name = "reporting_process",
     srcs = ["reporting_process.cpp"],
@@ -61,6 +67,17 @@ cc_binary(
     visibility = ["//tests:__subpackages__"],
     deps = [
         ":test_helper",
+    ],
+)
+
+cc_binary(
+    name = "process_hanging_on_sigterm",
+    srcs = ["process_hanging_on_sigterm.cpp"],
+    visibility = ["//tests:__subpackages__"],
+    deps = [
+        ":test_helper",
+        "//score/launch_manager:lifecycle_cc",
+        "@googletest//:gtest_main",
     ],
 )
 

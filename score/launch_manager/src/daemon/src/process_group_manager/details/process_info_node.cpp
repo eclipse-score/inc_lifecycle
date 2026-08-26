@@ -450,6 +450,11 @@ score::mw::lifecycle::ProcessState ProcessInfoNode::getState() const
     return process_state_.load();
 }
 
+std::chrono::milliseconds ProcessInfoNode::getTerminationTimeout() const
+{
+    return std::chrono::milliseconds{config_.deployment_config.shutdown_timeout_ms};
+}
+
 uint32_t ProcessInfoNode::getIndex() const
 {
     return process_index_;

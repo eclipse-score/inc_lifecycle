@@ -134,10 +134,14 @@ void ProcessGroupManager::deinitialize()
     os_handler_.reset();
     process_monitor_.reset();
     alive_monitor_thread_->stop();
-    graph_.reset();
 
+    // Join the worker threads before destroying the process groups: a worker may
+    // still be (de)activating a ProcessInfoNode owned by a graph, so tearing the
+    // graphs down first would be a use-after-free.
     thread_pool_.reset();
     worker_jobs_.reset();
+
+    graph_.reset();
     process_map_.reset();
 }
 
@@ -255,6 +259,7 @@ bool ProcessGroupManager::run()
     bool overflow_logged = false;
 
     if (result)
+    {
         while (!em_cancelled.load())
         {
             // Wait for something to happen...
@@ -284,6 +289,8 @@ bool ProcessGroupManager::run()
 
             watchdog_->serviceWatchdog();
         }
+        LM_LOG_INFO() << "ProcessGroupManager::run() - received SIGTERM, exiting";
+    }
 
     allProcessGroupsOff();
 
@@ -372,11 +379,17 @@ void ProcessGroupManager::allProcessGroupsOff()
     }
 
     LM_LOG_DEBUG() << "Wait for process group to complete the transition";
-    if (!waitForStateCompletion(GraphState::kInTransition, 1000))
+
+    const auto overall_off_transition_timeout = graph_->getOffStateTransitionTimeout() + kMaxSigKillDelay;
+    if (!waitForStateCompletion(
+            GraphState::kInTransition, static_cast<int32_t>(overall_off_transition_timeout.count())))
     {
+        // Last resort: a process ignored even SIGKILL within its budget. Force-kill
+        // whatever is left and tear down the worker pool so shutdown can still proceed.
         LM_LOG_ERROR() << "NOTE: Transition to Off state timed out";
         thread_pool_->stop();
         graph_->forceKillProcesses();
+        thread_pool_.reset();
     }
 }
 
