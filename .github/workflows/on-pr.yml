@@ -140,6 +140,7 @@ jobs:
           args: --all-features --all-targets --workspace -- -D warnings
 
   coverage:
+    name: Coverage
     uses: ./.github/workflows/code_coverage.yml
     permissions:
       contents: read

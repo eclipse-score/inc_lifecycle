@@ -33,7 +33,7 @@ on:
 
 jobs:
   coverage:
-    name: Coverage (LLVM source-based, C++ & Rust)
+    name: Coverage
     runs-on: ubuntu-latest
     permissions:
       contents: read
