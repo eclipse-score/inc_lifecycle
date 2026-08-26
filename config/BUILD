@@ -17,7 +17,7 @@ load("@bazel_skylib//rules:common_settings.bzl", "bool_flag", "string_flag")
 #   bazel test --//config:integration_mode=qemu \
 #       --//config:qemu_image=//my/package:my_image //tests/...
 label_flag(
-    name = "test_image",
+    name = "qemu_image",
     build_setting_default = "//tests/utils/environments/x86_64-qnx:qemu_image",
     visibility = ["//visibility:public"],
 )
