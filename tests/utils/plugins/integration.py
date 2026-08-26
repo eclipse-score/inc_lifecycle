@@ -47,10 +47,10 @@ TEST_IMAGE = "score_itf_examples:latest"
 
 
 def _core_dumps_enabled() -> bool:
-    """Core-dump capture is opt-in via ``--config=core_dump`` (see .bazelrc),
-    which forwards ``SCORE_ENABLE_CORE_DUMP`` into the test environment. When it
-    is off, the plugin behaves as if the crash-dump feature did not exist."""
-    return os.environ.get("SCORE_ENABLE_CORE_DUMP") == "1"
+    """Core-dump capture is opt-in via ``--config=debug`` (see .bazelrc), which
+    forwards ``SCORE_ENABLE_DEBUG`` into the test environment. When it is off,
+    the plugin behaves as if the crash-dump feature did not exist."""
+    return os.environ.get("SCORE_ENABLE_DEBUG") == "1"
 
 
 def _host_workspace_root():
@@ -94,7 +94,7 @@ def docker_configuration():
     """Run the test container privileged with an unlimited core-file ulimit so
     crashing processes produce core dumps inside the sandbox.
 
-    Only when core-dump capture is enabled (--config=core_dump); otherwise
+    Only when core-dump capture is enabled (--config=debug); otherwise
     stick to unprivileged container. The workspace is bind-mounted read-write so
     the container can persist the core_pattern backup to the host source tree,
     which the sandboxed test process cannot write itself."""
@@ -212,9 +212,7 @@ def _core_dump_report_lines(names, cores_dir: str, read_dir: str | None = None):
                 f"{cores_dir}/{name}{BACKTRACE_SUFFIX}"
             )
         else:
-            lines.append(
-                "    (no backtrace auto-captured; run with --config=core_dump)"
-            )
+            lines.append("    (no backtrace auto-captured; run with --config=debug)")
         # Reopen inside the test image (not host gdb) so the core's libraries
         # match; mount the binary and the cores dir read-only.
         lines.append("    Reopen in gdb inside the test image:")
@@ -334,9 +332,7 @@ def _capture_backtraces(target, test_output_dir: Path, remote_dir):
     )
     rc, _ = target.execute(cmd)
     if rc == _GDB_MISSING_RC:
-        logger.warning(
-            "gdb not found in the test container; no backtrace captured."
-        )
+        logger.warning("gdb not found in the test container; no backtrace captured.")
 
 
 @pytest.fixture(autouse=True)
@@ -345,7 +341,7 @@ def _capture_core_dumps(request, target, test_output_dir):
     test, collect any that were produced, then restore the original
     core_pattern."""
     if not _core_dumps_enabled():
-        yield  # core-dump capture not requested (--config=core_dump)
+        yield  # core-dump capture not requested (--config=debug)
         return
     if request.config.getoption("docker_image", default=None) is None:
         yield  # not the docker sandbox; nothing to capture

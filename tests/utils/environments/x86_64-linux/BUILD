@@ -26,9 +26,9 @@ pkg_tar(
     srcs = [":ecu_logging_config_files"],
 )
 
-# Under --config=core_dump the image gains gdb (and its dependency closure) so
+# Under --config=debug the image gains gdb (and its dependency closure) so
 # core dumps can be analysed inside the container against matching libraries;
-# otherwise it stays slim. The gdb layer is built by rules_distroless from 
+# otherwise it stays slim. The gdb layer is built by rules_distroless from
 # gdb_apt.yaml (regenerate its lockfile with:
 # bazel run @gdb_apt//:lock).
 oci_image(
@@ -36,7 +36,7 @@ oci_image(
     base = "@debian-test-runtime",
     target_compatible_with = ["@platforms//os:linux"],
     tars = [":ecu_logging_config_layer"] + select({
-        "//config:core_dump_enabled": ["@gdb_apt//:flat"],
+        "//config:debug_enabled": ["@gdb_apt//:flat"],
         "//conditions:default": [],
     }),
 )

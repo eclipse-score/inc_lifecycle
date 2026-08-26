@@ -50,18 +50,18 @@ config_setting(
     },
 )
 
-# Opt in with --config=core_dump: adds the gdb layer to the test image so core
-# dumps can be analysed in-container. Off by default, so the pipeline image stays
-# slim (see .bazelrc, tests/utils/environments/x86_64-linux/BUILD).
+# Build variant. --config=release is the default (slim image); --config=debug adds
+# the gdb layer to the test image so core dumps can be analysed in-container (see
+# .bazelrc, tests/utils/environments/x86_64-linux/BUILD).
 bool_flag(
-    name = "core_dump",
+    name = "debug",
     build_setting_default = False,
 )
 
 config_setting(
-    name = "core_dump_enabled",
+    name = "debug_enabled",
     flag_values = {
-        ":core_dump": "True",
+        ":debug": "True",
     },
 )
 

@@ -23,14 +23,22 @@ Currently the following configs are supported:
 - `host`
 - `x86_64-linux`
 
-## Crash dumps (core dumps)
+## Debug environment
 
-Core-dump capture is **opt-in**: add `--config=core_dump` to include the support. **Attention: This influences the kernel `core_pattern` value of your host system!**
+The debug environment is **opt-in**: add `--config=debug` to include it. 
+It adds gdb to the docker image, builds the code in debug variant (using "-c dbg") and if process is crashing, a core dump is created. Furthermore the backtrace of the thread which provoked the crash is printed to the console.
+
+The
+default (`--config=release`, equivalent to specifying no variant) builds the slim
+image without it. 
+
+**Attention: It is needed to influence the kernel `core_pattern` value of
+your host system to have core dump support!**
 
 
 How it works:
-- `--config=core_dump` forwards `SCORE_ENABLE_CORE_DUMP=1` into the test
-  environment and sets the `//config:core_dump` build flag (see `.bazelrc`); the
+- `--config=debug` forwards `SCORE_ENABLE_DEBUG=1` into the test
+  environment and sets the `//config:debug` build flag (see `.bazelrc`); the
   shared pytest plugin keys off the env var, individual tests need no adaptions.
 - The build flag adds a `gdb` layer to the test image (`score_itf_examples`) so
   cores can be analysed inside the container against matching libraries. Normal
@@ -52,10 +60,10 @@ Further technical limitations are described in [Important: the `core_pattern` is
 
 ### Getting a crash dump
 
-Run the (crashing) test with `--config=core_dump`, disabling the cache so it
+Run the (crashing) test with `--config=debug`, disabling the cache so it
 actually executes:
 ```
-bazel test //tests/integration/<test> --config=x86_64-linux --config=core_dump --nocache_test_results
+bazel test //tests/integration/<test> --config=x86_64-linux --config=debug --nocache_test_results
 ```
 
 If a crash dump was created, a `CRASH DUMP` section is printed right under the
@@ -92,7 +100,7 @@ dump, open the auto-captured backtrace file the fixture wrote next to the core:
 ```
 cat "$(bazel info bazel-testlogs)/tests/integration/<test>/<test>/test.outputs/cores/"*.bt.txt
 ```
-`--config=core_dump` builds with `-c dbg` automatically, so the backtrace carries
+`--config=debug` builds with `-c dbg` automatically, so the backtrace carries
 file/line information — no extra flag needed.
 
 The banner already prints a ready-to-run `docker run … gdb …` command per core.
