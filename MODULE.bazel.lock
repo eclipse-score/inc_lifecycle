@@ -10990,7 +10990,7 @@
     "@@score_bazel_cpp_toolchains+//extensions:gcc.bzl%gcc": {
       "general": {
         "bzlTransitiveDigest": "dc5MfL+KgiCba7Ie+8RFXMg+QaVnnCWXSXUymx//0GY=",
-        "usagesDigest": "4NRmsFkxvfBnjO3dxv3PUP89mkAs9rXo/+1VVvsgsJg=",
+        "usagesDigest": "WhC3Bfyf/2KNf6Wuh6q5k8gfq44+GP2P8P9YObkw/ro=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
@@ -11162,7 +11162,7 @@
     "@@score_rules_imagefs+//extensions:imagefs.bzl%imagefs": {
       "general": {
         "bzlTransitiveDigest": "6ZLANe53LXwcnne1ZrZm9GkJ9H5VdsCLSgSNHyUrqA4=",
-        "usagesDigest": "Ng82wBgMD3ugekwpj5E0uBy0jQDlToF9vMjBytnPdik=",
+        "usagesDigest": "GgFOQ+Q22kkOU/ZCqKRDx1LjqJK+2t092mFT4W/TzDE=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
