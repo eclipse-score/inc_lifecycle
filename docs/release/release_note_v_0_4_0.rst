@@ -98,6 +98,8 @@ Upgrade Instructions
    - Rename all usage of `lifecyclemanagermock.h` to `mock_lifecycle_manager.h`.
    - Rename all usage of `report_running_mock.h` to `mock_report_running.h`.
 
+- Bazel module was renamed from `@score_lifecycle_health` to `@score_lifecycle`. Please update your MODULE.bazel file accordingly.
+
 - Backward compatibility with the previous release is not guaranteed.
 
 *For any questions or support, please contact the* `Project Team <https://github.com/orgs/eclipse-score/projects/33>`_ *or raise an issue/discussion.*
