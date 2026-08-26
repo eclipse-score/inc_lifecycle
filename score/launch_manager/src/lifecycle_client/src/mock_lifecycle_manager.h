@@ -36,9 +36,10 @@ class LifeCycleManagerMock
     LifeCycleManagerMock();
     ~LifeCycleManagerMock();
 
-    void SetCallbackForRunMethod(std::function<std::int32_t(
-                                     score::mw::lifecycle::Application& app,
-                                     const score::mw::lifecycle::ApplicationContext& context)> callback);
+    void SetCallbackForRunMethod(
+        std::function<std::int32_t(
+            score::mw::lifecycle::Application& app,
+            const score::mw::lifecycle::ApplicationContext& context)> callback);
     void ResetCallbackForRunMethod();
 
     MOCK_METHOD(

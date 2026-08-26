@@ -1,0 +1,81 @@
+# *******************************************************************************
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+#
+# Reusable unified LLVM source-based coverage (C++ and Rust in one report),
+# replacing the removed `//:rust_coverage` blanket flow and the separate C++
+# (gcov) job. The report scope is defined by the `//:coverage_scope` target
+# (//score/...); expand it there and widen the target set below to add more
+# components. Publishes the HTML report as the `coverage-html` artifact.
+
+name: Code coverage
+
+on:
+  workflow_call:
+    inputs:
+      coverage-threshold:
+        description: 'Minimum effective line coverage percentage to enforce.'
+        type: number
+        default: 66
+      artifact-name:
+        description: 'Name of the uploaded coverage report artifact.'
+        type: string
+        default: coverage-html
+      retention-days:
+        description: 'Retention period for the uploaded coverage artifact.'
+        type: number
+        default: 10
+
+jobs:
+  coverage:
+    name: Coverage (LLVM source-based, C++ & Rust)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Bazel with shared caching
+        uses: eclipse-score/cicd-actions/setup-bazel-cache@212bbf86267e9381da9d2daf962d12f6feafbc90
+        with:
+          unique-cache-name: ${{ github.workflow }}-${{ github.job }}
+
+      - name: Collect coverage
+        # miri_tests is excluded: it has no matching toolchain under the coverage
+        # configuration (miri toolchain is not registered for llvm_cov).
+        run: |
+          bazel coverage \
+            --config=llvm_cov \
+            --lockfile_mode=error \
+            --build_tests_only \
+            -- //score/... \
+            -//score/health_monitor/src/rust:miri_tests
+
+      - name: Generate report and enforce threshold
+        # Threshold reflects the combined C++/Rust //score/... scope and
+        # supersedes the separate Rust (93%) and C++ (66%) gates. Raise it as
+        # coverage improves.
+        env:
+          COVERAGE_THRESHOLD: ${{ inputs.coverage-threshold }}
+        run: |
+          bazel run @score_tooling//coverage:generate_coverage_html -- \
+            --yaml coverage_justifications.yaml \
+            --archive-dir coverage_artifacts
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: coverage_artifacts
+          retention-days: ${{ inputs.retention-days }}

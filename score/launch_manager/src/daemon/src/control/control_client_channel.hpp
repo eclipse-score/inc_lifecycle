@@ -121,7 +121,7 @@ struct ControlClientComms final
     }
 };
 
-struct ControlClientChannel;
+class ControlClientChannel;
 using ControlClientChannelP = std::shared_ptr<ControlClientChannel>;
 
 /// @brief The bidirectional communications channel between a state manager and the Launch Manager

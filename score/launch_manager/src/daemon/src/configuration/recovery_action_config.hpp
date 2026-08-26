@@ -11,7 +11,7 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 #ifndef RECOVERY_ACTION_CONFIG_HPP
-#define RECOVER_ACTIONY_CONFIG_HPP
+#define RECOVERY_ACTION_CONFIG_HPP
 
 #include <cstdint>
 #include <string>
@@ -32,4 +32,4 @@ struct SwitchRunTargetAction
 
 }  // namespace score::mw::lifecycle::internal::configuration
 
-#endif  // RECOVER_ACTIONY_CONFIG_HPP
+#endif  // RECOVERY_ACTION_CONFIG_HPP

@@ -40,8 +40,13 @@ jobs:
       pull-requests: read
     secrets: inherit
 
+  # Unified LLVM source-based coverage (C++ and Rust in one report). Publishes
+  # the HTML report as the `coverage-html` artifact, which create-release
+  # archives into the draft release.
   coverage-report:
     uses: ./.github/workflows/code_coverage.yml
+    permissions:
+      contents: read
 
   #  lint:
   #    uses: ./.github/workflows/lint.yml
@@ -54,7 +59,7 @@ jobs:
     permissions:
       contents: write
     env:
-      COVERAGE_ARCHIVE: ${{ github.event.repository.name }}-${{ inputs.tag }}-cpp-coverage
+      COVERAGE_ARCHIVE: ${{ github.event.repository.name }}-${{ inputs.tag }}-coverage
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v7
@@ -90,7 +95,7 @@ jobs:
       - name: Download Coverage Report Artifact
         uses: actions/download-artifact@v8
         with:
-          name: ${{ format('{0}_cpp_coverage{1}', github.event.repository.name, '_cpp') }}
+          name: coverage-html
           path: ${{ env.COVERAGE_ARCHIVE }}
       - name: Create Coverage Report Archive
         run: |
