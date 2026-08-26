@@ -53,10 +53,10 @@ coverage:llvm_cov --features=-treat_warnings_as_errors
 coverage:llvm_cov --host_features=-treat_warnings_as_errors
 
 # The merger lives in score_tooling (no consumer-specific wiring needed); the
-# reporter_wrapper is instantiated in this repository's root BUILD because it
-# carries the coverage scope and LLVM tool labels.
+# reporter_wrapper is instantiated in //quality/coverage because it carries the
+# coverage scope and LLVM tool labels.
 coverage:llvm_cov --coverage_output_generator=@score_tooling//coverage:merger
-coverage:llvm_cov --coverage_report_generator=//:reporter_wrapper
+coverage:llvm_cov --coverage_report_generator=//quality/coverage:reporter_wrapper
 
 # Keep raw profraw files instead of converting to LCOV; the merger handles
 # profraw -> profdata directly.

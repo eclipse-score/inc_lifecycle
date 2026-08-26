@@ -15,7 +15,6 @@ load("@hedron_compile_commands//:refresh_compile_commands.bzl", "refresh_compile
 load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 load("@score_docs_as_code//:docs.bzl", "docs")
 load("@score_tooling//:defs.bzl", "copyright_checker", "dash_license_checker", "setup_starpls")
-load("@score_tooling//coverage:defs.bzl", "score_coverage_reporter", "score_coverage_scope")
 load("@score_tooling//third_party/format:macros.bzl", "use_format_targets")
 load("//:project_config.bzl", "PROJECT_CONFIG")
 
@@ -62,6 +61,7 @@ copyright_checker(
         "docs",
         "examples",
         "externals",
+        "quality",
         "score",
         "scripts",
         "tests",
@@ -115,40 +115,9 @@ use_format_targets(languages = [
     "cpp",
 ])
 
-# Code coverage (LLVM source-based pipeline).
-# `exports_files` lets the reporter locate the workspace root at runtime.
+# Required for code coverage reporting.
+# The coverage reporter locates the workspace root at runtime via //:MODULE.bazel.
 exports_files(["MODULE.bazel"])
-
-# Declares which production targets define the coverage scope. Everything in
-# scope but untested shows up at 0%; everything outside is filtered out.
-score_coverage_scope(
-    name = "coverage_scope",
-    testonly = True,
-    deps = [
-        # Top-level public targets of each component under //score. The scope
-        # aspect walks their transitive deps, so listing these brings every
-        # production source file below them into scope.
-        "//score/health_monitor:health_monitoring_cc",
-        "//score/health_monitor:health_monitoring_rust",
-        "//score/launch_manager:alive_cc",
-        "//score/launch_manager:alive_rust",
-        "//score/launch_manager:control_cc",
-        "//score/launch_manager",
-        "//score/launch_manager:lifecycle_cc",
-        "//score/launch_manager:lifecycle_rust",
-    ],
-)
-
-# Consumer-side report generator, referenced via
-# --coverage_report_generator=//:reporter_wrapper.
-score_coverage_reporter(
-    name = "reporter_wrapper",
-    testonly = True,
-    coverage_scope = ":coverage_scope",
-    llvm_cov = "@llvm_toolchain//:llvm-cov",
-    llvm_cxxfilt = "@llvm_toolchain_llvm//:bin/llvm-cxxfilt",
-    llvm_profdata = "@llvm_toolchain//:llvm-profdata",
-)
 
 # Docs
 docs(

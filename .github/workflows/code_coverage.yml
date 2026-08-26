@@ -59,7 +59,7 @@ jobs:
           COVERAGE_THRESHOLD: ${{ inputs.coverage-threshold }}
         run: |
           bazel run @score_tooling//coverage:generate_coverage_html -- \
-            --yaml coverage_justifications.yaml \
+            --yaml quality/coverage/coverage_justifications.yaml \
             --archive-dir coverage_artifacts
 
       - name: Upload coverage report

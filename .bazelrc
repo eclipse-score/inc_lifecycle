@@ -39,8 +39,8 @@ build --per_file_copt=external/.*@-Wno-error
 test --test_output=errors
 test --@score_baselibs//score/json:base_library=nlohmann
 
-# Code coverage configuration (both legacy gcov and LLVM source-based).
-import %workspace%/coverage.bazelrc
+# Code coverage configuration (LLVM source-based). See //quality/coverage.
+import %workspace%/quality/coverage/coverage.bazelrc
 
 
 # Common Lifecycle Toolchain flags for build (do not use it in case of system toolchains!)
