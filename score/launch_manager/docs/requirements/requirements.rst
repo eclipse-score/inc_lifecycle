@@ -319,7 +319,7 @@ Conditional Launching
     :version: 1
     :satisfied_by: comp__lifecycle_launch_manager
 
-    The :term:`Launch Manager` shall starts a component only after all its
+    The :term:`Launch Manager` shall start a component only after all its
     **dependencies** have successfully reached their **ready state**.
 
 .. TODO PR has defined the the bold terms in the glossary, however need to 

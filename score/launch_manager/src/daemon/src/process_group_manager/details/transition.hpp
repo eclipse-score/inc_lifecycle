@@ -242,6 +242,7 @@ class Transition
     /// @details Starts in the Stopping Phase: every node currently running and not needed by @p target is
     /// deactivated (derived from live component state across the whole graph, so nodes left running by a previous
     /// aborted transition are captured too). Then moves to the Starting Phase to bring up @p target.
+    // req-Id: comp_req__launch_man__ready_cond
     void setupTransition(GraphIndex target)
     {
         std::fill(state_.in_target_subgraph.begin(), state_.in_target_subgraph.end(), false);

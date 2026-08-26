@@ -77,6 +77,7 @@ struct ComponentProperties
     ApplicationProfile application_profile;
     std::vector<std::string> depends_on;
     std::vector<std::string> process_arguments;
+    // req-Id: comp_req__launch_man__config_ready_cond
     ReadyCondition ready_condition;
 };
 struct Sandbox
