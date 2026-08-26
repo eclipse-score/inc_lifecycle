@@ -50,8 +50,9 @@ config_setting(
     },
 )
 
-# Opt in with --config=core_dump: selects the gdb-equipped debug test image so
-# core dumps can be analysed in-container (see .bazelrc, tests/integration/readme.md).
+# Opt in with --config=core_dump: adds the gdb layer to the test image so core
+# dumps can be analysed in-container. Off by default, so the pipeline image stays
+# slim (see .bazelrc, tests/utils/environments/x86_64-linux/BUILD).
 bool_flag(
     name = "core_dump",
     build_setting_default = False,
@@ -60,15 +61,6 @@ bool_flag(
 config_setting(
     name = "core_dump_enabled",
     flag_values = {
-        ":core_dump": "True",
-    },
-)
-
-# Specialization of :integration_docker; select() prefers it when both match.
-config_setting(
-    name = "integration_docker_core_dump",
-    flag_values = {
-        ":integration_mode": "docker",
         ":core_dump": "True",
     },
 )

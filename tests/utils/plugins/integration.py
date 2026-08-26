@@ -40,10 +40,10 @@ CORE_PATTERN_BACKUP_NAME = ".original_core_pattern"
 # container where the binary and matching libraries are present.
 BACKTRACE_SUFFIX = ".bt.txt"
 
-# gdb-equipped debug image (see tests/utils/bazel/integration.bzl). A core must be
-# reopened here, not with host gdb: the core references the container's libraries,
-# so a host unwind walks garbage.
-DEBUG_IMAGE = "score_itf_examples_debug:latest"
+# The gdb-equipped test image (see tests/utils/bazel/integration.bzl). A core must
+# be reopened here, not with host gdb: the core references the container's
+# libraries, so a host unwind walks garbage.
+TEST_IMAGE = "score_itf_examples:latest"
 
 
 def _core_dumps_enabled() -> bool:
@@ -213,16 +213,15 @@ def _core_dump_report_lines(names, cores_dir: str, read_dir: str | None = None):
             )
         else:
             lines.append(
-                "    (no backtrace auto-captured; only the debug image ships gdb "
-                "- run with --config=core_dump)"
+                "    (no backtrace auto-captured; run with --config=core_dump)"
             )
-        # Reopen inside the debug image (not host gdb) so the core's libraries
+        # Reopen inside the test image (not host gdb) so the core's libraries
         # match; mount the binary and the cores dir read-only.
-        lines.append("    Reopen in gdb inside the debug image:")
+        lines.append("    Reopen in gdb inside the test image:")
         lines.append(
             f"        docker run --rm -it "
             f"-v {binary}:{in_container}:ro -v {cores_dir}:/cores:ro "
-            f"{DEBUG_IMAGE} gdb {in_container} /cores/{name}"
+            f"{TEST_IMAGE} gdb {in_container} /cores/{name}"
         )
     return lines
 
@@ -299,7 +298,7 @@ def _capture_backtraces_cmd(core_to_binary: dict) -> str | None:
     """Shell run inside the container: symbolize each core next to itself as
     ``<core>.bt.txt``. Run here (not on the host) because the container holds the
     binary and the matching libraries, so the unwind is correct. Exits
-    ``_GDB_MISSING_RC`` if gdb is absent (only the debug image ships it)."""
+    ``_GDB_MISSING_RC`` if gdb is absent."""
     if not core_to_binary:
         return None
     parts = [f"command -v gdb >/dev/null 2>&1 || exit {_GDB_MISSING_RC}"]
@@ -336,8 +335,7 @@ def _capture_backtraces(target, test_output_dir: Path, remote_dir):
     rc, _ = target.execute(cmd)
     if rc == _GDB_MISSING_RC:
         logger.warning(
-            "gdb not found in the test container; no backtrace captured. "
-            "Run with --config=core_dump to select the gdb-equipped debug image."
+            "gdb not found in the test container; no backtrace captured."
         )
 
 

@@ -185,9 +185,9 @@ test:tsan --cxxopt=-Wno-maybe-uninitialized
 test:tsan --cxxopt=-Wno-redundant-move
 
 # Core-dump capture — opt in with --config=core_dump. The env var gates the
-# plugin at runtime; the build flag selects the gdb-equipped debug image so cores
-# can be analysed in-container and a backtrace is auto-captured. -c dbg is implied
-# so the auto-captured backtrace carries file/line symbols.
+# plugin at runtime; the build flag adds gdb to the test image so cores can be
+# analysed in-container and a backtrace is auto-captured (the pipeline builds the
+# image without it). -c dbg is implied so the backtrace carries file/line symbols.
 build:core_dump --compilation_mode=dbg
 test:core_dump --test_env=SCORE_ENABLE_CORE_DUMP=1
 test:core_dump --//config:core_dump=True

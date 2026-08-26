@@ -176,7 +176,7 @@ oci.pull(
 )
 use_repo(oci, "debian-test-runtime", "debian-test-runtime_linux_amd64")
 
-# gdb (+ dependency closure) layered onto the debug test image; see
+# gdb (+ dependency closure) layered onto the test image; see
 # tests/utils/environments/x86_64-linux/gdb_apt.yaml. Regenerate the lockfile
 # with: bazel run @gdb_apt//:lock
 apt = use_extension("@rules_distroless//apt:extensions.bzl", "apt")

@@ -32,9 +32,9 @@ How it works:
 - `--config=core_dump` forwards `SCORE_ENABLE_CORE_DUMP=1` into the test
   environment and sets the `//config:core_dump` build flag (see `.bazelrc`); the
   shared pytest plugin keys off the env var, individual tests need no adaptions.
-- The build flag selects a **debug image variant** (`score_itf_examples_debug`,
-  the normal image plus `gdb`) so cores can be analysed inside the container.
-  Normal runs keep the slim `score_itf_examples` image, unchanged.
+- The build flag adds a `gdb` layer to the test image (`score_itf_examples`) so
+  cores can be analysed inside the container against matching libraries. Normal
+  runs build the image without `gdb`, unchanged.
 - The sandbox container runs privileged with an unlimited core-file `ulimit` and
   a read-write bind-mount of the workspace root.
 - A shared fixture sets the kernel `core_pattern` to a sandbox-local path
@@ -75,8 +75,8 @@ core.launch_manager.42.6.1787209649:
     #3  0x... in <your crashing frame> at <file>:<line>
     ...
     Full backtrace (all threads): <.../cores/core.launch_manager.*.bt.txt>
-    Reopen in gdb inside the debug image:
-        docker run --rm -it -v <.../launch_manager>:/tmp/.../launch_manager:ro -v <.../cores>:/cores:ro score_itf_examples_debug:latest gdb /tmp/.../launch_manager /cores/core.launch_manager.*
+    Reopen in gdb inside the test image:
+        docker run --rm -it -v <.../launch_manager>:/tmp/.../launch_manager:ro -v <.../cores>:/cores:ro score_itf_examples:latest gdb /tmp/.../launch_manager /cores/core.launch_manager.*
 =========================== short test summary info ============================
 ```
 The crashing thread's stack is printed **inline** (symbolized inside the
@@ -96,16 +96,16 @@ cat "$(bazel info bazel-testlogs)/tests/integration/<test>/<test>/test.outputs/c
 file/line information — no extra flag needed.
 
 The banner already prints a ready-to-run `docker run … gdb …` command per core.
-It must run **inside** the debug image (tagged `score_itf_examples_debug:latest`,
-which ships `gdb`), not on the host: the core references the container's
-libraries, so a host `gdb` unwind walks garbage. The command mounts the host
-binary at its original in-container path (so gdb matches the core without
-warnings) and the cores directory, then drops you into an interactive session:
+It must run **inside** the test image (tagged `score_itf_examples:latest`, which
+ships `gdb`), not on the host: the core references the container's libraries, so a
+host `gdb` unwind walks garbage. The command mounts the host binary at its
+original in-container path (so gdb matches the core without warnings) and the
+cores directory, then drops you into an interactive session:
 ```
 CORES="$(bazel info bazel-testlogs)/tests/integration/<test>/<test>/test.outputs/cores"
 BIN="$(bazel info bazel-bin)/<path-to-crashing-binary>"
 docker run --rm -it -v "$BIN:/tmp/<remote>/<binary>:ro" -v "$CORES:/cores:ro" \
-    score_itf_examples_debug:latest \
+    score_itf_examples:latest \
     gdb /tmp/<remote>/<binary> /cores/core.*
 ```
 Running host `gdb` against the core is a last resort; if you must, point it at an

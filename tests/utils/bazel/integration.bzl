@@ -75,11 +75,6 @@ def integration_test(
         "//tests/utils/testing_utils",
     ]
     final_data = kwargs.pop("data", []) + [":environment"] + select({
-        # More specialized than :integration_docker; select() prefers it under
-        # --config=core_dump so cores can be analysed against matching libraries.
-        "//config:integration_docker_core_dump": [
-            "//tests/utils/environments/x86_64-linux:x86_64-linux-debug",
-        ],
         "//config:integration_docker": [
             "//tests/utils/environments/x86_64-linux",
         ],
@@ -94,10 +89,6 @@ def integration_test(
         "--score-test-binary-path=$(locations :environment)",
         "--score-test-remote-directory={}/tests/{}".format(install_prefix, name),
     ] + select({
-        "//config:integration_docker_core_dump": [
-            "--docker-image-bootstrap=$(location //tests/utils/environments/x86_64-linux:x86_64-linux-debug)",
-            "--docker-image=score_itf_examples_debug:latest",
-        ],
         "//config:integration_docker": [
             "--docker-image-bootstrap=$(location //tests/utils/environments/x86_64-linux)",
             "--docker-image=score_itf_examples:latest",
