@@ -45,6 +45,7 @@ jobs:
       pull-requests: write
       id-token: write
       actions: read
+      issues: write
 
   create-release:
     name: Create release
@@ -54,7 +55,6 @@ jobs:
     runs-on: ubuntu-slim
     permissions:
       contents: write
-      issues: write
     env:
       COVERAGE_ARCHIVE: ${{ github.event.repository.name }}-${{ inputs.tag }}-coverage
     steps:
