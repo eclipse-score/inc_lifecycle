@@ -21,7 +21,6 @@
 #include <score/assert.hpp>
 #include <unistd.h>
 #include <cstring>
-#include <iostream>
 
 namespace score::mw::lifecycle::internal
 {
@@ -45,8 +44,9 @@ ProcessInfoNode::ProcessInfoNode(configuration::ComponentConfig&& config, Proces
     if (app_profile.alive_supervision.has_value() &&
         app_profile.application_type == configuration::ApplicationType::ReportingAndSupervised)
     {
-        std::cout << "setting up alive supervision" << std::endl;
         const uid_t uid = config.deployment_config.sandbox.uid;
+
+        LM_LOG_DEBUG() << "Setting up alive supervision for" << name;
 
         config_.deployment_config.environmental_variables.add("LCM_ALIVE_INTERFACE_PATH", aliveInterfacePath(identifier_));
 

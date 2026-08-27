@@ -155,7 +155,11 @@ class Graph final
 
     /// @brief Constructor to initialize a Graph object.
     /// @param max_num_nodes Maximum number of nodes this graph can hold.
+    /// @param configuration Configuration containing run target and component information.
+    /// @param job_queue Queue to push component jobs to for multithreaded processing.
     /// @param process_handling The interfaces used to start, stop and report on the OS processes.
+    /// @param supervision_factory Factory to construct component supervisions with.
+    /// @param transition_result_receiver Object to notify when the initial transition is complete.
     Graph(
         uint32_t max_num_nodes,
         configuration::Config& configuration,

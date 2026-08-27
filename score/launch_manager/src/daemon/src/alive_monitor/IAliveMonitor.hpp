@@ -13,7 +13,6 @@
 #ifndef SAF_DAEMON_ALIVE_MONITOR_HPP_INCLUDED
 #define SAF_DAEMON_ALIVE_MONITOR_HPP_INCLUDED
 
-#include "score/mw/launch_manager/alive_monitor/details/common/EInitCode.hpp"
 #include "score/mw/launch_manager/supervision_control_client/isupervision_factory.hpp"
 
 namespace score
@@ -31,11 +30,14 @@ class IAliveMonitor
   public:
     virtual ~IAliveMonitor() = default;
 
+    /// @brief Start the monitor thread
     virtual bool start() = 0;
 
+    /// @brief Stop the monitor thread
     virtual void stop() = 0;
 
-    virtual ISupervisionFactory& getSupervisionFactory() = 0;
+    /// @brief Returns an interface for components to register their alive supervision
+    virtual ISupervisionFactory& getSupervisionFactory() const = 0;
 };
 
 }  // namespace daemon
