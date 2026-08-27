@@ -321,6 +321,21 @@ TEST_F(GraphInitialTransitionTest, cancel)
     EXPECT_EQ(graph_->getState(), GraphState::kUndefinedState);
 }
 
+TEST_F(GraphInitialTransitionTest, unrecognizedRunTarget)
+{
+    RecordProperty(
+        "Description",
+        "Regression test for #542: startInitialTransition() with a run target name that doesn't exist in "
+        "the graph's configuration must still report kInitialMachineStateFailed, instead of leaving the "
+        "initial transition result unreported.");
+
+    EXPECT_CALL(
+        mock_transition_result_publisher_,
+        setInitialStateTransitionResult(ControlClientCode::kInitialMachineStateFailed));
+
+    graph_->startInitialTransition(IdentifierHash{"NotARealRunTarget"});
+}
+
 class GraphOffTransitionTest : public GraphTest
 {
 };
@@ -640,8 +655,10 @@ TEST_F(GraphUtilitiesTest, startTransitionWithUnrecognizedTargetDoesNotCrashOrTr
 
     const auto state_before = graph_->getState();
 
-    EXPECT_NO_FATAL_FAILURE(graph_->startTransition(IdentifierHash{"NotARealRunTarget"}));
+    bool started = true;
+    EXPECT_NO_FATAL_FAILURE(started = graph_->startTransition(IdentifierHash{"NotARealRunTarget"}));
 
+    EXPECT_FALSE(started);
     EXPECT_EQ(graph_->getState(), state_before);
 }
 

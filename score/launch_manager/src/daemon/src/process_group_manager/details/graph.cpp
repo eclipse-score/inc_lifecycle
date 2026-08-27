@@ -145,7 +145,6 @@ bool Graph::isValidRunTarget(IdentifierHash pg_state)
     return it != nodes_.end() && std::holds_alternative<RunTarget>((*it).second);
 }
 
-
 bool Graph::setState(const GraphState new_state)
 {
     GraphState old_state = getState();
@@ -267,7 +266,7 @@ void Graph::tryQueueNode(ComponentTask task)
     }
 }
 
-void Graph::startTransition(IdentifierHash pg_state)
+bool Graph::startTransition(IdentifierHash pg_state)
 {
     LM_LOG_DEBUG() << "Graph starting transition to" << pg_state;
     IdentifierHash old_state_name;
@@ -281,7 +280,7 @@ void Graph::startTransition(IdentifierHash pg_state)
     {
         // Last-resort guard — callers should already reject via isValidRunTarget() (#541).
         LM_LOG_ERROR() << "startTransition: RunTarget not found for requested process group state" << pg_state;
-        return;
+        return false;
     }
 
     bool reached_transition = setState(GraphState::kInTransition);
@@ -295,13 +294,18 @@ void Graph::startTransition(IdentifierHash pg_state)
     {
         finalizeTransitionSuccess();
     }
+    return true;
 }
 
 void Graph::startInitialTransition(IdentifierHash pg_state)
 {
     is_initial_state_transition_ = true;
     setRequestStartTime();
-    startTransition(pg_state);
+    if (!startTransition(pg_state))
+    {
+        is_initial_state_transition_ = false;
+        transition_result_receiver_->setInitialStateTransitionResult(ControlClientCode::kInitialMachineStateFailed);
+    }
 }
 
 bool Graph::startTransitionToOffState()
@@ -312,7 +316,10 @@ bool Graph::startTransitionToOffState()
     setRequestStartTime();
     if (setState(GraphState::kInTransition))
     {
-        startTransition(off_state_);
+        // The Off state always has a RunTarget node, so this cannot fail.
+        const bool started = startTransition(off_state_);
+        static_cast<void>(started);
+        SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(started, "Off state RunTarget node missing");
         return true;
     }
     return false;
