@@ -22,7 +22,7 @@ bazel_dep(name = "rules_oci", version = "2.3.0")
 bazel_dep(name = "rules_shell", version = "0.6.1")
 bazel_dep(name = "aspect_rules_lint", version = "2.5.0")
 bazel_dep(name = "buildifier_prebuilt", version = "8.5.1")
-bazel_dep(name = "platforms", version = "1.0.0")
+bazel_dep(name = "platforms", version = "1.1.0")
 bazel_dep(name = "download_utils", version = "1.2.2")
 bazel_dep(name = "googletest", version = "1.17.0.bcr.2")
 
@@ -30,14 +30,15 @@ bazel_dep(name = "google_benchmark", version = "1.9.5", dev_dependency = True)
 
 # S-CORE process rules
 
+bazel_dep(name = "score_docs_as_code", version = "8.0.1")
+
 bazel_dep(name = "score_bazel_platforms", version = "1.0.0", dev_dependency = True)
-bazel_dep(name = "score_docs_as_code", version = "7.2.0", dev_dependency = True)
 bazel_dep(name = "score_tooling", version = "2.2.1", dev_dependency = True)
 bazel_dep(name = "score_rust_policies", version = "0.0.5", dev_dependency = True)
 bazel_dep(name = "score_cpp_policies", version = "0.1.0", dev_dependency = True)
-bazel_dep(name = "score_process", version = "2.0.3", dev_dependency = True)
-bazel_dep(name = "score_platform", version = "0.6.4", dev_dependency = True)
 bazel_dep(name = "score_devcontainer", version = "1.11.0", dev_dependency = True)
+bazel_dep(name = "score_process_description", version = "2.1.2", dev_dependency = True)
+bazel_dep(name = "score_platform", version = "0.7.1", dev_dependency = True)
 
 ## Configure the C++ toolchain
 bazel_dep(name = "score_bazel_cpp_toolchains", version = "1.0.2", dev_dependency = True)
@@ -180,7 +181,7 @@ oci.pull(
 )
 use_repo(oci, "debian-test-runtime", "debian-test-runtime_linux_amd64")
 
-bazel_dep(name = "score_baselibs", version = "0.2.11")
+bazel_dep(name = "score_baselibs", version = "0.2.12")
 
 # Hedron's Compile Commands Extractor for Bazel
 # https://github.com/hedronvision/bazel-compile-commands-extractor

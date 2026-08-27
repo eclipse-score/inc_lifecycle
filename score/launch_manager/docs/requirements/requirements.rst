@@ -868,5 +868,5 @@ Configuration file
 
     The :term:`Launch Manager` shall have a means to validate the configuration offline.
 
-.. needextend:: is_external == False and "__launch_manager__" in id
+.. needextend:: c.this_doc() and is_external == False and "__launch_manager__" in id
    :+tags: lifecycle, launch_manager

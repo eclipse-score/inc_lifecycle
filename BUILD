@@ -133,7 +133,7 @@ docs(
     ],
     external_needs = [
         "@score_platform//:needs_json",  # This allows linking to feature requirements.
-        "@score_process//:needs_json",  # This allows linking to requirements (wp__requirements_comp, etc.) from the process_description repository.
+        "@score_process_description//:needs_json",  # This allows linking to requirements (wp__requirements_comp, etc.) from the process_description repository.
     ],
     project = "Lifecycle and Health Management",
     project_url = "https://eclipse-score.github.io/lifecycle/",
