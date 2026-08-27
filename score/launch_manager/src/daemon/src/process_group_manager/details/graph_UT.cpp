@@ -616,6 +616,35 @@ TEST_F(GraphUtilitiesTest, getProcessInfoNode)
     EXPECT_NO_FATAL_FAILURE(static_cast<void>(pin->getState()));
 }
 
+TEST_F(GraphUtilitiesTest, isValidRunTarget)
+{
+    RecordProperty(
+        "Description",
+        "Test that isValidRunTarget() reports true for a run target name that exists in the graph's "
+        "configuration and false for one that doesn't.");
+
+    EXPECT_TRUE(graph_->isValidRunTarget(IdentifierHash{run_target_name(0)}));
+    EXPECT_TRUE(graph_->isValidRunTarget(IdentifierHash{startup.name}));
+    EXPECT_TRUE(graph_->isValidRunTarget(IdentifierHash{off.name}));
+    EXPECT_FALSE(graph_->isValidRunTarget(IdentifierHash{"NotARealRunTarget"}));
+}
+
+TEST_F(GraphUtilitiesTest, startTransitionWithUnrecognizedTargetDoesNotCrashOrTransition)
+{
+    RecordProperty(
+        "Description",
+        "Regression test for #541: startTransition() with a run target name that doesn't exist in the "
+        "graph's configuration must not crash the daemon (via an unrecognized node reaching "
+        "TransitionBuilder::createTransition()'s always-on assert). It should simply not start a "
+        "transition, leaving the graph in whatever state it was already in.");
+
+    const auto state_before = graph_->getState();
+
+    EXPECT_NO_FATAL_FAILURE(graph_->startTransition(IdentifierHash{"NotARealRunTarget"}));
+
+    EXPECT_EQ(graph_->getState(), state_before);
+}
+
 TEST_F(GraphUtilitiesTest, getConfigMethods)
 {
     RecordProperty("Description", "Test that various getters related to the config return the correct values");

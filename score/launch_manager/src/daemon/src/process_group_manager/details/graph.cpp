@@ -139,6 +139,13 @@ Graph::~Graph()
     LM_LOG_DEBUG() << "Graph destroyed";
 }
 
+bool Graph::isValidRunTarget(IdentifierHash pg_state)
+{
+    auto it = nodes_.find(pg_state);
+    return it != nodes_.end() && std::holds_alternative<RunTarget>((*it).second);
+}
+
+
 bool Graph::setState(const GraphState new_state)
 {
     GraphState old_state = getState();
@@ -270,8 +277,12 @@ void Graph::startTransition(IdentifierHash pg_state)
         requested_state_.pg_state_name_ = pg_state;
     }
 
-    SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(
-        nodes_.find(pg_state) != nodes_.end(), "State name should be validated before it is passed to this method");
+    if (!isValidRunTarget(pg_state))
+    {
+        // Last-resort guard — callers should already reject via isValidRunTarget() (#541).
+        LM_LOG_ERROR() << "startTransition: RunTarget not found for requested process group state" << pg_state;
+        return;
+    }
 
     bool reached_transition = setState(GraphState::kInTransition);
     static_cast<void>(reached_transition);
