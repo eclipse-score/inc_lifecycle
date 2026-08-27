@@ -16,3 +16,43 @@ The work products compiled in the safety package are created with care according
 
 For details on the features, see https://eclipse-score.github.io/score/main/features/lifecycle/index.html
 
+---
+
+## Changes to the Module
+
+### New Features
+
+$NEW_FEATURES
+
+### Improvements
+
+$IMPROVEMENTS
+
+### Bug Fixes
+
+$BUG_FIXES
+
+### Other Changes by Label
+
+$OTHER_CHANGES
+
+### Compatibility
+
+$COMPATIBILITY
+
+### Performed Verification
+
+$PERFORMED_VERIFICATION
+
+### Known Issues
+
+$KNOWN_ISSUES
+
+### Known Vulnerabilities
+
+$KNOWN_VULNERABILITIES
+
+### Upgrade Instructions
+
+$UPGRADE_INSTRUCTIONS
+

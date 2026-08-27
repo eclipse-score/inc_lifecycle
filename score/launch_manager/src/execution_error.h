@@ -39,7 +39,11 @@ enum class ExecErrc : score::result::ErrorCode
     kInTransitionToSameState = 11,  ///< Transition to the requested Process Group state failed because transition to
                                     ///< requested state is already in progress
     kNoTimeStamp = 12,              ///< DeterministicClient time stamp information is not available
-    kCycleOverrun = 13              ///< Deterministic activation cycle time exceeded
+    kCycleOverrun = 13,             ///< Deterministic activation cycle time exceeded
+    kActivationInProgress =
+        14,  ///< A Run Target activation is already in progress; no single Run Target is currently active
+    kRequestQueueIsFull = 15,   ///< The activation request queue is full; the request was discarded
+    kRunTargetDoesntExist = 16  ///< The requested Run Target name does not exist in the current configuration
 };
 
 class ExecErrorDomain final : public score::result::ErrorDomain
@@ -77,18 +81,24 @@ class ExecErrorDomain final : public score::result::ErrorDomain
                 return "DeterministicClient time stamp information is not available";
             case ExecErrc::kCycleOverrun:
                 return "Deterministic activation cycle time exceeded";
+            case ExecErrc::kActivationInProgress:
+                return "A Run Target activation is already in progress; no single Run Target is currently active";
+            case ExecErrc::kRequestQueueIsFull:
+                return "The activation request queue is full; the request was discarded";
+            case ExecErrc::kRunTargetDoesntExist:
+                return "The requested Run Target name does not exist in the current configuration";
             default:
                 return "Unknown error";
         }
     }
 };
 
-constexpr ExecErrorDomain g_ExecErrorDomain{};
+/// @brief The single ExecErrorDomain instance every ExecErrc-based Error refers to.
+inline constexpr ExecErrorDomain g_ExecErrorDomain{};
 
 constexpr score::result::Error MakeError(ExecErrc code, const std::string_view user_message = "") noexcept
 {
     return score::result::Error{static_cast<score::result::ErrorCode>(code), g_ExecErrorDomain, user_message};
-    ;
 }
 
 }  // namespace score::mw::lifecycle
