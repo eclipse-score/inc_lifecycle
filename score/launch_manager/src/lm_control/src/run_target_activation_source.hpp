@@ -14,6 +14,8 @@
 #ifndef SCORE_MW_LIFECYCLE_RUN_TARGET_ACTIVATION_SOURCE_HPP
 #define SCORE_MW_LIFECYCLE_RUN_TARGET_ACTIVATION_SOURCE_HPP
 
+#include <cstdint>
+
 namespace score::mw::lifecycle
 {
 
@@ -25,15 +27,44 @@ namespace score::mw::lifecycle
 /// @note Activation cannot fail and always resolves into some
 ///       Run Target. This enum describes *why* it resolved,
 ///       not whether it succeeded.
-enum class RunTargetActivationSource
+enum class RunTargetActivationSource : std::uint8_t
 {
+    /// @brief Activation of the very first Run Target, started automatically by
+    ///        the Launch Manager on startup without an explicit State Manager
+    ///        request.
+    kInitialActivation = 0,
+
     /// @brief Activation was explicitly requested by a State Manager.
-    kStateManagerRequest = 0,
+    kStateManagerRequest = 1,
 
     /// @brief Activation happened automatically as part of a recovery action,
     ///        without an explicit State Manager request.
-    kRecoveryAction = 1
+    kRecoveryAction = 2
 };
+
+/// @brief Stream insertion operator for RunTargetActivationSource.
+///
+/// Templated on the stream type so it works with any ostream-compatible stream
+/// (for example, `std::ostream` or mw::log streams) without introducing
+/// additional dependencies in this header.
+template <typename Stream>
+Stream& operator<<(Stream& os, const RunTargetActivationSource source)
+{
+    switch (source)
+    {
+        case RunTargetActivationSource::kInitialActivation:
+            os << "kInitialActivation";
+            return os;
+        case RunTargetActivationSource::kStateManagerRequest:
+            os << "kStateManagerRequest";
+            return os;
+        case RunTargetActivationSource::kRecoveryAction:
+            os << "kRecoveryAction";
+            return os;
+    }
+    os << static_cast<std::uint32_t>(source);
+    return os;
+}
 
 }  // namespace score::mw::lifecycle
 

@@ -10,14 +10,10 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-#
-# This workflow automates the release process for the lifecycle repository.
-# It is triggered manually to build, test, and validate release artifacts.
-# The workflow creates a draft release with a filled-out description for
-# maintainers to approve and publish.
 
 name: Release
 run-name: Release ${{ inputs.tag }}
+
 permissions:
   contents: read
 on:
@@ -27,95 +23,102 @@ on:
         description: 'Release tag (e.g., v1.0.0)'
         required: true
         type: string
+
+# Prevent concurrent release runs to avoid conflicts and race conditions
 concurrency:
   group: release
+
 jobs:
-  build-linux:
-    uses: ./.github/workflows/build.yml
-
-  build-qnx:
-    uses: ./.github/workflows/qnx8.yml
-    permissions:
-      contents: read
-      pull-requests: read
-    secrets: inherit
-
-  # Unified LLVM source-based coverage (C++ and Rust in one report). Publishes
-  # the HTML report as the `coverage-html` artifact, which create-release
-  # archives into the draft release.
-  coverage-report:
-    uses: ./.github/workflows/code_coverage.yml
+  # Build, test, generate coverage, and so on to avoid creating a broken release.
+  # The following job depends on the coverage-html artifact being created.
+  pr:
+    name: PR
+    uses: ./.github/workflows/on-pr.yml
     permissions:
       contents: read
 
-  #  lint:
-  #    uses: ./.github/workflows/lint.yml
-  #  sanitizers:
-  #    uses: ./.github/workflows/sanitizers_linux.yml
+  pr-target:
+    name: PR Target
+    uses: ./.github/workflows/on-pr-target.yml
+    permissions:
+      contents: read
 
   create-release:
-    needs: [build-linux, build-qnx, coverage-report]
-    runs-on: ubuntu-latest
+    name: Create release
+    needs:
+      - pr
+      - pr-target
+    runs-on: ubuntu-slim
     permissions:
       contents: write
     env:
       COVERAGE_ARCHIVE: ${{ github.event.repository.name }}-${{ inputs.tag }}-coverage
     steps:
-      - name: Checkout Repository
+      - name: Checkout code
         uses: actions/checkout@v7
-      - name: Get Current Date and Previous Release Tag
+
+      - name: Get previous tag
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          PREVIOUS_TAG=$(gh release view --json tagName --jq '.tagName' 2>/dev/null || echo "N/A")
-          echo "RELEASE_DATE=$(date --rfc-3339=date)" >> $GITHUB_ENV
-          echo "PREVIOUS_RELEASE_TAG=$PREVIOUS_TAG" >> $GITHUB_ENV
-      - name: Generate Release Body
+          PREVIOUS_RELEASE_TAG="$(gh release view --json tagName --jq '.tagName' 2>/dev/null || echo "N/A")"
+          echo "PREVIOUS_RELEASE_TAG=$PREVIOUS_RELEASE_TAG" >> "$GITHUB_ENV"
+
+      - name: Get current date
+        run: |
+          RELEASE_DATE="$(date --rfc-3339=date)"
+          echo "RELEASE_DATE=$RELEASE_DATE" >> "$GITHUB_ENV"
+
+      - name: Insert release metadata
         env:
           RELEASE_TAG: ${{ inputs.tag }}
           COMMIT_SHA: ${{ github.sha }}
           ACTION_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           envsubst '$RELEASE_TAG $PREVIOUS_RELEASE_TAG $COMMIT_SHA $RELEASE_DATE $ACTION_RUN_URL' < .github/RELEASE_TEMPLATE.md > release_body.md
-      - name: Find Latest Release Note
+
+      - name: Find release notes
+        # Searches docs/release/release_note_v_X_Y_Z.rst files
+        # Sorts versions numerically, returns the highest version found
         run: |
-          LATEST_RELEASE_NOTE=$(
+          LATEST=$(
             for f in docs/release/release_note_v_*.rst; do
               [ -e "$f" ] || continue
               ver=$(basename "$f" .rst | sed 's/release_note_v_//' | tr '_' '.')
               echo "$ver $f"
             done | sort -t '.' -k1,1n -k2,2n -k3,3n | tail -1 | awk '{print $2}'
           )
-          echo "LATEST_RELEASE_NOTE=$LATEST_RELEASE_NOTE" >> "$GITHUB_ENV"
-      - name: Append Release Note to Release Body
-        if: env.LATEST_RELEASE_NOTE != ''
-        run: |
-          printf '\n---\n\n## Changes to the Module\n\n' >> release_body.md
-          sed -n '/^Changes to the Module$/,$p' "$LATEST_RELEASE_NOTE" | sed '1,2d' >> release_body.md
-      - name: Download Coverage Report Artifact
+          echo "LATEST_RELEASE_NOTE=${LATEST:--}" >> "$GITHUB_ENV"
+
+      - name: Convert release notes to Markdown
+        # Extracts release note sections from .rst file and converts to .md format
+        if: env.LATEST_RELEASE_NOTE != '-'
+        run: ./scripts/prepare_release_notes.sh release_body.md "${{ env.LATEST_RELEASE_NOTE }}"
+
+      - name: Download coverage report
         uses: actions/download-artifact@v8
         with:
           name: coverage-html
           path: ${{ env.COVERAGE_ARCHIVE }}
-      - name: Create Coverage Report Archive
+
+      - name: Compress coverage report
+        # Reproducible flags: sorted names, fixed ownership (0:0), fixed timestamps
         run: |
           tar --sort=name --owner=0 --group=0 --numeric-owner \
             -cJf "$COVERAGE_ARCHIVE.tar.xz" "$COVERAGE_ARCHIVE"
-      - name: Create Draft Release
+
+      - name: Create draft release
         uses: softprops/action-gh-release@v3
         id: draft_release
         with:
           tag_name: ${{ inputs.tag }}
           body_path: release_body.md
           draft: true
-          generate_release_notes: true
+          generate_release_notes: false
           target_commitish: ${{ github.sha }}
           files: |
             ${{ env.COVERAGE_ARCHIVE }}.tar.xz
-      - name: Summary
+
+      - name: Link to release in workflow summary
         run: |
-          echo "### Draft Release Created :rocket:" >> $GITHUB_STEP_SUMMARY
-          echo "Tag: **${{ inputs.tag }}**" >> $GITHUB_STEP_SUMMARY
-          echo "Branch: \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "Commit: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "Maintainers can review at: ${{ steps.draft_release.outputs.url }}" >> $GITHUB_STEP_SUMMARY
+          echo "[A draft release was created.](${{ steps.draft_release.outputs.url }})" >> "$GITHUB_STEP_SUMMARY"
