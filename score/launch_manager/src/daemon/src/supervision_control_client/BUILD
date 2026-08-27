@@ -73,11 +73,24 @@ cc_library(
     ],
 )
 
+cc_library(
+    name = "mock_supervision_factory",
+    testonly = True,
+    hdrs = ["mock_supervision_factory.hpp"],
+    include_prefix = "score/mw/launch_manager/supervision_control_client",
+    strip_include_prefix = "/score/launch_manager/src/daemon/src/supervision_control_client",
+    visibility = ["//score:__subpackages__"],
+    deps = [
+        ":isupervision_factory",
+        "@googletest//:gtest_main",
+    ],
+)
+
 lm_cc_test(
     name = "supervision_control_client_ut",
     srcs = ["supervision_control_client_ut.cpp"],
     deps = [
-        ":supervision_control_client",
+        ":supervision_handle",
         "@googletest//:gtest_main",
     ],
 )

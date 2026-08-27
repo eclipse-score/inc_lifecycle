@@ -180,6 +180,7 @@ lm_cc_test(
         ":safe_process_map",
         "//score/launch_manager/src/daemon/src/process_group_manager:mock_iprocess",
         "//score/launch_manager/src/daemon/src/supervision_control_client:mock_supervision_event_publisher",
+        "//score/launch_manager/src/daemon/src/supervision_control_client:mock_supervision_factory",
         "@googletest//:gtest_main",
     ],
 )
@@ -233,6 +234,7 @@ lm_cc_test(
         "//score/launch_manager/src/daemon/src/configuration:config",
         "//score/launch_manager/src/daemon/src/process_group_manager:mock_iprocess",
         "//score/launch_manager/src/daemon/src/supervision_control_client:mock_supervision_event_publisher",
+        "//score/launch_manager/src/daemon/src/supervision_control_client:mock_supervision_factory",
         "@googletest//:gtest_main",
     ],
 )
@@ -349,12 +351,12 @@ lm_cc_test(
     name = "process_group_manager_UT",
     srcs = ["process_group_manager_UT.cpp"],
     deps = [
+        "//score/launch_manager/src/daemon/src/alive_monitor:mock_alive_monitor",
         "//score/launch_manager/src/daemon/src/configuration:config",
         "//score/launch_manager/src/daemon/src/process_group_manager",
-        "//score/launch_manager/src/daemon/src/process_group_manager:mock_ialive_monitor_thread",
         "//score/launch_manager/src/daemon/src/recovery_client:mock_recovery_client",
-        "//score/launch_manager/src/daemon/src/supervision_control_client:isupervision_control_notifier",
-        "//score/launch_manager/src/daemon/src/supervision_control_client:mock_supervision_control_notifier",
+        "//score/launch_manager/src/daemon/src/supervision_control_client:mock_supervision_event_publisher",
+        "//score/launch_manager/src/daemon/src/supervision_control_client:mock_supervision_factory",
         "//score/launch_manager/src/daemon/src/watchdog:mock_i_watchdog_if",
         "@googletest//:gtest_main",
     ],
