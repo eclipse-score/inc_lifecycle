@@ -345,7 +345,7 @@ Conditional Launching
     :version: 1
     :satisfied_by: comp__lifecycle_launch_manager
 
-    If the activation of a run target exceeds the maximum time, then
+    If the activation of a run target exceeds the maximum configured time, then
     the :term:`Launch Manager` shall consider this activation as failed.
 
 .. comp_req:: Launched Process status
