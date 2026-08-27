@@ -40,15 +40,15 @@ namespace daemon
 using SptrIRecoveryClient = std::shared_ptr<score::mw::lifecycle::IRecoveryClient>;
 using UptrPhmDaemon = std::unique_ptr<score::mw::lifecycle::internal::saf::daemon::PhmDaemon>;
 using OsClock = score::mw::lifecycle::internal::saf::timers::OsClockInterface;
-using Config = score::mw::lifecycle::internal::configuration::Config;
-using score::mw::lifecycle::internal::configuration::AliveSupervisionConfig;
+using configuration::AliveSupervisionConfig;
 
 class AliveMonitorImpl : public IAliveMonitor
 {
   public:
-    AliveMonitorImpl(SptrIRecoveryClient recovery_client, const Config& config);
-
-    EInitCode init() noexcept override;
+    AliveMonitorImpl(
+        SptrIRecoveryClient recovery_client,
+        const AliveSupervisionConfig& config,
+        const std::size_t supervised_components);
 
     bool start() noexcept override;
 
@@ -57,6 +57,11 @@ class AliveMonitorImpl : public IAliveMonitor
     ISupervisionFactory& getSupervisionFactory() noexcept override;
 
   private:
+    /// @brief Initialize the AliveMonitor functionality
+    /// @param supervised_components Number of components we expect to register alive supervision
+    /// @return kNoError if initialization was successful, otherwise an appropriate error code.
+    EInitCode init(const std::size_t supervised_components) noexcept;
+
     /// @brief Run the AliveMonitor functionality in a cyclic manner until cancellation is requested.
     /// @param cancel_thread Atomic boolean flag to signal thread cancellation.
     bool threadFn(std::atomic_bool& cancel_thread) noexcept;
@@ -64,7 +69,7 @@ class AliveMonitorImpl : public IAliveMonitor
     SptrIRecoveryClient m_recovery_client{nullptr};
     UptrPhmDaemon m_daemon{nullptr};
     OsClock m_osClock{};
-    const Config& m_config;
+    const AliveSupervisionConfig& m_config;
     std::thread alive_monitor_thread_{};
     std::atomic_bool stop_thread_{false};
     saf::daemon::EInitCode initResult{saf::daemon::EInitCode::kNotInitialized};
