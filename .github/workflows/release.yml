@@ -39,6 +39,7 @@ jobs:
   pr-target:
     name: PR Target
     uses: ./.github/workflows/on-pr-target.yml
+    secrets: inherit
     permissions:
       contents: write
       pages: write
