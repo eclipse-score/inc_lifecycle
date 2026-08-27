@@ -28,7 +28,6 @@ on:
 
 permissions:
   pull-requests: write
-  issues: write
 
 jobs:
   qnx-build:
