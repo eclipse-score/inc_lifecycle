@@ -69,5 +69,5 @@ Requirements
     - Set the status to valid and start the review/merge process
     - Add other needed requirements for your feature
 
-.. needextend:: is_external == False and "__health_monitor__" in id
+.. needextend:: c.this_doc() and is_external == False and "__health_monitor__" in id
    :+tags: lifecycle, health_monitor
