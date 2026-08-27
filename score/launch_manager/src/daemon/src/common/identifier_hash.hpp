@@ -173,10 +173,7 @@ inline std::ostream& operator<<(std::ostream& stream, const IdentifierHash& id_h
 namespace std
 {
 
-/// @brief Specialization of std::hash for IdentifierHash, so it can be used directly as a key in
-/// std::unordered_map/std::unordered_set. Delegates to IdentifierHash::data(), which is already
-/// computed with the FNV-1a algorithm above — keeping a single, portable hash implementation
-/// instead of letting callers fall back to the (implementation-defined) default std::hash.
+/// @brief Specialization of std::hash for IdentifierHash.
 template <>
 struct hash<score::mw::lifecycle::IdentifierHash>
 {
