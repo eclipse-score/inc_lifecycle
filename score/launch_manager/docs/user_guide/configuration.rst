@@ -210,8 +210,6 @@ component_properties (object)
                 * ``"Terminated"``: The process has started, reached its running state, and then terminated successfully.
         * **file_state** (object, optional)
             * **Description:** Specifies a ready condition based on the existence of a file at a given path.
-            .. warning::
-                ``file_state`` ready condition is currently not implemented
             * **Properties:**
                 * **file_path** (string, required)
                     * **Description:** Specifies the absolute path to the file being watched.
@@ -225,6 +223,10 @@ component_properties (object)
                     * **Description:** Specifies the time interval, in seconds (e.g., ``0.3`` for 300 milliseconds), at which the **Launch Manager** checks the file existence state.
                     * **Constraint:** Must be greater than 0.
                     * **Default:** ``0.01``
+
+.. warning::
+    ``ready_condition`` with ``file_state`` ready condition is currently not implemented
+
 
 .. _lm_conf_deployment_config_object_:
 
