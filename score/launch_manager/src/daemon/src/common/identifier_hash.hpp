@@ -170,6 +170,24 @@ inline std::ostream& operator<<(std::ostream& stream, const IdentifierHash& id_h
 
 }  // namespace score::mw::lifecycle
 
+namespace std
+{
+
+/// @brief Specialization of std::hash for IdentifierHash, so it can be used directly as a key in
+/// std::unordered_map/std::unordered_set. Delegates to IdentifierHash::data(), which is already
+/// computed with the FNV-1a algorithm above — keeping a single, portable hash implementation
+/// instead of letting callers fall back to the (implementation-defined) default std::hash.
+template <>
+struct hash<score::mw::lifecycle::IdentifierHash>
+{
+    std::size_t operator()(const score::mw::lifecycle::IdentifierHash& id_hash) const noexcept
+    {
+        return id_hash.data();
+    }
+};
+
+}  // namespace std
+
 #ifdef LC_LOG_SCORE_MW_LOG
 #include "score/mw/log/logger.h"
 

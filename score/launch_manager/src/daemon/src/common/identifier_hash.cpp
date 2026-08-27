@@ -12,7 +12,7 @@
  ********************************************************************************/
 
 #include "score/mw/launch_manager/common/identifier_hash.hpp"
-#include <functional>
+#include <cstdint>
 #include <mutex>
 #include <unordered_map>
 
@@ -50,22 +50,43 @@ namespace score::mw::lifecycle
 // - If k1 == k2 is true, h(k1) == h(k2) is also true.
 // - The probability of h(a) == h(b) for a != b should approach 1.0 / std::numeric_limits<std::size_t>::max().
 //     - This is small enough for initial implementation.
-//
-// We need to discus when and if std::hash should be replaced in LCM.
-// At the moment, usage of std::hash is deemed good enough for our purposes.
-// One thing to note: hashing function is implementation specific.
-// So if this should work between different compilers, we may need to go for our own hash function.
+
+namespace
+{
+
+// Portable hash function FNV-1a https://www.rfc-editor.org/info/rfc9923/
+
+#if SIZE_MAX == UINT32_MAX
+constexpr std::size_t kFnvOffsetBasis = 2166136261U;
+constexpr std::size_t kFnvPrime = 16777619U;
+#else
+constexpr std::size_t kFnvOffsetBasis = 14695981039346656037ULL;
+constexpr std::size_t kFnvPrime = 1099511628211ULL;
+#endif
+
+std::size_t Fnv1aHash(std::string_view data) noexcept
+{
+    std::size_t hash = kFnvOffsetBasis;
+    for (const unsigned char byte : data)
+    {
+        hash ^= static_cast<std::size_t>(byte);
+        hash *= kFnvPrime;
+    }
+    return hash;
+}
+
+}  // namespace
 
 IdentifierHash::IdentifierHash(const std::string& id)
 {
-    hash_id_ = std::hash<std::string>{}(id);
+    hash_id_ = Fnv1aHash(id);
     const std::lock_guard<std::mutex> lock(get_registry_mutex());
     get_registry()[hash_id_] = id;
 }
 
 IdentifierHash::IdentifierHash(std::string_view id)
 {
-    hash_id_ = std::hash<std::string_view>{}(id);
+    hash_id_ = Fnv1aHash(id);
     const std::lock_guard<std::mutex> lock(get_registry_mutex());
     get_registry()[hash_id_] = id;
 }
@@ -73,7 +94,7 @@ IdentifierHash::IdentifierHash(std::string_view id)
 IdentifierHash::IdentifierHash(const char* id)
 {
     const std::string_view sv = (id != nullptr) ? std::string_view(id) : std::string_view("");
-    hash_id_ = std::hash<std::string_view>{}(sv);
+    hash_id_ = Fnv1aHash(sv);
     const std::lock_guard<std::mutex> lock(get_registry_mutex());
     get_registry()[hash_id_] = sv;
 }
@@ -105,7 +126,7 @@ bool IdentifierHash::operator<(const IdentifierHash& other) const
 
 IdentifierHash::IdentifierHash()
 {
-    hash_id_ = std::hash<std::string_view>{}(std::string_view(""));
+    hash_id_ = Fnv1aHash(std::string_view(""));
     const std::lock_guard<std::mutex> lock(get_registry_mutex());
     get_registry()[hash_id_] = "";
 }
