@@ -17,6 +17,7 @@
 #include <array>
 #include <cstddef>
 #include <cstring>
+#include <iosfwd>
 #include <string_view>
 
 namespace score::mw::lifecycle
@@ -352,17 +353,18 @@ bool operator!=(const FixedString<N>& lhs, const FixedString<M>& rhs) noexcept
 /// Writes the string representation of the FixedString to the specified
 /// output stream.
 ///
-/// The operator is templated on the stream type so it can be used with any
-/// ostream-compatible stream (for example, `std::ostream` or mw::log streams)
-/// without introducing additional dependencies in this header.
+/// `mw::log::LogStream` accepts FixedString through its implicit conversion to
+/// `mw::log::LogString` (FixedString is a `char` range), so providing the operator
+/// only for std::basic_ostream.
 ///
-/// @tparam Stream Type of the output stream.
+/// @tparam CharT Character type of the stream.
+/// @tparam Traits Character traits of the stream.
 /// @tparam MaxLength Maximum capacity of the FixedString.
 /// @param os The output stream.
 /// @param fs The FixedString instance to write.
 /// @return A reference to the output stream.
-template <typename Stream, std::size_t MaxLength>
-Stream& operator<<(Stream& os, const FixedString<MaxLength>& fs)
+template <typename CharT, typename Traits, std::size_t MaxLength>
+std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, const FixedString<MaxLength>& fs)
 {
     return os << fs.as_string_view();
 }
