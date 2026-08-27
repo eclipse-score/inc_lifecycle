@@ -59,9 +59,9 @@ lm_cc_test(
     srcs = ["src/details/ilm_control_UT.cpp"],
     args = [
         "--service_instance_manifest",
-        "$(rootpath src/details/test_lm_mw_com_config.json)",
+        "$(rootpath src/details/test_lmcontrol_mw_com_config.json)",
     ],
-    data = ["src/details/test_lm_mw_com_config.json"],
+    data = ["src/details/test_lmcontrol_mw_com_config.json"],
     deps = [
         ":lm_control",
         "@googletest//:gtest",
