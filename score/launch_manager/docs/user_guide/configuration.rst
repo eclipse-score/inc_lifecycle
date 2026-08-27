@@ -225,7 +225,7 @@ component_properties (object)
                     * **Default:** ``0.01``
 
 .. warning::
-    ``ready_condition`` with ``file_state`` ready condition is currently not implemented
+    ``ready_condition`` with ``file_state`` is currently not implemented
 
 
 .. _lm_conf_deployment_config_object_:
