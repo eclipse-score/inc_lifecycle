@@ -53,19 +53,6 @@ Launching Processes
     The :term:`Launch Manager` shall provide support for launching a process with a
     given set of arguments.
 
-.. comp_req:: Launching process in debug mode
-    :id: comp_req__launch_man__debug_support
-    :reqtype: Functional
-    :security: NO
-    :safety: ASIL_B
-    :derived_from: feat_req__lifecycle__custom_cond_support[version==1]
-    :status: valid
-    :version: 1
-    :satisfied_by: comp__lifecycle_launch_manager
-
-    The :term:`Launch Manager` shall provide support for launching process with a
-    given set of debug arguments in debug mode.
-
 .. comp_req:: Launching process in state waiting for a debugger connection
     :id: comp_req__launch_man__support_held_state
     :reqtype: Functional
