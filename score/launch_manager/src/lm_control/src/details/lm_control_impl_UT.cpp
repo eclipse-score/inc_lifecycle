@@ -672,7 +672,7 @@ TEST_F(LmControlUT, InitialActivationSourceIsForwardedToCallback)
 {
     RecordProperty(
         "Description",
-        "An activation_result sample carrying kInitial (the automatic first transition started by the "
+        "An activation_result sample carrying kInitialActivation (the automatic first transition started by the "
         "Launch Manager on startup) is forwarded verbatim to the registered callback.");
 
     auto sut = MakeConnected();
@@ -687,7 +687,7 @@ TEST_F(LmControlUT, InitialActivationSourceIsForwardedToCallback)
 
     EXPECT_CALL(mock_, GetNewSamples(_)).WillOnce(Invoke([](std::size_t) {
         std::vector<ActivationResult> samples;
-        samples.push_back(ActivationResult{RunTargetName{"Initial"}, RunTargetActivationSource::kInitial});
+        samples.push_back(ActivationResult{RunTargetName{"Initial"}, RunTargetActivationSource::kInitialActivation});
         return score::Result<std::vector<ActivationResult>>{std::move(samples)};
     }));
 
@@ -696,7 +696,7 @@ TEST_F(LmControlUT, InitialActivationSourceIsForwardedToCallback)
 
     ASSERT_TRUE(name.has_value());
     EXPECT_EQ(name.value(), "Initial");
-    EXPECT_EQ(source.value(), RunTargetActivationSource::kInitial);
+    EXPECT_EQ(source.value(), RunTargetActivationSource::kInitialActivation);
 }
 
 TEST_F(LmControlUT, ActivationResultBacklogExceedingSubscriptionIsDrainedInSeveralCalls)
@@ -897,7 +897,7 @@ TEST(RunTargetActivationSourceUT, StreamInsertionRendersEachSourceAsItsName)
         return oss.str();
     };
 
-    EXPECT_EQ(to_string(RunTargetActivationSource::kInitial), "kInitial");
+    EXPECT_EQ(to_string(RunTargetActivationSource::kInitialActivation), "kInitialActivation");
     EXPECT_EQ(to_string(RunTargetActivationSource::kStateManagerRequest), "kStateManagerRequest");
     EXPECT_EQ(to_string(RunTargetActivationSource::kRecoveryAction), "kRecoveryAction");
 }

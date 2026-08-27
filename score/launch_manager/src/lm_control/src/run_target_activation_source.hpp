@@ -32,7 +32,7 @@ enum class RunTargetActivationSource : std::uint8_t
     /// @brief Activation of the very first Run Target, started automatically by
     ///        the Launch Manager on startup without an explicit State Manager
     ///        request.
-    kInitial = 0,
+    kInitialActivation = 0,
 
     /// @brief Activation was explicitly requested by a State Manager.
     kStateManagerRequest = 1,
@@ -52,8 +52,8 @@ Stream& operator<<(Stream& os, const RunTargetActivationSource source)
 {
     switch (source)
     {
-        case RunTargetActivationSource::kInitial:
-            os << "kInitial";
+        case RunTargetActivationSource::kInitialActivation:
+            os << "kInitialActivation";
             return os;
         case RunTargetActivationSource::kStateManagerRequest:
             os << "kStateManagerRequest";
