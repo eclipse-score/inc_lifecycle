@@ -59,9 +59,11 @@ namespace
 #if SIZE_MAX == UINT32_MAX
 constexpr std::size_t kFnvOffsetBasis = 2166136261U;
 constexpr std::size_t kFnvPrime = 16777619U;
-#else
+#elif SIZE_MAX == UINT64_MAX
 constexpr std::size_t kFnvOffsetBasis = 14695981039346656037ULL;
 constexpr std::size_t kFnvPrime = 1099511628211ULL;
+#else
+#error "FNV-1a constants are only defined here for 32-bit or 64-bit std::size_t"
 #endif
 
 std::size_t Fnv1aHash(std::string_view data) noexcept

@@ -140,7 +140,7 @@ TEST_F(IdentifierHashTest, IdentifierHash_HashValueIsStableAcrossCompilersAndPro
 {
     RecordProperty(
         "Description",
-        "Regression test to check the hash is stable between different targets");
+        "Pins independently-computed FNV-1a values; runs on one target only.");
     ASSERT_EQ(IdentifierHash("ProcessGroup1/Startup").data(), 8274850808357109446ULL);
     ASSERT_EQ(IdentifierHash("MachineFG__Startup").data(), 15176715858869822476ULL);
     ASSERT_EQ(IdentifierHash().data(), 14695981039346656037ULL);  // empty string
@@ -157,6 +157,7 @@ TEST_F(IdentifierHashTest, IdentifierHash_ConstructorOverloadsAgreeOnTheSameCont
 
     ASSERT_EQ(IdentifierHash(as_string).data(), IdentifierHash(as_string_view).data());
     ASSERT_EQ(IdentifierHash(as_string).data(), IdentifierHash(as_c_string).data());
+    ASSERT_EQ(IdentifierHash(as_string_view).data(), IdentifierHash(as_c_string).data());
 }
 
 TEST_F(IdentifierHashTest, IdentifierHash_LessThanOperator)
