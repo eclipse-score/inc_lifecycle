@@ -100,6 +100,15 @@ use_repo(llvm, "llvm_toolchain", "llvm_toolchain_llvm")
 
 # UTs on QNX
 bazel_dep(name = "score_qnx_unit_tests", version = "0.2.0", dev_dependency = True)
+
+# TODO: drop this override once a version > 0.2.0 is published.
+# Latest release (0.2.0) does not support CLI args when running tests on QNX
+git_override(
+    module_name = "score_qnx_unit_tests",
+    commit = "79cc6598268d1f21cbfa75da4993facccf01edbd",
+    remote = "https://github.com/eclipse-score/qnx_unit_tests.git",
+)
+
 bazel_dep(name = "score_rules_imagefs", version = "0.0.4", dev_dependency = True)
 
 imagefs = use_extension("@score_rules_imagefs//extensions:imagefs.bzl", "imagefs", dev_dependency = True)
@@ -182,6 +191,7 @@ oci.pull(
 use_repo(oci, "debian-test-runtime", "debian-test-runtime_linux_amd64")
 
 bazel_dep(name = "score_baselibs", version = "0.2.12")
+bazel_dep(name = "score_communication", version = "0.4.0")
 
 # Hedron's Compile Commands Extractor for Bazel
 # https://github.com/hedronvision/bazel-compile-commands-extractor
