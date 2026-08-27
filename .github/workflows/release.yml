@@ -32,10 +32,19 @@ jobs:
   pr:
     name: PR
     uses: ./.github/workflows/on-pr.yml
+    permissions:
+        pull-requests: write
+        contents: read
 
   pr-target:
     name: PR Target
     uses: ./.github/workflows/on-pr-target.yml
+    permissions:
+      contents: write
+      pages: write
+      pull-requests: write
+      id-token: write
+      actions: read
 
   create-release:
     name: Create release
