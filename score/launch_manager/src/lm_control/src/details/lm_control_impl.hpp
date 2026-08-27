@@ -137,7 +137,7 @@ class BasicLmControlImpl final : public ILmControl
         }
         catch (const std::exception& ex)
         {
-            LM_LOG_ERROR() << "LmControl: init failed with exception:" << ex.what();
+            LM_LOG_ERROR() << "LmControl: init failed with exception:" << std::string_view{ex.what()};
             return score::MakeUnexpected(ExecErrc::kGeneralError);
         }
         catch (...)
@@ -408,7 +408,8 @@ class BasicLmControlImpl final : public ILmControl
         }
         catch (const std::exception& e)
         {
-            LM_LOG_ERROR() << "LmControl: activation callback threw:" << e.what() << "- sample dropped";
+            LM_LOG_ERROR() << "LmControl: activation callback threw:" << std::string_view{e.what()}
+                           << "- sample dropped";
             return;
         }
         catch (...)

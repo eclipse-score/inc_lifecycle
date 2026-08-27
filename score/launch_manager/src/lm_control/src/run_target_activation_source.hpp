@@ -29,12 +29,17 @@ namespace score::mw::lifecycle
 ///       not whether it succeeded.
 enum class RunTargetActivationSource : std::uint8_t
 {
+    /// @brief Activation of the very first Run Target, started automatically by
+    ///        the Launch Manager on startup without an explicit State Manager
+    ///        request.
+    kInitial = 0,
+
     /// @brief Activation was explicitly requested by a State Manager.
-    kStateManagerRequest = 0,
+    kStateManagerRequest = 1,
 
     /// @brief Activation happened automatically as part of a recovery action,
     ///        without an explicit State Manager request.
-    kRecoveryAction = 1
+    kRecoveryAction = 2
 };
 
 /// @brief Stream insertion operator for RunTargetActivationSource.
@@ -47,12 +52,18 @@ Stream& operator<<(Stream& os, const RunTargetActivationSource source)
 {
     switch (source)
     {
+        case RunTargetActivationSource::kInitial:
+            os << "kInitial";
+            return os;
         case RunTargetActivationSource::kStateManagerRequest:
-            return os << "kStateManagerRequest";
+            os << "kStateManagerRequest";
+            return os;
         case RunTargetActivationSource::kRecoveryAction:
-            return os << "kRecoveryAction";
+            os << "kRecoveryAction";
+            return os;
     }
-    return os << static_cast<std::uint32_t>(source);
+    os << static_cast<std::uint32_t>(source);
+    return os;
 }
 
 }  // namespace score::mw::lifecycle

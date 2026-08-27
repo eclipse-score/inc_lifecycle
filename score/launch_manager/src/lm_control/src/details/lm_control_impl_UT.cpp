@@ -20,6 +20,7 @@
 #include <memory>
 #include <new>
 #include <optional>
+#include <sstream>
 #include <stdexcept>
 #include <string_view>
 #include <utility>
@@ -667,6 +668,37 @@ TEST_F(LmControlUT, ActivationResultInvokesRegisteredCallback)
     EXPECT_EQ(source.value(), RunTargetActivationSource::kRecoveryAction);
 }
 
+TEST_F(LmControlUT, InitialActivationSourceIsForwardedToCallback)
+{
+    RecordProperty(
+        "Description",
+        "An activation_result sample carrying kInitial (the automatic first transition started by the "
+        "Launch Manager on startup) is forwarded verbatim to the registered callback.");
+
+    auto sut = MakeConnected();
+
+    std::optional<RunTargetActivationSource> source{};
+    std::optional<RunTargetName> name{};
+    ASSERT_TRUE(sut->register_run_target_activation_callback([&](RunTargetActivationSource s, RunTargetName n) {
+                       source = s;
+                       name = n;
+                   })
+                    .has_value());
+
+    EXPECT_CALL(mock_, GetNewSamples(_)).WillOnce(Invoke([](std::size_t) {
+        std::vector<ActivationResult> samples;
+        samples.push_back(ActivationResult{RunTargetName{"Initial"}, RunTargetActivationSource::kInitial});
+        return score::Result<std::vector<ActivationResult>>{std::move(samples)};
+    }));
+
+    ASSERT_TRUE(receive_handler_);
+    receive_handler_();
+
+    ASSERT_TRUE(name.has_value());
+    EXPECT_EQ(name.value(), "Initial");
+    EXPECT_EQ(source.value(), RunTargetActivationSource::kInitial);
+}
+
 TEST_F(LmControlUT, ActivationResultBacklogExceedingSubscriptionIsDrainedInSeveralCalls)
 {
     RecordProperty(
@@ -849,6 +881,35 @@ TEST_F(LmControlUT, DestructorUnsubscribesWhenConnected)
     EXPECT_CALL(mock_, Unsubscribe()).Times(1);
 
     MakeConnected().reset();
+}
+
+// ---------------------------------------------------------------------------
+// RunTargetActivationSource stringification
+// ---------------------------------------------------------------------------
+
+TEST(RunTargetActivationSourceUT, StreamInsertionRendersEachSourceAsItsName)
+{
+    RecordProperty("Description", "operator<< renders every RunTargetActivationSource value as its enumerator name.");
+
+    auto to_string = [](RunTargetActivationSource source) {
+        std::ostringstream oss;
+        oss << source;
+        return oss.str();
+    };
+
+    EXPECT_EQ(to_string(RunTargetActivationSource::kInitial), "kInitial");
+    EXPECT_EQ(to_string(RunTargetActivationSource::kStateManagerRequest), "kStateManagerRequest");
+    EXPECT_EQ(to_string(RunTargetActivationSource::kRecoveryAction), "kRecoveryAction");
+}
+
+TEST(RunTargetActivationSourceUT, StreamInsertionRendersUnknownSourceAsNumericValue)
+{
+    RecordProperty(
+        "Description", "operator<< falls back to the numeric value for an out-of-range RunTargetActivationSource.");
+
+    std::ostringstream oss;
+    oss << static_cast<RunTargetActivationSource>(99U);
+    EXPECT_EQ(oss.str(), "99");
 }
 
 }  // namespace
