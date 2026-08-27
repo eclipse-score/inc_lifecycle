@@ -91,6 +91,9 @@ class SupervisionManager
     /// @param[in] size Number of supervised components
     void reserve(std::size_t size);
 
+    /// @brief Returns true if the number of alive supervisions constructed equals the reserved size
+    bool full();
+
     /// @brief Construct required worker objects for provided component
     /// @details Construct the interfaces, checkpoints, supervisions and recovery notifications
     /// @param [in] id Identifier of the component

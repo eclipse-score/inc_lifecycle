@@ -31,10 +31,6 @@ class IAliveMonitor
   public:
     virtual ~IAliveMonitor() = default;
 
-    /// @brief Initialize the AliveMonitor functionality
-    /// @return kNoError if initialization was successful, otherwise an appropriate error code.
-    virtual EInitCode init() noexcept = 0;
-
     virtual bool start() = 0;
 
     virtual void stop() = 0;

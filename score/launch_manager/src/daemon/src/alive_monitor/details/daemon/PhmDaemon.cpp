@@ -27,7 +27,7 @@ namespace score::mw::lifecycle::internal::saf::daemon
    true_no_defect) */
 /* RULECHECKER_comment(0, 4, check_incomplete_data_member_construction, "Default constructor is used for\
  processStateReader.", true_no_defect) */
-PhmDaemon::PhmDaemon(OsClock& f_osClock)
+PhmDaemon::PhmDaemon(OsClock& f_osClock, std::size_t supervised_components)
     : osClock{f_osClock},
       cycleTimer{&osClock},
       buffer_(std::make_shared<SupervisionBufferType>()),
@@ -35,6 +35,7 @@ PhmDaemon::PhmDaemon(OsClock& f_osClock)
       processStateReader{buffer_}
 {
     buffer_->initialize();
+    supervisionManager.reserve(supervised_components);
 }
 
 void PhmDaemon::performCyclicTriggers(void)
@@ -56,18 +57,6 @@ void PhmDaemon::performCyclicTriggers(void)
         // distributeChanges may fail due to buffer overflow,
         // which is checked on the sender side and results in a watchdog timeout.
     }
-}
-
-bool PhmDaemon::construct(const std::vector<configuration::ComponentConfig>& config) noexcept(false)
-{
-    const std::size_t supervised_components =
-        std::count_if(config.begin(), config.end(), [](const configuration::ComponentConfig& component) {
-            return component.component_properties.application_profile.alive_supervision.has_value();
-        });
-
-    supervisionManager.reserve(supervised_components);
-
-    return true;
 }
 
 }  // namespace score::mw::lifecycle::internal::saf::daemon

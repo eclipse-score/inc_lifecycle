@@ -133,7 +133,8 @@ Graph::Graph(
     last_state_manager_.process_identifier_ = IdentifierHash{""};  // an invalid state manager
     last_state_manager_.process_group_index_ = 0xFFFFU;
     cancel_message_.request_or_response_ = ControlClientCode::kNotSet;
-    CreateDependencyGraph(nodes_, configuration_, process_handling_, supervision_factory, off_state_transition_timeout_);
+    CreateDependencyGraph(
+        nodes_, configuration_, process_handling_, supervision_factory, off_state_transition_timeout_);
 }
 
 Graph::~Graph()

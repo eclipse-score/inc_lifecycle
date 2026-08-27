@@ -32,6 +32,11 @@ SupervisionManager::SupervisionManager(std::unique_ptr<factory::IPhmFactory> fac
 
 SupervisionManager::~SupervisionManager() = default;
 
+bool SupervisionManager::full()
+{
+    return aliveSupervisions.size() == aliveSupervisions.capacity();
+}
+
 void SupervisionManager::reserve(std::size_t size)
 {
     processStates.reserve(size);
