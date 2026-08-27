@@ -39,15 +39,8 @@ build --per_file_copt=external/.*@-Wno-error
 test --test_output=errors
 test --@score_baselibs//score/json:base_library=nlohmann
 
-# Coverage configuration for C++
-coverage --features=coverage
-coverage --combined_report=lcov
-coverage --cache_test_results=no
-coverage --test_tag_filters=-no-coverage
-coverage --copt=-fprofile-update=atomic
-coverage --linkopt=-fprofile-update=atomic
-# Exclude mocks targets from coverge report
-coverage --instrumentation_filter="^//score/health_monitor/src/cpp[/:],^//score/launch_manager[/:],-[:/]mock_,-_mock"
+# Code coverage configuration (LLVM source-based). See //quality/coverage.
+import %workspace%/quality/coverage/coverage.bazelrc
 
 
 # Common Lifecycle Toolchain flags for build (do not use it in case of system toolchains!)
@@ -120,19 +113,6 @@ build:unit-tests-arm64-qnx --config=arm64-qnx
 test:unit-tests-arm64-qnx --run_under=@score_qnx_unit_tests//src:run_under_qnx
 test:unit-tests-arm64-qnx --//config:integration_mode=skip
 test:unit-tests-arm64-qnx --//config:unit_mode=qemu
-
-# Ferrocene Rust coverage config
-build:ferrocene-coverage --@rules_rust//rust/settings:extra_rustc_flag=-Cinstrument-coverage
-build:ferrocene-coverage --@rules_rust//rust/settings:extra_rustc_flag=-Clink-dead-code
-build:ferrocene-coverage --@rules_rust//rust/settings:extra_rustc_flag=-Ccodegen-units=1
-build:ferrocene-coverage --@rules_rust//rust/settings:extra_rustc_flag=-Cdebuginfo=2
-build:ferrocene-coverage --@rules_rust//rust/settings:extra_exec_rustc_flag=-Cinstrument-coverage
-build:ferrocene-coverage --@rules_rust//rust/settings:extra_exec_rustc_flag=-Clink-dead-code
-build:ferrocene-coverage --@rules_rust//rust/settings:extra_exec_rustc_flag=-Ccodegen-units=1
-build:ferrocene-coverage --@rules_rust//rust/settings:extra_exec_rustc_flag=-Cdebuginfo=2
-test:ferrocene-coverage --run_under=@score_tooling//coverage:llvm_profile_wrapper
-
-build:ferrocene-coverage --remote_download_all
 
 # to be removed
 build:build_qnx8 --config=arm64-qnx

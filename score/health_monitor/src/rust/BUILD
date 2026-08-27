@@ -126,6 +126,9 @@ miri_test(
     tags = [
         "miri",
         "no-asan",
+        # The miri rule needs a miri_toolchain that is not registered under the
+        # LLVM coverage configuration
+        "no-coverage",
     ],
     target_compatible_with = select({
         "//config:unit_qemu": ["@platforms//os:linux"],

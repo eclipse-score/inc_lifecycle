@@ -10,6 +10,11 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-
-# Use Dockerfile to get dependabot version bumps after new image is released
-FROM ghcr.io/eclipse-score/devcontainer:v1.11.0
+#
+# Coverage justifications for the LLVM source-based coverage pipeline.
+# Add entries here and mark the corresponding lines in code with
+# `// COV_JUSTIFIED <id>` (or COV_JUSTIFIED_START/STOP for a region).
+# Valid categories: defensive_programming, tool_false_positive,
+# platform_specific, other.
+version: 1
+justifications: []

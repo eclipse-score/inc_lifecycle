@@ -14,7 +14,8 @@
 load("@hedron_compile_commands//:refresh_compile_commands.bzl", "refresh_compile_commands")
 load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 load("@score_docs_as_code//:docs.bzl", "docs")
-load("@score_tooling//:defs.bzl", "copyright_checker", "dash_license_checker", "rust_coverage_report", "setup_starpls", "use_format_targets")
+load("@score_tooling//:defs.bzl", "copyright_checker", "dash_license_checker", "setup_starpls")
+load("@score_tooling//third_party/format:macros.bzl", "use_format_targets")
 load("//:project_config.bzl", "PROJECT_CONFIG")
 
 # Generate `compile_commands.json`.
@@ -57,14 +58,15 @@ copyright_checker(
     name = "copyright",
     srcs = [
         ".github",
+        "BUILD",
+        "MODULE.bazel",
         "docs",
         "examples",
         "externals",
+        "quality",
         "score",
         "scripts",
         "tests",
-        "//:BUILD",
-        "//:MODULE.bazel",
     ],
     config = "@score_tooling//cr_checker/resources:config",
     exclusion = "//:cr_checker_exclusion",
@@ -113,22 +115,9 @@ use_format_targets(languages = [
     "cpp",
 ])
 
-# Rust coverage report generation target
-rust_coverage_report(
-    name = "rust_coverage",
-    bazel_configs = [
-        "x86_64-linux",
-        "ferrocene-coverage",
-    ],
-    query = 'kind("rust_test", //score/...) except attr("tags", "loom", //score/...)',
-    visibility = ["//visibility:public"],
-)
-
-alias(
-    name = "rust_coverage_report",
-    actual = ":rust_coverage",
-    visibility = ["//visibility:public"],
-)
+# Required for code coverage reporting.
+# The coverage reporter locates the workspace root at runtime via //:MODULE.bazel.
+exports_files(["MODULE.bazel"])
 
 # Docs
 docs(
