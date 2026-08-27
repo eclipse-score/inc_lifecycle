@@ -53,7 +53,7 @@ jobs:
     needs:
       - pr
       - pr-target
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     permissions:
       contents: write
     env:
