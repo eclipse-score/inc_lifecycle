@@ -38,7 +38,7 @@ class ObservableEventReader
 {
   public:
     /// @brief Constructor
-    /// @param [in] f_observable_event_receiver   Process state receiver implementation
+    /// @param [in] f_observable_event_receiver   Shared pointer to the ring buffer used to receive supervision events
     explicit ObservableEventReader(std::shared_ptr<SupervisionBufferType> f_observable_event_receiver);
 
     /// @brief No Copy Constructor
@@ -76,9 +76,11 @@ class ObservableEventReader
     /// @return     true (sync timestamp is reached), false (sync timestamp is not yet reached)
     bool pushUpdateTill(const SupervisionEvent& f_event, const timers::NanoSecondType f_syncTimestamp) noexcept;
 
+    /// @brief Returns a queued SupervisionEvent that has not yet been parsed.
+    /// @returns Result containing SupervisionEvent in case of success, or ExecError in case of failure.
     score::Result<std::optional<SupervisionEvent>> getNextSupervisionEvent() noexcept;
 
-    /// @brief Process state receiver for HM thread
+    /// @brief Ring buffer through which supervision events are received from the Launch Manager
     std::shared_ptr<SupervisionBufferType> buffer_;
 
     /// @brief Map for process id and observable event object

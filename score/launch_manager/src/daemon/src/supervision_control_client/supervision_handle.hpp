@@ -25,9 +25,15 @@ namespace score
 namespace mw::lifecycle
 {
 
+/// @brief A supervision handle can be used by a process to manage its own alive supervision. It should be constructed
+/// by the alive monitor and provided to a process so that the process need not have access to the supervision buffer.
+/// The process can then report its own activation and deactivation.
 class SupervisionHandle : public ISupervisionEventPublisher
 {
   public:
+    /// @brief Construct a new supervision handle.
+    /// @param process_id Identifier of the process being supervised.
+    /// @param buffer Buffer to push supervision events to.
     explicit SupervisionHandle(IdentifierHash process_id, std::shared_ptr<SupervisionBufferType> buffer)
         : process_id_(process_id), buffer_(buffer)
     {
@@ -46,6 +52,9 @@ class SupervisionHandle : public ISupervisionEventPublisher
     }
 
   private:
+    /// @brief Attempts to push a supervision event so that the alive monitor can be informed about it.
+    /// @param[in]   f_event   The SupervisionEvent to be queued
+    /// @returns True on success, false for failure
     bool queueSupervisionEvent(const score::mw::lifecycle::SupervisionEvent& f_event) noexcept
     {
         if (buffer_->tryEnqueue(f_event))
@@ -59,7 +68,9 @@ class SupervisionHandle : public ISupervisionEventPublisher
         }
     }
 
-    IdentifierHash process_id_;
+    /// @brief Identifier of the process being supervised.
+    const IdentifierHash process_id_;
+    /// @brief Buffer to push supervision events to
     std::shared_ptr<SupervisionBufferType> buffer_;
 };
 

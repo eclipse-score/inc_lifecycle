@@ -27,7 +27,6 @@ cc_library(
     strip_include_prefix = "/score/launch_manager/src/daemon/src/alive_monitor",
     visibility = ["//score:__subpackages__"],
     deps = [
-        "//score/launch_manager/src/daemon/src/alive_monitor/details/common:einitcode",
         "//score/launch_manager/src/daemon/src/supervision_control_client:isupervision_factory",
     ],
 )

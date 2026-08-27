@@ -45,8 +45,9 @@ class ProcessInfoNode final : public IComponent
     /// @brief Constructs a ProcessInfoNode.
     /// @param config Configuration for the OS process.
     /// @param index The process index within its process group.
-    /// @param ready_condition Whether this process is considered ready when running or when terminated.
     /// @param process_handling The interfaces used to start, stop and report on the OS process.
+    /// @param supervision_factory Temporary reference to a factory this node can use to construct its supervision if
+    /// required.
     ProcessInfoNode(
         configuration::ComponentConfig&& config,
         uint32_t index,

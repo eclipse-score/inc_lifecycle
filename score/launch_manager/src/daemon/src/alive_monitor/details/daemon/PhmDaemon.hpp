@@ -177,8 +177,10 @@ class PhmDaemon final : public ISupervisionFactory
         return true;
     }
 
-    std::unique_ptr<SupervisionHandle>
-    constructSupervision(IdentifierHash id, uid_t uid, configuration::ComponentAliveSupervision config) override
+    std::unique_ptr<SupervisionHandle> constructSupervision(
+        const IdentifierHash id,
+        const uid_t uid,
+        const configuration::ComponentAliveSupervision& config) override
     {
         SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(
             !supervisionManager.full(), "More alive supervisions than expected were constructed");

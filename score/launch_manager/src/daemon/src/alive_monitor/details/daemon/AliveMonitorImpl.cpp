@@ -94,7 +94,7 @@ bool AliveMonitorImpl::threadFn(std::atomic_bool& cancel_thread) noexcept
     return m_daemon->startCyclicExec(cancel_thread);
 }
 
-ISupervisionFactory& AliveMonitorImpl::getSupervisionFactory() noexcept
+ISupervisionFactory& AliveMonitorImpl::getSupervisionFactory() const noexcept
 {
     return *m_daemon;
 }

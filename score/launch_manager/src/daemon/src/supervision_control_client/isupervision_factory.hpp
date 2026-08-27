@@ -35,11 +35,13 @@ class ISupervisionFactory
     /// @brief Set up alive supervision for the identified process. Alive supervision is not started until the publisher
     /// is notified.
     /// @param [in] id Identifier of the process.
-    /// @param [in] config Alive supervision configuration for the process.
     /// @param [in] uid The configured uid of the process.
+    /// @param [in] config Alive supervision configuration for the process.
     /// @returns Handle for the process to start and stop its own supervision.
-    virtual std::unique_ptr<SupervisionHandle>
-    constructSupervision(IdentifierHash id, uid_t uid, internal::configuration::ComponentAliveSupervision config) = 0;
+    virtual std::unique_ptr<SupervisionHandle> constructSupervision(
+        const IdentifierHash id,
+        const uid_t uid,
+        const internal::configuration::ComponentAliveSupervision& config) = 0;
 };
 
 }  // namespace mw::lifecycle

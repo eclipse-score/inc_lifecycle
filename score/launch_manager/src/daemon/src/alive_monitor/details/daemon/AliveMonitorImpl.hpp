@@ -54,7 +54,7 @@ class AliveMonitorImpl : public IAliveMonitor
 
     void stop() noexcept override;
 
-    ISupervisionFactory& getSupervisionFactory() noexcept override;
+    ISupervisionFactory& getSupervisionFactory() const noexcept override;
 
   private:
     /// @brief Initialize the AliveMonitor functionality
