@@ -224,6 +224,10 @@ component_properties (object)
                     * **Constraint:** Must be greater than 0.
                     * **Default:** ``0.01``
 
+.. warning::
+    ``ready_condition`` with ``file_state`` is currently not implemented
+
+
 .. _lm_conf_deployment_config_object_:
 
 deployment_config (object)
