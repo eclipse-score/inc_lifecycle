@@ -54,6 +54,7 @@ jobs:
     runs-on: ubuntu-slim
     permissions:
       contents: write
+      issues: write
     env:
       COVERAGE_ARCHIVE: ${{ github.event.repository.name }}-${{ inputs.tag }}-coverage
     steps:
