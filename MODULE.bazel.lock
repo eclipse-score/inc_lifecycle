@@ -1158,7 +1158,7 @@
   "moduleExtensions": {
     "@@aspect_rules_esbuild+//esbuild:extensions.bzl%esbuild": {
       "general": {
-        "bzlTransitiveDigest": "m+1nRJvQO4i2rBVXIiwrvEKX0GAuEm4b36fgpknferw=",
+        "bzlTransitiveDigest": "hMVVcgP4Sj4usdbu8ftPbrhCNPMT5C6BBHhDoKgJQOk=",
         "usagesDigest": "sj4kz7yaVclWMuWhUhSLq0bVH7+HrkWyMdODMeA7Zhw=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
@@ -1335,7 +1335,7 @@
     },
     "@@aspect_rules_js+//npm:extensions.bzl%pnpm": {
       "general": {
-        "bzlTransitiveDigest": "BzhbpFCrfjNorQtcPjfg5ZuxS+yPqm0002T9BksWil8=",
+        "bzlTransitiveDigest": "jZGSBSz1jaNpyv9wnzzr0cBZ20xpWodvJ+150YNP7XQ=",
         "usagesDigest": "kbjSw2REjlSC0HtTZDf2p+l/dmiMt3NHLoiWEXYAoQI=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
@@ -1475,7 +1475,7 @@
     },
     "@@aspect_rules_py+//py:extensions.bzl%py_tools": {
       "general": {
-        "bzlTransitiveDigest": "VfJYy1B5v3oMq9SNoz4hGTKf+uJgqbxHJYD8rdhivHo=",
+        "bzlTransitiveDigest": "13DN9p/N8uOU1SMHBh9nZIlptJtS3qP63UkXe+NH8SQ=",
         "usagesDigest": "NC1b49l5tenTBVWEUGzzC0j5Kg1GH+l5lBw5JRCldIU=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
@@ -1617,7 +1617,7 @@
     },
     "@@bazel_jar_jar+//internal:non_module_deps.bzl%non_module_deps": {
       "general": {
-        "bzlTransitiveDigest": "kn0jGPPFunp/SdGxY60JC2wHqpfdNb51x6el3M2T8RI=",
+        "bzlTransitiveDigest": "fpPvQs9nJqt4ynKvRvUajnlHDhZB8imuaXN5Ajb7l/U=",
         "usagesDigest": "P1uSZ4XnqOp90Mkh0A4Nrjx12Bgz/iceROnSbTsawGk=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
@@ -1738,7 +1738,7 @@
     },
     "@@cel-spec+//:extensions.bzl%non_module_dependencies": {
       "general": {
-        "bzlTransitiveDigest": "49v9UE4eBOMtW8ATb+3VHdFaCc//dFbCS+ZQW0HIKNE=",
+        "bzlTransitiveDigest": "43iembF10pz9FJIRseDrjWB9kp/ODYb+7FBYAtvSt3Q=",
         "usagesDigest": "HFQJtQrL9nKaFZEjgwaHVMHALMW+cafu696xy7J4ueM=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
@@ -1935,7 +1935,7 @@
     },
     "@@envoy_api+//bazel:repositories.bzl%non_module_deps": {
       "general": {
-        "bzlTransitiveDigest": "VzLskQI4CUM3XVC+wpI1FIlKua2ToSOGRJ8G+0HfaV8=",
+        "bzlTransitiveDigest": "6K7ebXGqru7CSFs/38zH8GGvDgewYM/qjlz7Lqm2XXY=",
         "usagesDigest": "cxAa0VVo9d210JBUBw6wpuGp8jg+ltqw3tzH0tPtIEg=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
@@ -2157,7 +2157,7 @@
     },
     "@@hedron_compile_commands+//:workspace_setup.bzl%hedron_compile_commands_extension": {
       "general": {
-        "bzlTransitiveDigest": "Ojq9TbsjNl+y2stghx86ktVxgmENnzIi8xmtneTI+uU=",
+        "bzlTransitiveDigest": "YRbFWGIygz92hmoMyHB8njlXQ/LmIQyYsJH0UTNXdbw=",
         "usagesDigest": "CbJ2MjubH36j9xaONhhASfhodhpi5fzvuyg/IW2f7Ds=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
@@ -2207,7 +2207,7 @@
     },
     "@@pybind11_bazel+//:internal_configure.bzl%internal_configure_extension": {
       "general": {
-        "bzlTransitiveDigest": "doxdX2drQaP4mqY6tnLSIGABgYuXR5Hpp6Wpfyb23Rg=",
+        "bzlTransitiveDigest": "qQEChI+4ZOV4xn6LulonXjQy5+Z0z1gELJDmBl1ePy4=",
         "usagesDigest": "tVQNvLoXMWAbiK39am3yovKGpwINdftfn7RpDyN+JZc=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
@@ -2234,7 +2234,7 @@
     },
     "@@rules_android+//bzlmod_extensions:apksig.bzl%apksig_extension": {
       "general": {
-        "bzlTransitiveDigest": "By9qVNN7G4oL1vYOJXye7Dp/CbR2ar9oxAW8WXAVcVw=",
+        "bzlTransitiveDigest": "c6mHv2L0P+tWDe7lh/mpzTEedvukBq17Gr9gP16UdxU=",
         "usagesDigest": "xq6OVkELeJvOgYo3oY/sUBsGFbcqdV+9BYiNgSPV/po=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
@@ -2259,7 +2259,7 @@
     },
     "@@rules_android+//bzlmod_extensions:com_android_dex.bzl%com_android_dex_extension": {
       "general": {
-        "bzlTransitiveDigest": "rvWbJQc8jInfIAaXIMhSOqUlwM9HVeLey6q0ISvg08Y=",
+        "bzlTransitiveDigest": "BbM3I4LvjudqQ6/IwaP/LaJXdj2EPfqPleTjiFG4Lg0=",
         "usagesDigest": "toF8IFMu98H/VU2p1sfVC5fVXVYJunpbbmtM6tOsQXY=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
@@ -2392,7 +2392,7 @@
     },
     "@@rules_apple+//apple:extensions.bzl%non_module_deps": {
       "general": {
-        "bzlTransitiveDigest": "4xtddSlWIQdtVNVuvOI62fJfQVETHZCVWFvYYwQHMR4=",
+        "bzlTransitiveDigest": "ul8vHGy74hBD66XzLuB09UmLKPv7O6yFI8pwN7jMWdc=",
         "usagesDigest": "M3VqFpeTCo4qmrNKGZw0dxBHvTYDrfV3cscGzlSAhQ4=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
@@ -2445,7 +2445,7 @@
     },
     "@@rules_distroless+//apt:extensions.bzl%apt": {
       "general": {
-        "bzlTransitiveDigest": "eH+PnBEEuvk2JyknjwUNuJrwPPryyUkKwi8qCYCVrvY=",
+        "bzlTransitiveDigest": "9dVC3uLi04oXYQ63WRNkwE2eWtRHXoyVy1wiyRFJqcg=",
         "usagesDigest": "Kbq3vakmb+1UomjqoFOLjIWDOEyV1DIMuOO4IQVtXmk=",
         "recordedFileInputs": {
           "@@score_tooling+//third_party/docs_runtime/manifest.yaml": "f8bd762e0dcaf3150504eca8dfd60819fc3be428d3a8b58d1d9cc52d68e16a45",
@@ -3690,7 +3690,7 @@
     },
     "@@rules_kotlin+//src/main/starlark/core/repositories:bzlmod_setup.bzl%rules_kotlin_extensions": {
       "general": {
-        "bzlTransitiveDigest": "HJP3wKFbPhB1mSYjJS6kbXEiP+OQxvsBdqpvyJN6I3s=",
+        "bzlTransitiveDigest": "ipDzEAtocAfIXfJbcbskFj4cGI7OMiupxpyQcliozJ4=",
         "usagesDigest": "qTwqmKKUfWcPdvM0waG+CPWrxsbeAWVeUxavm7tEk9E=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
@@ -3905,7 +3905,7 @@
     },
     "@@rules_python+//python/extensions:config.bzl%config": {
       "general": {
-        "bzlTransitiveDigest": "TRGIl0CDmorwyNiblOYyhWuyKzi/kWFHT2uIofq7o9Y=",
+        "bzlTransitiveDigest": "EcMcbtKZvYmd5Mi1Fpg4EeBBztLHEE5tjO5tLDBYDuU=",
         "usagesDigest": "lDbpRfhoWmZCHSaNxwZv/8fF2y0wu2th0G0f/uqX7VM=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
@@ -4181,7 +4181,7 @@
     },
     "@@rules_rust+//crate_universe:extensions.bzl%crate": {
       "general": {
-        "bzlTransitiveDigest": "LuCADq9GTELYnYpunvZadNKrYR5su3cM6BtkoYFN3mk=",
+        "bzlTransitiveDigest": "VTzJYFtnjToxXvr057y4zek3GPCcAbY43XojdSTjJR0=",
         "usagesDigest": "fLX3SpyRh6P6kMl1RThF4+tNLGkOt/8iQqtjsBmda8k=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
@@ -10809,7 +10809,7 @@
     },
     "@@rules_rust+//crate_universe/private:internal_extensions.bzl%cu_nr": {
       "general": {
-        "bzlTransitiveDigest": "99tSEal3MPhm9c1CZgykBxOAmLb2Ch80H8HtdojVeLM=",
+        "bzlTransitiveDigest": "OLpyhOYYJSqEVOIw1WmokL7FHfF37KPElbQxlzaocJM=",
         "usagesDigest": "1ieIYuafZ1pmP+ncVvISMfB3Em0hv9LCmCRwIH7gL8E=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
@@ -10966,7 +10966,7 @@
     },
     "@@rules_swift+//swift:extensions.bzl%non_module_deps": {
       "general": {
-        "bzlTransitiveDigest": "6axDCXf6fQoPav8hojnUBxGA0FAMqLvtpC1cRsisCdw=",
+        "bzlTransitiveDigest": "TdyDy4TBpjOHwrF4hSiQwGdsTAvssvyD6vUJBx+7nt4=",
         "usagesDigest": "mhACFnrdMv9Wi0Mt67bxocJqviRkDSV+Ee5Mqdj5akA=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
@@ -11125,7 +11125,7 @@
     },
     "@@score_bazel_cpp_toolchains+//extensions:gcc.bzl%gcc": {
       "general": {
-        "bzlTransitiveDigest": "ChWcEQkrq5eKmA7VMNVat/1tK5LWqKU2ZcboiQdoN8U=",
+        "bzlTransitiveDigest": "AEkufqVL8eQuI4PPbLcZ4qUHRtVkNYGIZW7nKdD8/jI=",
         "usagesDigest": "WhC3Bfyf/2KNf6Wuh6q5k8gfq44+GP2P8P9YObkw/ro=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
@@ -11305,7 +11305,7 @@
     },
     "@@score_rules_imagefs+//extensions:imagefs.bzl%imagefs": {
       "general": {
-        "bzlTransitiveDigest": "6ZLANe53LXwcnne1ZrZm9GkJ9H5VdsCLSgSNHyUrqA4=",
+        "bzlTransitiveDigest": "4qMGnB7+T2rXYxW5iSvXX6nlCv/jNBvR6B0r5AHvEQQ=",
         "usagesDigest": "GgFOQ+Q22kkOU/ZCqKRDx1LjqJK+2t092mFT4W/TzDE=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
