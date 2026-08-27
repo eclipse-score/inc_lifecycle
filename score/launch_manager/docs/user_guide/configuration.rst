@@ -210,6 +210,8 @@ component_properties (object)
                 * ``"Terminated"``: The process has started, reached its running state, and then terminated successfully.
         * **file_state** (object, optional)
             * **Description:** Specifies a ready condition based on the existence of a file at a given path.
+            .. warning::
+                ``file_state`` ready condition is currently not implemented
             * **Properties:**
                 * **file_path** (string, required)
                     * **Description:** Specifies the absolute path to the file being watched.
