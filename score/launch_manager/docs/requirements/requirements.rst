@@ -295,8 +295,8 @@ Launching Processes
 Conditional Launching
 =====================
 
-.. comp_req:: Configurable ready state
-    :id: comp_req__launch_man__config_ready_cond
+.. comp_req:: Configuration of component readiness conditions
+    :id: comp_req__launch_man__conf_of_comp_ready_cond
     :reqtype: Functional
     :security: NO
     :safety: ASIL_B
@@ -305,12 +305,12 @@ Conditional Launching
     :version: 1
     :satisfied_by: comp__lifecycle_launch_manager
 
-    The :term`Launch Manager` shall support configuration of conditions that
+    The :term:`Launch Manager` shall support configuration of conditions that
     shall be met before the component is considered to have reached its
-    **ready state**.
+    :term:`Ready State`.
 
-.. comp_req:: Dependency ordering
-    :id: comp_req__launch_man__ready_cond
+.. comp_req:: Dependency based startup order
+    :id: comp_req__launch_man__dep_based_startup_order
     :reqtype: Functional
     :security: NO
     :safety: ASIL_B
@@ -320,14 +320,10 @@ Conditional Launching
     :satisfied_by: comp__lifecycle_launch_manager
 
     The :term:`Launch Manager` shall start a component only after all its
-    **dependencies** have successfully reached their **ready state**.
+    :term:`dependencies <Dependency (between components)>` have successfully reached their :term:`Ready State`.
 
-.. TODO PR has defined the the bold terms in the glossary, however need to 
-   wait for a release to get these.
-   see https://github.com/eclipse-score/score/pull/3184
-
-.. comp_req:: Configurable activation timeout
-    :id: comp_req__launch_man__total_wait_time_support
+.. comp_req:: Configuration of run target activation timeout
+    :id: comp_req__launch_man__conf_rt_active_timeout
     :reqtype: Functional
     :security: NO
     :safety: ASIL_B
@@ -339,8 +335,8 @@ Conditional Launching
     The :term:`Launch Manager` shall support configuration of the maximum time
     an activation of a run target can take.
 
-.. comp_req:: Activation timeout
-    :id: comp_req__launch_man__total_wait_time_fail
+.. comp_req:: Run target activation timeout
+    :id: comp_req__launch_man__rt_activate_timeout
     :reqtype: Functional
     :security: NO
     :safety: ASIL_B
