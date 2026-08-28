@@ -19,3 +19,6 @@
    :safety: ASIL_B
    :status: valid
    :includes: comp__health_monitor[version==1], comp__lifecycle_launch_manager[version==1]
+
+Lifecycle Module
+################
