@@ -14,8 +14,6 @@
 name: Release
 run-name: Release ${{ inputs.tag }}
 
-permissions:
-  contents: read
 on:
   workflow_dispatch:
     inputs:
@@ -35,20 +33,27 @@ jobs:
     name: PR
     uses: ./.github/workflows/on-pr.yml
     permissions:
+      pull-requests: write
       contents: read
 
   pr-target:
     name: PR Target
     uses: ./.github/workflows/on-pr-target.yml
+    secrets: inherit
     permissions:
-      contents: read
+      contents: write
+      pages: write
+      pull-requests: write
+      id-token: write
+      actions: read
+      issues: write
 
   create-release:
     name: Create release
     needs:
       - pr
       - pr-target
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     permissions:
       contents: write
     env:

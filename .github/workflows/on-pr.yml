@@ -102,7 +102,7 @@ jobs:
     secrets: inherit
     with:
       repo_runner_labels: 'ubuntu-latest'
-      module_name: 'score_lifecycle_health'
+      module_name: 'score_lifecycle'
       target_branch: 'main'
 
   clippy:
