@@ -33,9 +33,15 @@ class DependencyGraph
     /// @brief Wrapper around objects in the graph to store information about dependencies.
     struct GraphNode
     {
+        /// @brief The underlying object stored in this graph.
         T value;
+        /// @brief Nodes that this node needs to be ready before it can launch.
         std::vector<Key> depends_on;
+        /// @brief Nodes that depend on this node being ready before they can launch.
         std::vector<Key> dependents;
+
+        /// @brief Temporary flag set when this node is traversed.
+        /// @warning This should be reset at the start of each traversal for valid results.
         bool visited{false};
 
         /// @brief Constructor to allow in-place construction of T.
@@ -57,18 +63,21 @@ class DependencyGraph
         nodes.reserve(count);
     }
 
-    /// @brief Construct a new node in-place. Returns the node's key, which equals the current size
-    /// before insertion (i.e. the first node is 0, second is 1, etc.).
+    /// @brief Construct a new node in-place. Returns the node's key.
+    /// @warning If the key is already present in the graph, the new node is not inserted.
     template <typename... Args>
     Key try_emplace(const Key& key, Args&&... args)
     {
         std::pair<iterator, bool> res = nodes.try_emplace(key, std::forward<Args>(args)...);
+        SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(
+            res.second, "Element was not inserted. This means that the key was already present in the map.");
         return res.first->first;
     }
 
     /// @brief Add an edge: @p node depends on @p depends_on.
     /// During activation, depends_on will be started before node.
     /// During deactivation, node will be stopped before depends_on.
+    /// @pre @p node and @p depends_on must both be present in the graph
     void addDependency(const Key node, const Key depends_on)
     {
         SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(
@@ -81,35 +90,41 @@ class DependencyGraph
     }
 
     /// @return The number of nodes in the graph.
-    std::size_t size() const
+    std::size_t size() const noexcept
     {
         return nodes.size();
     }
 
     /// @return The number of nodes this graph can hold without reallocating (the @c count
     /// reserved at construction).
-    std::size_t capacity() const
+    std::size_t capacity() const noexcept
     {
         return capacity_;
     }
 
+    /// @brief Returns a mutable reference to the node at @p key
+    /// @pre @p key must be present in the graph.
     T& operator[](Key key)
     {
         return nodes.at(key).value;
     }
 
+    /// @brief Returns a constant reference to the node at @p key
+    /// @pre @p key must be present in the graph.
     const T& operator[](const Key key) const
     {
         return nodes.at(key).value;
     }
 
     /// @return The nodes that @p key depends on.
+    /// @pre @p key must be present in the graph.
     const std::vector<Key>& dependsOn(Key key) const
     {
         return nodes.at(key).depends_on;
     }
 
     /// @return The nodes that depend on @p key.
+    /// @pre @p key must be present in the graph.
     const std::vector<Key>& dependents(Key key) const
     {
         return nodes.at(key).dependents;
@@ -118,13 +133,14 @@ class DependencyGraph
     /// @brief Traverse the graph, starting at @p start, performing @p per_node
     ///        on each node and moving to the nodes provided by the return
     ///        value from @p per_node.
+    /// @pre @p start must be present in the graph.
     template <typename PerNodeFn>
     void traverse(const Key start, PerNodeFn per_node)
     {
-        for (auto& [key, value] : nodes)
-        {
-            value.visited = false;
-        }
+        std::for_each(nodes.begin(), nodes.end(), [](std::pair<const Key, GraphNode>& it) {
+            GraphNode& node = it.second;
+            node.visited = false;
+        });
         auto push_res = traversal_queue.push(start);
         static_cast<void>(push_res);
         SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(push_res, "Traversal queue was already full");
@@ -194,6 +210,7 @@ class DependencyGraph
     }
 
   private:
+    /// @brief The number of nodes the graph expects to hold
     std::size_t capacity_;
 
     std::unordered_map<Key, GraphNode> nodes;
