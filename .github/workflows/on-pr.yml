@@ -20,6 +20,7 @@ on:
   push:
     branches:
       - main
+  workflow_call:
 
 jobs:
   common:
@@ -101,7 +102,7 @@ jobs:
     secrets: inherit
     with:
       repo_runner_labels: 'ubuntu-latest'
-      module_name: 'score_lifecycle_health'
+      module_name: 'score_lifecycle'
       target_branch: 'main'
 
   clippy:
@@ -183,7 +184,7 @@ jobs:
       - gitlint
     runs-on: ubuntu-slim
     permissions: {}
-    if: always()
+    if: ${{ !cancelled() && (github.event_name == 'pull_request' || github.event_name == 'merge_group') }}
     steps:
       - name: Fail if any required job did not succeed
         if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')

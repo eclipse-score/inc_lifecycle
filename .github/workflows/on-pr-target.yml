@@ -24,6 +24,7 @@ on:
   push:
     branches:
       - main
+  workflow_call:
 
 permissions:
   pull-requests: write
@@ -77,6 +78,7 @@ jobs:
     name: Deploy documentation
     needs: docs-build
     uses: eclipse-score/cicd-workflows/.github/workflows/docs-publish.yml@8d80e8df150cae21d53cbc8031d0f970648f7a67 # v0.0.3
+    if: ${{ github.event_name == 'pull_request_target' || github.event_name == 'push' }}
     permissions:
       contents: write
       pages: write
@@ -101,7 +103,7 @@ jobs:
       - license-check
     runs-on: ubuntu-slim
     permissions: {}
-    if: always()
+    if: ${{ !cancelled() && (github.event_name == 'pull_request' || github.event_name == 'merge_group') }}
     steps:
       - name: Fail if any required job did not succeed
         if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
