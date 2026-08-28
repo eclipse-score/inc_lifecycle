@@ -17,12 +17,13 @@
 #include "score/mw/launch_manager/osal/ifile_waiter.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/safe_process_map.hpp"
 #include "score/mw/launch_manager/process_group_manager/iprocess.hpp"
+#include "score/mw/launch_manager/supervision_control_client/isupervision_factory.hpp"
 #include <memory>
 
 namespace score::mw::lifecycle::internal
 {
 
-/// @brief Collection of interfaces required to control a OS process.
+/// @brief Collection of interfaces required to control an OS process.
 struct ProcessHandling
 {
     /// @brief Handle to manage the underlying posix process.
@@ -33,6 +34,9 @@ struct ProcessHandling
 
     /// @brief Interface used to wait for a FileState ready condition.
     osal::IFileWaiter* file_waiter_{nullptr};
+
+    /// @brief Factory to construct component supervisions with.
+    ISupervisionFactory& supervision_factory;
 };
 
 }  // namespace score::mw::lifecycle::internal

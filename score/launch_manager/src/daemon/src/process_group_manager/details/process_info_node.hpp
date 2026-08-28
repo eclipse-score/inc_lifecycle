@@ -22,7 +22,6 @@
 #include "score/mw/launch_manager/process_group_manager/details/safe_process_map.hpp"
 #include "score/mw/launch_manager/process_group_manager/process_state.hpp"
 #include "score/mw/launch_manager/supervision_control_client/isupervision_event_publisher.hpp"
-#include "score/mw/launch_manager/supervision_control_client/isupervision_factory.hpp"
 #include <score/stop_token.hpp>
 #include <atomic>
 #include <chrono>
@@ -50,8 +49,7 @@ class ProcessInfoNode final : public IComponent
     /// required.
     ProcessInfoNode(
         configuration::ComponentConfig&& config,
-        ProcessHandling process_handling,
-        ISupervisionFactory& supervision_factory);
+        ProcessHandling process_handling);
 
     /// @brief Explicit move constructor required due to atomics. PIN must be moveable to exist in the graph
     ProcessInfoNode(ProcessInfoNode&& other) noexcept

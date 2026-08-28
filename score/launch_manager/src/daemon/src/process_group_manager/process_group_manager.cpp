@@ -208,8 +208,7 @@ bool ProcessGroupManager::initializeProcessGroups()
         configuration_.components().size() + configuration_.runTargets().size() + 2,
         configuration_,
         worker_jobs_,
-        ProcessHandling{&process_interface_, process_map_, &file_waiter_},
-        alive_monitor_->getSupervisionFactory(),
+        ProcessHandling{&process_interface_, process_map_, &file_waiter_, alive_monitor_->getSupervisionFactory()},
         this);
 
     LM_LOG_DEBUG() << "Process group initialized successfully";
