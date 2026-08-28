@@ -27,6 +27,7 @@ def run_until_file_deployed(
     poll_interval_s: float = 0.5,
     args=None,
     cwd: str = "/",
+    stop_on_file: bool = True,
 ) -> AsyncProcess:
     """Start a binary and block until a file appears on the target, then stop the process.
 
@@ -37,7 +38,9 @@ def run_until_file_deployed(
     :param poll_interval_s: seconds between file checks (default: 0.5).
     :param args: optional list of arguments to pass to the binary.
     :param cwd: working directory on the target (default: "/").
-    :return: the stopped :class:`AsyncProcess` handle.
+    :param stop_on_file: stop the process once the file appears (default: True);
+        set to False to keep the process running and return it still alive.
+    :return: the :class:`AsyncProcess` handle (stopped unless *stop_on_file* is False).
     :raises TimeoutError: if the file does not appear within *timeout_s*.
     :raises RuntimeError: if the process exits before the file appears.
     """
@@ -59,10 +62,11 @@ def run_until_file_deployed(
 
         exit_code, _ = target.execute(f"test -f {file_path}")
         if exit_code == 0:
-            exit_code = proc.stop()
-            assert exit_code == 0, (
-                f"LCM did not exit cleanly, it died with code {exit_code}"
-            )
+            if stop_on_file:
+                exit_code = proc.stop()
+                assert exit_code == 0, (
+                    f"LCM did not exit cleanly, it died with code {exit_code}"
+                )
             return proc
         logger.debug(f"Waiting for {file_path}")
 

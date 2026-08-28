@@ -10,27 +10,10 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-import time
-
+from tests.utils.testing_utils.run_until_file_deployed import run_until_file_deployed
 from tests.utils.testing_utils.setup_test import setup_test
 from tests.utils.testing_utils.test_results import assert_test_results
 from attribute_plugin import add_test_properties
-
-
-def _wait_for_file(target, proc, file_path, timeout_s):
-    """Block until `file_path` appears on the target, failing early if the launch
-    manager exits first."""
-    deadline = time.monotonic() + timeout_s
-    while time.monotonic() < deadline:
-        if not proc.is_running():
-            raise RuntimeError(
-                f"Launch manager exited (code {proc.get_exit_code()}) before "
-                f"'{file_path}' appeared. Output: {proc.get_output()}"
-            )
-        if target.execute(f"test -f {file_path}")[0] == 0:
-            return
-        time.sleep(0.1)
-    raise TimeoutError(f"'{file_path}' did not appear within {timeout_s}s")
 
 
 def _read_pid(target, pid_file):
@@ -75,18 +58,21 @@ def test_lm_sigkill_children_survive(
     for f in (ready_file, daemon_pid_file, app_pid_file):
         target.execute(f"rm -f {f}")
 
-    proc = target.execute_async(
-        str(remote_test_dir / "launch_manager"),
-        args=["-c", config_path],
+    # Both children are up and reporting once the daemon touches the ready file.
+    # Keep the launch manager running so the test can SIGKILL it below.
+    proc = run_until_file_deployed(
+        target=target,
+        binary_path=str(remote_test_dir / "launch_manager"),
+        file_path=ready_file,
         cwd=str(remote_test_dir),
+        args=["-c", config_path],
+        timeout_s=10.0,
+        stop_on_file=False,
     )
 
     daemon_pid = None
     app_pid = None
     try:
-        # Both children are up and reporting once the daemon touches the ready file.
-        _wait_for_file(target, proc, ready_file, timeout_s=10.0)
-
         daemon_pid = _read_pid(target, daemon_pid_file)
         app_pid = _read_pid(target, app_pid_file)
 
