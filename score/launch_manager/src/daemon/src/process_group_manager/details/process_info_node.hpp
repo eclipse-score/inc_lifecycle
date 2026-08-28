@@ -60,7 +60,7 @@ class ProcessInfoNode final : public IComponent
           control_client_channel_(std::move(other.control_client_channel_)),
           sync_(std::move(other.sync_)),
           process_handling_(std::move(other.process_handling_)),
-          name(other.name)
+          identifier_(other.identifier_)
     {
     }
 
@@ -190,7 +190,8 @@ class ProcessInfoNode final : public IComponent
     /// @brief Number ot times to try run the process.
     std::uint8_t start_tries_{1U};
 
-    IdentifierHash name;
+    /// @brief Unique hash to identify this node.
+    IdentifierHash identifier_;
 };
 
 }  // namespace score::mw::lifecycle::internal
