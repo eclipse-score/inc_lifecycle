@@ -10,22 +10,9 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
-#include "score/mw/launch_manager/process_group_manager/details/icomponent.hpp"
-
-namespace score::mw::lifecycle::internal
-{
-/// @brief Test-only projection for Transition<IComponent*>, mirroring component_of.hpp's
-/// production overload. Declared in this namespace so Transition<IComponent*> finds it via ADL.
-IComponent& componentOf(IComponent* node)
-{
-    return *node;
-}
-}  // namespace score::mw::lifecycle::internal
-
-#define SCORE_LCM_COMPONENT_OF_HPP_INCLUDED
-
 #include "score/mw/launch_manager/common/identifier_hash.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/dependency_graph.hpp"
+#include "score/mw/launch_manager/process_group_manager/details/icomponent.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/transition.hpp"
 
 #include <gmock/gmock.h>
