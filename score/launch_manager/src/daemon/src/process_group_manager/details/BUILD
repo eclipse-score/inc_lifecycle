@@ -144,7 +144,7 @@ cc_library(
     deps = [
         ":safe_process_map",
         "//score/launch_manager/src/daemon/src/process_group_manager:iprocess",
-        "//score/launch_manager/src/daemon/src/supervision_control_client:isupervision_event_publisher",
+        "//score/launch_manager/src/daemon/src/supervision_control_client:isupervision_factory",
     ],
 )
 
@@ -167,7 +167,6 @@ cc_library(
         "//score/launch_manager/src/daemon/src/process_group_manager:iprocess",
         "//score/launch_manager/src/daemon/src/process_group_manager:process_state",
         "//score/launch_manager/src/daemon/src/supervision_control_client:isupervision_event_publisher",
-        "//score/launch_manager/src/daemon/src/supervision_control_client:isupervision_factory",
         "@score_baselibs//score/language/futurecpp",
     ],
 )
@@ -222,7 +221,6 @@ cc_library(
         "//score/launch_manager/src/daemon/src/control:control_client_channel",
         "//score/launch_manager/src/daemon/src/osal:semaphore",
         "//score/launch_manager/src/daemon/src/process_group_manager:iprocess",
-        "//score/launch_manager/src/daemon/src/supervision_control_client:isupervision_factory",
     ],
 )
 

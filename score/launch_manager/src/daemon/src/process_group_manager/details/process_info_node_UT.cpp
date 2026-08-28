@@ -104,7 +104,7 @@ class ProcessInfoNodeFixture : public ::testing::Test
         }
 
         return std::make_unique<ProcessInfoNode>(
-            std::move(config), kProcessIndex, ProcessHandling{&mock_processIf_, process_map_}, mock_factory_);
+            std::move(config), kProcessIndex, ProcessHandling{&mock_processIf_, process_map_, mock_factory_});
     }
 
     /// @brief Helper method to create a ProcessInfoNode that is self-terminating.

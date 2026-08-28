@@ -22,7 +22,6 @@
 #include "score/mw/launch_manager/process_group_manager/details/safe_process_map.hpp"
 #include "score/mw/launch_manager/process_group_manager/process_state.hpp"
 #include "score/mw/launch_manager/supervision_control_client/isupervision_event_publisher.hpp"
-#include "score/mw/launch_manager/supervision_control_client/isupervision_factory.hpp"
 #include <score/stop_token.hpp>
 #include <atomic>
 #include <chrono>
@@ -48,11 +47,7 @@ class ProcessInfoNode final : public IComponent
     /// @param process_handling The interfaces used to start, stop and report on the OS process.
     /// @param supervision_factory Temporary reference to a factory this node can use to construct its supervision if
     /// required.
-    ProcessInfoNode(
-        configuration::ComponentConfig&& config,
-        uint32_t index,
-        ProcessHandling process_handling,
-        ISupervisionFactory& supervision_factory);
+    ProcessInfoNode(configuration::ComponentConfig&& config, uint32_t index, ProcessHandling process_handling);
 
     /// @brief Explicit move constructor required due to atomics. PIN must be moveable to exist in the graph
     ProcessInfoNode(ProcessInfoNode&& other) noexcept

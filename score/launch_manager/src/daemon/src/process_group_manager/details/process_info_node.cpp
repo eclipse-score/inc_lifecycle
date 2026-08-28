@@ -27,8 +27,7 @@ namespace score::mw::lifecycle::internal
 ProcessInfoNode::ProcessInfoNode(
     configuration::ComponentConfig&& config,
     uint32_t index,
-    ProcessHandling process_handling,
-    ISupervisionFactory& supervision_factory)
+    ProcessHandling process_handling)
     : terminator_(),
       has_semaphore_(false),
       process_index_(index),
@@ -53,7 +52,8 @@ ProcessInfoNode::ProcessInfoNode(
         LM_LOG_DEBUG() << "Setting up alive supervision for" << name;
 
         config_.deployment_config.environmental_variables.add("LCM_ALIVE_INTERFACE_PATH", aliveInterfacePath(name));
-        state_publisher_ = supervision_factory.constructSupervision(name, uid, app_profile.alive_supervision.value());
+        state_publisher_ = process_handling_.supervision_factory.constructSupervision(
+            name, uid, app_profile.alive_supervision.value());
     }
 }
 
