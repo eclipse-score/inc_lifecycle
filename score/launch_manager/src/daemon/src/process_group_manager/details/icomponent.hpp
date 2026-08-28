@@ -69,7 +69,7 @@ class IComponent
     [[nodiscard]] virtual RequestResult tryHandleTermination(int32_t status) = 0;
 
     /// @returns the index of the component in the graph.
-    [[nodiscard]] virtual IdentifierHash getIndex() const = 0;
+    [[nodiscard]] virtual IdentifierHash getIdentifier() const = 0;
 
     /// @returns True if the component is active in the active run target.
     [[nodiscard]] virtual bool active() const = 0;

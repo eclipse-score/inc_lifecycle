@@ -99,13 +99,13 @@ void CreateDependencyGraph(
     pending_dependencies.emplace_back(fallback_index, config.fallbackRunTarget().depends_on);
 
     // wire up deps
-    for (const auto& [node_index, dependencies] : pending_dependencies)
+    for (const auto& [node_identifier, dependencies] : pending_dependencies)
     {
         for (const auto& dep_name : dependencies)
         {
-            LM_LOG_DEBUG() << "Node" << node_index << "has dep to" << dep_name;
+            LM_LOG_DEBUG() << "Node" << node_identifier << "has dep to" << dep_name;
 
-            graph.addDependency(node_index, IdentifierHash{dep_name});
+            graph.addDependency(node_identifier, IdentifierHash{dep_name});
         }
     }
 
@@ -128,7 +128,7 @@ Graph::Graph(
       process_handling_(std::move(process_handling)),
       transition_result_receiver_(transition_result_receiver)
 {
-    last_state_manager_.process_index_ = IdentifierHash{""};  // an invalid state manager
+    last_state_manager_.process_identifier_ = IdentifierHash{""};  // an invalid state manager
     last_state_manager_.process_group_index_ = 0xFFFFU;
     cancel_message_.request_or_response_ = ControlClientCode::kNotSet;
     CreateDependencyGraph(nodes_, configuration_, process_handling_, off_state_transition_timeout_);
@@ -181,7 +181,7 @@ void Graph::updateRunTargetInPlace(RunTarget& run_target, ComponentTaskType task
     {
         run_target.deactivate(stop_source_.get_token());
     }
-    current_transition_->onNodeFinished(run_target.getIndex());
+    current_transition_->onNodeFinished(run_target.getIdentifier());
 }
 
 void Graph::queueReadyNodes()
@@ -239,7 +239,7 @@ void Graph::tryQueueNode(ComponentTask task)
         if (push_res)
         {
             jobs_in_progress_++;
-            // LM_LOG_DEBUG() << "Queued node " << task.component.get().getIndex() << " for "
+            // LM_LOG_DEBUG() << "Queued node " << task.component.get().getIdentifier() << " for "
             //                << (task.type == ComponentTaskType::kDeactivate ? "deactivation" : "activation")
             //                << " execution, jobs in progress:" << jobs_in_progress_;
             break;
@@ -323,15 +323,15 @@ void Graph::handleComponentEvent(const ComponentEvent& event)
             using T = std::decay_t<decltype(data)>;
             if constexpr (std::is_same_v<T, ActivationSuccessful> || std::is_same_v<T, DeactivationComplete>)
             {
-                LM_LOG_DEBUG() << "Component " << data.node_index << " finished "
+                LM_LOG_DEBUG() << "Component " << data.node_identifier << " finished "
                                << (std::is_same_v<T, ActivationSuccessful> ? std::string_view("activation")
                                                                            : std::string_view("deactivation"))
                                << " successfully";
-                nodeExecuted(data.node_index, {});
+                nodeExecuted(data.node_identifier, {});
             }
             else if constexpr (std::is_same_v<T, ActivationFailed>)
             {
-                nodeExecuted(data.node_index, score::cpp::make_unexpected(data.reason));
+                nodeExecuted(data.node_identifier, score::cpp::make_unexpected(data.reason));
             }
             else if constexpr (std::is_same_v<T, UnexpectedTermination>)
             {
@@ -340,7 +340,7 @@ void Graph::handleComponentEvent(const ComponentEvent& event)
                 abort(1, error);
 
                 // Need to clean up any leftover resources
-                IComponent& failingComponent = componentOf(nodes_[data.node_index]);
+                IComponent& failingComponent = componentOf(nodes_[data.node_identifier]);
                 static_cast<void>(failingComponent.deactivate({}));
 
                 if (jobs_in_progress_ == 0)
@@ -350,7 +350,7 @@ void Graph::handleComponentEvent(const ComponentEvent& event)
             }
             else if constexpr (std::is_same_v<T, JobSkipped>)
             {
-                nodeExecuted(data.node_index, {});
+                nodeExecuted(data.node_identifier, {});
             }
         },
         event);
@@ -513,7 +513,7 @@ IdentifierHash Graph::getProcessGroupState()
 
 const ProcessInfoNode* Graph::findControlClient()
 {
-    auto* pin = getProcessInfoNode(getStateManager().process_index_);
+    auto* pin = getProcessInfoNode(getStateManager().process_identifier_);
     if (pin && pin->getControlClientChannel())
     {
         return pin;

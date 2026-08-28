@@ -56,7 +56,7 @@ class RunTarget final : public IComponent
         return RequestState::kSuccess;
     }
 
-    IdentifierHash getIndex() const override
+    IdentifierHash getIdentifier() const override
     {
         return index_;
     }

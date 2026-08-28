@@ -60,7 +60,7 @@ TEST_F(ComponentEventQueueTest, GetNextEventReturnsPushedEventWithPayloadIntact)
     ASSERT_TRUE(event.has_value());
     ASSERT_TRUE(std::holds_alternative<ActivationFailed>(*event));
     const auto& failed = std::get<ActivationFailed>(*event);
-    EXPECT_EQ(failed.node_index, process_identifier);
+    EXPECT_EQ(failed.node_identifier, process_identifier);
     EXPECT_EQ(failed.reason, IComponent::ComponentError::kErrorBeforeReady);
 }
 

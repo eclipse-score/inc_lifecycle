@@ -140,7 +140,7 @@ TEST_F(ProcessInfoNodeStartupTest, CanConstructIdleProcessInfoNode)
 
     auto node = createProcessInfoNode();
 
-    ASSERT_THAT(node->getIndex(), Eq(kProcessName));
+    ASSERT_THAT(node->getIdentifier(), Eq(kProcessName));
     ASSERT_THAT(node->getState(), Eq(score::mw::lifecycle::ProcessState::kIdle));
     ASSERT_THAT(node->getPid(), Eq(0));
     ASSERT_THAT(node->active(), IsFalse());
@@ -546,7 +546,7 @@ TEST_F(ProcessInfoNodeMoveTest, MoveConstruct_IdleNode_PreservesObservableState)
 
     ProcessInfoNode moved{std::move(*source)};
 
-    ASSERT_THAT(moved.getIndex(), Eq(kProcessName));
+    ASSERT_THAT(moved.getIdentifier(), Eq(kProcessName));
     ASSERT_THAT(moved.getState(), Eq(score::mw::lifecycle::ProcessState::kIdle));
     ASSERT_THAT(moved.active(), IsFalse());
     ASSERT_THAT(moved.getPid(), Eq(0));
@@ -566,7 +566,7 @@ TEST_F(ProcessInfoNodeMoveTest, MoveConstruct_RunningNode_PreservesAtomicState)
 
     ProcessInfoNode moved{std::move(*source)};
 
-    ASSERT_THAT(moved.getIndex(), Eq(kProcessName));
+    ASSERT_THAT(moved.getIdentifier(), Eq(kProcessName));
     ASSERT_THAT(moved.getState(), Eq(score::mw::lifecycle::ProcessState::kRunning));
     ASSERT_THAT(moved.active(), IsTrue());
 }

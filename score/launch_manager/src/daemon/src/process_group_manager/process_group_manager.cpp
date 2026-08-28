@@ -434,7 +434,7 @@ void ProcessGroupManager::controlClientResponses(Graph& pg)
 bool ProcessGroupManager::sendResponse(ControlClientMessage msg)
 {
     auto pin = getProcessInfoNode(
-        msg.originating_control_client_.process_group_index_, msg.originating_control_client_.process_index_);
+        msg.originating_control_client_.process_group_index_, msg.originating_control_client_.process_identifier_);
     bool ret = true;
 
     if (pin)
@@ -479,7 +479,7 @@ void ProcessGroupManager::controlClientRequests(Graph& pg)
         // Fill in some routing details
         // Single process group at index 0
         scc->request().originating_control_client_.process_group_index_ = 0U;
-        scc->request().originating_control_client_.process_index_ = control_client->getIndex();
+        scc->request().originating_control_client_.process_identifier_ = control_client->getIdentifier();
 
         LM_LOG_DEBUG() << "ProcessGroupManager::ControlClientHandler: got request"
                        << scc->toString(scc->request().request_or_response_) << "("
@@ -698,11 +698,11 @@ void ProcessGroupManager::setInitialStateTransitionResult(ControlClientCode resu
     ControlClientChannel::nudgeControlClientHandler();
 }
 
-ProcessInfoNode* ProcessGroupManager::getProcessInfoNode(uint32_t pg_index, IdentifierHash process_index)
+ProcessInfoNode* ProcessGroupManager::getProcessInfoNode(uint32_t pg_index, IdentifierHash process_id)
 {
     if (pg_index == 0U && graph_)
     {
-        return graph_->getProcessInfoNode(process_index);
+        return graph_->getProcessInfoNode(process_id);
     }
 
     return nullptr;

@@ -446,7 +446,7 @@ std::chrono::milliseconds ProcessInfoNode::getTerminationTimeout() const
     return std::chrono::milliseconds{config_.deployment_config.shutdown_timeout_ms};
 }
 
-IdentifierHash ProcessInfoNode::getIndex() const
+IdentifierHash ProcessInfoNode::getIdentifier() const
 {
     return name;
 }

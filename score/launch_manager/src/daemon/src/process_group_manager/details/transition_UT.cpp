@@ -48,13 +48,13 @@ class MockComponent : public IComponent
         name_ = IdentifierHash{std::to_string(index++)};
 
         ON_CALL(*this, active()).WillByDefault(::testing::ReturnPointee(&active_));
-        ON_CALL(*this, getIndex()).WillByDefault(::testing::ReturnPointee(&name_));
+        ON_CALL(*this, getIdentifier()).WillByDefault(::testing::ReturnPointee(&name_));
     }
 
     MOCK_METHOD(RequestResult, activate, (score::cpp::stop_token), (override));
     MOCK_METHOD(RequestResult, deactivate, (score::cpp::stop_token), (override));
     MOCK_METHOD(RequestResult, tryHandleTermination, (int32_t), (override));
-    MOCK_METHOD(IdentifierHash, getIndex, (), (const, override));
+    MOCK_METHOD(IdentifierHash, getIdentifier, (), (const, override));
     MOCK_METHOD(bool, active, (), (const, override));
 
     /// @brief Flip both flags together, mirroring a real component reaching a terminal state.

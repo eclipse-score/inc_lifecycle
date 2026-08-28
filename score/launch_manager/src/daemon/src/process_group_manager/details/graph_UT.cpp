@@ -167,11 +167,11 @@ class GraphTest : public ::testing::Test
             executeJobSuccessfully(job->value());
             if (job->value().type == ComponentTaskType::kActivate)
             {
-                graph_->handleComponentEvent(ActivationSuccessful{job->value().component.get().getIndex()});
+                graph_->handleComponentEvent(ActivationSuccessful{job->value().component.get().getIdentifier()});
             }
             else
             {
-                graph_->handleComponentEvent(DeactivationComplete{job->value().component.get().getIndex()});
+                graph_->handleComponentEvent(DeactivationComplete{job->value().component.get().getIdentifier()});
             }
         }
 
@@ -228,7 +228,7 @@ TEST_F(GraphOrdinaryTransitionTest, correctJobDetails)
     const auto job = job_queue_->pop();
     ASSERT_TRUE(job->has_value()) << "startTransition didn't push anything to the queue";
     EXPECT_EQ(job->value().type, ComponentTaskType::kActivate);
-    EXPECT_EQ(job->value().component.get().getIndex(), IdentifierHash{process_name(1)});
+    EXPECT_EQ(job->value().component.get().getIdentifier(), IdentifierHash{process_name(1)});
 }
 
 TEST_F(GraphOrdinaryTransitionTest, simpleActivationTransition)
@@ -342,7 +342,7 @@ TEST_F(GraphOffTransitionTest, normalShutdown)
     EXPECT_TRUE(graph_->isTransitioningToOff());
     ASSERT_TRUE(job->has_value());
     EXPECT_EQ(job.value()->type, ComponentTaskType::kDeactivate);
-    EXPECT_EQ(job->value().component.get().getIndex(), IdentifierHash{process_name(0)});
+    EXPECT_EQ(job->value().component.get().getIdentifier(), IdentifierHash{process_name(0)});
 }
 
 TEST_F(GraphOffTransitionTest, shutdownDuringTransition)
@@ -406,7 +406,7 @@ TEST_F(GraphImplicitOffTargetTest, offRunTargetIsCreatedWhenNotConfigured)
     ASSERT_TRUE(job->has_value());
     EXPECT_EQ(job->value().type, ComponentTaskType::kDeactivate);
     executeJobSuccessfully(job->value());
-    graph_->handleComponentEvent(DeactivationComplete{job->value().component.get().getIndex()});
+    graph_->handleComponentEvent(DeactivationComplete{job->value().component.get().getIdentifier()});
 
     EXPECT_EQ(graph_->getState(), GraphState::kSuccess);
     EXPECT_EQ(graph_->getProcessGroupState(), IdentifierHash{"Off"});
@@ -481,7 +481,8 @@ TEST_F(GraphHandleComponentEventTest, failedFirstDuringTransition)
     // Fail the first job
     const auto first_job = job_queue_->pop();
     graph_->handleComponentEvent(
-        ActivationFailed{first_job->value().component.get().getIndex(), IComponent::ComponentError::kErrorBeforeReady});
+        ActivationFailed{
+            first_job->value().component.get().getIdentifier(), IComponent::ComponentError::kErrorBeforeReady});
 
     const auto second_job = job_queue_->pop();
 
@@ -499,11 +500,12 @@ TEST_F(GraphHandleComponentEventTest, failureFollowedBySuccessFails)
     // Fail the first job
     const auto first_job = job_queue_->pop();
     graph_->handleComponentEvent(
-        ActivationFailed{first_job->value().component.get().getIndex(), IComponent::ComponentError::kErrorBeforeReady});
+        ActivationFailed{
+            first_job->value().component.get().getIdentifier(), IComponent::ComponentError::kErrorBeforeReady});
 
     const auto second_job = job_queue_->pop();
     executeJobSuccessfully(second_job->value());
-    graph_->handleComponentEvent(ActivationSuccessful{second_job->value().component.get().getIndex()});
+    graph_->handleComponentEvent(ActivationSuccessful{second_job->value().component.get().getIdentifier()});
 
     EXPECT_EQ(graph_->getState(), GraphState::kUndefinedState);
     EXPECT_EQ(graph_->getPendingEvent(), ControlClientCode::kFailedUnexpectedTerminationOnEnter);
@@ -526,7 +528,7 @@ TEST_F(GraphHandleComponentEventTest, unexpectedTerminationDuringSuccess)
             }),
             Return(osal::OsalReturnType::kSuccess)));
 
-    graph_->handleComponentEvent(UnexpectedTermination{component->getIndex()});
+    graph_->handleComponentEvent(UnexpectedTermination{component->getIdentifier()});
 
     EXPECT_EQ(graph_->getState(), GraphState::kUndefinedState);
 }
@@ -542,7 +544,7 @@ TEST_F(GraphHandleComponentEventTest, unexpectedTerminationDuringTransition)
 
     const auto first_job = job_queue_->pop();
     executeJobSuccessfully(first_job->value());
-    const auto component_index = first_job.value()->component.get().getIndex();
+    const auto component_index = first_job.value()->component.get().getIdentifier();
     graph_->handleComponentEvent(ActivationSuccessful{component_index});
 
     const auto component = graph_->getProcessInfoNode(component_index);
@@ -558,7 +560,7 @@ TEST_F(GraphHandleComponentEventTest, unexpectedTerminationDuringTransition)
 
     const auto second_job = job_queue_->pop();
     executeJobSuccessfully(second_job->value());
-    graph_->handleComponentEvent(ActivationSuccessful{second_job->value().component.get().getIndex()});
+    graph_->handleComponentEvent(ActivationSuccessful{second_job->value().component.get().getIdentifier()});
 
     EXPECT_EQ(graph_->getPendingEvent(), ControlClientCode::kFailedUnexpectedTermination);
 }
@@ -655,9 +657,9 @@ TEST_F(GraphUtilitiesTest, gettersSetters)
     RecordProperty("Description", "Test that basic getters return the value the setter sets");
 
     ControlClientID state_manager = {};
-    state_manager.process_index_ = IdentifierHash{"123"};
+    state_manager.process_identifier_ = IdentifierHash{"123"};
     graph_->setStateManager(state_manager);
-    EXPECT_EQ(graph_->getStateManager().process_index_, state_manager.process_index_);
+    EXPECT_EQ(graph_->getStateManager().process_identifier_, state_manager.process_identifier_);
 
     const IdentifierHash pending_state{"Pending"};
     const auto previous_pending_state = graph_->getPendingState();

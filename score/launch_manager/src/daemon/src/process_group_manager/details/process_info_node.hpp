@@ -69,7 +69,7 @@ class ProcessInfoNode final : public IComponent
     ProcessInfoNode& operator=(ProcessInfoNode&& other) = delete;
     ~ProcessInfoNode() = default;
 
-    [[nodiscard]] IdentifierHash getIndex() const override;
+    [[nodiscard]] IdentifierHash getIdentifier() const override;
 
     RequestResult activate(score::cpp::stop_token stop_token) override;
 

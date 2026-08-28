@@ -26,7 +26,7 @@ namespace score::mw::lifecycle
 
 /// @brief Stores a set of nodes as a directed acyclic graph (DAG) with edges representing dependencies between nodes.
 /// @details The class provides methods to create and traverse the graph.
-template <class GraphIndex, class T>
+template <class Key, class T>
 class DependencyGraph
 {
   private:
@@ -34,8 +34,8 @@ class DependencyGraph
     struct GraphNode
     {
         T value;
-        std::vector<GraphIndex> depends_on;
-        std::vector<GraphIndex> dependents;
+        std::vector<Key> depends_on;
+        std::vector<Key> dependents;
         bool visited{false};
 
         /// @brief Constructor to allow in-place construction of T.
@@ -45,7 +45,7 @@ class DependencyGraph
         }
     };
 
-    using iterator = typename std::unordered_map<GraphIndex, GraphNode>::iterator;
+    using iterator = typename std::unordered_map<Key, GraphNode>::iterator;
 
   public:
     /// @param count The exact number of nodes that will be added.
@@ -57,10 +57,10 @@ class DependencyGraph
         nodes.reserve(count);
     }
 
-    /// @brief Construct a new node in-place. Returns the node's index, which equals the current size
+    /// @brief Construct a new node in-place. Returns the node's key, which equals the current size
     /// before insertion (i.e. the first node is 0, second is 1, etc.).
     template <typename... Args>
-    GraphIndex try_emplace(const GraphIndex& key, Args&&... args)
+    Key try_emplace(const Key& key, Args&&... args)
     {
         std::pair<iterator, bool> res = nodes.try_emplace(key, std::forward<Args>(args)...);
         return res.first->first;
@@ -69,7 +69,7 @@ class DependencyGraph
     /// @brief Add an edge: @p node depends on @p depends_on.
     /// During activation, depends_on will be started before node.
     /// During deactivation, node will be stopped before depends_on.
-    void addDependency(const GraphIndex node, const GraphIndex depends_on)
+    void addDependency(const Key node, const Key depends_on)
     {
         SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(
             nodes.at(node).depends_on.size() < capacity(), "More dependencies added than there are nodes in the graph");
@@ -93,33 +93,33 @@ class DependencyGraph
         return capacity_;
     }
 
-    T& operator[](GraphIndex index)
+    T& operator[](Key key)
     {
-        return nodes.at(index).value;
+        return nodes.at(key).value;
     }
 
-    const T& operator[](const GraphIndex index) const
+    const T& operator[](const Key key) const
     {
-        return nodes.at(index).value;
+        return nodes.at(key).value;
     }
 
-    /// @return The nodes that @p index depends on.
-    const std::vector<GraphIndex>& dependsOn(GraphIndex index) const
+    /// @return The nodes that @p key depends on.
+    const std::vector<Key>& dependsOn(Key key) const
     {
-        return nodes.at(index).depends_on;
+        return nodes.at(key).depends_on;
     }
 
-    /// @return The nodes that depend on @p index.
-    const std::vector<GraphIndex>& dependents(GraphIndex index) const
+    /// @return The nodes that depend on @p key.
+    const std::vector<Key>& dependents(Key key) const
     {
-        return nodes.at(index).dependents;
+        return nodes.at(key).dependents;
     }
 
     /// @brief Traverse the graph, starting at @p start, performing @p per_node
     ///        on each node and moving to the nodes provided by the return
     ///        value from @p per_node.
     template <typename PerNodeFn>
-    void traverse(const GraphIndex start, PerNodeFn per_node)
+    void traverse(const Key start, PerNodeFn per_node)
     {
         for (auto& [key, value] : nodes)
         {
@@ -188,18 +188,18 @@ class DependencyGraph
         return ValueIterator{nodes.end()};
     }
 
-    ValueIterator find(GraphIndex index)
+    ValueIterator find(Key key)
     {
-        return ValueIterator{nodes.find(index)};
+        return ValueIterator{nodes.find(key)};
     }
 
   private:
     std::size_t capacity_;
 
-    std::unordered_map<GraphIndex, GraphNode> nodes;
+    std::unordered_map<Key, GraphNode> nodes;
 
     /// @brief Presized queue reused by single-threaded traversals.
-    internal::FixedSizeQueue<GraphIndex> traversal_queue;
+    internal::FixedSizeQueue<Key> traversal_queue;
 };
 
 }  // namespace score::mw::lifecycle

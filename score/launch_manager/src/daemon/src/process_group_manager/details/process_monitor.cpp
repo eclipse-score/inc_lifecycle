@@ -43,16 +43,16 @@ void ProcessMonitor::doWork(ComponentTask&& task)
     };
 
     auto handle_success = [&]() {
-        const IdentifierHash node_index = task.component.get().getIndex();
+        const IdentifierHash node_identifier = task.component.get().getIdentifier();
         bool push_res = true;
 
         switch (task.type)
         {
             case ComponentTaskType::kActivate:
-                push_res = event_queue_.push(ActivationSuccessful{node_index});
+                push_res = event_queue_.push(ActivationSuccessful{node_identifier});
                 break;
             case ComponentTaskType::kDeactivate:
-                push_res = event_queue_.push(DeactivationComplete{node_index});
+                push_res = event_queue_.push(DeactivationComplete{node_identifier});
                 break;
         }
 
@@ -63,12 +63,12 @@ void ProcessMonitor::doWork(ComponentTask&& task)
     };
 
     auto handle_failure = [&](IComponent::ComponentError& error) {
-        const IdentifierHash node_index = task.component.get().getIndex();
+        const IdentifierHash node_identifier = task.component.get().getIdentifier();
 
         switch (task.type)
         {
             case ComponentTaskType::kActivate:
-                if (!event_queue_.push(ActivationFailed{node_index, error}))
+                if (!event_queue_.push(ActivationFailed{node_identifier, error}))
                 {
                     LM_LOG_ERROR() << "Failed to send activation failed event to event queue!";
                 }
@@ -91,7 +91,7 @@ void ProcessMonitor::doWork(ComponentTask&& task)
 
     if (task.stop_token.stop_requested())
     {
-        if (!event_queue_.push(JobSkipped{task.component.get().getIndex()}))
+        if (!event_queue_.push(JobSkipped{task.component.get().getIdentifier()}))
         {
             LM_LOG_ERROR() << "Failed to send job skipped event to event queue!";
         }
@@ -116,11 +116,11 @@ void ProcessMonitor::terminated(IComponent& component, int32_t status)
     bool push_res = true;
     if (!res.has_value())
     {
-        push_res = event_queue_.push(UnexpectedTermination{component.getIndex()});
+        push_res = event_queue_.push(UnexpectedTermination{component.getIdentifier()});
     }
     else if (res.value() != IComponent::RequestState::kWaiting)
     {
-        push_res = event_queue_.push(ActivationSuccessful{component.getIndex()});
+        push_res = event_queue_.push(ActivationSuccessful{component.getIdentifier()});
     }
 
     if (!push_res)
