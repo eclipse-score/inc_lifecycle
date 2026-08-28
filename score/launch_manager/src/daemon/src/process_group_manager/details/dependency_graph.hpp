@@ -30,6 +30,10 @@ template <class Key, class T>
 class DependencyGraph
 {
   private:
+    static_assert(
+        std::is_trivially_copyable_v<Key>,
+        "This class takes copies of keys so they should be trivially copyable");
+
     /// @brief Wrapper around objects in the graph to store information about dependencies.
     struct GraphNode
     {
@@ -66,7 +70,7 @@ class DependencyGraph
     /// @brief Construct a new node in-place. Returns the node's key.
     /// @warning If the key is already present in the graph, the new node is not inserted.
     template <typename... Args>
-    Key try_emplace(const Key& key, Args&&... args)
+    Key try_emplace(Key key, Args&&... args)
     {
         std::pair<iterator, bool> res = nodes.try_emplace(key, std::forward<Args>(args)...);
         SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(
@@ -78,7 +82,7 @@ class DependencyGraph
     /// During activation, depends_on will be started before node.
     /// During deactivation, node will be stopped before depends_on.
     /// @pre @p node and @p depends_on must both be present in the graph
-    void addDependency(const Key node, const Key depends_on)
+    void addDependency(Key node, Key depends_on)
     {
         SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(
             nodes.at(node).depends_on.size() < capacity(), "More dependencies added than there are nodes in the graph");
@@ -135,7 +139,7 @@ class DependencyGraph
     ///        value from @p per_node.
     /// @pre @p start must be present in the graph.
     template <typename PerNodeFn>
-    void traverse(const Key start, PerNodeFn per_node)
+    void traverse(Key start, PerNodeFn per_node)
     {
         std::for_each(nodes.begin(), nodes.end(), [](std::pair<const Key, GraphNode>& it) {
             GraphNode& node = it.second;
@@ -170,9 +174,9 @@ class DependencyGraph
     struct ValueIterator
     {
         iterator it;
-        std::pair<const Key, T&> operator*()
+        std::pair<Key, T&> operator*()
         {
-            return std::pair<const Key, T&>(it->first, it->second.value);
+            return std::pair<Key, T&>(it->first, it->second.value);
         }
 
         ValueIterator& operator++()

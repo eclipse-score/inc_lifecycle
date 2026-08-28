@@ -239,9 +239,6 @@ void Graph::tryQueueNode(ComponentTask task)
         if (push_res)
         {
             jobs_in_progress_++;
-            // LM_LOG_DEBUG() << "Queued node " << task.component.get().getIdentifier() << " for "
-            //                << (task.type == ComponentTaskType::kDeactivate ? "deactivation" : "activation")
-            //                << " execution, jobs in progress:" << jobs_in_progress_;
             break;
         }
         else if (push_res.error() == ConcurrencyErrc::kTimeout)

@@ -106,6 +106,10 @@ class Transition
         "Transition<T> requires an ADL-findable componentOf(T&) that returns a reference "
         "to IComponent&.");
 
+    static_assert(
+        std::is_trivially_copyable_v<Key>,
+        "This class takes copies of keys so they should be trivially copyable");
+
     friend class TransitionBuilder<Key, T>;
 
   public:
@@ -250,7 +254,10 @@ class Transition
         // Sets up or resets our stored info for this transition
         for (auto [key, value] : graph_)
         {
-            state_.node_information[key] = NodeInfo{};
+            // If the key is not present in the map, this will default construct into it
+            NodeInfo& info = state_.node_information[key];
+            info.enqueued_ = false;
+            info.in_target_subgraph_ = false;
         }
 
         state_.target_root = target;
