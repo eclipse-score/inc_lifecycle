@@ -177,6 +177,7 @@ class PhmDaemon final : public ISupervisionFactory
         return true;
     }
 
+    /// @brief @see ISupervisonFactory::constructSupervision
     std::unique_ptr<ISupervisionEventPublisher> constructSupervision(
         const IdentifierHash id,
         const uid_t uid,

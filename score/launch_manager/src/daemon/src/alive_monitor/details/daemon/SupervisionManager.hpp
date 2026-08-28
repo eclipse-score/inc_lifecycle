@@ -145,6 +145,9 @@ class SupervisionManager
     std::vector<supervision::Alive> aliveSupervisions;
 
     std::unique_ptr<factory::IPhmFactory> flatCfgFactory;
+
+    /// @brief The number of alive supervisions we expect to successfully construct
+    std::size_t capacity{0};
 };
 
 }  // namespace daemon
