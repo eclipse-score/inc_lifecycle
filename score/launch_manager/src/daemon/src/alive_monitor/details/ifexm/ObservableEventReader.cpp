@@ -98,8 +98,8 @@ score::Result<std::optional<SupervisionEvent>> ObservableEventReader::getNextSup
     score::mw::lifecycle::SupervisionEvent event;
     if (buffer_->getOverflowFlag())
     {
-        LM_LOG_ERROR() << "ObservableEventReader::getNextSupervisionEvent: Overflow occurred, "
-                          "will be reported as kCommunicationError";
+        LM_LOG_ERROR()
+            << "Supervision event buffer overflow has occurred, this will be reported as a communication error";
         return score::Result<std::optional<score::mw::lifecycle::SupervisionEvent>>{
             score::MakeUnexpected(score::mw::lifecycle::ExecErrc::kCommunicationError)};
     }

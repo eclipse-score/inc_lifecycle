@@ -34,11 +34,12 @@ SupervisionManager::~SupervisionManager() = default;
 
 bool SupervisionManager::full()
 {
-    return aliveSupervisions.size() == aliveSupervisions.capacity();
+    return aliveSupervisions.size() == capacity;
 }
 
 void SupervisionManager::reserve(std::size_t size)
 {
+    capacity = size;
     processStates.reserve(size);
     aliveIfIpcs.reserve(size);
     aliveInterfaces.reserve(size);
