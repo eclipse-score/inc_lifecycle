@@ -39,12 +39,12 @@ ProcessInfoNode::ProcessInfoNode(configuration::ComponentConfig&& config, Proces
         start_tries_ = config_.deployment_config.ready_recovery_action->number_of_attempts + 1;
     }
 
-    const configuration::ApplicationProfile& app_profile = config.component_properties.application_profile;
+    const configuration::ApplicationProfile& app_profile = config_.component_properties.application_profile;
 
     if (app_profile.alive_supervision.has_value() &&
         app_profile.application_type == configuration::ApplicationType::ReportingAndSupervised)
     {
-        const uid_t uid = config.deployment_config.sandbox.uid;
+        const uid_t uid = config_.deployment_config.sandbox.uid;
 
         LM_LOG_DEBUG() << "Setting up alive supervision for" << name;
 
