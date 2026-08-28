@@ -154,9 +154,9 @@ class DependencyGraph
     struct ValueIterator
     {
         iterator it;
-        T& operator*()
+        std::pair<const Key, T&> operator*()
         {
-            return it->second.value;
+            return std::pair<const Key, T&>(it->first, it->second.value);
         }
 
         ValueIterator& operator++()

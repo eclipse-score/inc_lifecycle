@@ -453,7 +453,7 @@ void Graph::cancel()
 
 void Graph::forceKillProcesses()
 {
-    for (const auto& component : nodes_)
+    for (const auto [id, component] : nodes_)
     {
         if (const ProcessInfoNode* process = std::get_if<ProcessInfoNode>(&component))
         {
@@ -519,7 +519,7 @@ const ProcessInfoNode* Graph::findControlClient()
         return pin;
     }
 
-    for (const auto& node : nodes_)
+    for (const auto [id, node] : nodes_)
     {
         if (const auto* process = std::get_if<ProcessInfoNode>(&node); process && process->getControlClientChannel())
         {

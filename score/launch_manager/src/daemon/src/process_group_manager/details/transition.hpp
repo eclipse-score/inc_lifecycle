@@ -210,10 +210,9 @@ class Transition
         const auto& successors = state_.phase == Phase::Starting ? graph_.dependents(node) : graph_.dependsOn(node);
         for (const Key s : successors)
         {
-            const std::size_t index = state_.bitset_map.at(s);
-            if (isReady(s) && !state_.enqueued_set.test(index))
+            if (isReady(s) && !state_.node_information.at(s).enqueued_)
             {
-                state_.enqueued_set.set(index);
+                state_.node_information[s].enqueued_ = true;
                 SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(
                     state_.next_nodes.push(s), "Transition queue should never exceed capacity");
             }
@@ -248,17 +247,11 @@ class Transition
     /// aborted transition are captured too). Then moves to the Starting Phase to bring up @p target.
     void setupTransition(Key target)
     {
-        if (state_.bitset_map.size() == 0)
+        // Sets up or resets our stored info for this transition
+        for (auto [key, value] : graph_)
         {
-            std::size_t count = 0;
-            for (auto& node : graph_)
-            {
-                state_.bitset_map.emplace(internal::componentOf(node).getIdentifier(), count++);
-            }
+            state_.node_information[key] = NodeInfo{};
         }
-
-        state_.in_target_subgraph.reset();
-        state_.enqueued_set.reset();
 
         state_.target_root = target;
         clearNextNodes();
@@ -278,18 +271,26 @@ class Transition
         Done,      ///< every participating node has reached its terminal state
     };
 
-    struct State
+    struct NodeInfo
     {
-        /// @brief Per-node membership mask
-        /// @details in_target_subgraph[i] is true iff node
-        /// i is reachable from target_root (i.e. belongs to the subgraph about to
-        /// be running). Recomputed at every setup. Serves two purposes:
+        /// @brief True if the node is in the subgraph of nodes we wish to process
+        /// @details in_target_subgraph[i] is true iff node is reachable from target_root (i.e. belongs to the subgraph
+        /// about to be running). Recomputed at every setup. Serves two purposes:
         ///   stopping:  the nodes excluded from the whole-graph stop scan, and the
         ///              nodes onNodeFinished must never (re)stop.
         ///   starting:  nodes that are directly or indirectly depended on by
         ///              the target_root.
-        std::bitset<static_cast<std::size_t>(internal::ProcessLimits::kMaxProcesses)> in_target_subgraph;
+        bool in_target_subgraph_{false};
 
+        /// @brief True if the node has been enqueued for the current transition phase
+        /// @deprecated This is a workaround for the case where two processes are started in parallel and their events
+        /// processed in sequence. Both onNodeFinished() calls detect that all dependents are ready and try to enqueue
+        /// successors. Detection of dependency readiness should be reworked to remove this. See #427
+        bool enqueued_{false};
+    };
+
+    struct State
+    {
         /// @brief The destination subgraph's root (the `target` endpoint)
         Key target_root{};
 
@@ -299,17 +300,12 @@ class Transition
         std::size_t pending = 0;    // nodes still to reach terminal state in this phase
         Phase phase = Phase::Done;  // active vs deactivation vs finished
 
-        /// @brief Nodes that have been enqueued for the current transition phase
-        /// @deprecated This is a workaround for the case where two processes are started in parallel and their events
-        /// processed in sequence. Both onNodeFinished() calls detect that all dependents are ready and try to enqueue
-        /// successors. Detection of dependency readiness should be reworked to remove this.
-        std::bitset<static_cast<std::size_t>(internal::ProcessLimits::kMaxProcesses)> enqueued_set{};
-
-        std::unordered_map<Key, std::size_t> bitset_map;
+        /// @brief Information we need to maintain about graph nodes for the current transition
+        std::unordered_map<Key, NodeInfo> node_information;
 
         explicit State(std::size_t nodes) : next_nodes(nodes)
         {
-            bitset_map.reserve(nodes);
+            node_information.reserve(nodes);
         }
     };
 
@@ -355,11 +351,9 @@ class Transition
     /// @brief Check if the node is ready to be activated/deactivated in the current phase.
     bool isReady(Key s)
     {
-        const std::size_t index = state_.bitset_map.at(s);
-
         return state_.phase == Phase::Starting
-                   ? (state_.in_target_subgraph.test(index) && !active(s) && allDepsActive(s))
-                   : (!state_.in_target_subgraph.test(index) && !stopped(s) && allDependentsStopped(s));
+                   ? (state_.node_information.at(s).in_target_subgraph_ && !active(s) && allDepsActive(s))
+                   : (!state_.node_information.at(s).in_target_subgraph_ && !stopped(s) && allDependentsStopped(s));
     }
 
     void clearNextNodes()
@@ -378,7 +372,10 @@ class Transition
         state_.phase = Phase::Starting;
         state_.pending = 0;
         clearNextNodes();
-        state_.enqueued_set.reset();
+        for (auto& [key, value] : state_.node_information)
+        {
+            value.enqueued_ = false;
+        }
 
         setupActivation(state_.target_root);
         if (state_.pending == 0)
@@ -395,8 +392,7 @@ class Transition
     void setupActivation(Key root)
     {
         graph_.traverse(root, [this](Key i) -> const std::vector<Key>& {
-            const std::size_t index = state_.bitset_map[i];
-            state_.in_target_subgraph.set(index);
+            state_.node_information[i].in_target_subgraph_ = true;
             if (!active(i))
             {
                 ++state_.pending;
@@ -422,19 +418,18 @@ class Transition
     void setupDeactivation(Key target)
     {
         graph_.traverse(target, [this](Key i) -> const std::vector<Key>& {
-            const std::size_t index = state_.bitset_map[i];
-            state_.in_target_subgraph.set(index);
+            state_.node_information[i].in_target_subgraph_ = true;
             return graph_.dependsOn(i);
         });
 
-        for (const auto& [node, index] : state_.bitset_map)
+        for (const auto& [key, value] : state_.node_information)
         {
-            if (!state_.in_target_subgraph[index] && !stopped(node))
+            if (!value.in_target_subgraph_ && !stopped(key))
             {
                 ++state_.pending;
-                if (allDependentsStopped(node))
+                if (allDependentsStopped(key))
                 {
-                    state_.next_nodes.push(node);
+                    state_.next_nodes.push(key);
                 }
             }
         }
