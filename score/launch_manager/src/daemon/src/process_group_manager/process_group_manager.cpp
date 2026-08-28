@@ -132,7 +132,6 @@ void ProcessGroupManager::deinitialize()
         event_queue_->stop();
     }
     os_handler_.reset();
-    process_monitor_.reset();
     alive_monitor_thread_->stop();
 
     // Join the worker threads before destroying the process groups: a worker may
@@ -143,6 +142,7 @@ void ProcessGroupManager::deinitialize()
 
     graph_.reset();
     process_map_.reset();
+    process_monitor_.reset();
 }
 
 bool ProcessGroupManager::initializeControlClientHandler()
