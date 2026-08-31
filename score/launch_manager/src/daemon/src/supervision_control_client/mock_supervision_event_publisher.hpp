@@ -24,6 +24,7 @@ class MockSupervisionEventPublisher : public ISupervisionEventPublisher
   public:
     MOCK_METHOD(bool, reportActivation, (timespec time), (override, noexcept));
     MOCK_METHOD(bool, reportDeactivation, (timespec time), (override, noexcept));
+    MOCK_METHOD(std::string_view, getConnectionId, (), (const, override, noexcept));
 };
 
 }  // namespace score::mw::lifecycle

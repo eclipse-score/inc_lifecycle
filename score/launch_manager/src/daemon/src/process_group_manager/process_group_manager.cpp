@@ -94,7 +94,7 @@ bool ProcessGroupManager::initialize()
     }
 
     LM_LOG_DEBUG() << "Process Group initialization done";
-    if (!alive_monitor_->start())
+    if (!alive_monitor_->startMonitoring())
     {
         LM_LOG_ERROR() << "Alive monitor thread failed to start";
         return false;
@@ -129,7 +129,7 @@ void ProcessGroupManager::deinitialize()
         event_queue_->stop();
     }
     os_handler_.reset();
-    alive_monitor_->stop();
+    alive_monitor_->stopMonitoring();
 
     // Join the worker threads before destroying the process groups: a worker may
     // still be (de)activating a ProcessInfoNode owned by a graph, so tearing the

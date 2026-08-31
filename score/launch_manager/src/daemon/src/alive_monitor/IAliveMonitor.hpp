@@ -31,10 +31,11 @@ class IAliveMonitor
     virtual ~IAliveMonitor() = default;
 
     /// @brief Start the monitor thread
-    virtual bool start() = 0;
+    /// @returns False if monitoring failed to start, true otherwise
+    virtual bool startMonitoring() = 0;
 
     /// @brief Stop the monitor thread
-    virtual void stop() = 0;
+    virtual void stopMonitoring() = 0;
 
     /// @brief Returns an interface for components to register their alive supervision
     virtual ISupervisionFactory& getSupervisionFactory() const = 0;

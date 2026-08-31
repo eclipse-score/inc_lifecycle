@@ -42,6 +42,7 @@ cc_library(
     deps = [
         ":isupervision_event_publisher",
         ":supervision_event",
+        "//score/launch_manager/src/daemon/src/common:alive_interface_path",
         "//score/launch_manager/src/daemon/src/common:identifier_hash",
         "//score/launch_manager/src/daemon/src/common:log",
     ],

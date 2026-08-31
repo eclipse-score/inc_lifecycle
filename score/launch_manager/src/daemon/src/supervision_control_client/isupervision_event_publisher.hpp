@@ -14,6 +14,7 @@
 #define ISUPERVISION_EVENT_PUBLISHER_HPP_INCLUDED
 
 #include <ctime>
+#include <string_view>
 
 namespace score
 {
@@ -35,6 +36,9 @@ class ISupervisionEventPublisher
 
     /// @brief Report that the calling process has changed from the active state at @param time
     virtual bool reportDeactivation(timespec time) noexcept = 0;
+
+    /// @brief Get the name of the IPC file alive indications are sent to.
+    virtual std::string_view getConnectionId() const noexcept = 0;
 };
 
 }  // namespace mw::lifecycle

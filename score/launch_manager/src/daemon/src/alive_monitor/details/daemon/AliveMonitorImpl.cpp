@@ -64,7 +64,7 @@ EInitCode AliveMonitorImpl::init(const std::size_t supervised_components) noexce
     return initResult;
 }
 
-bool AliveMonitorImpl::start() noexcept
+bool AliveMonitorImpl::startMonitoring() noexcept
 {
     if (initResult != EInitCode::kNoError)
     {
@@ -78,7 +78,7 @@ bool AliveMonitorImpl::start() noexcept
     return true;
 }
 
-void AliveMonitorImpl::stop() noexcept
+void AliveMonitorImpl::stopMonitoring() noexcept
 {
     stop_thread_.store(true);
     if (alive_monitor_thread_.joinable())

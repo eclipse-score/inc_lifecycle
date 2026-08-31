@@ -107,7 +107,7 @@ class ProcessGroupManagerWatchdogTest : public Test
   protected:
     void expectNormalStartup()
     {
-        EXPECT_CALL(*alive_monitor_, start()).WillOnce(Return(true));
+        EXPECT_CALL(*alive_monitor_, startMonitoring()).WillOnce(Return(true));
         EXPECT_CALL(*watchdog_, init(_, _)).WillOnce(Return(true));
         EXPECT_CALL(*watchdog_, enable()).WillOnce(Return(true));
     }
@@ -119,7 +119,7 @@ class ProcessGroupManagerWatchdogTest : public Test
 
         auto alive_monitor = std::make_unique<NiceMock<MockAliveMonitor>>();
         alive_monitor_ = alive_monitor.get();
-        ON_CALL(*alive_monitor_, start()).WillByDefault(Return(true));
+        ON_CALL(*alive_monitor_, startMonitoring()).WillByDefault(Return(true));
         ON_CALL(*alive_monitor_, getSupervisionFactory).WillByDefault(ReturnRef(factory_));
 
         auto recovery_client = std::make_shared<NiceMock<MockRecoveryClient>>();
@@ -165,7 +165,7 @@ TEST_F(ProcessGroupManagerWatchdogTest, GivenMinimalConfig_ExpectWatchdogMethods
     InSequence sequence;
     expectNormalStartup();
     EXPECT_CALL(*watchdog_, disable()).Times(1);
-    EXPECT_CALL(*alive_monitor_, stop()).Times(1);
+    EXPECT_CALL(*alive_monitor_, stopMonitoring()).Times(1);
 
     // When
     auto initialize_result = process_group_manager_->initialize();
@@ -184,7 +184,7 @@ TEST_F(ProcessGroupManagerWatchdogTest, GivenMinimalConfig_ExpectWatchdogService
     });
     // Called in deinitialize() after run() returns
     EXPECT_CALL(*watchdog_, disable()).Times(1);
-    EXPECT_CALL(*alive_monitor_, stop()).Times(1);
+    EXPECT_CALL(*alive_monitor_, stopMonitoring()).Times(1);
 
     // When
     ASSERT_TRUE(process_group_manager_->initialize());
@@ -208,7 +208,7 @@ TEST_F(ProcessGroupManagerWatchdogTest, GivenMinimalConfig_ExpectWatchdogFired_W
         process_group_manager_->cancel();
     });
     EXPECT_CALL(*watchdog_, disable()).Times(1);
-    EXPECT_CALL(*alive_monitor_, stop()).Times(1);
+    EXPECT_CALL(*alive_monitor_, stopMonitoring()).Times(1);
 
     // When
     ASSERT_TRUE(process_group_manager_->initialize());
@@ -235,7 +235,7 @@ TEST_F(ProcessGroupManagerWatchdogTest, GivenMinimalConfig_ExpectWatchdogDisable
     // We are explicitly calling deinitialize() in this test for readability,
     // so disable() and stop() are expected to be called twice: once in deinitialize() and once in TearDown().
     EXPECT_CALL(*watchdog_, disable()).Times(2);
-    EXPECT_CALL(*alive_monitor_, stop()).Times(2);
+    EXPECT_CALL(*alive_monitor_, stopMonitoring()).Times(2);
 
     // When
     ASSERT_TRUE(process_group_manager_->initialize());
