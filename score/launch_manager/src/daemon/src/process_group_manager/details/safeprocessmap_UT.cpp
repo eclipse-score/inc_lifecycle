@@ -50,7 +50,7 @@ class MockComponent : public IComponent
     MOCK_METHOD(RequestResult, tryHandleTermination, (int32_t status), (override));
     MOCK_METHOD(bool, active, (), (const override));
     MOCK_METHOD(bool, stopped, (), (const override));
-    MOCK_METHOD(uint32_t, getIndex, (), (const override));
+    MOCK_METHOD(score::mw::lifecycle::IdentifierHash, getIdentifier, (), (const override));
 };
 
 class SafeProcessMapTest : public ::testing::Test

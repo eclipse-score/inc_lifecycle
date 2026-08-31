@@ -27,11 +27,11 @@ namespace score::mw::lifecycle::internal
 class RunTarget final : public IComponent
 {
   public:
-    explicit RunTarget(uint32_t index) : index_(index)
+    explicit RunTarget(const IdentifierHash& index) : identifier_(index)
     {
     }
 
-    RunTarget(RunTarget&& other) noexcept : index_(other.index_), active_(other.active_.load())
+    RunTarget(RunTarget&& other) noexcept : identifier_(other.identifier_), active_(other.active_.load())
     {
     }
     RunTarget(const RunTarget&) = delete;
@@ -56,9 +56,9 @@ class RunTarget final : public IComponent
         return RequestState::kSuccess;
     }
 
-    uint32_t getIndex() const override
+    IdentifierHash getIdentifier() const override
     {
-        return index_;
+        return identifier_;
     }
 
     bool active() const override
@@ -67,7 +67,9 @@ class RunTarget final : public IComponent
     }
 
   private:
-    uint32_t index_;
+    /// @brief Unique identifier of this run target.
+    IdentifierHash identifier_;
+    /// @brief True if the run target has been activated and has not yet been deactivated.
     std::atomic<bool> active_{false};
 };
 

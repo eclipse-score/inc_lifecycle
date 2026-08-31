@@ -107,9 +107,9 @@ class ProcessGroupManager final : public ITransitionResultPublisher
 
     /// @brief Get a node corresponding to the given process group and process index
     /// @param pg_index The index of the process group in the list of groups managed by this manager
-    /// @param process_index The index of the process in the list of processes in the process group
+    /// @param process_id The identifier of the process
     /// @return nullptr if the node does not exist, otherwise a pointer to the corresponding node.
-    ProcessInfoNode* getProcessInfoNode(uint32_t pg_index, uint32_t process_index);
+    ProcessInfoNode* getProcessInfoNode(uint32_t pg_index, IdentifierHash process_id);
 
     /// @brief set the initial machine group state change result, called by graph when the transition completes
     /// @param result the result to save; it can only be saved once

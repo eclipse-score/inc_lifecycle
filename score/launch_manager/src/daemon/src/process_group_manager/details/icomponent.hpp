@@ -14,6 +14,7 @@
 #ifndef SCORE_LCM_ICOMPONENT_HPP_INCLUDED
 #define SCORE_LCM_ICOMPONENT_HPP_INCLUDED
 
+#include "score/mw/launch_manager/common/identifier_hash.hpp"
 #include <score/stop_token.hpp>
 #include <cstdint>
 
@@ -68,7 +69,7 @@ class IComponent
     [[nodiscard]] virtual RequestResult tryHandleTermination(int32_t status) = 0;
 
     /// @returns the index of the component in the graph.
-    [[nodiscard]] virtual uint32_t getIndex() const = 0;
+    [[nodiscard]] virtual IdentifierHash getIdentifier() const = 0;
 
     /// @returns True if the component is active in the active run target.
     [[nodiscard]] virtual bool active() const = 0;

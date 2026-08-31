@@ -21,6 +21,7 @@
 
 namespace score::mw::lifecycle::internal
 {
+
 /// @brief Returns the IComponent reference from a variant type
 /// @details All types in the variant must implement the IComponent interface.
 inline IComponent& componentOf(std::variant<ProcessInfoNode, RunTarget>& node)
@@ -30,6 +31,13 @@ inline IComponent& componentOf(std::variant<ProcessInfoNode, RunTarget>& node)
             return component;
         },
         node);
+}
+
+/// @brief Returns the IComponent reference from an interface pointer. Useful for a template class that may take a
+/// variant or a generic interface
+inline IComponent& componentOf(IComponent* node)
+{
+    return *node;
 }
 
 }  // namespace score::mw::lifecycle::internal
