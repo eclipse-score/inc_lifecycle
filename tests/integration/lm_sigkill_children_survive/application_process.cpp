@@ -18,7 +18,7 @@
 
 // Application process started by the Launch Manager. It publishes its PID and
 // reports running, then blocks (in the TestRunner destructor) so it stays alive
-// after the Launch Manager is killed - which is exactly what the test verifies.
+// after the Launch Manager is killed.
 TEST(LmSigkillChildrenSurvive, ApplicationProcess)
 {
     // Publish our PID before reporting running: once the "Running" run target is

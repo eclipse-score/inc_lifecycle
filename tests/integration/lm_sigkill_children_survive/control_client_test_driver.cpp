@@ -24,7 +24,7 @@
 TEST(LmSigkillChildrenSurvive, ControlDaemon)
 {
     score::mw::lifecycle::ControlClient client{};
-    // Remove leftovers from a previous (possibly manual) run.
+
     ASSERT_TRUE(check_clean({daemon_pid_file, app_pid_file, children_ready_file}, /*strict=*/false));
 
     TEST_STEP("Control daemon report running")
@@ -39,8 +39,7 @@ TEST(LmSigkillChildrenSurvive, ControlDaemon)
         ASSERT_TRUE(result.has_value()) << "Activating target Running failed: " << result.error().Message();
     }
 
-    // The application process is now running. Publish our own PID and signal the
-    // test, which then SIGKILLs the Launch Manager.
+    // Publish our own PID and signal the test, which then SIGKILLs the Launch Manager.
     TEST_STEP("Signal readiness")
     {
         ASSERT_TRUE(write_pid(daemon_pid_file));
