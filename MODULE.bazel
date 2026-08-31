@@ -41,7 +41,7 @@ bazel_dep(name = "score_process_description", version = "2.1.2", dev_dependency 
 bazel_dep(name = "score_platform", version = "0.7.1", dev_dependency = True)
 
 ## Configure the C++ toolchain
-bazel_dep(name = "score_bazel_cpp_toolchains", version = "1.0.2", dev_dependency = True)
+bazel_dep(name = "score_bazel_cpp_toolchains", version = "1.0.3", dev_dependency = True)
 
 gcc = use_extension("@score_bazel_cpp_toolchains//extensions:gcc.bzl", "gcc", dev_dependency = True)
 gcc.toolchain(
