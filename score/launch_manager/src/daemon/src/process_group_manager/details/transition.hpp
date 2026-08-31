@@ -252,7 +252,7 @@ class Transition
     void setupTransition(Key target)
     {
         // Sets up or resets our stored info for this transition
-        for (auto [key, value] : graph_)
+        for (const auto& [key, value] : graph_)
         {
             // If the key is not present in the map, this will default construct into it
             NodeInfo& info = state_.node_information[key];
