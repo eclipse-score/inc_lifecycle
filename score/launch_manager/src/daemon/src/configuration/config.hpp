@@ -33,6 +33,8 @@ struct RunTargetConfig
     std::string name;
     std::string description;
     std::vector<std::string> depends_on;
+
+    // req-Id: comp_req__launch_man__conf_rt_active_timeout
     std::uint32_t transition_timeout_ms{};
     SwitchRunTargetAction recovery_action;
 };

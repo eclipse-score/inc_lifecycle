@@ -244,6 +244,7 @@ class Transition
     /// aborted transition are captured too). Then moves to the Starting Phase to bring up @p target.
     void setupTransition(GraphIndex target)
     {
+        // req-Id: comp_req__launch_man__dep_based_startup_order
         std::fill(state_.in_target_subgraph.begin(), state_.in_target_subgraph.end(), false);
 
         state_.target_root = target;
