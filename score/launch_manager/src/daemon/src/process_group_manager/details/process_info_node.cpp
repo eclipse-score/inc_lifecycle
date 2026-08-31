@@ -43,9 +43,10 @@ ProcessInfoNode::ProcessInfoNode(
 
     const configuration::ApplicationProfile& app_profile = config_.component_properties.application_profile;
 
-    if (app_profile.alive_supervision.has_value() &&
-        app_profile.application_type == configuration::ApplicationType::ReportingAndSupervised)
+    if (app_profile.application_type == configuration::ApplicationType::ReportingAndSupervised)
     {
+        SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(
+            app_profile.alive_supervision.has_value(), "Supervised process did not have alive supervision config");
         const IdentifierHash name{config_.name};
         const uid_t uid = config_.deployment_config.sandbox.uid;
 
