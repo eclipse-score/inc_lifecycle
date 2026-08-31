@@ -65,6 +65,7 @@ lm_cc_test(
     deps = [
         ":lm_control",
         "@googletest//:gtest",
+        "@score_baselibs//score/string_manipulation/arguments",
         "@score_communication//score/mw/com",
     ],
 )
