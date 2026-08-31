@@ -15,13 +15,13 @@
 #define _INCLUDED_PROCESSINFONODE_
 
 #include "score/launch_manager/src/daemon/src/configuration/component_config.hpp"
+#include "score/mw/launch_manager/alive_monitor/isupervision_event_publisher.hpp"
 #include "score/mw/launch_manager/configuration/component_config.hpp"
 #include "score/mw/launch_manager/control/control_client_channel.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/icomponent.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/process_handling.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/safe_process_map.hpp"
 #include "score/mw/launch_manager/process_group_manager/process_state.hpp"
-#include "score/mw/launch_manager/supervision_control_client/isupervision_event_publisher.hpp"
 #include <score/stop_token.hpp>
 #include <atomic>
 #include <chrono>
@@ -43,8 +43,6 @@ class ProcessInfoNode final : public IComponent
   public:
     /// @brief Constructs a ProcessInfoNode.
     /// @param config Configuration for the OS process.
-    /// @param index The process index within its process group.
-    /// @param ready_condition Whether this process is considered ready when running or when terminated.
     /// @param process_handling The interfaces used to start, stop and report on the OS process.
     ProcessInfoNode(configuration::ComponentConfig&& config, ProcessHandling process_handling);
 
@@ -60,6 +58,7 @@ class ProcessInfoNode final : public IComponent
           control_client_channel_(std::move(other.control_client_channel_)),
           sync_(std::move(other.sync_)),
           process_handling_(std::move(other.process_handling_)),
+          state_publisher_(std::move(other.state_publisher_)),
           identifier_(other.identifier_)
     {
     }
@@ -186,6 +185,9 @@ class ProcessInfoNode final : public IComponent
 
     /// @brief The interfaces used to control a OS process.
     ProcessHandling process_handling_;
+
+    /// @brief Interface for reporting component state to health monitor.
+    std::unique_ptr<ISupervisionEventPublisher> state_publisher_;
 
     /// @brief Number ot times to try run the process.
     std::uint8_t start_tries_{1U};

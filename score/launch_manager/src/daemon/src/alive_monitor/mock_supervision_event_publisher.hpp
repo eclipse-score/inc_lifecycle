@@ -10,23 +10,23 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
-#ifndef MOCK_SUPERVISION_CONTROL_NOTIFIER_HPP_INCLUDED
-#define MOCK_SUPERVISION_CONTROL_NOTIFIER_HPP_INCLUDED
+#ifndef MOCK_SUPERVISION_EVENT_PUBLISHER_HPP_INCLUDED
+#define MOCK_SUPERVISION_EVENT_PUBLISHER_HPP_INCLUDED
 
-#include "score/mw/launch_manager/supervision_control_client/isupervision_control_notifier.hpp"
+#include "score/mw/launch_manager/alive_monitor/isupervision_event_publisher.hpp"
 #include <gmock/gmock.h>
 
 namespace score::mw::lifecycle
 {
 
-class MockSupervisionControlNotifier : public ISupervisionControlNotifier
+class MockSupervisionEventPublisher : public ISupervisionEventPublisher
 {
   public:
-    MOCK_METHOD(bool, reportActivation, (IdentifierHash id, timespec time), (override, noexcept));
-    MOCK_METHOD(bool, reportDeactivation, (IdentifierHash id, timespec time), (override, noexcept));
-    MOCK_METHOD(std::unique_ptr<score::mw::lifecycle::ISupervisionControlReceiver>, constructReceiver, (), (override));
+    MOCK_METHOD(bool, reportActivation, (timespec time), (override, noexcept));
+    MOCK_METHOD(bool, reportDeactivation, (timespec time), (override, noexcept));
+    MOCK_METHOD(std::string_view, getConnectionId, (), (const, override, noexcept));
 };
 
 }  // namespace score::mw::lifecycle
 
-#endif  // MOCK_SUPERVISION_CONTROL_NOTIFIER_HPP_INCLUDED
+#endif  // MOCK_SUPERVISION_EVENT_PUBLISHER_HPP_INCLUDED

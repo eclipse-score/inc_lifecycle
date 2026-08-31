@@ -11,10 +11,11 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
+#include "score/mw/launch_manager/alive_monitor/mock_supervision_event_publisher.hpp"
+#include "score/mw/launch_manager/alive_monitor/mock_supervision_factory.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/process_info_node.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/safe_process_map.hpp"
 #include "score/mw/launch_manager/process_group_manager/mock_iprocess.hpp"
-#include "score/mw/launch_manager/supervision_control_client/mock_supervision_event_publisher.hpp"
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <chrono>
@@ -24,8 +25,9 @@
 #include <vector>
 
 using namespace testing;
-using namespace score::mw::lifecycle::internal;
-using namespace score::mw::lifecycle;
+
+namespace score::mw::lifecycle::internal
+{
 
 // Default process name for testing
 constexpr std::string_view kProcessName{"test_process"};
@@ -45,8 +47,35 @@ class ProcessInfoNodeFixture : public ::testing::Test
         RecordProperty("TestType", "interface-test");
         RecordProperty("DerivationTechnique", "equivalence-classes");
 
-        ON_CALL(mock_publisher_, reportActivation).WillByDefault(Return(true));
-        ON_CALL(mock_publisher_, reportDeactivation).WillByDefault(Return(true));
+        ON_CALL(mock_factory_, constructSupervision).WillByDefault(InvokeWithoutArgs([this]() {
+            return constructDefaultEventPublisher();
+        }));
+    }
+
+    virtual std::unique_ptr<NiceMock<MockSupervisionEventPublisher>> constructDefaultEventPublisher() const
+    {
+        auto mock_publisher = std::make_unique<NiceMock<MockSupervisionEventPublisher>>();
+        ON_CALL(*mock_publisher, reportActivation).WillByDefault(Return(true));
+        ON_CALL(*mock_publisher, reportDeactivation).WillByDefault(Return(true));
+        return mock_publisher;
+    }
+
+    void expectActivationReport(int times = 1)
+    {
+        EXPECT_CALL(mock_factory_, constructSupervision).WillOnce(InvokeWithoutArgs([times]() {
+            auto mock_publisher = std::make_unique<NiceMock<MockSupervisionEventPublisher>>();
+            EXPECT_CALL(*mock_publisher, reportActivation).Times(times).WillRepeatedly(Return(true));
+            return mock_publisher;
+        }));
+    }
+
+    void expectDeactivationReport(int times = 1)
+    {
+        EXPECT_CALL(mock_factory_, constructSupervision).WillOnce(InvokeWithoutArgs([times]() {
+            auto mock_publisher = std::make_unique<NiceMock<MockSupervisionEventPublisher>>();
+            EXPECT_CALL(*mock_publisher, reportDeactivation).Times(times).WillRepeatedly(Return(true));
+            return mock_publisher;
+        }));
     }
 
     /// @brief Helper method to create a ProcessInfoNode with the given parameters.
@@ -68,8 +97,15 @@ class ProcessInfoNodeFixture : public ::testing::Test
         config.deployment_config.ready_recovery_action = configuration::RestartAction{restart_attempts, 0U};
         config.deployment_config.shutdown_timeout_ms = shutdown_timeout_ms_;
 
+        if (application_type == configuration::ApplicationType::ReportingAndSupervised)
+        {
+            configuration::ComponentAliveSupervision alive{
+                .reporting_cycle_ms = 10, .failed_cycles_tolerance = 1, .min_indications = 0, .max_indications = 0};
+            config.component_properties.application_profile.alive_supervision = alive;
+        }
+
         return std::make_unique<ProcessInfoNode>(
-            std::move(config), ProcessHandling{mock_publisher_, &mock_processIf_, process_map_});
+            std::move(config), ProcessHandling{&mock_processIf_, process_map_, mock_factory_});
     }
 
     /// @brief Helper method to create a ProcessInfoNode that is self-terminating.
@@ -125,7 +161,7 @@ class ProcessInfoNodeFixture : public ::testing::Test
     score::cpp::stop_source stop_source_{};
     std::shared_ptr<MockSafeProcessMapInserter> process_map_{std::make_shared<MockSafeProcessMapInserter>()};
     StrictMock<osal::MockIProcess> mock_processIf_{};
-    NiceMock<MockSupervisionEventPublisher> mock_publisher_{};
+    NiceMock<MockSupervisionFactory> mock_factory_{};
 };
 
 // Bundles different cases for activate() that occur during startup, before the ready condition is reached.
@@ -169,10 +205,10 @@ TEST_F(ProcessInfoNodeStartupTest, CanStartReportingProcess_ReportsRunningInTime
 {
     RecordProperty("Description", "Can start a reporting process and check that the state transitions to kRunning.");
 
-    auto node = createProcessInfoNode(configuration::ApplicationType::Reporting);
+    expectActivationReport();
+    auto node = createProcessInfoNode(configuration::ApplicationType::ReportingAndSupervised);
     expectSuccessfulProcessLaunch();
     EXPECT_CALL(mock_processIf_, waitForkRunning(_, _)).WillOnce(Return(osal::OsalReturnType::kSuccess));
-    EXPECT_CALL(mock_publisher_, reportActivation);
 
     auto result = node->activate(score::cpp::stop_token{});
 
@@ -271,12 +307,12 @@ TEST_F(ProcessInfoNodeStartupCrashTest, ProcesssTerminated_OnWaitForkRunningTime
         "Description",
         "If waitForkRunning times out, the process reports kActivationTimedOut and ends up in state kTerminated.");
 
-    auto node = createProcessInfoNode(configuration::ApplicationType::Reporting);
+    expectActivationReport(0);
+    auto node = createProcessInfoNode(configuration::ApplicationType::ReportingAndSupervised);
     expectSuccessfulProcessLaunch();
     EXPECT_CALL(mock_processIf_, waitForkRunning(_, _)).WillOnce(Return(osal::OsalReturnType::kFail));
     // Simulate the OS handler reporting the killed process's exit once termination is requested.
     expectOsAcknowledgesTermination(node.get());
-    EXPECT_CALL(mock_publisher_, reportActivation).Times(0);
 
     auto result = node->activate(score::cpp::stop_token{});
 
@@ -292,7 +328,8 @@ TEST_F(ProcessInfoNodeStartupCrashTest, ReportingProcess_CrashesBeforeReady_NoRe
         "Process returns kErrorBeforeReady when crashing before reaching its ready condition (kRunning) with 0 restart "
         "attempts");
 
-    auto node = createProcessInfoNode(configuration::ApplicationType::Reporting);
+    expectActivationReport(0);
+    auto node = createProcessInfoNode(configuration::ApplicationType::ReportingAndSupervised);
     expectSuccessfulProcessLaunch();
     // Simulate the OS handler detecting the crash while the process is still waiting to reach kRunning.
     EXPECT_CALL(mock_processIf_, waitForkRunning(_, _))
@@ -301,7 +338,6 @@ TEST_F(ProcessInfoNodeStartupCrashTest, ReportingProcess_CrashesBeforeReady_NoRe
                 static_cast<void>(node->tryHandleTermination(-1));
             }),
             Return(osal::OsalReturnType::kFail)));
-    EXPECT_CALL(mock_publisher_, reportActivation).Times(0);
 
     auto result = node->activate(score::cpp::stop_token{});
 
@@ -317,9 +353,10 @@ TEST_F(ProcessInfoNodeStartupCrashTest, ReportingProcess_CrashesBeforeReady_With
         "Process returns kErrorBeforeReady when crashing before reaching its ready condition (kRunning) with 3 restart "
         "attempts");
 
+    expectActivationReport(0);
     constexpr uint32_t kRestartAttempts = 3;
     constexpr uint32_t kTotalAttempts = kRestartAttempts + 1;
-    auto node = createProcessInfoNode(configuration::ApplicationType::Reporting, kRestartAttempts);
+    auto node = createProcessInfoNode(configuration::ApplicationType::ReportingAndSupervised, kRestartAttempts);
 
     EXPECT_CALL(mock_processIf_, startProcess(_, _, _))
         .Times(kTotalAttempts)
@@ -336,7 +373,6 @@ TEST_F(ProcessInfoNodeStartupCrashTest, ReportingProcess_CrashesBeforeReady_With
                 static_cast<void>(node->tryHandleTermination(-1));
             }),
             Return(osal::OsalReturnType::kFail)));
-    EXPECT_CALL(mock_publisher_, reportActivation).Times(0);
 
     auto result = node->activate(score::cpp::stop_token{});
 
@@ -404,8 +440,10 @@ TEST_F(ProcessInfoNodeStartupCrashTest, TimeoutThenSuccess_WithRestarts)
         "Description",
         "A reporting process that times out on the first attempt but reports kRunning on the retry returns kSuccess.");
 
+    expectActivationReport();
+
     constexpr uint32_t kRestartAttempts = 1;
-    auto node = createProcessInfoNode(configuration::ApplicationType::Reporting, kRestartAttempts);
+    auto node = createProcessInfoNode(configuration::ApplicationType::ReportingAndSupervised, kRestartAttempts);
 
     EXPECT_CALL(mock_processIf_, startProcess(_, _, _)).Times(2).WillRepeatedly(Return(osal::OsalReturnType::kSuccess));
     EXPECT_CALL(*process_map_, insertIfNotTerminated(_, _))
@@ -416,7 +454,6 @@ TEST_F(ProcessInfoNodeStartupCrashTest, TimeoutThenSuccess_WithRestarts)
         .WillOnce(Return(osal::OsalReturnType::kSuccess));
     // Simulate the OS handler reporting the killed process's exit on the first (timed-out) attempt.
     expectOsAcknowledgesTermination(node.get());
-    EXPECT_CALL(mock_publisher_, reportActivation);
 
     auto result = node->activate(score::cpp::stop_token{});
 
@@ -516,9 +553,9 @@ TEST_F(ProcessInfoNodeDeactivationTest, CanTerminateNonSelfTerminatingProcess)
         "to kTerminated.");
 
     EXPECT_CALL(mock_processIf_, waitForkRunning(_, _)).WillOnce(Return(osal::OsalReturnType::kSuccess));
-    EXPECT_CALL(mock_publisher_, reportDeactivation);
+    expectDeactivationReport();
 
-    auto node = createRunningProcessInfoNode(configuration::ApplicationType::Reporting);
+    auto node = createRunningProcessInfoNode(configuration::ApplicationType::ReportingAndSupervised);
     // Simulate the OS handler reporting the process's exit once termination is requested.
     expectOsAcknowledgesTermination(node.get());
 
@@ -579,7 +616,6 @@ TEST_F(ProcessInfoNodeDeactivationTest, ProcessIgnoresSigterm_ForcedWithSigkill)
         "SIGKILL.");
 
     EXPECT_CALL(mock_processIf_, waitForkRunning(_, _)).WillOnce(Return(osal::OsalReturnType::kSuccess));
-    EXPECT_CALL(mock_publisher_, reportDeactivation);
 
     auto node = createRunningProcessInfoNode_TermTimeout(std::chrono::milliseconds{0});
     EXPECT_CALL(mock_processIf_, requestTermination(_)).WillOnce(Return(osal::OsalReturnType::kSuccess));
@@ -598,3 +634,5 @@ TEST_F(ProcessInfoNodeDeactivationTest, ProcessIgnoresSigterm_ForcedWithSigkill)
     ASSERT_THAT(node->active(), IsFalse());
     ASSERT_THAT(node->getState(), Eq(score::mw::lifecycle::ProcessState::kIdle));
 }
+
+}  // namespace score::mw::lifecycle::internal

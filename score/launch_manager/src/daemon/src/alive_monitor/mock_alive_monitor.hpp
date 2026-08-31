@@ -10,26 +10,23 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
+#ifndef MOCK_ALIVE_MONITOR_HPP_INCLUDED
+#define MOCK_ALIVE_MONITOR_HPP_INCLUDED
 
-#ifndef SCORE_LCM_IALIVE_MONITOR_THREAD_HPP_INCLUDED
-#define SCORE_LCM_IALIVE_MONITOR_THREAD_HPP_INCLUDED
+#include "score/mw/launch_manager/alive_monitor/IAliveMonitor.hpp"
+#include <gmock/gmock.h>
 
-namespace score
+namespace score::mw::lifecycle::internal::saf::daemon
 {
-namespace mw::lifecycle
-{
-namespace internal
-{
-class IAliveMonitorThread
+
+class MockAliveMonitor : public IAliveMonitor
 {
   public:
-    virtual bool start() = 0;
-    virtual void stop() = 0;
-
-    virtual ~IAliveMonitorThread() = default;
+    MOCK_METHOD(bool, startMonitoring, (), (override));
+    MOCK_METHOD(void, stopMonitoring, (), (override));
+    MOCK_METHOD(ISupervisionFactory&, getSupervisionFactory, (), (const, override));
 };
-}  // namespace internal
-}  // namespace mw::lifecycle
-}  // namespace score
+
+}  // namespace score::mw::lifecycle::internal::saf::daemon
 
 #endif

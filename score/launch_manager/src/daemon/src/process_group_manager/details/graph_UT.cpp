@@ -20,10 +20,11 @@
 #include <utility>
 #include <vector>
 
+#include "score/mw/launch_manager/alive_monitor/mock_supervision_event_publisher.hpp"
+#include "score/mw/launch_manager/alive_monitor/mock_supervision_factory.hpp"
 #include "score/mw/launch_manager/configuration/config.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/graph.hpp"
 #include "score/mw/launch_manager/process_group_manager/mock_iprocess.hpp"
-#include "score/mw/launch_manager/supervision_control_client/mock_supervision_event_publisher.hpp"
 
 namespace score::mw::lifecycle::internal
 {
@@ -63,7 +64,7 @@ class GraphTest : public ::testing::Test
             10U,
             config_.value(),
             job_queue_,
-            ProcessHandling{mock_supervision_event_publisher_, &process_interface_, mock_process_map},
+            ProcessHandling{&process_interface_, mock_process_map, mock_factory_},
             &mock_transition_result_publisher_);
     }
 
@@ -185,6 +186,7 @@ class GraphTest : public ::testing::Test
     std::shared_ptr<MockProcessMap> mock_process_map = std::make_shared<MockProcessMap>();
     NiceMock<MockSupervisionEventPublisher> mock_supervision_event_publisher_{};
     MockTransitionResultPublisher mock_transition_result_publisher_{};
+    MockSupervisionFactory mock_factory_{};
     std::unique_ptr<Graph> graph_{};
 
     static constexpr std::string_view pg_string{"MainPG"};

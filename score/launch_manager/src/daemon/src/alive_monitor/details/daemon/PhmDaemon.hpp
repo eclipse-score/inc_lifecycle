@@ -19,12 +19,14 @@
 #include <memory>
 
 #include "score/launch_manager/src/daemon/src/common/log.hpp"
+#include "score/mw/launch_manager/alive_monitor/details/common/EInitCode.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/daemon/PhmDaemonConfig.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/daemon/SupervisionManager.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ObservableEventReader.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/CycleTimeValidator.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/CycleTimer.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/TimeConversion.hpp"
+#include "score/mw/launch_manager/alive_monitor/isupervision_factory.hpp"
 #include "score/mw/launch_manager/configuration/config.hpp"
 
 namespace score
@@ -36,24 +38,13 @@ namespace saf
 namespace daemon
 {
 
-/// @brief Return codes for PhmDaemon Initialization
-enum class EInitCode : std::int8_t
-{
-    kNoError,                        ///< Init Successful (no error occurred)
-    kNotInitialized,                 ///< Init was not performed
-    kCycleTimeInitFailed,            ///< Cyclic Timer initialization failed
-    kConstructFlatCfgFactoryFailed,  ///< FlatCfgFactory failed loading SWCL configurations
-    kGeneralError                    ///< General error
-};
-
 /// @brief PHM daemon main class wraps the functionality for initialization and cyclic execution.
 /// @details This is the main class responsible to execute the main functionalities of PHM daemon,
 ///          by using the necessary classes from this software component.
-class PhmDaemon
+class PhmDaemon final : public ISupervisionFactory
 {
   public:
     using OsClock = score::mw::lifecycle::internal::saf::timers::OsClockInterface;
-    using SupervisionControlReceiver = score::mw::lifecycle::ISupervisionControlReceiver;
     using RecoveryClient = score::mw::lifecycle::IRecoveryClient;
     using CycleTimer = score::mw::lifecycle::internal::saf::timers::CycleTimer;
     using CycleTimeValidator = score::mw::lifecycle::internal::saf::timers::CycleTimeValidator;
@@ -61,20 +52,16 @@ class PhmDaemon
     using ObservableEventReader = score::mw::lifecycle::internal::saf::ifexm::ObservableEventReader;
     using Config = score::mw::lifecycle::internal::configuration::Config;
 
-    /* RULECHECKER_comment(0, 4, check_expensive_to_copy_in_parameter, "f_supervisionErrorInfo name is passed by value\
-     as same as generated function", true_no_defect) */
     /// @brief Set the OS clock interface
     /// @param[in] f_osClock Access to the system clock (dependency injection possible in tests)
-    /// @param[in] f_observable_event_receiver observable event receiver implementation (dependency injection possible
+    /// @param[in] supervised_components Number of components that will register alive supervision
     /// in tests)
     /* RULECHECKER_comment(3,1, check_expensive_to_copy_in_parameter, "Move only types cannot be passed by const ref",
        true_no_defect) */
-    PhmDaemon(OsClock& f_osClock, std::unique_ptr<ISupervisionControlReceiver> f_observable_event_receiver);
+    explicit PhmDaemon(OsClock& f_osClock, std::size_t supervised_components);
 
-    /* RULECHECKER_comment(0, 4, check_min_instructions, "Default destructor is not provided\
-       a function body", true_no_defect) */
     /// @brief Destroys the workers
-    virtual ~PhmDaemon() = default;
+    ~PhmDaemon() override = default;
 
     /// @brief No Copy Constructor
     PhmDaemon(const PhmDaemon&) = delete;
@@ -90,17 +77,14 @@ class PhmDaemon
     /// @param[in] recovery_client Shared pointer to recovery client
     /// @param[in] config Config holding alive monitor and component configuration
     /// @return See EInitCode definition
-    EInitCode init(std::shared_ptr<RecoveryClient> recovery_client, const Config& config) noexcept(false)
+    EInitCode init(
+        std::shared_ptr<RecoveryClient> recovery_client,
+        const configuration::AliveSupervisionConfig& config) noexcept(false)
     {
         recoveryClient = recovery_client;
 
-        if (!construct(config.components()))
-        {
-            return EInitCode::kConstructFlatCfgFactoryFailed;
-        }
-
-        int64_t cycleTimeModified{static_cast<std::int64_t>(
-            timers::TimeConversion::convertMilliSecToNanoSec(config.aliveSupervision().evaluation_cycle_ms))};
+        int64_t cycleTimeModified{
+            static_cast<std::int64_t>(timers::TimeConversion::convertMilliSecToNanoSec(config.evaluation_cycle_ms))};
 
         cycleTimeModified = CycleTimeValidator::adjustCycleTimeOnClockAccuracy(cycleTimeModified, osClock);
 
@@ -193,13 +177,19 @@ class PhmDaemon
         return true;
     }
 
-  private:
-    /// @brief Create SwCluster objects & Invoke construction of worker objects
-    /// @details Create the SwclusterHandler objects and the workers for the SwclusterHandler
-    /// @param[in] config Config for all components
-    /// @return bool true if workers creation succeeded, false otherwise
-    bool construct(const std::vector<configuration::ComponentConfig>& config) noexcept(false);
+    /// @brief @see ISupervisonFactory::constructSupervision
+    std::unique_ptr<ISupervisionEventPublisher> constructSupervision(
+        const IdentifierHash id,
+        const uid_t uid,
+        const configuration::ComponentAliveSupervision& config) override
+    {
+        SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(
+            !supervisionManager.full(), "More alive supervisions than expected were constructed");
+        supervisionManager.constructWorker(id, config, uid, recoveryClient, processStateReader);
+        return std::make_unique<SupervisionHandle>(id, buffer_);
+    }
 
+  private:
     /// @brief Perform cyclic execution of Phm daemon
     /// @details Perform cyclic execution of Phm daemon functionalities, for e.g., evaluation of supervisions.
     void performCyclicTriggers(void);
@@ -209,6 +199,8 @@ class PhmDaemon
 
     /// @brief For fixed time-step execution during the cyclic execution
     CycleTimer cycleTimer;
+
+    std::shared_ptr<SupervisionBufferType> buffer_;
 
     /// @brief Recovery interface to Launch Manager
     std::shared_ptr<RecoveryClient> recoveryClient;

@@ -19,7 +19,6 @@
 
 #include "score/mw/launch_manager/common/log.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/process_monitor.hpp"
-#include "score/mw/launch_manager/process_group_manager/ialive_monitor_thread.hpp"
 #include "score/mw/launch_manager/process_group_manager/process_group_manager.hpp"
 
 namespace score::mw::lifecycle::internal
@@ -39,17 +38,15 @@ void ProcessGroupManager::cancel()
 
 ProcessGroupManager::ProcessGroupManager(
     configuration::Config&& config,
-    std::unique_ptr<IAliveMonitorThread> alive_monitor_thread,
+    std::unique_ptr<saf::daemon::IAliveMonitor> alive_monitor,
     std::shared_ptr<IRecoveryClient> recovery_client,
-    std::unique_ptr<score::mw::lifecycle::ISupervisionControlNotifier> supervision_control_notifier,
     std::unique_ptr<score::mw::lifecycle::internal::watchdog::IWatchdogIf> watchdog)
     : configuration_(std::move(config)),
       process_interface_(),
       process_map_(nullptr),
       thread_pool_(nullptr),
       worker_jobs_(nullptr),
-      supervision_control_notifier_(std::move(supervision_control_notifier)),
-      alive_monitor_thread_(std::move(alive_monitor_thread)),
+      alive_monitor_(std::move(alive_monitor)),
       recovery_client_(recovery_client),
       watchdog_(std::move(watchdog))
 {
@@ -97,7 +94,7 @@ bool ProcessGroupManager::initialize()
     }
 
     LM_LOG_DEBUG() << "Process Group initialization done";
-    if (!alive_monitor_thread_->start())
+    if (!alive_monitor_->startMonitoring())
     {
         LM_LOG_ERROR() << "Alive monitor thread failed to start";
         return false;
@@ -132,7 +129,7 @@ void ProcessGroupManager::deinitialize()
         event_queue_->stop();
     }
     os_handler_.reset();
-    alive_monitor_thread_->stop();
+    alive_monitor_->stopMonitoring();
 
     // Join the worker threads before destroying the process groups: a worker may
     // still be (de)activating a ProcessInfoNode owned by a graph, so tearing the
@@ -210,7 +207,7 @@ bool ProcessGroupManager::initializeProcessGroups()
         configuration_.components().size() + configuration_.runTargets().size() + 2,
         configuration_,
         worker_jobs_,
-        ProcessHandling{*supervision_control_notifier_.get(), &process_interface_, process_map_},
+        ProcessHandling{&process_interface_, process_map_, alive_monitor_->getSupervisionFactory()},
         this);
 
     LM_LOG_DEBUG() << "Process group initialized successfully";

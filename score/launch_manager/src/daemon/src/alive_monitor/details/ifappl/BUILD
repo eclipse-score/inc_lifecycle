@@ -54,6 +54,7 @@ cc_library(
         ":data_structures",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/ifexm:observable_event",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/timers:timers_os_clock",
+        "//score/launch_manager/src/daemon/src/common:log",
     ],
 )
 

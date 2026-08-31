@@ -13,8 +13,8 @@
 #ifndef ISUPERVISION_EVENT_PUBLISHER_HPP_INCLUDED
 #define ISUPERVISION_EVENT_PUBLISHER_HPP_INCLUDED
 
-#include "score/mw/launch_manager/common/identifier_hash.hpp"
 #include <ctime>
+#include <string_view>
 
 namespace score
 {
@@ -31,11 +31,14 @@ class ISupervisionEventPublisher
     /// @brief Destructor.
     virtual ~ISupervisionEventPublisher() noexcept = default;
 
-    /// @brief Report that process with @param id has reached the active state at @param time
-    virtual bool reportActivation(IdentifierHash id, timespec time) noexcept = 0;
+    /// @brief Report that the calling process has reached the active state at @param time
+    virtual bool reportActivation(timespec time) noexcept = 0;
 
-    /// @brief Report that process with @param id has changed from the active state at @param time
-    virtual bool reportDeactivation(IdentifierHash id, timespec time) noexcept = 0;
+    /// @brief Report that the calling process has changed from the active state at @param time
+    virtual bool reportDeactivation(timespec time) noexcept = 0;
+
+    /// @brief Get the name of the IPC file alive indications are sent to.
+    virtual std::string_view getConnectionId() const noexcept = 0;
 };
 
 }  // namespace mw::lifecycle
