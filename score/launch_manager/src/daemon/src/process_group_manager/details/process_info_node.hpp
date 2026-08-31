@@ -47,9 +47,7 @@ class ProcessInfoNode final : public IComponent
     /// @param process_handling The interfaces used to start, stop and report on the OS process.
     /// @param supervision_factory Temporary reference to a factory this node can use to construct its supervision if
     /// required.
-    ProcessInfoNode(
-        configuration::ComponentConfig&& config,
-        ProcessHandling process_handling);
+    ProcessInfoNode(configuration::ComponentConfig&& config, ProcessHandling process_handling);
 
     /// @brief Explicit move constructor required due to atomics. PIN must be moveable to exist in the graph
     ProcessInfoNode(ProcessInfoNode&& other) noexcept

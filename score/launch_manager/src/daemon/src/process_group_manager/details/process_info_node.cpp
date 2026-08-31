@@ -31,7 +31,8 @@ ProcessInfoNode::ProcessInfoNode(configuration::ComponentConfig&& config, Proces
       pid_(0),
       exit_code_(0),
       config_(std::move(config)),
-      process_handling_(std::move(process_handling))
+      process_handling_(std::move(process_handling)),
+      identifier_(config_.name)
 {
     if (config_.deployment_config.ready_recovery_action.has_value())
     {
@@ -46,9 +47,10 @@ ProcessInfoNode::ProcessInfoNode(configuration::ComponentConfig&& config, Proces
             app_profile.alive_supervision.has_value(), "Supervised process did not have alive supervision config");
         const uid_t uid = config_.deployment_config.sandbox.uid;
 
-        LM_LOG_DEBUG() << "Setting up alive supervision for" << name;
+        LM_LOG_DEBUG() << "Setting up alive supervision for" << identifier_;
 
-        config_.deployment_config.environmental_variables.add("LCM_ALIVE_INTERFACE_PATH", aliveInterfacePath(identifier_));
+        config_.deployment_config.environmental_variables.add(
+            "LCM_ALIVE_INTERFACE_PATH", aliveInterfacePath(identifier_));
 
         state_publisher_ = process_handling_.supervision_factory.constructSupervision(
             identifier_, uid, app_profile.alive_supervision.value());

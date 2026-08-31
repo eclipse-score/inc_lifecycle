@@ -42,7 +42,6 @@ void CreateDependencyGraph(
     DependencyGraph<IdentifierHash, Graph::Component>& graph,
     configuration::Config& config,
     ProcessHandling process_handling,
-    ISupervisionFactory& supervision_factory,
     std::chrono::milliseconds& off_state_transition_timeout)
 {
     std::vector<configuration::RunTargetConfig> run_targets = config.takeRunTargets();

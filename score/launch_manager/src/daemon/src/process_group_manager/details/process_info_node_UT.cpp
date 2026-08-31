@@ -107,7 +107,7 @@ class ProcessInfoNodeFixture : public ::testing::Test
         }
 
         return std::make_unique<ProcessInfoNode>(
-            std::move(config), ProcessHandling{mock_publisher_, &mock_processIf_, process_map_});
+            std::move(config), ProcessHandling{&mock_processIf_, process_map_, nullptr, mock_factory_});
     }
 
     /// @brief Helper method to create a ProcessInfoNode with a FileState ready condition.
@@ -687,7 +687,6 @@ TEST_F(ProcessInfoNodeFileStateTest, ConditionAlreadyMet_ReturnsSuccess)
             Eq(std::chrono::milliseconds{5}),
             _))
         .WillOnce(Return(osal::OsalReturnType::kSuccess));
-    EXPECT_CALL(mock_publisher_, reportActivation);
 
     auto result = node->activate(score::cpp::stop_token{});
 
@@ -708,7 +707,6 @@ TEST_F(ProcessInfoNodeFileStateTest, NotExistingCondition_ReturnsSuccess)
     EXPECT_CALL(mock_processIf_, ignoreRunning(_)).WillOnce(Return(osal::OsalReturnType::kSuccess));
     EXPECT_CALL(mock_file_waiter_, waitForFile(_, Eq(configuration::FileExistenceState::NotExisting), _, _, _))
         .WillOnce(Return(osal::OsalReturnType::kSuccess));
-    EXPECT_CALL(mock_publisher_, reportActivation);
 
     auto result = node->activate(score::cpp::stop_token{});
 
@@ -745,7 +743,6 @@ TEST_F(ProcessInfoNodeFileStateTest, WaitForFileTimesOut_ReturnsActivationTimedO
     EXPECT_CALL(mock_file_waiter_, waitForFile(_, _, _, _, _)).WillOnce(Return(osal::OsalReturnType::kTimeout));
     // Simulate the OS handler reporting the killed process's exit once termination is requested.
     expectOsAcknowledgesTermination(node.get());
-    EXPECT_CALL(mock_publisher_, reportActivation).Times(0);
 
     auto result = node->activate(score::cpp::stop_token{});
 

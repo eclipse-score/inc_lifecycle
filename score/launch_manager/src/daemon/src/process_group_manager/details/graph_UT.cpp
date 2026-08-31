@@ -64,7 +64,7 @@ class GraphTest : public ::testing::Test
             10U,
             config_.value(),
             job_queue_,
-            ProcessHandling{&process_interface_, mock_process_map, mock_factory_},
+            ProcessHandling{&process_interface_, mock_process_map, nullptr, mock_factory_},
             &mock_transition_result_publisher_);
     }
 
