@@ -136,6 +136,26 @@ TEST_F(IdentifierHashTest, IdentifierHash_EqualityOperators)
     ASSERT_TRUE(hash1 != differentIdStrView);
 }
 
+TEST_F(IdentifierHashTest, IdentifierHash_HashValueIsStableAcrossCompilersAndProcesses)
+{
+    RecordProperty("Description", "Pins independently-computed FNV-1a values; runs on one target only.");
+    ASSERT_EQ(IdentifierHash("ProcessGroup1/Startup").data(), 8274850808357109446ULL);
+    ASSERT_EQ(IdentifierHash("MachineFG__Startup").data(), 15176715858869822476ULL);
+    ASSERT_EQ(IdentifierHash().data(), 14695981039346656037ULL);  // empty string
+}
+
+TEST_F(IdentifierHashTest, IdentifierHash_ConstructorOverloadsAgreeOnTheSameContent)
+{
+    RecordProperty("Description", "Verify all constructors of IdentifierHash have the same hash.");
+    const std::string as_string = "ProcessGroup1/Startup";
+    const std::string_view as_string_view = "ProcessGroup1/Startup";
+    const char* as_c_string = "ProcessGroup1/Startup";
+
+    ASSERT_EQ(IdentifierHash(as_string).data(), IdentifierHash(as_string_view).data());
+    ASSERT_EQ(IdentifierHash(as_string).data(), IdentifierHash(as_c_string).data());
+    ASSERT_EQ(IdentifierHash(as_string_view).data(), IdentifierHash(as_c_string).data());
+}
+
 TEST_F(IdentifierHashTest, IdentifierHash_LessThanOperator)
 {
     RecordProperty(
