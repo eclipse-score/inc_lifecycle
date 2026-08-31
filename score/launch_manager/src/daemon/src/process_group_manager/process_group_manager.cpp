@@ -45,6 +45,7 @@ ProcessGroupManager::ProcessGroupManager(
     std::unique_ptr<score::mw::lifecycle::internal::watchdog::IWatchdogIf> watchdog)
     : configuration_(std::move(config)),
       process_interface_(),
+      file_waiter_(),
       process_map_(nullptr),
       thread_pool_(nullptr),
       worker_jobs_(nullptr),
@@ -210,7 +211,7 @@ bool ProcessGroupManager::initializeProcessGroups()
         configuration_.components().size() + configuration_.runTargets().size() + 2,
         configuration_,
         worker_jobs_,
-        ProcessHandling{*supervision_control_notifier_.get(), &process_interface_, process_map_},
+        ProcessHandling{*supervision_control_notifier_.get(), &process_interface_, process_map_, &file_waiter_},
         this);
 
     LM_LOG_DEBUG() << "Process group initialized successfully";

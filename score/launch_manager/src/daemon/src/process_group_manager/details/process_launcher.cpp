@@ -577,49 +577,66 @@ OsalReturnType ProcessLauncher::waitForTermination(osal::ProcessID& pid, int32_t
     return result;
 }
 
+OsalReturnType ProcessLauncher::ignoreRunning(IpcCommsP sync)
+{
+    if (!sync)
+    {
+        LM_LOG_ERROR() << "Invalid shared memory pointer: The shared memory pointer is null.";
+        return OsalReturnType::kFail;
+    }
+
+    const auto post_res = sync->reply_sync_.post();
+    if (post_res == OsalReturnType::kFail)
+    {
+        LM_LOG_ERROR() << "Semaphore post failed";
+        return OsalReturnType::kFail;
+    }
+    return OsalReturnType::kSuccess;
+}
+
 OsalReturnType ProcessLauncher::waitForkRunning(IpcCommsP sync, std::chrono::milliseconds timeout)
 {
     OsalReturnType result = OsalReturnType::kSuccess;
 
-    if (sync)
+    if (!sync)
     {
-        if ((sync->send_sync_.timedWait(timeout) == OsalReturnType::kFail) ||
-            (sync->reply_sync_.post() == OsalReturnType::kFail))
-        {
-            LM_LOG_ERROR() << "Semaphore timedWait or post failed: Unable to wait or post on semaphores within the "
-                              "specified timeout.";
-            result = OsalReturnType::kFail;
-        }
-        else
-        {
-            result = sync->send_sync_.timedWait(std::chrono::milliseconds(100));
-        }
+        LM_LOG_ERROR() << "Invalid shared memory pointer: The shared memory pointer is null.";
+        return OsalReturnType::kFail;
+    }
 
-        // We are not interested in the result of msync, just whether it worked or not.
-        // If it did not work, the child process has probably crashed and corrupted the shared memory
-        // so we should not try to deinitialize the semaphores.
-        // mincore would be more appropriate here, but is not available on QNX
-        if (msync(sync.get(), sizeof(IpcCommsSync), MS_ASYNC) == 0)
+    const auto time_res = sync->send_sync_.timedWait(timeout);
+    const auto post_res = sync->reply_sync_.post();
+
+    if ((time_res == OsalReturnType::kFail) || (post_res == OsalReturnType::kFail))
+    {
+        LM_LOG_ERROR() << "Semaphore timedWait or post failed: Unable to wait or post on semaphores within the "
+                          "specified timeout.";
+        result = OsalReturnType::kFail;
+    }
+    else
+    {
+        result = sync->send_sync_.timedWait(std::chrono::milliseconds(100));
+    }
+
+    // We are not interested in the result of msync, just whether it worked or not.
+    // If it did not work, the child process has probably crashed and corrupted the shared memory
+    // so we should not try to deinitialize the semaphores.
+    // mincore would be more appropriate here, but is not available on QNX
+    if (msync(sync.get(), sizeof(IpcCommsSync), MS_ASYNC) == 0)
+    {
+        if (sync->send_sync_.deinit() != OsalReturnType::kSuccess)
         {
-            if (sync->send_sync_.deinit() != OsalReturnType::kSuccess)
-            {
-                LM_LOG_WARN() << "Failed to deinitialize send_sync semaphore.";
-            }
-            if (sync->reply_sync_.deinit() != OsalReturnType::kSuccess)
-            {
-                LM_LOG_WARN() << "Failed to deinitialize reply_sync semaphore.";
-            }
+            LM_LOG_WARN() << "Failed to deinitialize send_sync semaphore.";
         }
-        else
+        if (sync->reply_sync_.deinit() != OsalReturnType::kSuccess)
         {
-            LM_LOG_WARN() << "Skipping semaphore deinitialization - shared memory region appears invalid: "
-                          << errno_message(errno);
+            LM_LOG_WARN() << "Failed to deinitialize reply_sync semaphore.";
         }
     }
     else
     {
-        LM_LOG_ERROR() << "Invalid shared memory pointer: The shared memory pointer is null.";
-        result = OsalReturnType::kFail;
+        LM_LOG_WARN() << "Skipping semaphore deinitialization - shared memory region appears invalid: "
+                      << errno_message(errno);
     }
 
     return result;
