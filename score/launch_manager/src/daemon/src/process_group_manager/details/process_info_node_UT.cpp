@@ -29,8 +29,9 @@ using namespace testing;
 namespace score::mw::lifecycle::internal
 {
 
-// Default ProcessIndex for testing
-constexpr uint32_t kProcessIndex = 111;
+// Default process name for testing
+constexpr std::string_view kProcessName{"test_process"};
+const IdentifierHash kProcessNameHash{kProcessName};
 
 class MockSafeProcessMapInserter : public SafeProcessMapInserter
 {
@@ -86,8 +87,8 @@ class ProcessInfoNodeFixture : public ::testing::Test
         configuration::ProcessState ready_state = configuration::ProcessState::Running)
     {
         configuration::ComponentConfig config{};
-        config.name = "test_process";
-        config.component_properties.binary_name = "test_process";
+        config.name = kProcessName;
+        config.component_properties.binary_name = kProcessName;
 
         auto& profile = config.component_properties.application_profile;
         profile.application_type = application_type;
@@ -104,7 +105,7 @@ class ProcessInfoNodeFixture : public ::testing::Test
         }
 
         return std::make_unique<ProcessInfoNode>(
-            std::move(config), kProcessIndex, ProcessHandling{&mock_processIf_, process_map_, mock_factory_});
+            std::move(config), ProcessHandling{&mock_processIf_, process_map_, mock_factory_});
     }
 
     /// @brief Helper method to create a ProcessInfoNode that is self-terminating.
@@ -175,7 +176,7 @@ TEST_F(ProcessInfoNodeStartupTest, CanConstructIdleProcessInfoNode)
 
     auto node = createProcessInfoNode();
 
-    ASSERT_THAT(node->getIndex(), Eq(kProcessIndex));
+    ASSERT_THAT(node->getIdentifier(), Eq(kProcessName));
     ASSERT_THAT(node->getState(), Eq(score::mw::lifecycle::ProcessState::kIdle));
     ASSERT_THAT(node->getPid(), Eq(0));
     ASSERT_THAT(node->active(), IsFalse());
@@ -582,7 +583,7 @@ TEST_F(ProcessInfoNodeMoveTest, MoveConstruct_IdleNode_PreservesObservableState)
 
     ProcessInfoNode moved{std::move(*source)};
 
-    ASSERT_THAT(moved.getIndex(), Eq(kProcessIndex));
+    ASSERT_THAT(moved.getIdentifier(), Eq(kProcessName));
     ASSERT_THAT(moved.getState(), Eq(score::mw::lifecycle::ProcessState::kIdle));
     ASSERT_THAT(moved.active(), IsFalse());
     ASSERT_THAT(moved.getPid(), Eq(0));
@@ -602,7 +603,7 @@ TEST_F(ProcessInfoNodeMoveTest, MoveConstruct_RunningNode_PreservesAtomicState)
 
     ProcessInfoNode moved{std::move(*source)};
 
-    ASSERT_THAT(moved.getIndex(), Eq(kProcessIndex));
+    ASSERT_THAT(moved.getIdentifier(), Eq(kProcessName));
     ASSERT_THAT(moved.getState(), Eq(score::mw::lifecycle::ProcessState::kRunning));
     ASSERT_THAT(moved.active(), IsTrue());
 }

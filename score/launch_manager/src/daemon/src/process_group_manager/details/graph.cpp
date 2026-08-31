@@ -39,25 +39,17 @@ namespace
 /// @param run_target_map Map to keep the translation between IDHash to Index
 /// @return A populated dependency graph with all components and run targets.
 void CreateDependencyGraph(
-    DependencyGraph<Graph::Component>& graph,
+    DependencyGraph<IdentifierHash, Graph::Component>& graph,
     configuration::Config& config,
     ProcessHandling process_handling,
-    std::unordered_map<std::size_t, GraphIndex>& run_target_map,
     std::chrono::milliseconds& off_state_transition_timeout)
 {
-    // this is a temporary (bad) implementation, all shall be cleandup
-    // on https://github.com/eclipse-score/lifecycle/issues/463
-    // making the dep_graph a hash map would make this much cleaner as we
-    // wouldn't have to keep track of stuff...
     std::vector<configuration::RunTargetConfig> run_targets = config.takeRunTargets();
     std::vector<configuration::ComponentConfig> components = config.takeComponents();
 
-    // map node names to their graph index, needed for deps
-    std::unordered_map<std::string, GraphIndex> name_to_index;
-
     // dependencies can only be wired up once every node exists, so collect
     // them while creating the nodes
-    std::vector<std::pair<GraphIndex, std::vector<std::string>>> pending_dependencies;
+    std::vector<std::pair<IdentifierHash, std::vector<std::string>>> pending_dependencies;
     pending_dependencies.reserve(graph.capacity());
 
     // add all comps
@@ -66,14 +58,10 @@ void CreateDependencyGraph(
         const auto name = component_config.name;
         auto depends_on = std::move(component_config.component_properties.depends_on);
 
-        const auto index = graph.emplace(
-            std::in_place_type<ProcessInfoNode>,
-            std::move(component_config),
-            static_cast<uint32_t>(graph.size()),
-            process_handling);
+        const auto index = graph.try_emplace(
+            IdentifierHash{name}, std::in_place_type<ProcessInfoNode>, std::move(component_config), process_handling);
 
-        LM_LOG_DEBUG() << "Creating component node:" << name << "at index:" << index;
-        name_to_index[name] = index;
+        LM_LOG_DEBUG() << "Creating component node:" << name;
         pending_dependencies.emplace_back(index, std::move(depends_on));
     }
 
@@ -81,7 +69,8 @@ void CreateDependencyGraph(
     bool off_rt_defined = false;
     for (auto& run_target : run_targets)
     {
-        const auto index = graph.emplace(std::in_place_type<RunTarget>, graph.size());
+        const auto index = graph.try_emplace(
+            IdentifierHash{run_target.name}, std::in_place_type<RunTarget>, IdentifierHash{run_target.name});
         LM_LOG_DEBUG() << "Created RunTarget node:" << run_target.name << "at index" << index;
 
         if (run_target.name == Graph::off_state_name)
@@ -89,36 +78,34 @@ void CreateDependencyGraph(
             off_rt_defined = true;
             off_state_transition_timeout = std::chrono::milliseconds(run_target.transition_timeout_ms);
         }
-        name_to_index[run_target.name] = index;
-        run_target_map.insert({IdentifierHash{run_target.name}.data(), index});
         pending_dependencies.emplace_back(index, std::move(run_target.depends_on));
     }
 
     // handle the off target
     if (!off_rt_defined)
     {
-        const auto off_index = graph.emplace(std::in_place_type<RunTarget>, graph.size());
-        run_target_map.insert({IdentifierHash{Graph::off_state_name}.data(), off_index});
+        graph.try_emplace(
+            IdentifierHash{Graph::off_state_name},
+            std::in_place_type<RunTarget>,
+            IdentifierHash{Graph::off_state_name});
         off_state_transition_timeout = internal::kDefaultOffStateTransitionTimeout;
     }
 
     // handle the fallback target
-    const auto fallback_index = graph.emplace(std::in_place_type<RunTarget>, graph.size());
-    run_target_map.insert({IdentifierHash{Graph::recovery_state_name}.data(), fallback_index});
-    LM_LOG_DEBUG() << "fallback at index:" << fallback_index;
+    const auto fallback_index = graph.try_emplace(
+        IdentifierHash{Graph::recovery_state_name},
+        std::in_place_type<RunTarget>,
+        IdentifierHash{Graph::recovery_state_name});
     pending_dependencies.emplace_back(fallback_index, config.fallbackRunTarget().depends_on);
 
     // wire up deps
-    for (const auto& [node_index, dependencies] : pending_dependencies)
+    for (const auto& [node_identifier, dependencies] : pending_dependencies)
     {
         for (const auto& dep_name : dependencies)
         {
-            const auto it = name_to_index.find(dep_name);
-            LM_LOG_DEBUG() << "Node" << node_index << "has dep to" << dep_name;
-            SCORE_LANGUAGE_FUTURECPP_PRECONDITION_MESSAGE(
-                it != name_to_index.end(), "Dependency not found in component list");
+            LM_LOG_DEBUG() << "Node" << node_identifier << "has dep to" << dep_name;
 
-            graph.addDependency(node_index, it->second);
+            graph.addDependency(node_identifier, IdentifierHash{dep_name});
         }
     }
 
@@ -141,25 +128,15 @@ Graph::Graph(
       process_handling_(std::move(process_handling)),
       transition_result_receiver_(transition_result_receiver)
 {
-    last_state_manager_.process_index_ = 0xFFFFU;  // an invalid state manager
+    last_state_manager_.process_identifier_ = IdentifierHash{""};  // an invalid state manager
     last_state_manager_.process_group_index_ = 0xFFFFU;
     cancel_message_.request_or_response_ = ControlClientCode::kNotSet;
-    CreateDependencyGraph(nodes_, configuration_, process_handling_, run_targets_, off_state_transition_timeout_);
+    CreateDependencyGraph(nodes_, configuration_, process_handling_, off_state_transition_timeout_);
 }
 
 Graph::~Graph()
 {
     LM_LOG_DEBUG() << "Graph destroyed";
-}
-
-int32_t Graph::getRunTargetIndex(IdentifierHash pg_state) const
-{
-    auto it = run_targets_.find(pg_state.data());
-    if (it == run_targets_.end())
-    {
-        return -1;
-    }
-    return static_cast<int32_t>(it->second);
 }
 
 bool Graph::setState(const GraphState new_state)
@@ -204,7 +181,7 @@ void Graph::updateRunTargetInPlace(RunTarget& run_target, ComponentTaskType task
     {
         run_target.deactivate(stop_source_.get_token());
     }
-    current_transition_->onNodeFinished(run_target.getIndex());
+    current_transition_->onNodeFinished(run_target.getIdentifier());
 }
 
 void Graph::queueReadyNodes()
@@ -262,9 +239,6 @@ void Graph::tryQueueNode(ComponentTask task)
         if (push_res)
         {
             jobs_in_progress_++;
-            // LM_LOG_DEBUG() << "Queued node " << task.component.get().getIndex() << " for "
-            //                << (task.type == ComponentTaskType::kDeactivate ? "deactivation" : "activation")
-            //                << " execution, jobs in progress:" << jobs_in_progress_;
             break;
         }
         else if (push_res.error() == ConcurrencyErrc::kTimeout)
@@ -295,18 +269,16 @@ void Graph::startTransition(IdentifierHash pg_state)
         old_state_name = requested_state_.pg_state_name_;
         requested_state_.pg_state_name_ = pg_state;
     }
-    const int32_t target_node = getRunTargetIndex(requested_state_.pg_state_name_);
 
     SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(
-        target_node >= 0, "RunTarget node not found for requested process group state");
+        nodes_.find(pg_state) != nodes_.end(), "State name should be validated before it is passed to this method");
 
     bool reached_transition = setState(GraphState::kInTransition);
     static_cast<void>(reached_transition);
     // startTransition() should not be called while the graph is not in a final state
     SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(reached_transition, "Setting state to kInTransition failed");
 
-    const auto target = static_cast<GraphIndex>(target_node);
-    current_transition_ = &transition_builder_.createTransition(target);
+    current_transition_ = &transition_builder_.createTransition(pg_state);
     queueReadyNodes();
     if (current_transition_->isFinished())
     {
@@ -348,15 +320,15 @@ void Graph::handleComponentEvent(const ComponentEvent& event)
             using T = std::decay_t<decltype(data)>;
             if constexpr (std::is_same_v<T, ActivationSuccessful> || std::is_same_v<T, DeactivationComplete>)
             {
-                LM_LOG_DEBUG() << "Component " << data.node_index << " finished "
+                LM_LOG_DEBUG() << "Component " << data.node_identifier << " finished "
                                << (std::is_same_v<T, ActivationSuccessful> ? std::string_view("activation")
                                                                            : std::string_view("deactivation"))
                                << " successfully";
-                nodeExecuted(data.node_index, {});
+                nodeExecuted(data.node_identifier, {});
             }
             else if constexpr (std::is_same_v<T, ActivationFailed>)
             {
-                nodeExecuted(data.node_index, score::cpp::make_unexpected(data.reason));
+                nodeExecuted(data.node_identifier, score::cpp::make_unexpected(data.reason));
             }
             else if constexpr (std::is_same_v<T, UnexpectedTermination>)
             {
@@ -365,7 +337,7 @@ void Graph::handleComponentEvent(const ComponentEvent& event)
                 abort(1, error);
 
                 // Need to clean up any leftover resources
-                IComponent& failingComponent = componentOf(nodes_[data.node_index]);
+                IComponent& failingComponent = componentOf(nodes_[data.node_identifier]);
                 static_cast<void>(failingComponent.deactivate({}));
 
                 if (jobs_in_progress_ == 0)
@@ -375,13 +347,13 @@ void Graph::handleComponentEvent(const ComponentEvent& event)
             }
             else if constexpr (std::is_same_v<T, JobSkipped>)
             {
-                nodeExecuted(data.node_index, {});
+                nodeExecuted(data.node_identifier, {});
             }
         },
         event);
 }
 
-void Graph::nodeExecuted(uint32_t node, score::cpp::expected_blank<IComponent::ComponentError> error)
+void Graph::nodeExecuted(IdentifierHash node, score::cpp::expected_blank<IComponent::ComponentError> error)
 {
     bool was_last_in_queue = --jobs_in_progress_ == 0;
 
@@ -478,7 +450,7 @@ void Graph::cancel()
 
 void Graph::forceKillProcesses()
 {
-    for (const auto& component : nodes_)
+    for (const auto [id, component] : nodes_)
     {
         if (const ProcessInfoNode* process = std::get_if<ProcessInfoNode>(&component))
         {
@@ -510,9 +482,9 @@ void Graph::setStateManager(ControlClientID& control_client_id)
     last_state_manager_ = control_client_id;
 }
 
-ProcessInfoNode* Graph::getProcessInfoNode(uint32_t process_index)
+ProcessInfoNode* Graph::getProcessInfoNode(IdentifierHash process_index)
 {
-    if (process_index >= nodes_.size())
+    if (nodes_.find(process_index) == nodes_.end())
     {
         return nullptr;
     }
@@ -538,17 +510,17 @@ IdentifierHash Graph::getProcessGroupState()
 
 const ProcessInfoNode* Graph::findControlClient()
 {
-    auto* pin = getProcessInfoNode(getStateManager().process_index_);
+    auto* pin = getProcessInfoNode(getStateManager().process_identifier_);
     if (pin && pin->getControlClientChannel())
     {
         return pin;
     }
 
-    for (std::size_t i = 0; i < nodes_.size(); ++i)
+    for (const auto [id, node] : nodes_)
     {
-        if (const auto* node = std::get_if<ProcessInfoNode>(&nodes_[i]); node && node->getControlClientChannel())
+        if (const auto* process = std::get_if<ProcessInfoNode>(&node); process && process->getControlClientChannel())
         {
-            return node;
+            return process;
         }
     }
 

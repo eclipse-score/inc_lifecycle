@@ -43,17 +43,13 @@ class ProcessInfoNode final : public IComponent
   public:
     /// @brief Constructs a ProcessInfoNode.
     /// @param config Configuration for the OS process.
-    /// @param index The process index within its process group.
     /// @param process_handling The interfaces used to start, stop and report on the OS process.
-    /// @param supervision_factory Temporary reference to a factory this node can use to construct its supervision if
-    /// required.
-    ProcessInfoNode(configuration::ComponentConfig&& config, uint32_t index, ProcessHandling process_handling);
+    ProcessInfoNode(configuration::ComponentConfig&& config, ProcessHandling process_handling);
 
     /// @brief Explicit move constructor required due to atomics. PIN must be moveable to exist in the graph
     ProcessInfoNode(ProcessInfoNode&& other) noexcept
         : terminator_(),
           has_semaphore_(other.has_semaphore_.load()),
-          process_index_(other.process_index_),
           pid_(other.pid_),
           status_(other.status_.load()),
           process_state_(other.process_state_.load()),
@@ -62,7 +58,8 @@ class ProcessInfoNode final : public IComponent
           control_client_channel_(std::move(other.control_client_channel_)),
           sync_(std::move(other.sync_)),
           process_handling_(std::move(other.process_handling_)),
-          state_publisher_(std::move(other.state_publisher_))
+          state_publisher_(std::move(other.state_publisher_)),
+          identifier_(other.identifier_)
     {
     }
 
@@ -71,7 +68,7 @@ class ProcessInfoNode final : public IComponent
     ProcessInfoNode& operator=(ProcessInfoNode&& other) = delete;
     ~ProcessInfoNode() = default;
 
-    [[nodiscard]] uint32_t getIndex() const override;
+    [[nodiscard]] IdentifierHash getIdentifier() const override;
 
     RequestResult activate(score::cpp::stop_token stop_token) override;
 
@@ -161,9 +158,6 @@ class ProcessInfoNode final : public IComponent
     /// @brief True if semaphore is being used
     std::atomic_bool has_semaphore_{false};
 
-    /// @brief index of this node (process) in the graph (process group)
-    uint32_t process_index_ = 0;
-
     /// @brief The process id reported by the operating system when the process was started
     osal::ProcessID pid_ = 0;
 
@@ -197,6 +191,9 @@ class ProcessInfoNode final : public IComponent
 
     /// @brief Number ot times to try run the process.
     std::uint8_t start_tries_{1U};
+
+    /// @brief Unique hash to identify this node.
+    IdentifierHash identifier_;
 };
 
 }  // namespace score::mw::lifecycle::internal
