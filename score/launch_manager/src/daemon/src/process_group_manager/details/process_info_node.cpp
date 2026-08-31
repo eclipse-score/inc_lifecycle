@@ -49,15 +49,23 @@ ProcessInfoNode::ProcessInfoNode(configuration::ComponentConfig&& config, Proces
 
 IComponent::RequestResult ProcessInfoNode::tryReportCompletion(score::mw::lifecycle::ProcessState new_state)
 {
+    if (new_state == ProcessState::kFailed)
+    {
+        // Didn't reach running or startup
+        return tryReportError(ComponentError::kErrorBeforeReady);
+    }
+
     ProcessState desired_state;
+    bool has_process_state_condition = false;
 
     const auto& ready_condition = config_.component_properties.ready_condition;
 
     std::visit(
-        [&desired_state](auto&& arg) {
+        [&desired_state, &has_process_state_condition](auto&& arg) {
             using ReadyCondT = std::decay_t<decltype(arg)>;
             if constexpr (std::is_same_v<ReadyCondT, configuration::ProcessState>)
             {
+                has_process_state_condition = true;
                 switch (arg)
                 {
                     case configuration::ProcessState::Running:
@@ -75,12 +83,9 @@ IComponent::RequestResult ProcessInfoNode::tryReportCompletion(score::mw::lifecy
         },
         ready_condition);
 
-    if (new_state == ProcessState::kFailed)
-    {
-        // Didn't reach running or startup
-        return tryReportError(ComponentError::kErrorBeforeReady);
-    }
-    if (new_state == desired_state)
+    // Reaching the desired state or beyond satisfies the ready condition: a self-terminating process
+    // may already have exited (kTerminated) by the time completion is reported.
+    if (has_process_state_condition && new_state >= desired_state)
     {
         return tryReportSuccess();
     }
@@ -281,7 +286,12 @@ IComponent::RequestResult ProcessInfoNode::startProcess(score::cpp::stop_token s
     }
 
     setState(ProcessState::kRunning);  // Can fail if we've terminated already
-    return tryReportCompletion(ProcessState::kRunning);
+
+    // A self-terminating process may already have exited before startup completed. tryHandleTermination()
+    // leaves such a node waiting for the startup thread, so report against the state actually reached.
+    const ProcessState reached_state =
+        (getState() == ProcessState::kTerminated) ? ProcessState::kTerminated : ProcessState::kRunning;
+    return tryReportCompletion(reached_state);
 }
 
 void ProcessInfoNode::setupControlClientChannel()
