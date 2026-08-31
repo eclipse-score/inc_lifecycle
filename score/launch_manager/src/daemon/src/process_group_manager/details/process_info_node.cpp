@@ -209,7 +209,7 @@ IComponent::RequestResult ProcessInfoNode::startProcess(score::cpp::stop_token s
                    << config_.deployment_config.bin_dir << "/" << config_.component_properties.binary_name;
 
     std::optional<ComponentError> error;
-    const std::chrono::duration initial_time = std::chrono::high_resolution_clock::now().time_since_epoch();
+    const std::chrono::time_point initial_time = std::chrono::steady_clock::now();
 
     for (std::uint8_t attempts = start_tries_; attempts != 0U; attempts--)
     {
@@ -234,7 +234,7 @@ IComponent::RequestResult ProcessInfoNode::startProcess(score::cpp::stop_token s
 
         if (osal::OsalReturnType::kSuccess == process_handling_.process_interface_->startProcess(pid_, sync_, config_))
         {
-            const std::chrono::duration launched_time = std::chrono::high_resolution_clock::now().time_since_epoch();
+            const std::chrono::time_point launched_time = std::chrono::steady_clock::now();
             LM_LOG_DEBUG() << "startProcess pid" << pid_ << "received for process:" << config_.name << "( startup time:"
                            << std::chrono::round<std::chrono::microseconds>(launched_time - initial_time) << ")";
 
@@ -270,7 +270,7 @@ IComponent::RequestResult ProcessInfoNode::startProcess(score::cpp::stop_token s
 
         sync_.reset();
     }
-    const std::chrono::duration finished_time = std::chrono::high_resolution_clock::now().time_since_epoch();
+    const std::chrono::time_point finished_time = std::chrono::steady_clock::now();
     LM_LOG_DEBUG() << "startProcess for process" << process_index_ << "(" << config_.name << ") done, took"
                    << std::chrono::round<std::chrono::milliseconds>(finished_time - initial_time);
 
