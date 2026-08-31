@@ -62,7 +62,7 @@ def test_lm_sigkill_children_survive(
         file_path=ready_file,
         cwd=str(remote_test_dir),
         args=["-c", config_path],
-        timeout_s=10.0,
+        timeout_s=5.0,
         stop_on_file=False,
     )
 
@@ -76,7 +76,7 @@ def test_lm_sigkill_children_survive(
         assert proc.is_running(), "Launch manager exited before it could be killed"
         code, out = target.execute(f"kill -9 {proc.pid()}")
         assert code == 0, f"Failed to SIGKILL launch manager (pid {proc.pid()}): {out!r}"
-        proc.wait(timeout_s=5.0)
+        proc.wait(timeout_s=3.0)
 
         # The child processes must survive the death of their parent.
         assert _pid_alive(target, daemon_pid), (

@@ -47,6 +47,7 @@ cc_binary(
 
 integration_test(
     name = "lm_sigkill_children_survive",
+    timeout = "short",
     srcs = ["lm_sigkill_children_survive.py"],
     binaries = [
         ":control_client_test_driver",
