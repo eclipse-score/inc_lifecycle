@@ -25,8 +25,8 @@ namespace score::mw::lifecycle::internal
 /// @brief Struct representing data in a map item
 struct ProcessInfoData
 {
-    int32_t status_ = -1;        ///< Exit status for process
-    IComponent* pin_ = nullptr;  ///< Pointer to the termination callback associated with this item.
+    int32_t status_ = -1;              ///< Exit status for process
+    IComponent* component_ = nullptr;  ///< Pointer to the termination callback associated with this item.
 };
 /// @brief Struct representing an item in the map.
 struct ProcessTreeNode
@@ -138,7 +138,7 @@ class SafeProcessMap final : public SafeProcessMapInserter
     /// @param last Reference to an integer where the index of the last visited node will be stored.
     /// This parameter is updated during the traversal to keep track of the last node visited.
     /// @param key The process ID to find in the tree.
-    void findNode(uint32_t& mask, uint32_t& last, osal::ProcessID key);
+    void findNode(uint32_t& mask, uint32_t& parent, osal::ProcessID key);
 
     /// @brief Inserts a node into the SafeProcessMap with the given process ID and associated information.
     /// This function inserts a node into the SafeProcessMap using a rover mechanism for safe traversal and insertion.
@@ -154,7 +154,7 @@ class SafeProcessMap final : public SafeProcessMapInserter
     /// - 0 if the node was successfully inserted.
     /// - 1 if the insertion was successful but the object pointer was null.
     /// - -1 if the insertion failed due to memory constraints (out of memory).
-    int32_t insertNode(uint32_t& mask, uint32_t& last, osal::ProcessID& key, ProcessInfoData& data);
+    int32_t insertNode(uint32_t& mask, uint32_t& parent, osal::ProcessID& key, ProcessInfoData& data);
 
     /// @brief Removes a node from the process map tree.
     /// This function removes the node currently pointed to by the rover in the SafeProcessMap.
@@ -167,7 +167,7 @@ class SafeProcessMap final : public SafeProcessMapInserter
     /// @param local_root Index of the first object
     /// @return int32_t Returns 0 if the node was successfully removed and `object` was nullptr,
     /// 1 if `object` was not nullptr, and -2 if the removal failed due to PID re-use
-    int32_t removeNode(ProcessInfoData& target, ProcessInfoData& data, uint32_t& last, uint32_t& local_root);
+    int32_t removeNode(ProcessInfoData& target, ProcessInfoData& data, uint32_t& parent, uint32_t& root);
 
     /// @brief Finds the leaf node in the SafeProcessMap starting from the given node.
     /// This function traverses the SafeProcessMap starting from the specified node `leaf`
@@ -176,7 +176,7 @@ class SafeProcessMap final : public SafeProcessMapInserter
     /// node. Upon successful execution, this parameter will store the index of the found leaf node.
     /// @param previous Reference to an integer that will store the index of the parent node of the found leaf node.
     /// If the `leaf` node itself is the root or a leaf, `previous` will be set to the same as `leaf`.
-    void findLeaf(uint32_t& leaf, uint32_t& previous);
+    void findLeaf(uint32_t& leaf, uint32_t& leaf_parent);
 
     /// @brief Deletes a node from the SafeProcessMap, handling reorganization and freeing of resources.
     /// This function deletes a node from the SafeProcessMap structure based on the given parameters,
@@ -186,30 +186,30 @@ class SafeProcessMap final : public SafeProcessMapInserter
     /// @param leaf Reference to an integer representing the index of the node to be deleted from the map.
     /// Upon successful deletion, this parameter will be returned to the free list for reuse.
     /// @param local_root Reference to an integer storing the index of the root node of the current tree structure.
-    /// If the deleted node is the root, this parameter is updated to LINK_NO_VALUE, indicating an empty tree.
+    /// If the deleted node is the root, this parameter is updated to NULL_INDEX, indicating an empty tree.
     /// @param previous Reference to an integer storing the index of the parent node of the deleted node.
     /// This parameter is used to update the link of the parent node after deletion.
-    void deleteNode(uint32_t& last, uint32_t& leaf, uint32_t& local_root, uint32_t& previous);
+    void deleteNode(uint32_t& parent, uint32_t& leaf, uint32_t& root, uint32_t& leaf_parent);
 
     ///@brief Unique pointer managing an array of ProcessTreeNode objects.
     std::unique_ptr<ProcessTreeNode[]> items_;
 
     /// @brief Value indicating that no node is assigned.
-    static constexpr uint32_t LINK_NO_VALUE = 0xFFFFFFFF;
+    static constexpr uint32_t NULL_INDEX = 0xFFFFFFFF;
 
     /// @brief Value indicating that a node is locked.
-    static constexpr uint32_t LINK_LOCKED = 0xFFFFFFFE;
+    static constexpr uint32_t LOCKED_INDEX = 0xFFFFFFFE;
 
     /// @brief Root of the binary tree used to find an entry by process ID (pid).
-    std::atomic_uint32_t pid_root_{LINK_NO_VALUE};
+    std::atomic_uint32_t tree_root_{NULL_INDEX};
 
     /// @brief Root of the list of free entries.
-    uint32_t free_root_{LINK_NO_VALUE};
+    uint32_t free_list_head_{NULL_INDEX};
 
     /// @brief Current rover index in the SafeProcessMap.
     /// This variable represents the current index used for traversal within the SafeProcessMap.
-    /// It initially starts with LINK_NO_VALUE, indicating no valid position.
-    uint32_t rover_{LINK_NO_VALUE};
+    /// It initially starts with NULL_INDEX, indicating no valid position.
+    uint32_t current_{NULL_INDEX};
 
     IComponentController& termination_handler_;
 };
