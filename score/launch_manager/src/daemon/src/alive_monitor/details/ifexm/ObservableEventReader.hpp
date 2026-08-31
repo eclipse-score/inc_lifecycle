@@ -17,8 +17,8 @@
 #include <map>
 
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ObservableEvent.hpp"
+#include "score/mw/launch_manager/alive_monitor/details/ifexm/supervision_event.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
-#include "score/mw/launch_manager/supervision_control_client/supervision_event.hpp"
 
 #include "score/result/result.h"
 

@@ -51,6 +51,7 @@ cc_library(
     deps = [
         ":phm_daemon_config",
         ":sw_cluster_handler",
+        "//score/launch_manager/src/daemon/src/alive_monitor:isupervision_factory",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/common:einitcode",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/factory:flat_cfg_factory",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/ifappl:monitor_if_daemon",
@@ -60,7 +61,6 @@ cc_library(
         "//score/launch_manager/src/daemon/src/alive_monitor/details/timers:cycle_timer",
         "//score/launch_manager/src/daemon/src/alive_monitor/details/timers:timers_os_clock",
         "//score/launch_manager/src/daemon/src/common:log",
-        "//score/launch_manager/src/daemon/src/supervision_control_client:isupervision_factory",
     ],
 )
 

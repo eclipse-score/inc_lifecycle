@@ -20,11 +20,11 @@
 #include <utility>
 #include <vector>
 
+#include "score/mw/launch_manager/alive_monitor/mock_supervision_event_publisher.hpp"
+#include "score/mw/launch_manager/alive_monitor/mock_supervision_factory.hpp"
 #include "score/mw/launch_manager/configuration/config.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/graph.hpp"
 #include "score/mw/launch_manager/process_group_manager/mock_iprocess.hpp"
-#include "score/mw/launch_manager/supervision_control_client/mock_supervision_event_publisher.hpp"
-#include "score/mw/launch_manager/supervision_control_client/mock_supervision_factory.hpp"
 
 namespace score::mw::lifecycle::internal
 {

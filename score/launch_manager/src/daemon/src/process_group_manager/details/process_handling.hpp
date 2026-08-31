@@ -14,9 +14,9 @@
 #ifndef _INCLUDED_PROCESSHANDLING_
 #define _INCLUDED_PROCESSHANDLING_
 
+#include "score/mw/launch_manager/alive_monitor/isupervision_factory.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/safe_process_map.hpp"
 #include "score/mw/launch_manager/process_group_manager/iprocess.hpp"
-#include "score/mw/launch_manager/supervision_control_client/isupervision_factory.hpp"
 #include <memory>
 
 namespace score::mw::lifecycle::internal

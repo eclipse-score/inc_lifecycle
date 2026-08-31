@@ -14,7 +14,7 @@
 #ifndef MOCK_SUPERVISION_FACTORY_HPP_INCLUDED
 #define MOCK_SUPERVISION_FACTORY_HPP_INCLUDED
 
-#include "score/mw/launch_manager/supervision_control_client/isupervision_factory.hpp"
+#include "score/mw/launch_manager/alive_monitor/isupervision_factory.hpp"
 #include <gmock/gmock.h>
 
 namespace score::mw::lifecycle

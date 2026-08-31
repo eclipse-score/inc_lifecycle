@@ -14,9 +14,9 @@
 #include "score/mw/launch_manager/process_group_manager/process_group_manager.hpp"
 
 #include "score/mw/launch_manager/alive_monitor/mock_alive_monitor.hpp"
+#include "score/mw/launch_manager/alive_monitor/mock_supervision_event_publisher.hpp"
+#include "score/mw/launch_manager/alive_monitor/mock_supervision_factory.hpp"
 #include "score/mw/launch_manager/recovery_client/mock_irecovery_client.h"
-#include "score/mw/launch_manager/supervision_control_client/mock_supervision_event_publisher.hpp"
-#include "score/mw/launch_manager/supervision_control_client/mock_supervision_factory.hpp"
 #include "score/mw/launch_manager/watchdog/mock_IWatchdogIf.hpp"
 
 #include <gmock/gmock.h>

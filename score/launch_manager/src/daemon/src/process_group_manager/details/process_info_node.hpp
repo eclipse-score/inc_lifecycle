@@ -15,13 +15,13 @@
 #define _INCLUDED_PROCESSINFONODE_
 
 #include "score/launch_manager/src/daemon/src/configuration/component_config.hpp"
+#include "score/mw/launch_manager/alive_monitor/isupervision_event_publisher.hpp"
 #include "score/mw/launch_manager/configuration/component_config.hpp"
 #include "score/mw/launch_manager/control/control_client_channel.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/icomponent.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/process_handling.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/safe_process_map.hpp"
 #include "score/mw/launch_manager/process_group_manager/process_state.hpp"
-#include "score/mw/launch_manager/supervision_control_client/isupervision_event_publisher.hpp"
 #include <score/stop_token.hpp>
 #include <atomic>
 #include <chrono>

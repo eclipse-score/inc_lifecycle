@@ -10,7 +10,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
-#include "score/mw/launch_manager/supervision_control_client/supervision_handle.hpp"
+#include "score/mw/launch_manager/alive_monitor/details/ifexm/supervision_handle.hpp"
 #include <gtest/gtest.h>
 #include <memory>
 

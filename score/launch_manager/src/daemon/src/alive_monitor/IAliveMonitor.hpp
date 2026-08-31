@@ -13,7 +13,7 @@
 #ifndef SAF_DAEMON_ALIVE_MONITOR_HPP_INCLUDED
 #define SAF_DAEMON_ALIVE_MONITOR_HPP_INCLUDED
 
-#include "score/mw/launch_manager/supervision_control_client/isupervision_factory.hpp"
+#include "score/mw/launch_manager/alive_monitor/isupervision_factory.hpp"
 
 namespace score
 {

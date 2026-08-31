@@ -16,9 +16,9 @@
 #include <sys/types.h>
 #include <ctime>
 
+#include "score/mw/launch_manager/alive_monitor/details/ifexm/supervision_handle.hpp"
 #include "score/mw/launch_manager/common/identifier_hash.hpp"
 #include "score/mw/launch_manager/configuration/component_config.hpp"
-#include "score/mw/launch_manager/supervision_control_client/supervision_handle.hpp"
 
 namespace score
 {

@@ -13,11 +13,11 @@
 #ifndef SUPERVISION_HANDLE_HPP_INCLUDED
 #define SUPERVISION_HANDLE_HPP_INCLUDED
 
+#include "score/mw/launch_manager/alive_monitor/details/ifexm/supervision_event.hpp"
+#include "score/mw/launch_manager/alive_monitor/isupervision_event_publisher.hpp"
 #include "score/mw/launch_manager/common/alive_interface_path.hpp"
 #include "score/mw/launch_manager/common/identifier_hash.hpp"
 #include "score/mw/launch_manager/common/log.hpp"
-#include "score/mw/launch_manager/supervision_control_client/isupervision_event_publisher.hpp"
-#include "score/mw/launch_manager/supervision_control_client/supervision_event.hpp"
 
 #include <ctime>
 

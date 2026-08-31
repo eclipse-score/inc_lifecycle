@@ -18,7 +18,7 @@
 #include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
 #include <string>
 
-#include "score/mw/launch_manager/supervision_control_client/supervision_event.hpp"
+#include "score/mw/launch_manager/alive_monitor/details/ifexm/supervision_event.hpp"
 
 namespace score
 {
