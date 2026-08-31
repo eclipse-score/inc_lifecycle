@@ -17,6 +17,9 @@ load("@score_lifecycle_pip//:requirements.bzl", "all_requirements")
 load("//:defs.bzl", "launch_manager_config")
 load("//tests/utils/bazel:constants.bzl", "SCORE_TEST_INSTALL_PREFIX")
 
+DEFAULT_QEMU_CONFIG = "//config:qemu_config"
+DEFAULT_QEMU_IMAGE = "//config:qemu_image"
+
 def integration_test(
         name,
         srcs,
@@ -24,6 +27,8 @@ def integration_test(
         files = [],
         config = None,
         install_prefix = SCORE_TEST_INSTALL_PREFIX,
+        qemu_config = DEFAULT_QEMU_CONFIG,
+        qemu_image = DEFAULT_QEMU_IMAGE,
         **kwargs):
     """Creates an integration test.
 
@@ -41,11 +46,20 @@ def integration_test(
         files: Additional files
         config: Launch manager configuration file
         install_prefix: Installation prefix for the test environment
+        qemu_config: QEMU configuration file used by the QEMU test target.
+            Defaults to the `//config:qemu_config` label flag.
+        qemu_image: QEMU image used by the QEMU test target.
+            Defaults to the `//config:qemu_image` label flag.
         **kwargs: Miscellaneous arguments passed through to `py_itf_test`
     """
 
+    bin_pkg_name = "{}_binaries_pkg".format(name)
+    config_name = "{}_config_pkg".format(name)
+    test_pkg_name = "{}_test_pkg".format(name)
+    test_tar_name = "{}_test_tar".format(name)
+
     pkg_files(
-        name = "binaries",
+        name = bin_pkg_name,
         srcs = binaries,
         attributes = pkg_attributes(mode = "0555"),
         prefix = "tests/{}".format(name),
@@ -53,40 +67,40 @@ def integration_test(
 
     if config:
         launch_manager_config(
-            name = "config",
+            name = config_name,
             config = config,
             flatbuffer_out_dir = "etc",
         )
-        all_files = files + [":config"]
+        all_files = files + [":{}".format(config_name)]
     else:
         all_files = files
 
     pkg_files(
-        name = "files",
+        name = test_pkg_name,
         srcs = all_files,
         prefix = "tests/{}".format(name),
         attributes = pkg_attributes(mode = "0400"),
     )
 
-    pkg_tar(name = "environment", srcs = [":binaries", ":files"])
+    pkg_tar(name = test_tar_name, srcs = [":{}".format(bin_pkg_name), ":{}".format(test_pkg_name)])
 
     final_deps = kwargs.pop("deps", []) + all_requirements + [
         "@score_tooling//python_basics/score_pytest:attribute_plugin",
         "//tests/utils/testing_utils",
     ]
-    final_data = kwargs.pop("data", []) + [":environment"] + select({
+    final_data = kwargs.pop("data", []) + [":{}".format(test_tar_name)] + select({
         "//config:integration_docker": [
             "//tests/utils/environments/x86_64-linux",
         ],
         "//config:integration_qemu": [
-            "//tests/utils/environments/x86_64-qnx:qemu_config.json",
-            "//tests/utils/environments/x86_64-qnx:qemu_image",
+            qemu_config,
+            qemu_image,
         ],
         "//conditions:default": [],
     })
     final_args = kwargs.pop("args", []) + [
         "-p attribute_plugin",
-        "--score-test-binary-path=$(locations :environment)",
+        "--score-test-binary-path=$(location :{})".format(test_tar_name),
         "--score-test-remote-directory={}/tests/{}".format(install_prefix, name),
     ] + select({
         "//config:integration_docker": [
@@ -94,8 +108,8 @@ def integration_test(
             "--docker-image=score_itf_examples:latest",
         ],
         "//config:integration_qemu": [
-            "--qemu-config=$(location //tests/utils/environments/x86_64-qnx:qemu_config.json)",
-            "--qemu-image=$(location //tests/utils/environments/x86_64-qnx:qemu_image)",
+            "--qemu-config=$(location {})".format(qemu_config),
+            "--qemu-image=$(location {})".format(qemu_image),
         ],
         "//config:integration_host": [
             "--local-dir=/tmp/score_itf_host/{}".format(name),

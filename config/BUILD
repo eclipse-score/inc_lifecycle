@@ -12,6 +12,22 @@
 # *******************************************************************************
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag", "string_flag")
 
+# QEMU virtual machine used by the integration tests. Override on the command
+# line to run the tests against a different image, e.g.
+#   bazel test --//config:integration_mode=qemu \
+#       --//config:qemu_image=//my/package:my_image //tests/...
+label_flag(
+    name = "qemu_image",
+    build_setting_default = "//tests/utils/environments/x86_64-qnx:qemu_image",
+    visibility = ["//visibility:public"],
+)
+
+label_flag(
+    name = "qemu_config",
+    build_setting_default = "//tests/utils/environments/x86_64-qnx:qemu_config.json",
+    visibility = ["//visibility:public"],
+)
+
 # How to run integration tests:
 #
 # - docker: in a Docker container

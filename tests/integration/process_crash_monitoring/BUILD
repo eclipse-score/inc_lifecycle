@@ -38,7 +38,6 @@ integration_test(
     name = "process_crash_monitoring",
     srcs = ["process_crash_monitoring.py"],
     binaries = [
-        ":config",
         ":control_client_test_driver",
         ":process_crashing_on_runtime",
         "//score/launch_manager",
