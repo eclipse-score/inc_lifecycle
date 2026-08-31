@@ -28,12 +28,14 @@ build --java_runtime_version=remotejdk_17
 build --tool_java_runtime_version=remotejdk_17
 build --credential_helper=*.qnx.com=%workspace%/scripts/internal/qnx_creds.py
 
-# Treat warnings as errors, except in external code
+# Enable warnings and treat them as errors
 build --copt=-Wall
 build --copt=-Wextra
 build --copt=-Werror
 build --copt=-Wno-error=deprecated-declarations
-build --per_file_copt=external/.*@-Wno-error
+
+# Disable warnings for external code
+build --per_file_copt=external/.*@-w
 
 # Common test flags for all platforms
 test --test_output=errors
