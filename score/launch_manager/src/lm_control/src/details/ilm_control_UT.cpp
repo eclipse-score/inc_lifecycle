@@ -18,6 +18,7 @@
 
 #include "score/mw/com/runtime.h"
 #include "score/mw/lifecycle/ilm_control.hpp"
+#include "score/string_manipulation/arguments/arguments.h"
 
 namespace score::mw::lifecycle
 {
@@ -68,6 +69,7 @@ TEST_F(ILmControlUT, ReturnsInitErrorForInvalidSpecifier)
 int main(int argc, char** argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
-    score::mw::com::runtime::InitializeRuntime(argc, const_cast<const char**>(argv));
+    score::mw::com::runtime::InitializeRuntime(
+        score::string_manipulation::GetArguments(argc, const_cast<const char**>(argv)));
     return RUN_ALL_TESTS();
 }
