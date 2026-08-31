@@ -24,7 +24,8 @@
 TEST(LmSigkillChildrenSurvive, ControlDaemon)
 {
     score::mw::lifecycle::ControlClient client{};
-    ASSERT_TRUE(check_clean({daemon_pid_file, app_pid_file, children_ready_file}));
+    // Remove leftovers from a previous (possibly manual) run.
+    ASSERT_TRUE(check_clean({daemon_pid_file, app_pid_file, children_ready_file}, /*strict=*/false));
 
     TEST_STEP("Control daemon report running")
     {

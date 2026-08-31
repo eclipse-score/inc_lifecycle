@@ -54,10 +54,6 @@ def test_lm_sigkill_children_survive(
     daemon_pid_file = remote_test_dir / "daemon_pid"
     app_pid_file = remote_test_dir / "app_pid"
 
-    # Remove leftovers from a previous (possibly manual) run.
-    for f in (ready_file, daemon_pid_file, app_pid_file):
-        target.execute(f"rm -f {f}")
-
     # Both children are up and reporting once the daemon touches the ready file.
     # Keep the launch manager running so the test can SIGKILL it below.
     proc = run_until_file_deployed(
