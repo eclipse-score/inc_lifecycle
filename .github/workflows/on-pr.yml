@@ -81,7 +81,7 @@ jobs:
           bazel test \
             --lockfile_mode=error \
             ${{ matrix.bazel-args }} \
-            //tests/integration/sandbox_options --verbose_failures --nocache_test_results --runs_per_test=200
+            //tests/integration/sandbox_options --verbose_failures --nocache_test_results --runs_per_test=500
 
       - name: Upload test logs
         if: always()
