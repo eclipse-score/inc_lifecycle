@@ -174,17 +174,34 @@ IComponent::RequestResult ProcessInfoNode::tryHandleTermination(int32_t process_
     }
     else if (getState() < ProcessState::kRunning)
     {
-        // Defer to the startup thread to handle this
         setState(ProcessState::kTerminated);
 
-        unblockSync();
+        if (isReporting())
+        {
+            // Defer to the startup thread to handle this
+            unblockSync();
+        }
+        else if (terminationIsValid(process_status))
+        {
+            res = tryReportCompletion(ProcessState::kTerminated);
+        }
+        else
+        {
+            if (tryReportCompletion(ProcessState::kTerminated).value() == IComponent::RequestState::kSuccess)
+            {
+                res = score::cpp::make_unexpected(IComponent::ComponentError::kErrorBeforeReady);
+            }
+            else
+            {
+                res = score::cpp::make_unexpected(IComponent::ComponentError::kErrorAfterReady);
+            }
+        }
     }
     else
     {
         setState(ProcessState::kTerminated);
-        if (config_.component_properties.application_profile.is_self_terminating && process_status == 0)
+        if (terminationIsValid(process_status))
         {
-            // Only valid case for a process to terminate without it being requested
             res = tryReportCompletion(ProcessState::kTerminated);
         }
         else
@@ -202,6 +219,17 @@ IComponent::RequestResult ProcessInfoNode::tryHandleTermination(int32_t process_
     }
 
     return res;
+}
+
+bool ProcessInfoNode::terminationIsValid(int32_t exit_code) const
+{
+    // Only valid case for a process to terminate without it being requested
+    return config_.component_properties.application_profile.is_self_terminating && exit_code == 0;
+}
+
+bool ProcessInfoNode::isReporting() const
+{
+    return config_.component_properties.application_profile.application_type != configuration::ApplicationType::Native;
 }
 
 IComponent::RequestResult ProcessInfoNode::startProcess(score::cpp::stop_token stop_token)
@@ -359,21 +387,13 @@ score::cpp::expected_blank<IComponent::ComponentError> ProcessInfoNode::handlePr
 
 score::cpp::expected_blank<IComponent::ComponentError> ProcessInfoNode::handleProcessAlreadyTerminated()
 {
-    if ((0 != exit_code_) ||
-        (configuration::ApplicationType::Native != config_.component_properties.application_profile.application_type))
+    // The process did start successfully, but didn't report properly.
+    if (isReporting())
     {
-        // Error. To get a legal terminated before kRunning the process must be self-terminating, non-reporting
-        // and to have exited with zero exit code
-        LM_LOG_WARN() << "Got process termination before kRunning for pid" << pid_ << "(" << identifier_ << ")";
-        // This will cause the graph to fail unless we have restart attempts left
-        return score::cpp::make_unexpected(ComponentError::kErrorBeforeReady);
+        return score::cpp::make_unexpected(IComponent::ComponentError::kErrorBeforeReady);
     }
-    else
-    {
-        // case of a self-terminating, non-reporting process exiting nicely before we've had a chance to put an
-        // entry in the map
-        return {};
-    }
+    // In all other cases, the process did successfully reach the running state (because pid_ was set).
+    return {};
 }
 
 score::cpp::expected<score::cpp::expected_blank<IComponent::ComponentError>, IComponent::ComponentError>

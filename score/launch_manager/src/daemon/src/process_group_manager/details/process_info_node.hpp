@@ -92,6 +92,13 @@ class ProcessInfoNode final : public IComponent
     [[nodiscard]] ControlClientChannelP getControlClientChannel() const;
 
   private:
+    /// @brief Returns true if this process terminating with code @p exit_code is acceptable even when termination has
+    /// not been requested.
+    bool terminationIsValid(int32_t exit_code) const;
+
+    /// @brief Returns true if the process is configured to report kRunning
+    bool isReporting() const;
+
     /// @brief Atomically transitions to new_state if the transition is valid. For reporting
     /// processes, also notifies the platform health manager of the state change.
     /// @param new_state The desired process state.
