@@ -178,15 +178,17 @@ IComponent::RequestResult ProcessInfoNode::tryHandleTermination(int32_t process_
 
         if (isReporting())
         {
-            // Defer to the startup thread to handle this
+            // Defer to the startup thread to handle this (failed startup)
             unblockSync();
         }
         else if (terminationIsValid(process_status))
         {
+            // Termination during startup is okay in this case. This might also satisfy our ready condition
             res = tryReportCompletion(ProcessState::kTerminated);
         }
         else
         {
+            // This termination is not okay, but whether it was before or after ready depends on the ready condition
             if (tryReportCompletion(ProcessState::kTerminated).value() == IComponent::RequestState::kSuccess)
             {
                 res = score::cpp::make_unexpected(IComponent::ComponentError::kErrorBeforeReady);
