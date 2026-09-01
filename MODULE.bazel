@@ -175,10 +175,6 @@ pip.parse(
 use_repo(pip, "score_lifecycle_pip")
 
 bazel_dep(name = "score_itf", version = "0.5.0", dev_dependency = True)
-single_version_override(
-    module_name = "score_itf",
-    patches = ["//patches:itf.patch"],
-)
 
 oci = use_extension("@rules_oci//oci:extensions.bzl", "oci", dev_dependency = True)
 oci.pull(

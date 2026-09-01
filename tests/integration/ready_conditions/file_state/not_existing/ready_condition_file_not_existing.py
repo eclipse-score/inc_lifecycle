@@ -10,8 +10,8 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-from tests.utils.testing_utils.run_until_file_deployed import run_until_file_deployed
 from tests.utils.testing_utils.setup_test import setup_test
+from tests.utils.testing_utils.run_test import run_test
 from tests.utils.testing_utils.test_results import assert_test_results
 from attribute_plugin import add_test_properties
 
@@ -35,7 +35,6 @@ def test_ready_condition_file_not_existing(
     the dependent component after the file has been removed.
     """
 
-    config_path = str(remote_test_dir / "etc/ready_condition_file_not_existing.bin")
     vanishing_file = str(remote_test_dir / "vanishing_file")
 
     # The file has to be there when the launch manager starts polling, otherwise the ready
@@ -45,13 +44,11 @@ def test_ready_condition_file_not_existing(
     res, stdout = target.execute(f"touch {vanishing_file}_2")
     assert res == 0, stdout
 
-    run_until_file_deployed(
+    run_test(
         target=target,
         binary_path=str(remote_test_dir / "launch_manager"),
-        file_path=remote_test_dir.parent / "test_end",
+        args=["-c", str(remote_test_dir / "etc/ready_condition_file_not_existing.bin")],
         cwd=str(remote_test_dir),
-        args=["-c", config_path],
-        timeout_s=3.0,
     )
 
     assert_test_results({"control_client_test_driver.xml", "file_modifier.xml"})

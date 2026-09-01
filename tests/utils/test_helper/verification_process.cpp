@@ -50,9 +50,9 @@ int main(int argc, char** argv)
         return EXIT_FAILURE;
     }
 
-    if (touch_test_end && !touch_file(test_end_location))
+    if (touch_test_end && kill(getppid(), SIGTERM) != 0)
     {
-        std::cout << "Failed to write test_end file!" << std::endl;
+        std::cout << "Failed to signal test end!" << std::endl;
         return EXIT_FAILURE;
     }
 

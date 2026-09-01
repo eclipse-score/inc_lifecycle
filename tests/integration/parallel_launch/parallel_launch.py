@@ -10,8 +10,8 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-from tests.utils.testing_utils.run_until_file_deployed import run_until_file_deployed
 from tests.utils.testing_utils.setup_test import setup_test
+from tests.utils.testing_utils.run_test import run_test
 from tests.utils.testing_utils.test_results import assert_test_results
 from attribute_plugin import add_test_properties
 
@@ -33,15 +33,11 @@ def test_parallel_launch(target, setup_test, assert_test_results, remote_test_di
     Expected Behaviour: The latest start timestamp precedes the earliest running timestamp.
     """
 
-    config_path = str(remote_test_dir / "etc/parallel_launch.bin")
-
-    run_until_file_deployed(
+    run_test(
         target=target,
         binary_path=str(remote_test_dir / "launch_manager"),
-        file_path=remote_test_dir.parent / "test_end",
+        args=["-c", str(remote_test_dir / "etc/parallel_launch.bin")],
         cwd=str(remote_test_dir),
-        args=["-c", config_path],
-        timeout_s=8.0,
     )
 
     assert_test_results(

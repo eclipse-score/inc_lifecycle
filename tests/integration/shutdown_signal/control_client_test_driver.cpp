@@ -36,7 +36,7 @@
 TEST(ShutdownSignal, Daemon)
 {
     score::mw::lifecycle::ControlClient client{};
-    ASSERT_TRUE(check_clean({test_end_location, sigterm_received_file}));
+    ASSERT_TRUE(check_clean({sigterm_received_file}));
 
     TEST_STEP("Control daemon report running")
     {

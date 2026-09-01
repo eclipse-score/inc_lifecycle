@@ -25,8 +25,7 @@ TEST(CrashIgnoresDependents, TestProcess)
 
     TEST_STEP("Check this is the first start")
     {
-        ASSERT_TRUE(check_clean({test_end_location, started_file, crash_file}))
-            << "Process was started more than once!";
+        ASSERT_TRUE(check_clean({started_file, crash_file})) << "Process was started more than once!";
 
         ASSERT_TRUE(touch_file(started_file)) << "Failed to deploy file!";
     }

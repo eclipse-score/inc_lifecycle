@@ -10,27 +10,10 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-load("@rules_python//python:defs.bzl", "py_library")
 
-exports_files(
-    ["touch_file.sh"],
-    visibility = ["//tests:__subpackages__"],
-)
 
-py_library(
-    name = "testing_utils",
-    srcs = [
-        "run_test.py",
-        "setup_test.py",
-        "test_results.py",
-    ],
-    target_compatible_with = ["@platforms//os:linux"],
-    visibility = [
-        "//examples:__subpackages__",
-        "//tests:__subpackages__",
-    ],
-    deps = [
-        "@score_itf//score/itf/core/process",
-        "@score_itf//score/itf/core/target",
-    ],
-)
+def run_test(*, target, binary_path, args=None, cwd="/", timeout=15):
+    """Run an integration test to completion."""
+
+    process = target.execute_async(binary_path, args=args, cwd=cwd)
+    assert process.wait(timeout) == 0

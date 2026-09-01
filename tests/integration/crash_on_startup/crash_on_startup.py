@@ -10,8 +10,8 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-from tests.utils.testing_utils.run_until_file_deployed import run_until_file_deployed
 from tests.utils.testing_utils.setup_test import setup_test
+from tests.utils.testing_utils.run_test import run_test
 from tests.utils.testing_utils.test_results import (
     assert_test_results,
     get_testcase_property,
@@ -44,15 +44,11 @@ def test_crash_on_startup(
     Expected Behaviour: Process startup fails and therefore run target activation fails. Launch manager executes recovery action which switches to fallback run target.
     """
 
-    config_path = str(remote_test_dir / "etc/crash_on_startup.bin")
-
-    run_until_file_deployed(
+    run_test(
         target=target,
         binary_path=str(remote_test_dir / "launch_manager"),
-        file_path=remote_test_dir.parent / "test_end",
+        args=["-c", str(remote_test_dir / "etc/crash_on_startup.bin")],
         cwd=str(remote_test_dir),
-        args=["-c", config_path],
-        timeout_s=10.0,
     )
 
     # Each crashing process writes its own report file named after the number of times it crashes, so the

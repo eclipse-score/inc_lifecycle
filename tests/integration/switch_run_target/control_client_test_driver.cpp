@@ -36,7 +36,7 @@ TEST(SwitchRunTarget, ControlClientTestDriver)
 {
     score::mw::lifecycle::ControlClient client;
 
-    ASSERT_TRUE(check_clean({test_end_location, a_started, b_started, d_started, e_started}));
+    ASSERT_TRUE(check_clean({a_started, b_started, d_started, e_started}));
     TEST_STEP("Report running")
     {
         score::mw::lifecycle::report_running();

@@ -36,7 +36,7 @@
 TEST(LmShutdownDuringSwitchToOff, ControlClient)
 {
     score::mw::lifecycle::ControlClient client{};
-    ASSERT_TRUE(check_clean({test_end_location, a_started, a_terminating}));
+    ASSERT_TRUE(check_clean({a_started, a_terminating}));
 
     const auto pid = getpid();
     const std::string step_msg = "Report running with pid == " + std::to_string(pid);

@@ -33,7 +33,7 @@
 TEST(LmShutdownDuringRtSwitch, ControlClient)
 {
     score::mw::lifecycle::ControlClient client{};
-    ASSERT_TRUE(check_clean({test_end_location, a_started, a_terminating, c_started}));
+    ASSERT_TRUE(check_clean({a_started, a_terminating, c_started}));
 
     TEST_STEP("Report running")
     {
