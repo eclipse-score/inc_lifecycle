@@ -56,16 +56,16 @@ IComponent::RequestResult ProcessInfoNode::tryReportCompletion(score::mw::lifecy
     }
 
     ProcessState desired_state;
-    bool has_process_state_condition = false;
+    bool has_state_based_condition = false;
 
     const auto& ready_condition = config_.component_properties.ready_condition;
 
     std::visit(
-        [&desired_state, &has_process_state_condition](auto&& arg) {
+        [&desired_state, &has_state_based_condition](auto&& arg) {
             using ReadyCondT = std::decay_t<decltype(arg)>;
             if constexpr (std::is_same_v<ReadyCondT, configuration::ProcessState>)
             {
-                has_process_state_condition = true;
+                has_state_based_condition = true;
                 switch (arg)
                 {
                     case configuration::ProcessState::Running:
@@ -78,6 +78,7 @@ IComponent::RequestResult ProcessInfoNode::tryReportCompletion(score::mw::lifecy
             }
             else if constexpr (std::is_same_v<ReadyCondT, configuration::FileState>)
             {
+                has_state_based_condition = true;
                 desired_state = ProcessState::kRunning;
             }
         },
@@ -85,7 +86,7 @@ IComponent::RequestResult ProcessInfoNode::tryReportCompletion(score::mw::lifecy
 
     // Reaching the desired state or beyond satisfies the ready condition: a self-terminating process
     // may already have exited (kTerminated) by the time completion is reported.
-    if (has_process_state_condition && new_state >= desired_state)
+    if (has_state_based_condition && new_state >= desired_state)
     {
         return tryReportSuccess();
     }
