@@ -46,6 +46,7 @@ struct [[nodiscard]] DeactivationComplete
 struct [[nodiscard]] UnexpectedTermination
 {
     IdentifierHash node_identifier;
+    IComponent::ComponentError reason;
 };
 
 /// @brief A job was queued but cancelled by the time it was processed

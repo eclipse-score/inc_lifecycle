@@ -543,7 +543,8 @@ TEST_F(GraphHandleComponentEventTest, unexpectedTerminationDuringSuccess)
             }),
             Return(osal::OsalReturnType::kSuccess)));
 
-    graph_->handleComponentEvent(UnexpectedTermination{component->getIdentifier()});
+    graph_->handleComponentEvent(
+        UnexpectedTermination{component->getIdentifier(), IComponent::ComponentError::kErrorAfterReady});
 
     EXPECT_EQ(graph_->getState(), GraphState::kUndefinedState);
 }
@@ -571,7 +572,7 @@ TEST_F(GraphHandleComponentEventTest, unexpectedTerminationDuringTransition)
             Return(osal::OsalReturnType::kSuccess)));
 
     // The active component then crashes
-    graph_->handleComponentEvent(UnexpectedTermination{component_index});
+    graph_->handleComponentEvent(UnexpectedTermination{component_index, IComponent::ComponentError::kErrorAfterReady});
 
     const auto second_job = job_queue_->pop();
     executeJobSuccessfully(second_job->value());
@@ -600,7 +601,7 @@ TEST_F(GraphTransitionFailuresTest, UnusualOrderOfFailures)
         .WillOnce(Return(osal::OsalReturnType::kSuccess));  // Process is already gone, semaphore will time out
     EXPECT_CALL(process_interface_, forceTermination).WillOnce(Return(osal::OsalReturnType::kFail));
 
-    graph_->handleComponentEvent(UnexpectedTermination{component_id});
+    graph_->handleComponentEvent(UnexpectedTermination{component_id, IComponent::ComponentError::kErrorAfterReady});
     graph_->handleComponentEvent(ActivationSuccessful{component_id});
 
     EXPECT_EQ(graph_->getPendingEvent(), ControlClientCode::kFailedUnexpectedTermination);

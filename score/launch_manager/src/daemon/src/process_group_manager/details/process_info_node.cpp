@@ -105,8 +105,7 @@ IComponent::RequestResult ProcessInfoNode::tryReportSuccess()
 
 std::optional<timespec> ProcessInfoNode::getTimeForReport() const
 {
-    if (config_.component_properties.application_profile.application_type ==
-        score::mw::lifecycle::internal::configuration::ApplicationType::Native)
+    if (!isReporting())
     {
         return std::nullopt;
     }
@@ -323,16 +322,13 @@ void ProcessInfoNode::setupControlClientChannel()
 score::cpp::expected_blank<IComponent::ComponentError> ProcessInfoNode::handleProcessStillStarting(
     const score::cpp::stop_token& stop_token)
 {
-    const bool is_native =
-        config_.component_properties.application_profile.application_type == configuration::ApplicationType::Native;
-
     const bool startup_condition_met = std::visit(
-        [this, is_native, &stop_token](auto&& arg) -> bool {
+        [this, &stop_token](auto&& arg) -> bool {
             using T = std::decay_t<decltype(arg)>;
 
             if constexpr (std::is_same_v<T, configuration::ProcessState>)
             {
-                if (is_native)
+                if (!isReporting())
                 {
                     // A native process does not report kRunning, so its exit code is the only readiness indication.
                     return exit_code_ == 0;
@@ -346,7 +342,7 @@ score::cpp::expected_blank<IComponent::ComponentError> ProcessInfoNode::handlePr
             else if constexpr (std::is_same_v<T, configuration::FileState>)
             {
 
-                if (!is_native)
+                if (isReporting())
                 {
                     // currently we do not support multiple ready conditions so we need
                     // to ignore the krunning signal.
@@ -418,7 +414,7 @@ ProcessInfoNode::handleProcessStarted(const score::cpp::stop_token& stop_token)
 
 void ProcessInfoNode::handleProcessRunning()
 {
-    if (configuration::ApplicationType::Native == config_.component_properties.application_profile.application_type)
+    if (!isReporting())
     {
         LM_LOG_DEBUG() << "Considered kRunning for Non Reporting Process pid" << pid_ << "(" << identifier_ << ")";
     }
