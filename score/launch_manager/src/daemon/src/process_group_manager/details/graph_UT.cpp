@@ -580,6 +580,33 @@ TEST_F(GraphHandleComponentEventTest, unexpectedTerminationDuringTransition)
     EXPECT_EQ(graph_->getPendingEvent(), ControlClientCode::kFailedUnexpectedTermination);
 }
 
+class GraphTransitionFailuresTest : public GraphTest
+{
+};
+
+TEST_F(GraphTransitionFailuresTest, UnusualOrderOfFailures)
+{
+    RecordProperty(
+        "Description",
+        "Test that even if an unexpected termination is recieved before a successful activation, the graph reacts "
+        "correctly");
+
+    graph_->startTransition(IdentifierHash{run_target_name(0)});
+
+    const auto first_job = job_queue_->pop();
+    const auto component_id = first_job.value()->component.get().getIdentifier();
+
+    EXPECT_CALL(process_interface_, requestTermination)
+        .WillOnce(Return(osal::OsalReturnType::kSuccess));  // Process is already gone, semaphore will time out
+    EXPECT_CALL(process_interface_, forceTermination).WillOnce(Return(osal::OsalReturnType::kFail));
+
+    graph_->handleComponentEvent(UnexpectedTermination{component_id});
+    graph_->handleComponentEvent(ActivationSuccessful{component_id});
+
+    EXPECT_EQ(graph_->getPendingEvent(), ControlClientCode::kFailedUnexpectedTermination);
+    EXPECT_EQ(graph_->getState(), GraphState::kUndefinedState) << "Graph should be in a final state";
+}
+
 class GraphCancelTest : public GraphTest
 {
 };
