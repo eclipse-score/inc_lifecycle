@@ -20,10 +20,7 @@
 #include <ctime>
 #include <memory>
 
-namespace score
-{
-
-namespace mw::lifecycle
+namespace score::mw::lifecycle
 {
 
 /// @brief Type of supervision event sent from the launch manager to the alive monitor.
@@ -61,8 +58,6 @@ using SupervisionBufferType = ipc_dropin::RingBuffer<
     static_cast<size_t>(score::mw::lifecycle::BufferConstants::BUFFER_QUEUE_SIZE),
     static_cast<size_t>(score::mw::lifecycle::BufferConstants::BUFFER_MAXPAYLOAD)>;
 
-}  // namespace mw::lifecycle
-
-}  // namespace score
+}  // namespace score::mw::lifecycle
 
 #endif  // SUPERVISION_EVENT_HPP_INCLUDED

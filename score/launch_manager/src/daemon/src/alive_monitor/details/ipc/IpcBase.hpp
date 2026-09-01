@@ -19,13 +19,7 @@
 #include "ipc_dropin/socket.hpp"
 #include <string_view>
 
-namespace score
-{
-namespace mw::lifecycle::internal
-{
-namespace saf
-{
-namespace ipc
+namespace score::mw::lifecycle::internal::saf::ipc
 {
 
 /// @brief Base class for client/server ipc
@@ -174,9 +168,6 @@ class IpcBase
     bool isInitialized{false};
 };
 
-}  // namespace ipc
-}  // namespace saf
-}  // namespace mw::lifecycle::internal
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::saf::ipc
 
 #endif

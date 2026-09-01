@@ -16,13 +16,7 @@
 
 #include <vector>
 
-namespace score
-{
-namespace mw::lifecycle::internal
-{
-namespace saf
-{
-namespace common
+namespace score::mw::lifecycle::internal::saf::common
 {
 template <class Type>
 class FixedSizeVector
@@ -237,9 +231,6 @@ class FixedSizeVector
   private:
     std::vector<Type> fixedSizedVector{};
 };
-}  // namespace common
-}  // namespace saf
-}  // namespace mw::lifecycle::internal
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::saf::common
 
 #endif

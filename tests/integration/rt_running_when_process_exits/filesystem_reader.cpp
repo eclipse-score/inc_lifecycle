@@ -38,8 +38,6 @@ constexpr std::string_view kSetupOutputFile = "setup_filesystem_output.txt";
 // (it writes a marker file and exits) before starting filesystem_reader.
 TEST(RtRunningWhenProcessExits, FilesystemReader)
 {
-    ASSERT_TRUE(check_clean({test_end_location}));
-
     TEST_STEP("Report running")
     {
         score::mw::lifecycle::report_running();

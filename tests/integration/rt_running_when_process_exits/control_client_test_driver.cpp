@@ -45,7 +45,7 @@ TEST(RtRunningWhenProcessExits, ControlClientTestDriver)
 
     // kSlowSetupOutput is checked too: its later presence must be a reliable signal that
     // the slow setup component terminated during *this* run, not leftover from a previous one.
-    ASSERT_TRUE(check_clean({test_end_location, kSlowSetupOutput}));
+    ASSERT_TRUE(check_clean({kSlowSetupOutput}));
 
     TEST_STEP("Report running")
     {

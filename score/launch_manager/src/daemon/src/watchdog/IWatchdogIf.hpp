@@ -23,11 +23,7 @@ namespace score::mw::lifecycle::internal::configuration
 struct WatchdogConfig;
 }
 
-namespace score
-{
-namespace mw::lifecycle::internal
-{
-namespace watchdog
+namespace score::mw::lifecycle::internal::watchdog
 {
 
 /// @brief The class which makes the functionality of the Watchdog Interface library
@@ -136,8 +132,6 @@ class IWatchdogIf
     };
 };
 
-}  // namespace watchdog
-}  // namespace mw::lifecycle::internal
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::watchdog
 
 #endif

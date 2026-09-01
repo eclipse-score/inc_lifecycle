@@ -28,7 +28,7 @@ TEST(ProcessCrashMonitoring, ControlClientTestDriver)
 {
     score::mw::lifecycle::ControlClient client;
 
-    ASSERT_TRUE(check_clean({test_end_location, fallback_file}));
+    ASSERT_TRUE(check_clean({fallback_file}));
     // Establish communication with launch manager
     TEST_STEP("Report running")
     {

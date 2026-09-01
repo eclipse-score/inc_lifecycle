@@ -22,13 +22,7 @@
 #include "score/mw/launch_manager/common/process_group_state_id.hpp"
 #include "score/mw/launch_manager/osal/ipc_comms.hpp"
 
-namespace score
-{
-
-namespace mw::lifecycle
-{
-
-namespace internal
+namespace score::mw::lifecycle::internal
 {
 
 /// @brief This is initially some ID provided by the Control Client library. When received
@@ -300,10 +294,6 @@ constexpr ControlClientCodeMapping stateArray[] = {
     {ControlClientCode::kExecutionErrorRequestSuccess, "kExecutionErrorRequestSuccess"},
 };
 
-}  // namespace internal
-
-}  // namespace mw::lifecycle
-
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal
 
 #endif  // CONTROL_CLIENT_CHANNEL_HPP_INCLUDED

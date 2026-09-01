@@ -19,19 +19,12 @@
 #include "score/mw/launch_manager/configuration/config.hpp"
 #include <vector>
 
-namespace score
-{
-namespace mw::lifecycle
+namespace score::mw::lifecycle
 {
 class IRecoveryClient;
-}
-}  // namespace score
+}  // namespace score::mw::lifecycle
 
-namespace score
-{
-namespace mw::lifecycle::internal
-{
-namespace saf
+namespace score::mw::lifecycle::internal::saf
 {
 
 // Forward declarations
@@ -139,8 +132,6 @@ class IPhmFactory
 };
 
 }  // namespace factory
-}  // namespace saf
-}  // namespace mw::lifecycle::internal
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::saf
 
 #endif

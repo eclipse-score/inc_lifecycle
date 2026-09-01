@@ -25,15 +25,7 @@
 #include <string>
 #include <vector>
 
-namespace score
-{
-namespace mw::lifecycle
-{
-
-namespace internal
-{
-
-namespace watchdog
+namespace score::mw::lifecycle::internal::watchdog
 {
 
 // coverity[autosar_cpp14_m3_4_1_violation] block scope definition is intentionally avoided for maintainability
@@ -238,9 +230,6 @@ class WatchdogImpl : public IWatchdogIf
     score::os::Unistd& unistd_;
 };
 
-}  // namespace watchdog
-}  // namespace internal
-}  // namespace mw::lifecycle
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::watchdog
 
 #endif

@@ -22,7 +22,6 @@
 TEST(Smoke, Daemon)
 {
     score::mw::lifecycle::ControlClient client{};
-    ASSERT_TRUE(check_clean({test_end_location}));
     TEST_STEP("Control daemon report running")
     {
         // report running

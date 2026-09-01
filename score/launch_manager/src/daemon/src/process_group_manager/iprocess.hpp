@@ -26,16 +26,7 @@
 #include <string>
 #include <vector>
 
-namespace score
-{
-
-namespace mw::lifecycle
-{
-
-namespace internal
-{
-
-namespace osal
+namespace score::mw::lifecycle::internal::osal
 {
 
 /// @brief Struct to hold configuration parameters for the child process.
@@ -131,12 +122,6 @@ class IProcess
     // virtual OsalReturnType respondToRunning(IpcCommsP sync, std::chrono::milliseconds timeout) = 0;
 };
 
-}  // namespace osal
-
-}  // namespace internal
-
-}  // namespace mw::lifecycle
-
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::osal
 
 #endif  // PROCESS_HPP_INCLUDED

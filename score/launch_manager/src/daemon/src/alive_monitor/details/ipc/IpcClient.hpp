@@ -20,13 +20,7 @@
 #include "score/mw/launch_manager/alive_monitor/details/ipc/IpcBase.hpp"
 #include <string>
 
-namespace score
-{
-namespace mw::lifecycle::internal
-{
-namespace saf
-{
-namespace ipc
+namespace score::mw::lifecycle::internal::saf::ipc
 {
 
 /// @brief Abstraction for a client to connect to an IPC channel that was previously created using IpcServer.
@@ -100,9 +94,6 @@ class IpcClient final : public IpcBase<Payload, MaxNumberElements, Socket>
     }
 };
 
-}  // namespace ipc
-}  // namespace saf
-}  // namespace mw::lifecycle::internal
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::saf::ipc
 
 #endif

@@ -16,16 +16,7 @@
 
 #include <cstdint>
 
-namespace score
-{
-
-namespace mw::lifecycle
-{
-
-namespace internal
-{
-
-namespace osal
+namespace score::mw::lifecycle::internal::osal
 {
 
 /// @brief Set the processor affinity for the current thread
@@ -39,8 +30,5 @@ namespace osal
 ///        thread according to any restrictions that may be imposed
 ///        elsewhere.
 [[nodiscard]] int32_t setaffinity(uint64_t cpumask) noexcept(true);
-}  // namespace osal
-}  // namespace internal
-}  // namespace mw::lifecycle
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::osal
 #endif

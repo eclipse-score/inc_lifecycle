@@ -20,11 +20,7 @@
 #include <string>
 #include <vector>
 
-namespace score
-{
-namespace mw::lifecycle::internal
-{
-namespace saf
+namespace score::mw::lifecycle::internal::saf
 {
 namespace ifexm
 {
@@ -157,8 +153,6 @@ class MonitorIfDaemon : public common::Observer<ifexm::ObservableEvent>
 };
 
 }  // namespace ifappl
-}  // namespace saf
-}  // namespace mw::lifecycle::internal
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::saf
 
 #endif

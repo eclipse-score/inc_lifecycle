@@ -29,13 +29,7 @@
 #include "score/mw/launch_manager/configuration/config.hpp"
 #include "score/mw/launch_manager/supervision_control_client/isupervision_factory.hpp"
 
-namespace score
-{
-namespace mw::lifecycle::internal
-{
-namespace saf
-{
-namespace daemon
+namespace score::mw::lifecycle::internal::saf::daemon
 {
 
 /// @brief PHM daemon main class wraps the functionality for initialization and cyclic execution.
@@ -212,9 +206,6 @@ class PhmDaemon final : public ISupervisionFactory
     ObservableEventReader processStateReader;
 };
 
-}  // namespace daemon
-}  // namespace saf
-}  // namespace mw::lifecycle::internal
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::saf::daemon
 
 #endif

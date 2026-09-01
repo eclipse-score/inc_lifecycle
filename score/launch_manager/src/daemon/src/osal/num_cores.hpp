@@ -16,13 +16,7 @@
 
 #include <cstdint>
 
-namespace score
-{
-namespace mw::lifecycle
-{
-namespace internal
-{
-namespace osal
+namespace score::mw::lifecycle::internal::osal
 {
 // coverity[autosar_cpp14_m3_4_1_violation:INTENTIONAL] The value is used in a global context.
 constexpr uint32_t kDefaultNumCores = 64U;  // Default value if unable to determine number of cores
@@ -31,9 +25,6 @@ constexpr uint32_t kDefaultNumCores = 64U;  // Default value if unable to determ
 /// @return Returns the number of CPU cores available.
 uint32_t getNumCores();
 
-}  // namespace osal
-}  // namespace internal
-}  // namespace mw::lifecycle
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::osal
 
 #endif

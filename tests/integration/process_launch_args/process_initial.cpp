@@ -27,7 +27,6 @@ char** g_argv;
 
 TEST(ProcessLaunchArgs, ProcessInitial)
 {
-    ASSERT_TRUE(check_clean({test_end_location}));
     // Then, the process is started and:
     TEST_STEP("Report running")
     {

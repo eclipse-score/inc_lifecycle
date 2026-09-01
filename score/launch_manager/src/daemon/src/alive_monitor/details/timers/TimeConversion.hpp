@@ -21,13 +21,7 @@
 
 #include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
 
-namespace score
-{
-namespace mw::lifecycle::internal
-{
-namespace saf
-{
-namespace timers
+namespace score::mw::lifecycle::internal::saf::timers
 {
 
 /// Convert one unit of time value to another
@@ -69,9 +63,6 @@ class TimeConversion
     static constexpr double k_nanoSecInMilliSec{1000.0 * 1000.0};
 };
 
-}  // namespace timers
-}  // namespace saf
-}  // namespace mw::lifecycle::internal
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::saf::timers
 
 #endif

@@ -59,10 +59,6 @@ inline std::string crashCountPath(const int crashes_until_success)
     return std::string{crash_count_file} + "_" + std::to_string(crashes_until_success);
 }
 
-/// @brief Where to store the test_end signal file. This must be kept consistent with where the test framework
-/// searches for files.
-constexpr std::string_view test_end_location = "../test_end";
-
 /// @brief Call at the start of a test to check for leftover files from a previous run
 /// Files can be leftover when running manually on the host system, but otherwise are cleaned up
 /// by the test framework.
@@ -158,11 +154,7 @@ class TestRunner
 
         if (m_termination_notification == TerminationNotification::kTestEnd)
         {
-            const auto res = touch_file(test_end_location);
-            if (!res)
-            {
-                std::cerr << res.failure_message() << std::endl;
-            }
+            assert(kill(getppid(), SIGTERM) == 0);
         }
     }
 

@@ -13,13 +13,7 @@
 
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ObservableEvent.hpp"
 
-namespace score
-{
-namespace mw::lifecycle::internal
-{
-namespace saf
-{
-namespace ifexm
+namespace score::mw::lifecycle::internal::saf::ifexm
 {
 
 ObservableEvent::ObservableEvent(const IdentifierHash& process_id) noexcept(false) : Observable<ObservableEvent>()
@@ -32,7 +26,4 @@ void ObservableEvent::pushData(void) noexcept
     pushResultToObservers();
 }
 
-}  // namespace ifexm
-}  // namespace saf
-}  // namespace mw::lifecycle::internal
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::saf::ifexm

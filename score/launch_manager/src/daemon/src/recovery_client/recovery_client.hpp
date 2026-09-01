@@ -17,9 +17,7 @@
 
 #include "score/mw/launch_manager/recovery_client/irecovery_client.h"
 
-namespace score
-{
-namespace mw::lifecycle
+namespace score::mw::lifecycle
 {
 
 class RecoveryClient final : public IRecoveryClient
@@ -39,7 +37,6 @@ class RecoveryClient final : public IRecoveryClient
     mutable std::mutex callback_mutex_;
     RecoveryRequestCallback callback_;
 };
-}  // namespace mw::lifecycle
-}  // namespace score
+}  // namespace score::mw::lifecycle
 
 #endif

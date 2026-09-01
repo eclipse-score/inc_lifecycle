@@ -18,13 +18,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace score
-{
-
-namespace mw::lifecycle
-{
-
-namespace internal
+namespace score::mw::lifecycle::internal
 {
 
 // coverity[autosar_cpp14_a0_1_1_violation:INTENTIONAL] These are constants that are used globally.
@@ -81,10 +75,6 @@ enum class ProcessLimits : std::uint32_t
 /// @brief Default size of Alive Supervision checkpoint buffer
 constexpr uint16_t kDefaultAliveSupCheckpointBufferElements{100U};
 
-}  // namespace internal
-
-}  // namespace mw::lifecycle
-
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal
 
 #endif  // CONSTANTS_HPP_INCLUDED

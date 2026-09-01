@@ -18,13 +18,7 @@
 
 #include "score/mw/launch_manager/alive_monitor/details/timers/OsClockInterface.hpp"
 
-namespace score
-{
-namespace mw::lifecycle::internal
-{
-namespace saf
-{
-namespace timers
+namespace score::mw::lifecycle::internal::saf::timers
 {
 
 /// @brief Perform validations on the cycle time configured.
@@ -50,9 +44,6 @@ class CycleTimeValidator
         const score::mw::lifecycle::internal::saf::timers::OsClockInterface& f_clock_sys) noexcept(true);
 };
 
-}  // namespace timers
-}  // namespace saf
-}  // namespace mw::lifecycle::internal
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::saf::timers
 
 #endif

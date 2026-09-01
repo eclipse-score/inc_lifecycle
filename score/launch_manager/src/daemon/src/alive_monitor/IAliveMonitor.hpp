@@ -15,13 +15,7 @@
 
 #include "score/mw/launch_manager/supervision_control_client/isupervision_factory.hpp"
 
-namespace score
-{
-namespace mw::lifecycle::internal
-{
-namespace saf
-{
-namespace daemon
+namespace score::mw::lifecycle::internal::saf::daemon
 {
 
 /// @brief Interface for HealthMonitor functionality
@@ -40,8 +34,5 @@ class IAliveMonitor
     virtual ISupervisionFactory& getSupervisionFactory() const = 0;
 };
 
-}  // namespace daemon
-}  // namespace saf
-}  // namespace mw::lifecycle::internal
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::saf::daemon
 #endif

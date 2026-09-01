@@ -20,13 +20,7 @@
 #include "score/mw/launch_manager/process_group_manager/details/safe_process_map.hpp"
 #include "score/os/sys_wait.h"
 
-namespace score
-{
-
-namespace mw::lifecycle
-{
-
-namespace internal
+namespace score::mw::lifecycle::internal
 {
 
 /// @brief Delay duration between successive iterations of the OsHandler's main loop when no processes are terminating.
@@ -95,10 +89,6 @@ class OsHandler final
     std::thread os_handler_{&score::mw::lifecycle::internal::OsHandler::run, this};
 };
 
-}  // namespace internal
-
-}  // namespace mw::lifecycle
-
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal
 
 #endif  /// OS_HANDLER_HPP_INCLUDED

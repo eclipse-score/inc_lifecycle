@@ -18,19 +18,13 @@
 
 #include <memory>
 
-namespace score
-{
-namespace mw::lifecycle::internal
-{
-namespace watchdog
+namespace score::mw::lifecycle::internal::watchdog
 {
 
 /// @brief Creates a concrete WatchdogImpl instance behind the IWatchdogIf interface.
 /// @return An owning pointer to a new watchdog implementation.
 std::unique_ptr<IWatchdogIf> createWatchdog();
 
-}  // namespace watchdog
-}  // namespace mw::lifecycle::internal
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::watchdog
 
 #endif

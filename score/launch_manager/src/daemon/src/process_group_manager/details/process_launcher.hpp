@@ -17,16 +17,7 @@
 #include "score/mw/launch_manager/process_group_manager/iprocess.hpp"
 #include <atomic>
 
-namespace score
-{
-
-namespace mw::lifecycle
-{
-
-namespace internal
-{
-
-namespace osal
+namespace score::mw::lifecycle::internal::osal
 {
 
 /// @brief POSIX implementation of IProcess, managing child processes via fork/exec.
@@ -92,12 +83,6 @@ class ProcessLauncher final : public IProcess
     std::atomic_uint32_t shm_name_counter = {0};
 };
 
-}  // namespace osal
-
-}  // namespace internal
-
-}  // namespace mw::lifecycle
-
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::osal
 
 #endif  // PROCESS_LAUNCHER_HPP_INCLUDED

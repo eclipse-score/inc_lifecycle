@@ -22,13 +22,7 @@
 
 #include "score/result/result.h"
 
-namespace score
-{
-namespace mw::lifecycle::internal
-{
-namespace saf
-{
-namespace ifexm
+namespace score::mw::lifecycle::internal::saf::ifexm
 {
 
 /// @brief Observable Event reader
@@ -93,9 +87,6 @@ class ObservableEventReader
     ObservableEvent* lastChangedProcess_p{nullptr};
 };
 
-}  // namespace ifexm
-}  // namespace saf
-}  // namespace mw::lifecycle::internal
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::saf::ifexm
 
 #endif

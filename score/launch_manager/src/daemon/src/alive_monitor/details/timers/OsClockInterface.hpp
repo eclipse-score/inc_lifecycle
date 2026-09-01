@@ -16,13 +16,7 @@
 
 #include <chrono>
 
-namespace score
-{
-namespace mw::lifecycle::internal
-{
-namespace saf
-{
-namespace timers
+namespace score::mw::lifecycle::internal::saf::timers
 {
 /* RULECHECKER_comment(0, 60, check_member_function_missing_static, "Intentionally not static and\
    retained as member function", true_no_defect) */
@@ -104,9 +98,6 @@ class OsClockInterface
     struct timespec initFinishedTime{0, 0};
 };
 
-}  // namespace timers
-}  // namespace saf
-}  // namespace mw::lifecycle::internal
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::saf::timers
 
 #endif

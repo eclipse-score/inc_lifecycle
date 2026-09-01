@@ -18,11 +18,7 @@
 
 #include <gmock/gmock.h>
 
-namespace score
-{
-namespace mw::lifecycle::internal
-{
-namespace watchdog
+namespace score::mw::lifecycle::internal::watchdog
 {
 
 /// @brief Reusable gmock mock for IWatchdogIf, for use by tests of components that service the watchdog.
@@ -43,8 +39,6 @@ class MockWatchdogIf : public IWatchdogIf
     MOCK_METHOD(void, fireWatchdogReaction, (), (noexcept, override));
 };
 
-}  // namespace watchdog
-}  // namespace mw::lifecycle::internal
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::watchdog
 
 #endif  // IWATCHDOGIFMOCK_HPP_INCLUDED

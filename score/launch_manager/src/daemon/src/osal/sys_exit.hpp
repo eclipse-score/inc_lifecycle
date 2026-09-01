@@ -14,24 +14,12 @@
 #ifndef SYSEXIT_HPP_INCLUDED
 #define SYSEXIT_HPP_INCLUDED
 
-namespace score
-{
-
-namespace mw::lifecycle
-{
-
-namespace internal
-{
-
-namespace osal
+namespace score::mw::lifecycle::internal::osal
 {
 
 /// @brief Call the system exit function, which is marked [noreturn].
 /// The purpose of wrapping this function is so that it may be mocked during tests.
 /// @param status The exit status to be reported to the operating system
 void sysexit(int status);
-}  // namespace osal
-}  // namespace internal
-}  // namespace mw::lifecycle
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::osal
 #endif

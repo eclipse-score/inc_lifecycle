@@ -19,13 +19,7 @@
 #include "score/mw/launch_manager/alive_monitor/details/common/FixedSizeVector.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
 
-namespace score
-{
-namespace mw::lifecycle::internal
-{
-namespace saf
-{
-namespace common
+namespace score::mw::lifecycle::internal::saf::common
 {
 
 /// Time Sorting Buffer template class
@@ -230,9 +224,6 @@ class TimeSortingBuffer
     SortChainElement* lastReportedElement_p = nullptr;
 };
 
-}  // namespace common
-}  // namespace saf
-}  // namespace mw::lifecycle::internal
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::saf::common
 
 #endif
