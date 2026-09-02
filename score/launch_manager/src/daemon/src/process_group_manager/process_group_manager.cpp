@@ -573,13 +573,19 @@ void ProcessGroupManager::processStateTransition(ControlClientChannelP scc)
 
     IdentifierHash old_state = graph_->getProcessGroupState();
     GraphState graph_state = graph_->getState();
+    const IdentifierHash requested_state = scc->request().process_group_state_.pg_state_name_;
     scc->request().request_or_response_ = ControlClientCode::kSetStateSuccess;
 
-    if (GraphState::kInTransition == graph_state)
+    if (!graph_->isValidRunTarget(requested_state))
     {
-        if (old_state != scc->request().process_group_state_.pg_state_name_)
+        // Reject before this can reach Graph::startTransition() with no matching node (#541).
+        scc->request().request_or_response_ = ControlClientCode::kSetStateInvalidArguments;
+    }
+    else if (GraphState::kInTransition == graph_state)
+    {
+        if (old_state != requested_state)
         {
-            (void)graph_->setPendingState(scc->request().process_group_state_.pg_state_name_);
+            (void)graph_->setPendingState(requested_state);
             // get state transition start time stamp
             graph_->setRequestStartTime();
             graph_->cancel();
@@ -591,14 +597,14 @@ void ProcessGroupManager::processStateTransition(ControlClientChannelP scc)
             scc->request().request_or_response_ = ControlClientCode::kSetStateTransitionToSameState;
         }
     }
-    else if (GraphState::kSuccess == graph_state && old_state == scc->request().process_group_state_.pg_state_name_)
+    else if (GraphState::kSuccess == graph_state && old_state == requested_state)
     {
         // Already in state
         scc->request().request_or_response_ = ControlClientCode::kSetStateAlreadyInState;
     }
     else
     {
-        (void)graph_->setPendingState(scc->request().process_group_state_.pg_state_name_);
+        (void)graph_->setPendingState(requested_state);
         // get state transition start time stamp
         graph_->setRequestStartTime();
     }
@@ -663,7 +669,9 @@ void ProcessGroupManager::processGroupHandler(Graph& pg)
             pgs.pg_name_ = pg.getProcessGroupName();
             LM_LOG_DEBUG() << "Start transition to" << pgs.pg_state_name_ << "for PG" << pgs.pg_name_;
 
-            pg.startTransition(pgs.pg_state_name_);
+            // Already rejected via isValidRunTarget() in processStateTransition() (#541) if invalid.
+            const bool started = pg.startTransition(pgs.pg_state_name_);
+            SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(started, "pending state was not rejected by isValidRunTarget()");
         }
 
         if (GraphState::kUndefinedState == pg.getState())
@@ -689,7 +697,8 @@ void ProcessGroupManager::processGroupHandler(Graph& pg)
             // nobody requested this transition, so there is nowhere to communicate an error
             // if we failed and there is no external request, we will try again next time
             pg.setRequestStartTime();
-            pg.startTransition(recovery_state.pg_state_name_);
+            const bool started = pg.startTransition(recovery_state.pg_state_name_);
+            SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(started, "fallback RunTarget node missing");
         }
     }
 }

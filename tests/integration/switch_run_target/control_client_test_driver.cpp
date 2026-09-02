@@ -80,6 +80,24 @@ TEST(SwitchRunTarget, ControlClientTestDriver)
     {
         EXPECT_FALSE(std::filesystem::exists(e_started)) << "Component E should not have been started!";
     }
+
+    // Regression test for #541: an unrecognized run target used to crash the whole daemon.
+    TEST_STEP("Activate an unrecognized run target")
+    {
+        score::cpp::stop_token stop_token;
+        auto result = client.ActivateRunTarget("not_a_real_run_target").Get(stop_token);
+        EXPECT_FALSE(result.has_value()) << "Should be rejected, not silently accepted";
+    }
+    TEST_STEP("Verify Launch Manager survived and remains responsive")
+    {
+        // Re-request "Startup" (already active) rather than switching again, to avoid restarting
+        // component_a/component_b a second time.
+        score::cpp::stop_token stop_token;
+        auto result = client.ActivateRunTarget("Startup").Get(stop_token);
+        ASSERT_FALSE(result.has_value()) << "Expected an already-in-state rejection, got success";
+        EXPECT_NE(result.error().Message().find("already"), std::string_view::npos)
+            << "Expected an 'already in state' rejection, got: " << result.error().Message();
+    }
 }
 
 int main()

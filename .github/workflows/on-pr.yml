@@ -90,20 +90,9 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: bazel-testlogs-${{ matrix.name }}-${{ github.run_id }}
+          name: bazel-testlogs-${{ matrix.name }}
           path: bazel-testlogs/
           retention-days: 7
-
-  reference-integration:
-    name: Reference integration
-    # TODO: restore job once fixed. https://github.com/eclipse-score/lifecycle/issues/84
-    if: false
-    uses: eclipse-score/reference_integration/.github/workflows/reusable_smoke-test.yml@main
-    secrets: inherit
-    with:
-      repo_runner_labels: 'ubuntu-latest'
-      module_name: 'score_lifecycle'
-      target_branch: 'main'
 
   clippy:
     name: Clippy
@@ -155,6 +144,19 @@ jobs:
     with:
       bazel-docs-verify-target: "--lockfile_mode=error //:docs_check"
 
+  docs-build:
+    name: Build documentation
+    needs:
+      - build
+    uses: eclipse-score/cicd-workflows/.github/workflows/docs.yml@8d80e8df150cae21d53cbc8031d0f970648f7a67 # v0.0.3
+    permissions:
+      contents: read
+    with:
+      # the bazel-target depends on your repo specific docs_targets configuration (e.g. "suffix")
+      bazel-target: "--lockfile_mode=error //:docs -- --github_user=${{ github.repository_owner }} --github_repo=${{ github.event.repository.name }}"
+      retention-days: 3
+      tests-report-artifact: bazel-testlogs-x86_64-linux
+
   gitlint:
     name: Check commit messages
     runs-on: ubuntu-latest
@@ -177,10 +179,10 @@ jobs:
     needs:
       - common
       - build
-      - reference-integration
+      - docs-check
+      - docs-build
       - clippy
       - coverage
-      - docs-check
       - gitlint
     runs-on: ubuntu-slim
     permissions: {}

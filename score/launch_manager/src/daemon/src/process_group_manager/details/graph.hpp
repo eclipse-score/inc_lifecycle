@@ -199,10 +199,14 @@ class Graph final
     void cancel();
 
     /// @brief Begin transitioning this process group to the given state.
-    /// Returns false if the state name was not found in the configuration or if the graph
-    /// could not enter kInTransition (for example, because a cancellation is in progress).
+    /// @return False if pg_state is not a recognized run target in this graph's configuration; the
+    /// transition is not started in that case. True otherwise.
     /// @param pg_state The target process group state.
-    void startTransition(IdentifierHash pg_state);
+    bool startTransition(IdentifierHash pg_state);
+
+    /// @return True if pg_state is a run target known to this graph's configuration.
+    /// @param pg_state The process group state to check.
+    bool isValidRunTarget(IdentifierHash pg_state);
 
     /// @brief Begin the initial machine group startup transition.
     /// Behaves like startTransition but also reports the initial state transition result
