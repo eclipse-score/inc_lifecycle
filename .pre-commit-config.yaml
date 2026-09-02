@@ -27,7 +27,7 @@ repos:
         files: '\.(cc|cpp|h|hpp)$'
         pass_filenames: true
   - repo: https://github.com/pocc/pre-commit-hooks
-    rev: v1.3.5
+    rev: v1.4.0
     hooks:
       - id: clang-tidy
         name: clang-tidy
