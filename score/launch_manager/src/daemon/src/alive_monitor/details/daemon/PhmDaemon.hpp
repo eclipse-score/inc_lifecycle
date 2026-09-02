@@ -179,8 +179,11 @@ class PhmDaemon final : public ISupervisionFactory
     {
         SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(
             !supervisionManager.full(), "More alive supervisions than expected were constructed");
-        supervisionManager.constructWorker(id, config, uid, recoveryClient, supervisionStateReader_);
-        return std::make_unique<SupervisionHandle>(id, buffer_);
+        if (supervisionManager.constructWorker(id, config, uid, recoveryClient, supervisionStateReader_))
+        {
+            return std::make_unique<SupervisionHandle>(id, buffer_);
+        }
+        return {};
     }
 
   private:

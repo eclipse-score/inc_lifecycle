@@ -97,7 +97,7 @@ class SupervisionManager
     /// @param [in] f_recoveryClient_r       Interface to the launch manager for recovery
     /// @param [in] f_processStateReader_r   Process state reader object for PHM daemon
     /// @return                              Construction is successful (true), otherwise failure (false)
-    bool constructWorker(
+    [[nodiscard]] bool constructWorker(
         const IdentifierHash& id,
         const ComponentAliveSupervision& component_config,
         const uid_t uid,

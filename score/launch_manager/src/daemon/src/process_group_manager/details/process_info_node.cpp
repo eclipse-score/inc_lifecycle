@@ -54,6 +54,15 @@ ProcessInfoNode::ProcessInfoNode(configuration::ComponentConfig&& config, Proces
 
         state_publisher_ = process_handling_.supervision_factory.constructSupervision(
             identifier_, uid, app_profile.alive_supervision.value());
+
+        if (!state_publisher_)
+        {
+            LM_LOG_ERROR() << "Failed to set up alive supervision for" << identifier_;
+        }
+        else
+        {
+            LM_LOG_DEBUG() << "Successfully set up alive supervision for" << identifier_;
+        }
     }
 }
 
@@ -116,7 +125,8 @@ IComponent::RequestResult ProcessInfoNode::tryReportSuccess()
 std::optional<timespec> ProcessInfoNode::getTimeForReport() const
 {
     if (config_.component_properties.application_profile.application_type ==
-        score::mw::lifecycle::internal::configuration::ApplicationType::ReportingAndSupervised)
+            score::mw::lifecycle::internal::configuration::ApplicationType::ReportingAndSupervised &&
+        state_publisher_)
     {
         timespec timestamp{};
         static_cast<void>(clock_gettime(CLOCK_MONOTONIC, &timestamp));

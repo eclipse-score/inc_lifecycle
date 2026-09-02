@@ -100,7 +100,7 @@ class ProcessInfoNode final : public IComponent
     /// @brief Helper method to post on the semaphore waiting for kRunning if it exists
     void unblockSync();
 
-    /// @brief If this process is configured to report to alive monitor, return the current time
+    /// @brief If this process is successfully configured to report to alive monitor, return the current time
     [[nodiscard]] std::optional<timespec> getTimeForReport() const;
 
     /// @brief Get the request result corresponding to the new state reached. For example, if the ready state is
