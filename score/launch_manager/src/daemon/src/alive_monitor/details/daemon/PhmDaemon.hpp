@@ -179,7 +179,7 @@ class PhmDaemon final : public ISupervisionFactory
     {
         SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(
             !supervisionManager.full(), "More alive supervisions than expected were constructed");
-        supervisionManager.constructWorker(id, config, uid, recoveryClient, processStateReader);
+        supervisionManager.constructWorker(id, config, uid, recoveryClient, supervisionStateReader_);
         return std::make_unique<SupervisionHandle>(id, buffer_);
     }
 
@@ -194,6 +194,7 @@ class PhmDaemon final : public ISupervisionFactory
     /// @brief For fixed time-step execution during the cyclic execution
     CycleTimer cycleTimer;
 
+    /// @brief Buffer that supervision events are pushed to and read from
     std::shared_ptr<SupervisionBufferType> buffer_;
 
     /// @brief Recovery interface to Launch Manager
@@ -203,7 +204,7 @@ class PhmDaemon final : public ISupervisionFactory
     SupervisionManager supervisionManager;
 
     /// @brief Observable Event Reader for PHM daemon
-    ObservableEventReader processStateReader;
+    ObservableEventReader supervisionStateReader_;
 };
 
 }  // namespace score::mw::lifecycle::internal::saf::daemon

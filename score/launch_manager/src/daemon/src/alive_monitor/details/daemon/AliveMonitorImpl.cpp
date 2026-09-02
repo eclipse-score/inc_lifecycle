@@ -25,7 +25,7 @@ AliveMonitorImpl::AliveMonitorImpl(
     SptrIRecoveryClient recovery_client,
     const AliveSupervisionConfig& config,
     const std::size_t supervised_components)
-    : m_recovery_client(recovery_client), m_config(config)
+    : m_recovery_client(recovery_client), config_(config)
 {
     initResult = init(supervised_components);
 }
@@ -38,7 +38,7 @@ EInitCode AliveMonitorImpl::init(const std::size_t supervised_components) noexce
         m_osClock.startMeasurement();
 
         m_daemon = std::make_unique<PhmDaemon>(m_osClock, supervised_components);
-        initResult = m_daemon->init(m_recovery_client, m_config);
+        initResult = m_daemon->init(m_recovery_client, config_);
 
         if (initResult == EInitCode::kNoError)
         {

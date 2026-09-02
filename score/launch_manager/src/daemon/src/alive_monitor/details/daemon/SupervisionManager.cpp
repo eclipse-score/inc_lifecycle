@@ -32,7 +32,7 @@ SupervisionManager::SupervisionManager(std::unique_ptr<factory::IPhmFactory> fac
 
 SupervisionManager::~SupervisionManager() = default;
 
-bool SupervisionManager::full()
+bool SupervisionManager::full() const
 {
     return aliveSupervisions.size() == capacity;
 }

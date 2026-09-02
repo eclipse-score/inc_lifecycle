@@ -23,16 +23,12 @@
 namespace score::mw::lifecycle::internal::saf::daemon
 {
 
-/* RULECHECKER_comment(0, 6, check_expensive_to_copy_in_parameter, "Move only types cannot be passed by const ref",
-   true_no_defect) */
-/* RULECHECKER_comment(0, 4, check_incomplete_data_member_construction, "Default constructor is used for\
- processStateReader.", true_no_defect) */
 PhmDaemon::PhmDaemon(OsClock& f_osClock, std::size_t supervised_components)
     : osClock{f_osClock},
       cycleTimer{&osClock},
       buffer_(std::make_shared<SupervisionBufferType>()),
       supervisionManager{std::make_unique<factory::FlatCfgFactory>()},
-      processStateReader{buffer_}
+      supervisionStateReader_{buffer_}
 {
     buffer_->initialize();
     supervisionManager.reserve(supervised_components);
@@ -48,7 +44,7 @@ void PhmDaemon::performCyclicTriggers(void)
         syncTimestamp = UINT64_MAX;
     }
 
-    if (processStateReader.distributeChanges(syncTimestamp))
+    if (supervisionStateReader_.distributeChanges(syncTimestamp))
     {
         supervisionManager.performCyclicTriggers(syncTimestamp);
     }

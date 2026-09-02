@@ -64,7 +64,7 @@ class AliveMonitorImpl : public IAliveMonitor
     SptrIRecoveryClient m_recovery_client{nullptr};
     UptrPhmDaemon m_daemon{nullptr};
     OsClock m_osClock{};
-    const AliveSupervisionConfig& m_config;
+    const AliveSupervisionConfig& config_;
     std::thread alive_monitor_thread_{};
     std::atomic_bool stop_thread_{false};
     saf::daemon::EInitCode initResult{saf::daemon::EInitCode::kNotInitialized};
