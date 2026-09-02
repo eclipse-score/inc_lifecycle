@@ -15,3 +15,11 @@ exports_files(
     ["ecu_logging_config.json"],
     visibility = ["//tests/utils/environments:__subpackages__"],
 )
+
+exports_files(
+    ["mw_com_config.json"],
+    visibility = [
+        "//examples/demo_verification:__subpackages__",
+        "//tests/integration:__subpackages__",
+    ],
+)

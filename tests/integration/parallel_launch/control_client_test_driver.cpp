@@ -17,7 +17,7 @@
 #include <thread>
 
 #include "tests/utils/test_helper/test_helper.hpp"
-#include <score/mw/lifecycle/control_client.h>
+#include <score/mw/lifecycle/ilm_control.hpp>
 #include <score/mw/lifecycle/report_running.h>
 
 namespace
@@ -41,36 +41,72 @@ bool wait_for_file(const std::filesystem::path& file, std::chrono::seconds timeo
 }
 }  // namespace
 
+using namespace score::mw::lifecycle;
+
 TEST(ParallelLaunch, ControlClientTestDriver)
 {
-    score::mw::lifecycle::ControlClient client;
-
     for (const auto id : kComponentIds)
     {
         ASSERT_TRUE(check_clean({"start_" + std::string{id}, "running_" + std::string{id}}));
     }
 
+    std::unique_ptr<ILmControl> client;
+
+    TEST_STEP("Create client")
+    {
+        auto client_result = ILmControl::Create("StateManager/LaunchManager/Instance");
+        ASSERT_TRUE(client_result.has_value()) << client_result.error().Message();
+        client = std::move(client_result).value();
+    }
+
+    TEST_STEP("Register callback")
+    {
+        const auto result = client->register_run_target_activation_callback(push_event);
+        ASSERT_TRUE(result.has_value());
+    }
+
     TEST_STEP("Report running")
     {
-        score::mw::lifecycle::report_running();
+        report_running();
     }
+
+    pop_event([](RunTargetActivationSource source, RunTargetName target) {
+        TEST_STEP("Callback for RunTarget Startup")
+        {
+            EXPECT_EQ(source, RunTargetActivationSource::kInitialActivation);
+            EXPECT_EQ(target, "Startup");
+        }
+    });
 
     TEST_STEP("Launch parallel run target")
     {
-        score::cpp::stop_token stop_token;
-        auto result = client.ActivateRunTarget("run_target_parallel_launch").Get(stop_token);
-        EXPECT_TRUE(result.has_value()) << "Activating target run_target_parallel_launch failed: "
-                                        << result.error().Message();
+        const auto result = client->activate_run_target("run_target_parallel_launch", true);
+        EXPECT_TRUE(result.has_value()) << result.error().Message();
     }
+
+    pop_event([](RunTargetActivationSource source, RunTargetName target) {
+        TEST_STEP("Callback for RunTarget run_target_parallel_launch")
+        {
+            EXPECT_EQ(source, RunTargetActivationSource::kStateManagerRequest);
+            EXPECT_EQ(target, "run_target_parallel_launch");
+        }
+    });
 
     // Activate Run Target Startup again, to be sure that the termination of all components has been finished and the
     // files and its timestamps can be evaluated in the next test step.
     TEST_STEP("Activate Startup run target again")
     {
-        score::cpp::stop_token stop_token;
-        auto result = client.ActivateRunTarget("Startup").Get(stop_token);
-        EXPECT_TRUE(result.has_value()) << "Activating target Startup failed: " << result.error().Message();
+        const auto result = client->activate_run_target("Startup", true);
+        EXPECT_TRUE(result.has_value()) << result.error().Message();
     }
+
+    pop_event([](RunTargetActivationSource source, RunTargetName target) {
+        TEST_STEP("Callback for RunTarget Startup")
+        {
+            EXPECT_EQ(source, RunTargetActivationSource::kStateManagerRequest);
+            EXPECT_EQ(target, "Startup");
+        }
+    });
 
     TEST_STEP("Verify all components started before any reported running")
     {
@@ -95,7 +131,8 @@ TEST(ParallelLaunch, ControlClientTestDriver)
 
     TEST_STEP("Activate RunTarget Off")
     {
-        client.ActivateRunTarget("Off");
+        const auto result = client->activate_run_target("Off", true);
+        EXPECT_TRUE(result.has_value()) << result.error().Message();
     }
 }
 

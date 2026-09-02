@@ -14,19 +14,42 @@
 #include <filesystem>
 
 #include "tests/utils/test_helper/test_helper.hpp"
-#include <score/mw/lifecycle/control_client.h>
+#include <score/mw/lifecycle/ilm_control.hpp>
 #include <score/mw/lifecycle/report_running.h>
+
+using namespace score::mw::lifecycle;
 
 TEST(CrashOnStartup, ControlClientTestDriver)
 {
-    score::mw::lifecycle::ControlClient client;
-
     ASSERT_TRUE(check_clean({crashCountPath(1), crashCountPath(2), crashCountPath(3), fallback_file}));
+
+    std::unique_ptr<ILmControl> client;
+
+    TEST_STEP("Create client")
+    {
+        auto client_result = ILmControl::Create("StateManager/LaunchManager/Instance");
+        ASSERT_TRUE(client_result.has_value()) << client_result.error().Message();
+        client = std::move(client_result).value();
+    }
+
+    TEST_STEP("Register callback")
+    {
+        const auto result = client->register_run_target_activation_callback(push_event);
+        ASSERT_TRUE(result.has_value());
+    }
 
     TEST_STEP("Report running")
     {
-        score::mw::lifecycle::report_running();
+        report_running();
     }
+
+    pop_event([](RunTargetActivationSource source, RunTargetName target) {
+        TEST_STEP("Callback for RunTarget Startup")
+        {
+            EXPECT_EQ(source, RunTargetActivationSource::kInitialActivation);
+            EXPECT_EQ(target, "Startup");
+        }
+    });
 
     // Given a process that crashes on startup n times, but is configured to retry n times - so it eventually
     // succeeds. The behaviour is identical for the different crash counts, so it is parameterized over the
@@ -37,11 +60,18 @@ TEST(CrashOnStartup, ControlClientTestDriver)
     {
         TEST_STEP(std::string{"Launch "} + std::string{run_target})
         {
-            score::cpp::stop_token stop_token;
-            auto result = client.ActivateRunTarget(run_target).Get(stop_token);
-            // Then, the LM should restart it and eventually succeed
-            EXPECT_TRUE(result.has_value()) << "Activating " << run_target << " failed: " << result.error().Message();
+            const auto result = client->activate_run_target(score::mw::lifecycle::RunTargetName{run_target}, true);
+            EXPECT_TRUE(result.has_value()) << result.error().Message();
         }
+
+        // Then, the LM should restart it and eventually succeed
+        pop_event([&run_target](RunTargetActivationSource source, RunTargetName target) {
+            TEST_STEP(std::string{"Callback for RunTarget "} + std::string{run_target})
+            {
+                EXPECT_EQ(source, RunTargetActivationSource::kStateManagerRequest);
+                EXPECT_EQ(target, run_target);
+            }
+        });
 
         TEST_STEP("Verify fallback run target was not activated, i.e. process eventually started successfully")
         {
@@ -52,22 +82,29 @@ TEST(CrashOnStartup, ControlClientTestDriver)
     // Given a process that crashes on startup but is not allowed to retry (number_of_attempts=0)
     TEST_STEP("Attempt to launch process crashing on startup without retries")
     {
-        score::cpp::stop_token stop_token;
-        auto result = client.ActivateRunTarget("run_target_crash_on_startup_once_but_no_retries").Get(stop_token);
-        EXPECT_FALSE(result.has_value())
-            << "Expected run_target_crash_on_startup_once_but_no_retries activation to fail";
+        const auto result = client->activate_run_target("run_target_crash_on_startup_once_but_no_retries", true);
+        EXPECT_TRUE(result.has_value()) << result.error().Message();
     }
-    // Limitation: we cannot wait for the transition to fallback to complete
-    sleep(1);
-    // Then, the LM should exhaust retries and trigger the fallback
+
+    pop_event([](RunTargetActivationSource source, RunTargetName target) {
+        TEST_STEP("Callback for RunTarget fallback")
+        {
+            EXPECT_EQ(source, RunTargetActivationSource::kRecoveryAction);
+            EXPECT_EQ(target, "fallback");
+        }
+    });
+
     TEST_STEP("Verify fallback run target was activated")
     {
+        // This verifies that a fallback process was actually started - the launch manager
+        // did not just send an event without taking the action.
         EXPECT_TRUE(std::filesystem::exists(fallback_file)) << "Fallback run target should have been activated";
     }
 
     TEST_STEP("Activate RunTarget Off")
     {
-        client.ActivateRunTarget("Off");
+        const auto result = client->activate_run_target("Off", true);
+        EXPECT_TRUE(result.has_value()) << result.error().Message();
     }
 }
 

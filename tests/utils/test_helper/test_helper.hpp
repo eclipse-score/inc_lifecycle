@@ -21,6 +21,8 @@
 #include <string_view>
 #include <thread>
 
+#include <score/mw/lifecycle/ilm_control.hpp>
+
 /// @return File path to an xml adjacent to the input file path
 inline std::string xmlPath(const std::string_view file)
 {
@@ -171,6 +173,42 @@ class TestRunner
 
         return res;
     }
+};
+
+using score::mw::lifecycle::RunTargetActivationSource;
+using score::mw::lifecycle::RunTargetName;
+
+bool event_received = false;
+RunTargetActivationSource event_source;
+RunTargetName event_target;
+std::mutex event_mutex;
+std::condition_variable event_condition;
+
+void push_event(RunTargetActivationSource source, RunTargetName target)
+{
+    {
+        std::unique_lock event_lock(event_mutex);
+        event_condition.wait(event_lock, [&] {
+            return !event_received;
+        });
+        event_received = true;
+        event_source = source;
+        event_target = target;
+    }
+    event_condition.notify_one();
+};
+
+void pop_event(std::function<void(RunTargetActivationSource source, RunTargetName target)> callback)
+{
+    {
+        std::unique_lock event_lock(event_mutex);
+        event_condition.wait(event_lock, [&] {
+            return event_received;
+        });
+        callback(event_source, event_target);
+        event_received = false;
+    }
+    event_condition.notify_one();
 };
 
 #endif  // TESTS_UTILS_TEST_HELPER_HPP

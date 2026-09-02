@@ -77,7 +77,7 @@ def gen_lifecycle_config(
         "component_properties": {
             "binary_name": "control_app/control_daemon",
             "application_profile": {
-                "application_type": "State_Manager",
+                "application_type": "Reporting_And_Supervised",
                 "alive_supervision": {
                     "min_indications": 0,
                 },

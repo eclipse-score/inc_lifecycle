@@ -13,7 +13,7 @@
 #include <gtest/gtest.h>
 
 #include "tests/utils/test_helper/test_helper.hpp"
-#include <score/mw/lifecycle/control_client.h>
+#include <score/mw/lifecycle/ilm_control.hpp>
 #include <score/mw/lifecycle/report_running.h>
 
 // Given a correct configuration with:
@@ -26,44 +26,73 @@
 //   containing "control_client_test_driver" and
 //   "component_does_not_report_krunning_in_time"
 
-TEST(RecoveryActionComplexRepFailure, ControlClientTestDriver)
-{
-    score::mw::lifecycle::ControlClient client;
+using namespace score::mw::lifecycle;
 
+TEST(RecoveryActionSimpleRepFailure, ControlClientTestDriver)
+{
     ASSERT_TRUE(check_clean({fallback_file}));
 
-    // Establish communication with launch manager
-    TEST_STEP("Report running from ControlClientTestDriver")
+    std::unique_ptr<ILmControl> client;
+
+    TEST_STEP("Create client")
     {
-        score::mw::lifecycle::report_running();
+        auto client_result = ILmControl::Create("StateManager/LaunchManager/Instance");
+        ASSERT_TRUE(client_result.has_value()) << client_result.error().Message();
+        client = std::move(client_result).value();
     }
-    // Start the run target run_target_app_does_report_krunning_in_time
+
+    TEST_STEP("Register callback")
+    {
+        const auto result = client->register_run_target_activation_callback(push_event);
+        ASSERT_TRUE(result.has_value());
+    }
+
+    TEST_STEP("Report running")
+    {
+        report_running();
+    }
+
+    pop_event([](RunTargetActivationSource source, RunTargetName target) {
+        TEST_STEP("Callback for RunTarget Startup")
+        {
+            EXPECT_EQ(source, RunTargetActivationSource::kInitialActivation);
+            EXPECT_EQ(target, "Startup");
+        }
+    });
+
     TEST_STEP("Activate RunTarget run_target_app_does_report_krunning_in_time")
     {
-        score::cpp::stop_token stop_token;
-        auto result = client.ActivateRunTarget("run_target_app_does_report_krunning_in_time").Get(stop_token);
-        EXPECT_TRUE(result.has_value()) << "Activating target run_target_app_does_report_krunning_in_time "
-                                           "failed: "
-                                        << result.error().Message();
+        const auto result = client->activate_run_target("run_target_app_does_report_krunning_in_time", true);
+        EXPECT_TRUE(result.has_value()) << result.error().Message();
     }
-    // Limitation: we cannot wait for the transition to fallback to complete
-    sleep(1);
-    // Then, the LM should continue without triggering the fallback
+
+    pop_event([](RunTargetActivationSource source, RunTargetName target) {
+        TEST_STEP("Callback for RunTarget run_target_app_does_report_krunning_in_time")
+        {
+            EXPECT_EQ(source, RunTargetActivationSource::kStateManagerRequest);
+            EXPECT_EQ(target, "run_target_app_does_report_krunning_in_time");
+        }
+    });
+
     TEST_STEP("Verify fallback run target has not been activated")
     {
         EXPECT_FALSE(std::filesystem::exists(fallback_file)) << "Fallback run target should have not been activated";
     }
-    // Start the run target run_target_app_does_not_report_krunning_in_time
+
     TEST_STEP("Activate RunTarget run_target_app_does_not_report_krunning_in_time")
     {
-        score::cpp::stop_token stop_token;
-        auto result = client.ActivateRunTarget("run_target_app_does_not_report_krunning_in_time").Get(stop_token);
-        EXPECT_FALSE(result.has_value()) << "Activating target run_target_app_does_not_report_krunning_in_time "
-                                            "did not fail as expected.";
+        const auto result = client->activate_run_target("run_target_app_does_not_report_krunning_in_time", true);
+        EXPECT_TRUE(result.has_value()) << result.error().Message();
     }
-    // Limitation: we cannot wait for the transition to fallback to complete
-    sleep(1);
-    // Then, the LM should exhaust retries and trigger the fallback
+
+    pop_event([](RunTargetActivationSource source, RunTargetName target) {
+        TEST_STEP("Callback for RunTarget fallback")
+        {
+            EXPECT_EQ(source, RunTargetActivationSource::kRecoveryAction);
+            EXPECT_EQ(target, "fallback");
+        }
+    });
+
     TEST_STEP("Verify fallback run target was activated")
     {
         EXPECT_TRUE(std::filesystem::exists(fallback_file)) << "Fallback run target should have been activated";
@@ -71,7 +100,8 @@ TEST(RecoveryActionComplexRepFailure, ControlClientTestDriver)
 
     TEST_STEP("Activate RunTarget Off")
     {
-        client.ActivateRunTarget("Off");
+        const auto result = client->activate_run_target("Off", true);
+        EXPECT_TRUE(result.has_value()) << result.error().Message();
     }
 }
 

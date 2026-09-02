@@ -14,7 +14,7 @@
 #include <gtest/gtest.h>
 
 #include "tests/utils/test_helper/test_helper.hpp"
-#include <score/mw/lifecycle/control_client.h>
+#include <score/mw/lifecycle/ilm_control.hpp>
 #include <score/mw/lifecycle/report_running.h>
 
 // Given a configuration with the following dependency tree:
@@ -32,15 +32,40 @@
 // component D is contained), *component* A only depends on component B.
 // Component E is not included in any run target, so it should never be launched.
 
+using namespace score::mw::lifecycle;
+
 TEST(SwitchRunTarget, ControlClientTestDriver)
 {
-    score::mw::lifecycle::ControlClient client;
-
     ASSERT_TRUE(check_clean({a_started, b_started, d_started, e_started}));
+
+    std::unique_ptr<ILmControl> client;
+
+    TEST_STEP("Create client")
+    {
+        auto client_result = ILmControl::Create("StateManager/LaunchManager/Instance");
+        ASSERT_TRUE(client_result.has_value()) << client_result.error().Message();
+        client = std::move(client_result).value();
+    }
+
+    TEST_STEP("Register callback")
+    {
+        const auto result = client->register_run_target_activation_callback(push_event);
+        ASSERT_TRUE(result.has_value());
+    }
+
     TEST_STEP("Report running")
     {
-        score::mw::lifecycle::report_running();
+        report_running();
     }
+
+    pop_event([](RunTargetActivationSource source, RunTargetName target) {
+        TEST_STEP("Callback for RunTarget Startup")
+        {
+            EXPECT_EQ(source, RunTargetActivationSource::kInitialActivation);
+            EXPECT_EQ(target, "Startup");
+        }
+    });
+
     // When we switch run to run target A
     // Then
     // Processes A and B verify that B is started before A and terminated after A when switching run targets
@@ -49,10 +74,18 @@ TEST(SwitchRunTarget, ControlClientTestDriver)
 
     TEST_STEP("Activate run target A")
     {
-        score::cpp::stop_token stop_token;
-        auto result = client.ActivateRunTarget("run_target_a").Get(stop_token);
-        EXPECT_TRUE(result.has_value()) << "Activating target run_target_a failed: " << result.error().Message();
+        const auto result = client->activate_run_target("run_target_a", true);
+        EXPECT_TRUE(result.has_value()) << result.error().Message();
     }
+
+    pop_event([](RunTargetActivationSource source, RunTargetName target) {
+        TEST_STEP("Callback for RunTarget A")
+        {
+            EXPECT_EQ(source, RunTargetActivationSource::kStateManagerRequest);
+            EXPECT_EQ(target, "run_target_a");
+        }
+    });
+
     TEST_STEP("Verify running processes")
     {
         for (const auto proc : running_processes)
@@ -61,12 +94,20 @@ TEST(SwitchRunTarget, ControlClientTestDriver)
         }
     }
     // Processes A and B verify that they have been shut down in the correct order.
+
     TEST_STEP("Activate RunTarget Startup")
     {
-        score::cpp::stop_token stop_token;
-        auto result = client.ActivateRunTarget("Startup").Get(stop_token);
-        EXPECT_TRUE(result.has_value()) << "Activating target Startup failed: " << result.error().Message();
+        const auto result = client->activate_run_target("Startup", true);
+        EXPECT_TRUE(result.has_value()) << result.error().Message();
     }
+
+    pop_event([](RunTargetActivationSource source, RunTargetName target) {
+        TEST_STEP("Callback for RunTarget Startup")
+        {
+            EXPECT_EQ(source, RunTargetActivationSource::kStateManagerRequest);
+            EXPECT_EQ(target, "Startup");
+        }
+    });
 
     TEST_STEP("Verify terminated processes")
     {
@@ -84,16 +125,14 @@ TEST(SwitchRunTarget, ControlClientTestDriver)
     // Regression test for #541: an unrecognized run target used to crash the whole daemon.
     TEST_STEP("Activate an unrecognized run target")
     {
-        score::cpp::stop_token stop_token;
-        auto result = client.ActivateRunTarget("not_a_real_run_target").Get(stop_token);
+        const auto result = client->activate_run_target("not_a_real_run_target", true);
         EXPECT_FALSE(result.has_value()) << "Should be rejected, not silently accepted";
     }
     TEST_STEP("Verify Launch Manager survived and remains responsive")
     {
         // Re-request "Startup" (already active) rather than switching again, to avoid restarting
         // component_a/component_b a second time.
-        score::cpp::stop_token stop_token;
-        auto result = client.ActivateRunTarget("Startup").Get(stop_token);
+        const auto result = client->activate_run_target("Startup", true);
         ASSERT_FALSE(result.has_value()) << "Expected an already-in-state rejection, got success";
         EXPECT_NE(result.error().Message().find("already"), std::string_view::npos)
             << "Expected an 'already in state' rejection, got: " << result.error().Message();

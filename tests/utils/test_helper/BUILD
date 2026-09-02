@@ -29,6 +29,7 @@ cc_library(
     hdrs = ["test_helper.hpp"],
     visibility = ["//tests:__subpackages__"],
     deps = [
+        "//score/launch_manager/src/lm_control",
         "@googletest//:gtest_main",
     ],
 )

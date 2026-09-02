@@ -18,7 +18,7 @@
 
 #include "control.hpp"
 #include "ipc_dropin/socket.hpp"
-#include <score/mw/lifecycle/control_client.h>
+#include <score/mw/lifecycle/ilm_control.hpp>
 #include <score/mw/lifecycle/report_running.h>
 
 std::atomic<bool> exitRequested{false};
@@ -41,9 +41,10 @@ int main()
         return EXIT_FAILURE;
     }
 
-    score::mw::lifecycle::ControlClient client;
+    auto client_result = score::mw::lifecycle::ILmControl::Create("StateManager/LaunchManager/Instance");
+    SCORE_LANGUAGE_FUTURECPP_ASSERT_PRD(client_result.has_value());
+    std::unique_ptr<score::mw::lifecycle::ILmControl> client = std::move(client_result).value();
 
-    score::safecpp::Scope<> scope{};
     while (!exitRequested)
     {
         RunTargetInfo info{};
@@ -52,19 +53,17 @@ int main()
 
             std::string runTargetName{info.runTargetName};
             std::cout << "Activating Run Target: " << runTargetName << std::endl;
-            client.ActivateRunTarget(runTargetName).Then({scope, [runTargetName](auto& result) noexcept {
-                                                              if (!result)
-                                                              {
-                                                                  std::cerr << "Activating Run Target " << runTargetName
-                                                                            << " failed with error: "
-                                                                            << result.error().Message() << std::endl;
-                                                              }
-                                                              else
-                                                              {
-                                                                  std::cout << "Activating Run Target " << runTargetName
-                                                                            << " succeeded" << std::endl;
-                                                              }
-                                                          }});
+            const auto result = client->activate_run_target(score::mw::lifecycle::RunTargetName{runTargetName}, true);
+            if (result.has_value())
+            {
+
+                std::cout << "Activating Run Target " << runTargetName << " succeeded" << std::endl;
+            }
+            else
+            {
+                std::cerr << "Activating Run Target " << runTargetName
+                          << " failed with error: " << result.error().Message() << std::endl;
+            }
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(100));

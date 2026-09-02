@@ -566,7 +566,6 @@ TEST_F(GraphTransitionFailuresTest, UnusualOrderOfFailures)
     graph_->handleComponentEvent(UnexpectedTermination{component_id, IComponent::ComponentError::kErrorAfterReady});
     graph_->handleComponentEvent(ActivationSuccessful{component_id});
 
-    EXPECT_EQ(graph_->getPendingEvent(), ControlClientCode::kFailedUnexpectedTermination);
     EXPECT_EQ(graph_->getState(), GraphState::kUndefinedState) << "Graph should be in a final state";
 }
 

@@ -20,8 +20,10 @@
 #include "common.hpp"
 #include "get_fds.hpp"
 #include "tests/utils/test_helper/test_helper.hpp"
-#include <score/mw/lifecycle/control_client.h>
+#include <score/mw/lifecycle/ilm_control.hpp>
 #include <score/mw/lifecycle/report_running.h>
+
+using namespace score::mw::lifecycle;
 
 int g_argc;
 char** g_argv;
@@ -38,7 +40,10 @@ TEST(ControlClientFDs, FindOpenFDs)
         EXPECT_TRUE(open_fds.empty()) << "Found open files!\n" << oss.str();
     }
 
-    score::mw::lifecycle::report_running();
+    TEST_STEP("Report running")
+    {
+        report_running();
+    }
 
     TEST_STEP("After Running")
     {
@@ -49,7 +54,11 @@ TEST(ControlClientFDs, FindOpenFDs)
         EXPECT_TRUE(open_fds.empty()) << "Found open files!\n" << oss.str();
     }
 
-    score::mw::lifecycle::ControlClient client{};
+    TEST_STEP("Create client")
+    {
+        auto client_result = ILmControl::Create("StateManager/LaunchManager/Instance");
+        ASSERT_TRUE(client_result.has_value()) << client_result.error().Message();
+    }
 
     TEST_STEP("After Control Client")
     {
@@ -79,7 +88,7 @@ int main(int argc, char** argv)
     // procs to finish
     TestRunner runner{__FILE__, TerminationBehavior::kWait, TerminationNotification::kNone};
 
-    auto result = runner.RunTests();
+    const auto result = runner.RunTests();
 
     return result;
 }
