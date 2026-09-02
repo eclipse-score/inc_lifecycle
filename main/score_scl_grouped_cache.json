@@ -15,6 +15,18 @@
           "repo_name": "local_repo",
           "hash": "",
           "url": ""
+        },
+        {
+          "name": "test_rt_running_when_process_exits",
+          "file": "tests/integration/rt_running_when_process_exits/rt_running_when_process_exits.py",
+          "line": 19,
+          "need": "feat_req__lifecycle__start_named_run_target",
+          "verify_type": "partially",
+          "result": "passed",
+          "result_text": "",
+          "repo_name": "local_repo",
+          "hash": "",
+          "url": ""
         }
       ]
     }
@@ -30,6 +42,18 @@
           "line": 19,
           "need": "feat_req__lifecycle__launch_support",
           "verify_type": "fully",
+          "result": "passed",
+          "result_text": "",
+          "repo_name": "local_repo",
+          "hash": "",
+          "url": ""
+        },
+        {
+          "name": "test_rt_running_when_process_exits",
+          "file": "tests/integration/rt_running_when_process_exits/rt_running_when_process_exits.py",
+          "line": 19,
+          "need": "feat_req__lifecycle__launch_support",
+          "verify_type": "partially",
           "result": "passed",
           "result_text": "",
           "repo_name": "local_repo",
@@ -67,6 +91,18 @@
           "repo_name": "local_repo",
           "hash": "",
           "url": ""
+        },
+        {
+          "name": "test_rt_running_when_process_exits",
+          "file": "tests/integration/rt_running_when_process_exits/rt_running_when_process_exits.py",
+          "line": 19,
+          "need": "comp_req__launch_man__process_state_comm",
+          "verify_type": "partially",
+          "result": "passed",
+          "result_text": "",
+          "repo_name": "local_repo",
+          "hash": "",
+          "url": ""
         }
       ]
     }
@@ -81,6 +117,26 @@
           "file": "tests/integration/process_launch_args/process_launch_args.py",
           "line": 19,
           "need": "comp_req__launch_man__process_launch_args",
+          "verify_type": "fully",
+          "result": "passed",
+          "result_text": "",
+          "repo_name": "local_repo",
+          "hash": "",
+          "url": ""
+        }
+      ]
+    }
+  },
+  {
+    "need": "feat_req__lifecycle__parallel_launch_support",
+    "links": {
+      "CodeLinks": [],
+      "TestLinks": [
+        {
+          "name": "test_parallel_launch",
+          "file": "tests/integration/parallel_launch/parallel_launch.py",
+          "line": 19,
+          "need": "feat_req__lifecycle__parallel_launch_support",
           "verify_type": "fully",
           "result": "passed",
           "result_text": "",
@@ -244,6 +300,38 @@
     }
   },
   {
+    "need": "comp_req__launch_man__launcher_exit_shutdown",
+    "links": {
+      "CodeLinks": [],
+      "TestLinks": [
+        {
+          "name": "test_lm_shutdown",
+          "file": "tests/integration/lm_shutdown_during_switch_to_off/lm_shutdown_during_switch_to_off.py",
+          "line": 19,
+          "need": "comp_req__launch_man__launcher_exit_shutdown",
+          "verify_type": "partially",
+          "result": "passed",
+          "result_text": "",
+          "repo_name": "local_repo",
+          "hash": "",
+          "url": ""
+        },
+        {
+          "name": "test_lm_shutdown",
+          "file": "tests/integration/lm_shutdown_during_rt_switch/lm_shutdown_during_rt_switch.py",
+          "line": 19,
+          "need": "comp_req__launch_man__launcher_exit_shutdown",
+          "verify_type": "partially",
+          "result": "passed",
+          "result_text": "",
+          "repo_name": "local_repo",
+          "hash": "",
+          "url": ""
+        }
+      ]
+    }
+  },
+  {
     "need": "comp_req__launch_man__retries_configurable",
     "links": {
       "CodeLinks": [],
@@ -274,6 +362,38 @@
           "line": 19,
           "need": "feat_req__lifecycle__monitor_abnormal_term",
           "verify_type": "fully",
+          "result": "passed",
+          "result_text": "",
+          "repo_name": "local_repo",
+          "hash": "",
+          "url": ""
+        }
+      ]
+    }
+  },
+  {
+    "need": "comp_req__launch_man__path_condition_check",
+    "links": {
+      "CodeLinks": [],
+      "TestLinks": [
+        {
+          "name": "test_ready_condition_file",
+          "file": "tests/integration/ready_conditions/file_state/exists/ready_condition_file.py",
+          "line": 19,
+          "need": "comp_req__launch_man__path_condition_check",
+          "verify_type": "partially",
+          "result": "passed",
+          "result_text": "",
+          "repo_name": "local_repo",
+          "hash": "",
+          "url": ""
+        },
+        {
+          "name": "test_ready_condition_file_not_existing",
+          "file": "tests/integration/ready_conditions/file_state/not_existing/ready_condition_file_not_existing.py",
+          "line": 19,
+          "need": "comp_req__launch_man__path_condition_check",
+          "verify_type": "partially",
           "result": "passed",
           "result_text": "",
           "repo_name": "local_repo",
