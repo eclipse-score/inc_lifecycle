@@ -107,6 +107,7 @@ class ProcessGroupManagerWatchdogTest : public Test
   protected:
     void expectNormalStartup()
     {
+        EXPECT_CALL(*alive_monitor_, init()).WillOnce(Return(true));
         EXPECT_CALL(*alive_monitor_, start()).WillOnce(Return(true));
         EXPECT_CALL(*watchdog_, init(_, _)).WillOnce(Return(true));
         EXPECT_CALL(*watchdog_, enable()).WillOnce(Return(true));

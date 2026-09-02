@@ -25,6 +25,7 @@ class MockAliveMonitor : public IAliveMonitor
     MOCK_METHOD(bool, start, (), (override));
     MOCK_METHOD(void, stop, (), (override));
     MOCK_METHOD(ISupervisionFactory&, getSupervisionFactory, (), (const, override));
+    MOCK_METHOD(bool, init, (), (noexcept, override));
 };
 
 }  // namespace score::mw::lifecycle::internal::saf::daemon

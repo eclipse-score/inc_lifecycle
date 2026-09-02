@@ -51,12 +51,10 @@ class AliveMonitorImpl : public IAliveMonitor
     /// @brief @see IAliveMonitor definition
     ISupervisionFactory& getSupervisionFactory() const noexcept override;
 
-  private:
-    /// @brief Initialize the AliveMonitor functionality
-    /// @param supervised_components Number of components we expect to register alive supervision
-    /// @return kNoError if initialization was successful, otherwise an appropriate error code.
-    EInitCode init(const std::size_t supervised_components) noexcept;
+    /// @brief @see IAliveMonitor definition
+    bool init() noexcept override;
 
+  private:
     /// @brief Run the AliveMonitor functionality in a cyclic manner until cancellation is requested.
     /// @param cancel_thread Atomic boolean flag to signal thread cancellation.
     bool threadFn(std::atomic_bool& cancel_thread) noexcept;
@@ -67,7 +65,7 @@ class AliveMonitorImpl : public IAliveMonitor
     const AliveSupervisionConfig& config_;
     std::thread alive_monitor_thread_{};
     std::atomic_bool stop_thread_{false};
-    saf::daemon::EInitCode initResult{saf::daemon::EInitCode::kNotInitialized};
+    std::size_t supervised_components_;
 };
 
 }  // namespace internal::saf::daemon

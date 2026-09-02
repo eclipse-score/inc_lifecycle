@@ -25,25 +25,24 @@ AliveMonitorImpl::AliveMonitorImpl(
     SptrIRecoveryClient recovery_client,
     const AliveSupervisionConfig& config,
     const std::size_t supervised_components)
-    : m_recovery_client(recovery_client), config_(config)
+    : m_recovery_client(recovery_client), config_(config), supervised_components_(supervised_components)
 {
-    initResult = init(supervised_components);
 }
 
-EInitCode AliveMonitorImpl::init(const std::size_t supervised_components) noexcept
+bool AliveMonitorImpl::init() noexcept
 {
-    EInitCode initResult{EInitCode::kGeneralError};
     try
     {
         m_osClock.startMeasurement();
 
-        m_daemon = std::make_unique<PhmDaemon>(m_osClock, supervised_components);
-        initResult = m_daemon->init(m_recovery_client, config_);
+        m_daemon = std::make_unique<PhmDaemon>(m_osClock, supervised_components_);
+        EInitCode initResult = m_daemon->init(m_recovery_client, config_);
 
         if (initResult == EInitCode::kNoError)
         {
             const long ms{m_osClock.endMeasurement()};
             LM_LOG_DEBUG() << "AliveMonitor: Initialization took " << ms << " ms";
+            return true;
         }
         else
         {
@@ -53,24 +52,17 @@ EInitCode AliveMonitorImpl::init(const std::size_t supervised_components) noexce
     catch (const std::exception& e)
     {
         std::cerr << "AliveMonitor: Initialization failed due to standard exception: " << e.what() << ".\n";
-        initResult = EInitCode::kGeneralError;
     }
     catch (...)
     {
         std::cerr << "AliveMonitor: Initialization failed due to exception!\n";
-        initResult = EInitCode::kGeneralError;
     }
 
-    return initResult;
+    return false;
 }
 
 bool AliveMonitorImpl::start() noexcept
 {
-    if (initResult != EInitCode::kNoError)
-    {
-        return false;
-    }
-
     alive_monitor_thread_ = std::thread([this]() {
         threadFn(stop_thread_);
     });

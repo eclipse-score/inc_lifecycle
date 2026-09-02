@@ -87,6 +87,11 @@ bool ProcessGroupManager::initialize()
         return false;
     }
 
+    if (!alive_monitor_->init())
+    {
+        return false;
+    }
+
     createProcessComponentsObjects(total_processes);
 
     if (!initializeProcessGroups())
