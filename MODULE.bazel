@@ -38,7 +38,7 @@ bazel_dep(name = "score_rust_policies", version = "0.0.5", dev_dependency = True
 bazel_dep(name = "score_cpp_policies", version = "0.1.1", dev_dependency = True)
 bazel_dep(name = "score_devcontainer", version = "1.11.0", dev_dependency = True)
 bazel_dep(name = "score_process_description", version = "2.1.2", dev_dependency = True)
-bazel_dep(name = "score_platform", version = "0.7.1", dev_dependency = True)
+bazel_dep(name = "score_platform", version = "0.7.2", dev_dependency = True)
 
 ## Configure the C++ toolchain
 bazel_dep(name = "score_bazel_cpp_toolchains", version = "1.0.3", dev_dependency = True)
