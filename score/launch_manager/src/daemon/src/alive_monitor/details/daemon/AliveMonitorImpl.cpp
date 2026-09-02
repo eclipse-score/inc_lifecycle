@@ -23,7 +23,7 @@ namespace score::mw::lifecycle::internal::saf::daemon
 
 AliveMonitorImpl::AliveMonitorImpl(
     SptrIRecoveryClient recovery_client,
-    const AliveSupervisionConfig& config,
+    AliveSupervisionConfig config,
     const std::size_t supervised_components)
     : m_recovery_client(recovery_client), config_(config), supervised_components_(supervised_components)
 {

@@ -169,9 +169,20 @@ int main(int argc, const char* argv[])
         std::unique_ptr<saf::daemon::IAliveMonitor> healthMonitor{std::make_unique<saf::daemon::AliveMonitorImpl>(
             recoveryClient, config_result.value().takeAliveSupervision(), supervised_components)};
 
+        GraphConfig graph_config = {
+            config_result.value().takeComponents(),
+            config_result.value().takeRunTargets(),
+            config_result.value().takeFallbackRunTarget(),
+            config_result.value().takeInitialRunTarget(),
+        };
+
         auto watchdog = watchdog::createWatchdog();
         auto process_group_manager = std::make_unique<ProcessGroupManager>(
-            std::move(config_result).value(), std::move(healthMonitor), recoveryClient, std::move(watchdog));
+            std::move(graph_config),
+            std::move(healthMonitor),
+            recoveryClient,
+            std::move(watchdog),
+            config_result.value().takeWatchdog());
 
         if (process_group_manager->initialize())
         {

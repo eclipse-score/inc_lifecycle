@@ -37,11 +37,13 @@ void ProcessGroupManager::cancel()
 }
 
 ProcessGroupManager::ProcessGroupManager(
-    configuration::Config&& config,
+    GraphConfig&& config,
     std::unique_ptr<saf::daemon::IAliveMonitor> alive_monitor,
     std::shared_ptr<IRecoveryClient> recovery_client,
-    std::unique_ptr<score::mw::lifecycle::internal::watchdog::IWatchdogIf> watchdog)
+    std::unique_ptr<score::mw::lifecycle::internal::watchdog::IWatchdogIf> watchdog,
+    std::optional<configuration::WatchdogConfig>&& watchdog_config)
     : configuration_(std::move(config)),
+      watchdog_config_(watchdog_config),
       process_interface_(),
       file_waiter_(),
       process_map_(nullptr),
@@ -79,7 +81,7 @@ bool ProcessGroupManager::initialize()
         return false;
     }
 
-    const std::size_t total_processes = configuration_.components().size();
+    const std::size_t total_processes = configuration_.components_.size();
 
     if (total_processes > static_cast<uint32_t>(ProcessLimits::kMaxProcesses))
     {
@@ -105,13 +107,10 @@ bool ProcessGroupManager::initialize()
         LM_LOG_ERROR() << "Alive monitor thread failed to start";
         return false;
     }
-
-    const auto watchdog_config = configuration_.takeWatchdog();
-
     // Watchdog config may not be available if no watchdog is configured
-    if (watchdog_config.has_value())
+    if (watchdog_config_.has_value())
     {
-        if (!watchdog_->init(std::move(watchdog_config).value(), score::mw::lifecycle::internal::kMainLoopCycleTimeNs))
+        if (!watchdog_->init(std::move(watchdog_config_).value(), score::mw::lifecycle::internal::kMainLoopCycleTimeNs))
         {
             LM_LOG_ERROR() << "Watchdog initialization failed";
             return false;
@@ -210,7 +209,7 @@ bool ProcessGroupManager::initializeProcessGroups()
 {
     graph_ = std::make_shared<Graph>(
         // size is +2 for fallback + off
-        configuration_.components().size() + configuration_.runTargets().size() + 2,
+        configuration_.components_.size() + configuration_.run_targets_.size() + 2,
         configuration_,
         worker_jobs_,
         ProcessHandling{&process_interface_, process_map_, &file_waiter_, alive_monitor_->getSupervisionFactory()},
@@ -321,7 +320,7 @@ bool ProcessGroupManager::startInitialTransition()
 {
     LM_LOG_DEBUG() << "=============STARTING STARTUP STATE============";
     SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(bool(graph_), "Graph not initialized");
-    graph_->startInitialTransition(IdentifierHash{configuration_.initialRunTarget()});
+    graph_->startInitialTransition(IdentifierHash{configuration_.initial_run_target_});
     return true;
 }
 

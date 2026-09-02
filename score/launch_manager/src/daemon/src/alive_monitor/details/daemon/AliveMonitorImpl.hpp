@@ -36,10 +36,15 @@ using configuration::AliveSupervisionConfig;
 
 class AliveMonitorImpl : public IAliveMonitor
 {
+    static_assert(
+        std::is_trivially_copyable_v<AliveSupervisionConfig>,
+        "AliveSupervisionConfig is copied to this object since it is trivially copyable. If this changes, it should be "
+        "passed by move instead");
+
   public:
     AliveMonitorImpl(
         SptrIRecoveryClient recovery_client,
-        const AliveSupervisionConfig& config,
+        AliveSupervisionConfig config,
         const std::size_t supervised_components);
 
     /// @brief @see IAliveMonitor definition
@@ -62,7 +67,7 @@ class AliveMonitorImpl : public IAliveMonitor
     SptrIRecoveryClient m_recovery_client{nullptr};
     UptrPhmDaemon m_daemon{nullptr};
     OsClock m_osClock{};
-    const AliveSupervisionConfig& config_;
+    AliveSupervisionConfig config_;
     std::thread alive_monitor_thread_{};
     std::atomic_bool stop_thread_{false};
     std::size_t supervised_components_;

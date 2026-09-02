@@ -72,10 +72,11 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     /// @param watchdog A unique pointer to an IWatchdogIf instance serviced during the main loop. May be nullptr in
     /// legacy configuration where no watchdog is wired.
     ProcessGroupManager(
-        configuration::Config&& config,
+        GraphConfig&& config,
         std::unique_ptr<saf::daemon::IAliveMonitor> alive_monitor,
         std::shared_ptr<IRecoveryClient> recovery_client,
-        std::unique_ptr<score::mw::lifecycle::internal::watchdog::IWatchdogIf> watchdog);
+        std::unique_ptr<score::mw::lifecycle::internal::watchdog::IWatchdogIf> watchdog,
+        std::optional<configuration::WatchdogConfig>&& watchdog_config);
 
     /// @brief Initializes the process group manager.
     /// Sets up a signal handler for SIGINT and SIGTERM so that the main loop of
@@ -258,7 +259,10 @@ class ProcessGroupManager final : public ITransitionResultPublisher
     bool initializeControlClientHandler();
 
     /// @brief The configuration object associated with the ProcessGroupManager.
-    configuration::Config configuration_;
+    GraphConfig configuration_;
+
+    /// @brief The configuration object associated with the watchdog.
+    std::optional<configuration::WatchdogConfig> watchdog_config_;
 
     /// @brief The process interface object associated with the ProcessGroupManager.
     osal::ProcessLauncher process_interface_;

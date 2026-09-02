@@ -102,6 +102,15 @@ Config makeMinimalConfig()
         .build();
 }
 
+GraphConfig takeGraphConfig(Config& config)
+{
+    return GraphConfig{
+        config.takeComponents(),
+        config.takeRunTargets(),
+        config.takeFallbackRunTarget(),
+        config.takeInitialRunTarget()};
+}
+
 class ProcessGroupManagerWatchdogTest : public Test
 {
   protected:
@@ -140,8 +149,14 @@ class ProcessGroupManagerWatchdogTest : public Test
         auto watchdog = std::make_unique<StrictMock<MockWatchdogIf>>();
         watchdog_ = watchdog.get();
 
+        auto config = makeMinimalConfig();
+
         process_group_manager_ = std::make_unique<ProcessGroupManager>(
-            makeMinimalConfig(), std::move(alive_monitor), std::move(recovery_client), std::move(watchdog));
+            takeGraphConfig(config),
+            std::move(alive_monitor),
+            std::move(recovery_client),
+            std::move(watchdog),
+            config.takeWatchdog());
     }
 
     void TearDown() override

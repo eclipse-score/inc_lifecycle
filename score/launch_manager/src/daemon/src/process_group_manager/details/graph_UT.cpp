@@ -62,7 +62,7 @@ class GraphTest : public ::testing::Test
         // (fixture-specific) config is in place.
         graph_ = std::make_unique<Graph>(
             10U,
-            config_.value(),
+            graph_config_,
             job_queue_,
             ProcessHandling{&process_interface_, mock_process_map, nullptr, mock_factory_},
             &mock_transition_result_publisher_);
@@ -73,12 +73,18 @@ class GraphTest : public ::testing::Test
         auto procs = generateProcessComponents(1);
         auto rts = generateRunTargets(1);
         rts[1].depends_on = {procs[0].name};
-        config_ = ConfigBuilder{}
-                      .setComponents(std::move(procs))
-                      .setRunTargets(std::move(rts))
-                      .setInitialRunTarget("Startup")
-                      .setFallbackRunTarget(std::move(fallback))
-                      .build();
+        auto config = ConfigBuilder{}
+                          .setComponents(std::move(procs))
+                          .setRunTargets(std::move(rts))
+                          .setInitialRunTarget("Startup")
+                          .setFallbackRunTarget(std::move(fallback))
+                          .build();
+
+        graph_config_ = GraphConfig{
+            config.takeComponents(),
+            config.takeRunTargets(),
+            config.takeFallbackRunTarget(),
+            config.takeInitialRunTarget()};
     }
 
     std::vector<ComponentConfig> generateProcessComponents(int count)
@@ -180,7 +186,7 @@ class GraphTest : public ::testing::Test
         ASSERT_EQ(graph_->getProcessGroupState(), target);
     }
 
-    std::optional<Config> config_{};
+    GraphConfig graph_config_{};
     std::shared_ptr<WorkerQueue> job_queue_ = std::make_shared<WorkerQueue>();
     StrictMock<osal::MockIProcess> process_interface_{};
     std::shared_ptr<MockProcessMap> mock_process_map = std::make_shared<MockProcessMap>();
@@ -210,12 +216,18 @@ class GraphOrdinaryTransitionTest : public GraphTest
         auto rts = generateRunTargets(2);
         rts[1].depends_on = {procs[0].name};
         rts[2].depends_on = {procs[1].name};
-        config_ = ConfigBuilder{}
-                      .setComponents(std::move(procs))
-                      .setRunTargets(std::move(rts))
-                      .setInitialRunTarget("Startup")
-                      .setFallbackRunTarget(std::move(fallback))
-                      .build();
+        auto config = ConfigBuilder{}
+                          .setComponents(std::move(procs))
+                          .setRunTargets(std::move(rts))
+                          .setInitialRunTarget("Startup")
+                          .setFallbackRunTarget(std::move(fallback))
+                          .build();
+
+        graph_config_ = GraphConfig{
+            config.takeComponents(),
+            config.takeRunTargets(),
+            config.takeFallbackRunTarget(),
+            config.takeInitialRunTarget()};
     }
 };
 
@@ -382,12 +394,18 @@ class GraphImplicitOffTargetTest : public GraphTest
         rts.push_back(startup);
         rts.push_back(std::move(rt));
 
-        config_ = ConfigBuilder{}
-                      .setComponents(std::move(procs))
-                      .setRunTargets(std::move(rts))
-                      .setInitialRunTarget("Startup")
-                      .setFallbackRunTarget(std::move(fallback))
-                      .build();
+        auto config = ConfigBuilder{}
+                          .setComponents(std::move(procs))
+                          .setRunTargets(std::move(rts))
+                          .setInitialRunTarget("Startup")
+                          .setFallbackRunTarget(std::move(fallback))
+                          .build();
+
+        graph_config_ = GraphConfig{
+            config.takeComponents(),
+            config.takeRunTargets(),
+            config.takeFallbackRunTarget(),
+            config.takeInitialRunTarget()};
     }
 };
 
@@ -436,12 +454,18 @@ class GraphOffStateTimeoutTest : public GraphTest
         // The Off run target must be the last entry generateRunTargets() appends.
         ASSERT_EQ(rts.back().name, "Off");
         rts.back().transition_timeout_ms = kOffTimeoutMs;
-        config_ = ConfigBuilder{}
-                      .setComponents(std::move(procs))
-                      .setRunTargets(std::move(rts))
-                      .setInitialRunTarget("Startup")
-                      .setFallbackRunTarget(std::move(fallback))
-                      .build();
+        auto config = ConfigBuilder{}
+                          .setComponents(std::move(procs))
+                          .setRunTargets(std::move(rts))
+                          .setInitialRunTarget("Startup")
+                          .setFallbackRunTarget(std::move(fallback))
+                          .build();
+
+        graph_config_ = GraphConfig{
+            config.takeComponents(),
+            config.takeRunTargets(),
+            config.takeFallbackRunTarget(),
+            config.takeInitialRunTarget()};
     }
 
     static constexpr std::uint32_t kOffTimeoutMs = 1234;
@@ -463,12 +487,18 @@ class GraphHandleComponentEventTest : public GraphTest
         auto procs = generateProcessComponents(2);
         auto rts = generateRunTargets(1);
         rts[1].depends_on = {procs[0].name, procs[1].name};
-        config_ = ConfigBuilder{}
-                      .setComponents(std::move(procs))
-                      .setRunTargets(std::move(rts))
-                      .setInitialRunTarget("Startup")
-                      .setFallbackRunTarget(std::move(fallback))
-                      .build();
+        auto config = ConfigBuilder{}
+                          .setComponents(std::move(procs))
+                          .setRunTargets(std::move(rts))
+                          .setInitialRunTarget("Startup")
+                          .setFallbackRunTarget(std::move(fallback))
+                          .build();
+
+        graph_config_ = GraphConfig{
+            config.takeComponents(),
+            config.takeRunTargets(),
+            config.takeFallbackRunTarget(),
+            config.takeInitialRunTarget()};
     }
 };
 

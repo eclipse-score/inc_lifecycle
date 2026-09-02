@@ -40,20 +40,17 @@ namespace
 /// @return A populated dependency graph with all components and run targets.
 void CreateDependencyGraph(
     DependencyGraph<IdentifierHash, Graph::Component>& graph,
-    configuration::Config& config,
+    GraphConfig& config,
     ProcessHandling process_handling,
     std::chrono::milliseconds& off_state_transition_timeout)
 {
-    std::vector<configuration::RunTargetConfig> run_targets = config.takeRunTargets();
-    std::vector<configuration::ComponentConfig> components = config.takeComponents();
-
     // dependencies can only be wired up once every node exists, so collect
     // them while creating the nodes
     std::vector<std::pair<IdentifierHash, std::vector<std::string>>> pending_dependencies;
     pending_dependencies.reserve(graph.capacity());
 
     // add all comps
-    for (auto& component_config : components)
+    for (auto& component_config : config.components_)
     {
         const auto name = component_config.name;
         auto depends_on = std::move(component_config.component_properties.depends_on);
@@ -67,7 +64,7 @@ void CreateDependencyGraph(
 
     // add all rts
     bool off_rt_defined = false;
-    for (auto& run_target : run_targets)
+    for (auto& run_target : config.run_targets_)
     {
         const auto index = graph.try_emplace(
             IdentifierHash{run_target.name}, std::in_place_type<RunTarget>, IdentifierHash{run_target.name});
@@ -96,7 +93,7 @@ void CreateDependencyGraph(
         IdentifierHash{Graph::recovery_state_name},
         std::in_place_type<RunTarget>,
         IdentifierHash{Graph::recovery_state_name});
-    pending_dependencies.emplace_back(fallback_index, config.fallbackRunTarget().depends_on);
+    pending_dependencies.emplace_back(fallback_index, config.fallback_run_target_.depends_on);
 
     // wire up deps
     for (const auto& [node_identifier, dependencies] : pending_dependencies)
@@ -116,7 +113,7 @@ void CreateDependencyGraph(
 
 Graph::Graph(
     uint32_t max_num_nodes,
-    configuration::Config& configuration,
+    GraphConfig& configuration,
     std::shared_ptr<WorkerQueue> job_queue,
     ProcessHandling process_handling,
     ITransitionResultPublisher* transition_result_receiver)
