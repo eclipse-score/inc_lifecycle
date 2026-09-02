@@ -41,7 +41,7 @@ Component documentation
 .. _quick-start-building-testing:
 
 Quick Start - Building and Testing
-==================================
+----------------------------------
 
 To build the entire module:
 
