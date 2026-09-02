@@ -21,7 +21,7 @@
 #include "score/mw/launch_manager/process_group_manager/details/process_handling.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/safe_process_map.hpp"
 #include "score/mw/launch_manager/process_group_manager/process_state.hpp"
-#include "score/mw/launch_manager/supervision_control_client/isupervision_event_publisher.hpp"
+#include "score/mw/launch_manager/supervision_control_client/isupervision_state_reporter.hpp"
 #include <score/stop_token.hpp>
 #include <atomic>
 #include <chrono>
@@ -187,7 +187,7 @@ class ProcessInfoNode final : public IComponent
     ProcessHandling process_handling_;
 
     /// @brief Interface for reporting component state to health monitor.
-    std::unique_ptr<ISupervisionEventPublisher> state_publisher_;
+    std::unique_ptr<ISupervisionStateReporter> state_publisher_;
 
     /// @brief Number ot times to try run the process.
     std::uint8_t start_tries_{1U};

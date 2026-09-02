@@ -23,8 +23,8 @@
 #include "score/mw/launch_manager/configuration/config.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/graph.hpp"
 #include "score/mw/launch_manager/process_group_manager/mock_iprocess.hpp"
-#include "score/mw/launch_manager/supervision_control_client/mock_supervision_event_publisher.hpp"
 #include "score/mw/launch_manager/supervision_control_client/mock_supervision_factory.hpp"
+#include "score/mw/launch_manager/supervision_control_client/mock_supervision_state_reporter.hpp"
 
 namespace score::mw::lifecycle::internal
 {
@@ -53,8 +53,8 @@ class GraphTest : public ::testing::Test
         RecordProperty("TestType", "interface-test");
         RecordProperty("DerivationTechnique", "equivalence-classes");
 
-        ON_CALL(mock_supervision_event_publisher_, reportActivation).WillByDefault(Return(true));
-        ON_CALL(mock_supervision_event_publisher_, reportDeactivation).WillByDefault(Return(true));
+        ON_CALL(mock_supervision_state_reporter_, reportActivation).WillByDefault(Return(true));
+        ON_CALL(mock_supervision_state_reporter_, reportDeactivation).WillByDefault(Return(true));
 
         SetConfig();
 
@@ -184,7 +184,7 @@ class GraphTest : public ::testing::Test
     std::shared_ptr<WorkerQueue> job_queue_ = std::make_shared<WorkerQueue>();
     StrictMock<osal::MockIProcess> process_interface_{};
     std::shared_ptr<MockProcessMap> mock_process_map = std::make_shared<MockProcessMap>();
-    NiceMock<MockSupervisionEventPublisher> mock_supervision_event_publisher_{};
+    NiceMock<MockSupervisionStateReporter> mock_supervision_state_reporter_{};
     MockTransitionResultPublisher mock_transition_result_publisher_{};
     MockSupervisionFactory mock_factory_{};
     std::unique_ptr<Graph> graph_{};

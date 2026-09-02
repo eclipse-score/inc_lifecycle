@@ -24,7 +24,7 @@ class MockSupervisionFactory : public ISupervisionFactory
 {
   public:
     MOCK_METHOD(
-        std::unique_ptr<ISupervisionEventPublisher>,
+        std::unique_ptr<ISupervisionStateReporter>,
         constructSupervision,
         (const IdentifierHash id, const uid_t uid, const internal::configuration::ComponentAliveSupervision& config),
         (override));

@@ -36,7 +36,7 @@ class SupervisionControlClient_UT : public ::testing::Test
 
     const IdentifierHash process_{"Process"};
     std::shared_ptr<SupervisionBufferType> buffer_;
-    std::unique_ptr<ISupervisionEventPublisher> handle_;
+    std::unique_ptr<ISupervisionStateReporter> handle_;
 };
 
 TEST_F(SupervisionControlClient_UT, SupervisionControlClient_QueueOneEvent_Succeeds)

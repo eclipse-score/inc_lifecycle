@@ -172,7 +172,7 @@ class PhmDaemon final : public ISupervisionFactory
     }
 
     /// @brief @see ISupervisonFactory::constructSupervision
-    std::unique_ptr<ISupervisionEventPublisher> constructSupervision(
+    std::unique_ptr<ISupervisionStateReporter> constructSupervision(
         const IdentifierHash id,
         const uid_t uid,
         const configuration::ComponentAliveSupervision& config) override
