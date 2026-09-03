@@ -28,4 +28,4 @@ permissions:
 
 jobs:
   daily:
-    uses: eclipse-score/cicd-workflows/.github/workflows/daily.yml@7c5c10c1f3f631fd26b8f9b00d5b147b1b9cff00
+    uses: eclipse-score/cicd-workflows/.github/workflows/daily.yml@37eaadadfefc263d94a858d25665735659e916fa

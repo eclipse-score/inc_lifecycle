@@ -43,6 +43,7 @@ test --@score_baselibs//score/json:base_library=nlohmann
 
 # Code coverage configuration (LLVM source-based). See //quality/coverage.
 import %workspace%/quality/coverage/coverage.bazelrc
+import %workspace%/quality/sanitizer/sanitizer.bazelrc
 
 
 # Common Lifecycle Toolchain flags for build (do not use it in case of system toolchains!)
