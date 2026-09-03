@@ -86,12 +86,30 @@ jobs:
             //scripts/... \
             //tests/...
 
-      - name: Upload test logs
-        if: always()
+      - name: Coverage with Bazel
+        if: matrix.test
+        run: |
+          bazel coverage \
+            --config=llvm_cov \
+            --lockfile_mode=error \
+            --build_tests_only \
+            //score/...
+
+      - name: Generate coverage report
+        if: matrix.test
+        env:
+          COVERAGE_THRESHOLD: 66
+        run: |
+          bazel run @score_tooling//coverage:generate_coverage_html -- \
+            --yaml quality/coverage/coverage_justifications.yaml \
+            --archive-dir coverage_artifacts
+
+      - name: Upload build artifacts
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v7
         with:
-          name: bazel-testlogs-${{ matrix.name }}
-          path: bazel-testlogs/
+          name: bazel-${{ matrix.name }}
+          path: ${{ matrix.test && 'coverage_artifacts' || 'bazel-testlogs' }}
           retention-days: 7
 
   clippy:
@@ -129,12 +147,6 @@ jobs:
           command: clippy
           args: --all-features --all-targets --workspace -- -D warnings
 
-  coverage:
-    name: Coverage
-    uses: ./.github/workflows/code_coverage.yml
-    permissions:
-      contents: read
-
   docs-check:
     name: Check documentation
     uses: eclipse-score/cicd-workflows/.github/workflows/docs-verify.yml@8d80e8df150cae21d53cbc8031d0f970648f7a67 # v0.0.3
@@ -146,16 +158,15 @@ jobs:
 
   docs-build:
     name: Build documentation
-    needs:
-      - build
+    needs: build
     uses: eclipse-score/cicd-workflows/.github/workflows/docs.yml@8d80e8df150cae21d53cbc8031d0f970648f7a67 # v0.0.3
     permissions:
       contents: read
     with:
       # the bazel-target depends on your repo specific docs_targets configuration (e.g. "suffix")
       bazel-target: "--lockfile_mode=error //:docs -- --github_user=${{ github.repository_owner }} --github_repo=${{ github.event.repository.name }}"
-      retention-days: 3
-      tests-report-artifact: bazel-testlogs-x86_64-linux
+      retention-days: 7
+      tests-report-artifact: bazel-x86_64-linux
 
   gitlint:
     name: Check commit messages
@@ -182,7 +193,6 @@ jobs:
       - docs-check
       - docs-build
       - clippy
-      - coverage
       - gitlint
     runs-on: ubuntu-slim
     permissions: {}
