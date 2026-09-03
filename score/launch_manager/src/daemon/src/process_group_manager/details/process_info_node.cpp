@@ -165,17 +165,12 @@ IComponent::RequestResult ProcessInfoNode::tryHandleTermination(int32_t process_
     LM_LOG_DEBUG() << "Process" << identifier_ << "( pid" << pid_ << ") terminated with exit code" << process_status;
     exit_code_ = process_status;
     IComponent::RequestResult res = {IComponent::RequestState::kWaiting};
-
     ProcessState starting = ProcessState::kStarting;
 
-    if (terminationIsValid(process_status))
-    {
-        termination_result_ = true;
-    }
-    else
-    {
-        termination_result_ = false;
-    }
+    const bool termination_is_valid =
+        config_.component_properties.application_profile.is_self_terminating && process_status == 0;
+
+    termination_result_ = termination_is_valid;
 
     if (has_semaphore_.exchange(false))
     {
@@ -195,7 +190,7 @@ IComponent::RequestResult ProcessInfoNode::tryHandleTermination(int32_t process_
     {
         setState(ProcessState::kTerminated);
 
-        if (terminationIsValid(process_status))
+        if (termination_is_valid)
         {
             res = tryReportCompletion(ProcessState::kTerminated);
         }
@@ -214,12 +209,6 @@ IComponent::RequestResult ProcessInfoNode::tryHandleTermination(int32_t process_
     }
 
     return res;
-}
-
-bool ProcessInfoNode::terminationIsValid(int32_t exit_code) const
-{
-    // Only valid case for a process to terminate without it being requested
-    return config_.component_properties.application_profile.is_self_terminating && exit_code == 0;
 }
 
 bool ProcessInfoNode::isReporting() const

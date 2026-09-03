@@ -98,10 +98,6 @@ class ProcessInfoNode final : public IComponent
     /// indicating whether this was an error before the ready condition was satisfied, or after.
     ComponentError getErrorAfterState(ProcessState state_reached) const;
 
-    /// @brief Returns true if this process terminating with code @p exit_code is acceptable even when termination has
-    /// not been requested.
-    bool terminationIsValid(int32_t exit_code) const;
-
     /// @brief Returns true if the process is configured to report kRunning
     bool isReporting() const;
 
