@@ -7,110 +7,6 @@
     },
     "needs": [
       {
-        "need": "feat_req__lifecycle__start_named_run_target",
-        "links": {
-          "CodeLinks": [],
-          "TestLinks": [
-            {
-              "name": "test_process_launch_args",
-              "file": "tests/integration/process_launch_args/process_launch_args.py",
-              "line": 19,
-              "need": "feat_req__lifecycle__start_named_run_target",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "test_rt_running_when_process_exits",
-              "file": "tests/integration/rt_running_when_process_exits/rt_running_when_process_exits.py",
-              "line": 19,
-              "need": "feat_req__lifecycle__start_named_run_target",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            }
-          ]
-        }
-      },
-      {
-        "need": "feat_req__lifecycle__launch_support",
-        "links": {
-          "CodeLinks": [],
-          "TestLinks": [
-            {
-              "name": "test_process_launch_args",
-              "file": "tests/integration/process_launch_args/process_launch_args.py",
-              "line": 19,
-              "need": "feat_req__lifecycle__launch_support",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "test_rt_running_when_process_exits",
-              "file": "tests/integration/rt_running_when_process_exits/rt_running_when_process_exits.py",
-              "line": 19,
-              "need": "feat_req__lifecycle__launch_support",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            }
-          ]
-        }
-      },
-      {
-        "need": "comp_req__launch_man__process_state_comm",
-        "links": {
-          "CodeLinks": [],
-          "TestLinks": [
-            {
-              "name": "test_process_launch_args",
-              "file": "tests/integration/process_launch_args/process_launch_args.py",
-              "line": 19,
-              "need": "comp_req__launch_man__process_state_comm",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "test_switch_run_target",
-              "file": "tests/integration/switch_run_target/switch_run_target.py",
-              "line": 19,
-              "need": "comp_req__launch_man__process_state_comm",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "test_rt_running_when_process_exits",
-              "file": "tests/integration/rt_running_when_process_exits/rt_running_when_process_exits.py",
-              "line": 19,
-              "need": "comp_req__launch_man__process_state_comm",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            }
-          ]
-        }
-      },
-      {
-        "need": "comp_req__launch_man__process_launch_args",
-        "links": {
-          "CodeLinks": [],
-          "TestLinks": [
-            {
-              "name": "test_process_launch_args",
-              "file": "tests/integration/process_launch_args/process_launch_args.py",
-              "line": 19,
-              "need": "comp_req__launch_man__process_launch_args",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            }
-          ]
-        }
-      },
-      {
         "need": "feat_req__lifecycle__parallel_launch_support",
         "links": {
           "CodeLinks": [],
@@ -128,15 +24,15 @@
         }
       },
       {
-        "need": "comp_req__launch_man__shutdown_signal",
+        "need": "feat_req__lifecycle__request_run_target_start",
         "links": {
           "CodeLinks": [],
           "TestLinks": [
             {
-              "name": "test_shutdown_signal",
-              "file": "tests/integration/shutdown_signal/shutdown_signal.py",
+              "name": "test_switch_run_target",
+              "file": "tests/integration/switch_run_target/switch_run_target.py",
               "line": 19,
-              "need": "comp_req__launch_man__shutdown_signal",
+              "need": "feat_req__lifecycle__request_run_target_start",
               "verify_type": "fully",
               "result": "passed",
               "result_text": ""
@@ -145,33 +41,170 @@
         }
       },
       {
-        "need": "feat_req__lifecycle__recov_run_target_switch",
+        "need": "feat_req__lifecycle__switch_run_targets",
         "links": {
           "CodeLinks": [],
           "TestLinks": [
             {
-              "name": "test_recovery_action_simple_rep_failure",
-              "file": "tests/integration/process_simple_rep_failure/process_simple_rep_failure.py",
+              "name": "test_switch_run_target",
+              "file": "tests/integration/switch_run_target/switch_run_target.py",
               "line": 19,
-              "need": "feat_req__lifecycle__recov_run_target_switch",
+              "need": "feat_req__lifecycle__switch_run_targets",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            }
+          ]
+        }
+      },
+      {
+        "need": "comp_req__launch_man__process_state_comm",
+        "links": {
+          "CodeLinks": [],
+          "TestLinks": [
+            {
+              "name": "test_switch_run_target",
+              "file": "tests/integration/switch_run_target/switch_run_target.py",
+              "line": 19,
+              "need": "comp_req__launch_man__process_state_comm",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "test_rt_running_when_process_exits",
+              "file": "tests/integration/rt_running_when_process_exits/rt_running_when_process_exits.py",
+              "line": 19,
+              "need": "comp_req__launch_man__process_state_comm",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
             },
             {
-              "name": "test_recovery_action_complex_rep_failure",
-              "file": "tests/integration/process_complex_rep_failure/process_complex_rep_failure.py",
+              "name": "test_process_launch_args",
+              "file": "tests/integration/process_launch_args/process_launch_args.py",
               "line": 19,
-              "need": "feat_req__lifecycle__recov_run_target_switch",
+              "need": "comp_req__launch_man__process_state_comm",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            }
+          ]
+        }
+      },
+      {
+        "need": "feat_req__lifecycle__process_termination",
+        "links": {
+          "CodeLinks": [],
+          "TestLinks": [
+            {
+              "name": "test_switch_run_target",
+              "file": "tests/integration/switch_run_target/switch_run_target.py",
+              "line": 19,
+              "need": "feat_req__lifecycle__process_termination",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            }
+          ]
+        }
+      },
+      {
+        "need": "feat_req__lifecycle__terminationn_dependency",
+        "links": {
+          "CodeLinks": [],
+          "TestLinks": [
+            {
+              "name": "test_switch_run_target",
+              "file": "tests/integration/switch_run_target/switch_run_target.py",
+              "line": 19,
+              "need": "feat_req__lifecycle__terminationn_dependency",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            }
+          ]
+        }
+      },
+      {
+        "need": "feat_req__lifecycle__process_ordering",
+        "links": {
+          "CodeLinks": [],
+          "TestLinks": [
+            {
+              "name": "test_switch_run_target",
+              "file": "tests/integration/switch_run_target/switch_run_target.py",
+              "line": 19,
+              "need": "feat_req__lifecycle__process_ordering",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            }
+          ]
+        }
+      },
+      {
+        "need": "comp_req__launch_man__launch_manager_shutdown",
+        "links": {
+          "CodeLinks": [],
+          "TestLinks": [
+            {
+              "name": "test_switch_run_target",
+              "file": "tests/integration/switch_run_target/switch_run_target.py",
+              "line": 19,
+              "need": "comp_req__launch_man__launch_manager_shutdown",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            }
+          ]
+        }
+      },
+      {
+        "need": "feat_req__lifecycle__start_named_run_target",
+        "links": {
+          "CodeLinks": [],
+          "TestLinks": [
+            {
+              "name": "test_rt_running_when_process_exits",
+              "file": "tests/integration/rt_running_when_process_exits/rt_running_when_process_exits.py",
+              "line": 19,
+              "need": "feat_req__lifecycle__start_named_run_target",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
             },
             {
-              "name": "test_crash_on_startup",
-              "file": "tests/integration/crash_on_startup/crash_on_startup.py",
-              "line": 22,
-              "need": "feat_req__lifecycle__recov_run_target_switch",
+              "name": "test_process_launch_args",
+              "file": "tests/integration/process_launch_args/process_launch_args.py",
+              "line": 19,
+              "need": "feat_req__lifecycle__start_named_run_target",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            }
+          ]
+        }
+      },
+      {
+        "need": "feat_req__lifecycle__launch_support",
+        "links": {
+          "CodeLinks": [],
+          "TestLinks": [
+            {
+              "name": "test_rt_running_when_process_exits",
+              "file": "tests/integration/rt_running_when_process_exits/rt_running_when_process_exits.py",
+              "line": 19,
+              "need": "feat_req__lifecycle__launch_support",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "test_process_launch_args",
+              "file": "tests/integration/process_launch_args/process_launch_args.py",
+              "line": 19,
+              "need": "feat_req__lifecycle__launch_support",
               "verify_type": "fully",
               "result": "passed",
               "result_text": ""
@@ -185,6 +218,15 @@
           "CodeLinks": [],
           "TestLinks": [
             {
+              "name": "test_crash_on_startup",
+              "file": "tests/integration/crash_on_startup/crash_on_startup.py",
+              "line": 22,
+              "need": "feat_req__lifecycle__recovery_action_support",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
               "name": "test_recovery_action_simple_rep_failure",
               "file": "tests/integration/process_simple_rep_failure/process_simple_rep_failure.py",
               "line": 19,
@@ -197,15 +239,6 @@
               "name": "test_recovery_action_complex_rep_failure",
               "file": "tests/integration/process_complex_rep_failure/process_complex_rep_failure.py",
               "line": 19,
-              "need": "feat_req__lifecycle__recovery_action_support",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "test_crash_on_startup",
-              "file": "tests/integration/crash_on_startup/crash_on_startup.py",
-              "line": 22,
               "need": "feat_req__lifecycle__recovery_action_support",
               "verify_type": "partially",
               "result": "passed",
@@ -220,6 +253,15 @@
           "CodeLinks": [],
           "TestLinks": [
             {
+              "name": "test_crash_on_startup",
+              "file": "tests/integration/crash_on_startup/crash_on_startup.py",
+              "line": 22,
+              "need": "comp_req__launch_man__failure_detect",
+              "verify_type": "fully",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
               "name": "test_recovery_action_simple_rep_failure",
               "file": "tests/integration/process_simple_rep_failure/process_simple_rep_failure.py",
               "line": 19,
@@ -234,41 +276,6 @@
               "line": 19,
               "need": "comp_req__launch_man__failure_detect",
               "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "test_crash_on_startup",
-              "file": "tests/integration/crash_on_startup/crash_on_startup.py",
-              "line": 22,
-              "need": "comp_req__launch_man__failure_detect",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            }
-          ]
-        }
-      },
-      {
-        "need": "comp_req__launch_man__launcher_exit_shutdown",
-        "links": {
-          "CodeLinks": [],
-          "TestLinks": [
-            {
-              "name": "test_lm_shutdown",
-              "file": "tests/integration/lm_shutdown_during_switch_to_off/lm_shutdown_during_switch_to_off.py",
-              "line": 19,
-              "need": "comp_req__launch_man__launcher_exit_shutdown",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            },
-            {
-              "name": "test_lm_shutdown",
-              "file": "tests/integration/lm_shutdown_during_rt_switch/lm_shutdown_during_rt_switch.py",
-              "line": 19,
-              "need": "comp_req__launch_man__launcher_exit_shutdown",
-              "verify_type": "partially",
               "result": "passed",
               "result_text": ""
             }
@@ -293,58 +300,33 @@
         }
       },
       {
-        "need": "feat_req__lifecycle__monitor_abnormal_term",
+        "need": "feat_req__lifecycle__recov_run_target_switch",
         "links": {
           "CodeLinks": [],
           "TestLinks": [
             {
-              "name": "test_process_crash_monitoring",
-              "file": "tests/integration/process_crash_monitoring/process_crash_monitoring.py",
-              "line": 19,
-              "need": "feat_req__lifecycle__monitor_abnormal_term",
+              "name": "test_crash_on_startup",
+              "file": "tests/integration/crash_on_startup/crash_on_startup.py",
+              "line": 22,
+              "need": "feat_req__lifecycle__recov_run_target_switch",
               "verify_type": "fully",
               "result": "passed",
               "result_text": ""
-            }
-          ]
-        }
-      },
-      {
-        "need": "comp_req__launch_man__path_condition_check",
-        "links": {
-          "CodeLinks": [],
-          "TestLinks": [
+            },
             {
-              "name": "test_ready_condition_file",
-              "file": "tests/integration/ready_conditions/file_state/exists/ready_condition_file.py",
+              "name": "test_recovery_action_simple_rep_failure",
+              "file": "tests/integration/process_simple_rep_failure/process_simple_rep_failure.py",
               "line": 19,
-              "need": "comp_req__launch_man__path_condition_check",
+              "need": "feat_req__lifecycle__recov_run_target_switch",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
             },
             {
-              "name": "test_ready_condition_file_not_existing",
-              "file": "tests/integration/ready_conditions/file_state/not_existing/ready_condition_file_not_existing.py",
+              "name": "test_recovery_action_complex_rep_failure",
+              "file": "tests/integration/process_complex_rep_failure/process_complex_rep_failure.py",
               "line": 19,
-              "need": "comp_req__launch_man__path_condition_check",
-              "verify_type": "partially",
-              "result": "passed",
-              "result_text": ""
-            }
-          ]
-        }
-      },
-      {
-        "need": "comp_req__launch_man__ext_monitor_notify",
-        "links": {
-          "CodeLinks": [],
-          "TestLinks": [
-            {
-              "name": "test_complex_monitoring",
-              "file": "tests/integration/complex_monitoring/complex_monitoring.py",
-              "line": 19,
-              "need": "comp_req__launch_man__ext_monitor_notify",
+              "need": "feat_req__lifecycle__recov_run_target_switch",
               "verify_type": "partially",
               "result": "passed",
               "result_text": ""
@@ -438,15 +420,41 @@
         }
       },
       {
-        "need": "feat_req__lifecycle__request_run_target_start",
+        "need": "comp_req__launch_man__launcher_exit_shutdown",
         "links": {
           "CodeLinks": [],
           "TestLinks": [
             {
-              "name": "test_switch_run_target",
-              "file": "tests/integration/switch_run_target/switch_run_target.py",
+              "name": "test_lm_shutdown",
+              "file": "tests/integration/lm_shutdown_during_rt_switch/lm_shutdown_during_rt_switch.py",
               "line": 19,
-              "need": "feat_req__lifecycle__request_run_target_start",
+              "need": "comp_req__launch_man__launcher_exit_shutdown",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "test_lm_shutdown",
+              "file": "tests/integration/lm_shutdown_during_switch_to_off/lm_shutdown_during_switch_to_off.py",
+              "line": 19,
+              "need": "comp_req__launch_man__launcher_exit_shutdown",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            }
+          ]
+        }
+      },
+      {
+        "need": "comp_req__launch_man__shutdown_signal",
+        "links": {
+          "CodeLinks": [],
+          "TestLinks": [
+            {
+              "name": "test_shutdown_signal",
+              "file": "tests/integration/shutdown_signal/shutdown_signal.py",
+              "line": 19,
+              "need": "comp_req__launch_man__shutdown_signal",
               "verify_type": "fully",
               "result": "passed",
               "result_text": ""
@@ -455,15 +463,32 @@
         }
       },
       {
-        "need": "feat_req__lifecycle__switch_run_targets",
+        "need": "comp_req__launch_man__ext_monitor_notify",
         "links": {
           "CodeLinks": [],
           "TestLinks": [
             {
-              "name": "test_switch_run_target",
-              "file": "tests/integration/switch_run_target/switch_run_target.py",
+              "name": "test_complex_monitoring",
+              "file": "tests/integration/complex_monitoring/complex_monitoring.py",
               "line": 19,
-              "need": "feat_req__lifecycle__switch_run_targets",
+              "need": "comp_req__launch_man__ext_monitor_notify",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            }
+          ]
+        }
+      },
+      {
+        "need": "feat_req__lifecycle__monitor_abnormal_term",
+        "links": {
+          "CodeLinks": [],
+          "TestLinks": [
+            {
+              "name": "test_process_crash_monitoring",
+              "file": "tests/integration/process_crash_monitoring/process_crash_monitoring.py",
+              "line": 19,
+              "need": "feat_req__lifecycle__monitor_abnormal_term",
               "verify_type": "fully",
               "result": "passed",
               "result_text": ""
@@ -472,16 +497,25 @@
         }
       },
       {
-        "need": "feat_req__lifecycle__process_termination",
+        "need": "comp_req__launch_man__path_condition_check",
         "links": {
           "CodeLinks": [],
           "TestLinks": [
             {
-              "name": "test_switch_run_target",
-              "file": "tests/integration/switch_run_target/switch_run_target.py",
+              "name": "test_ready_condition_file",
+              "file": "tests/integration/ready_conditions/file_state/exists/ready_condition_file.py",
               "line": 19,
-              "need": "feat_req__lifecycle__process_termination",
-              "verify_type": "fully",
+              "need": "comp_req__launch_man__path_condition_check",
+              "verify_type": "partially",
+              "result": "passed",
+              "result_text": ""
+            },
+            {
+              "name": "test_ready_condition_file_not_existing",
+              "file": "tests/integration/ready_conditions/file_state/not_existing/ready_condition_file_not_existing.py",
+              "line": 19,
+              "need": "comp_req__launch_man__path_condition_check",
+              "verify_type": "partially",
               "result": "passed",
               "result_text": ""
             }
@@ -489,49 +523,15 @@
         }
       },
       {
-        "need": "feat_req__lifecycle__terminationn_dependency",
+        "need": "comp_req__launch_man__process_launch_args",
         "links": {
           "CodeLinks": [],
           "TestLinks": [
             {
-              "name": "test_switch_run_target",
-              "file": "tests/integration/switch_run_target/switch_run_target.py",
+              "name": "test_process_launch_args",
+              "file": "tests/integration/process_launch_args/process_launch_args.py",
               "line": 19,
-              "need": "feat_req__lifecycle__terminationn_dependency",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            }
-          ]
-        }
-      },
-      {
-        "need": "feat_req__lifecycle__process_ordering",
-        "links": {
-          "CodeLinks": [],
-          "TestLinks": [
-            {
-              "name": "test_switch_run_target",
-              "file": "tests/integration/switch_run_target/switch_run_target.py",
-              "line": 19,
-              "need": "feat_req__lifecycle__process_ordering",
-              "verify_type": "fully",
-              "result": "passed",
-              "result_text": ""
-            }
-          ]
-        }
-      },
-      {
-        "need": "comp_req__launch_man__launch_manager_shutdown",
-        "links": {
-          "CodeLinks": [],
-          "TestLinks": [
-            {
-              "name": "test_switch_run_target",
-              "file": "tests/integration/switch_run_target/switch_run_target.py",
-              "line": 19,
-              "need": "comp_req__launch_man__launch_manager_shutdown",
+              "need": "comp_req__launch_man__process_launch_args",
               "verify_type": "fully",
               "result": "passed",
               "result_text": ""
