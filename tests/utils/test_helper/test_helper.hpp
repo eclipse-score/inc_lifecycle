@@ -165,6 +165,7 @@ class TestRunner
     int RunTests()
     {
         ::testing::GTEST_FLAG(output) = "xml:" + xmlPath(m_test_path);
+        ::testing::GTEST_FLAG(brief) = true;
         testing::InitGoogleTest();
 
         auto res = RUN_ALL_TESTS();

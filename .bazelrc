@@ -28,7 +28,10 @@ build --java_runtime_version=remotejdk_17
 build --tool_java_runtime_version=remotejdk_17
 build --credential_helper=*.qnx.com=%workspace%/scripts/internal/qnx_creds.py
 
-# Enable warnings and treat them as errors
+# Import central S-CORE toolchain configuration
+import %workspace%/score.bazelrc/score_toolchain.bazelrc
+
+# Treat warnings as errors, except in external code
 build --copt=-Wall
 build --copt=-Wextra
 build --copt=-Werror
@@ -47,10 +50,6 @@ import %workspace%/quality/sanitizer/sanitizer.bazelrc
 
 
 # Common Lifecycle Toolchain flags for build (do not use it in case of system toolchains!)
-build:toolchain_common --incompatible_strict_action_env
-build:toolchain_common --host_platform=@score_bazel_platforms//:x86_64-linux
-## Ferrocene must be common compiler for HOST. To ensure metadata compatibility for proc macro crate
-build:toolchain_common --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_x86_64_unknown_linux_gnu
 build:stub --@score_baselibs//score/mw/log/flags:KRemote_Logging=False
 build:stub --@score_baselibs//score/json:base_library=nlohmann
 
@@ -58,22 +57,17 @@ build:stub --@score_baselibs//score/json:base_library=nlohmann
 build:host --//config:integration_mode=host
 build:host --//config:unit_mode=host
 
-# Target configuration for CPU:x86-64|OS:Linux build (do not use it in case of system toolchains!)
+# Target configuration for CPU:x86-64|OS:Linux build (leveraging central configuration)
 build:x86_64-linux --config=stub
-build:x86_64-linux --config=toolchain_common
-build:x86_64-linux --platforms=@score_bazel_platforms//:x86_64-linux-gcc_12.2.0-posix
-build:x86_64-linux --extra_toolchains=@score_gcc_x86_64_toolchain//:x86_64-linux-gcc_12.2.0
-build:x86_64-linux --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_x86_64_unknown_linux_gnu
+build:x86_64-linux --config=score-linux-x86_64
 build:x86_64-linux --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_x86_64_unknown_linux_gnu_miri
 
 test:x86_64-linux --//config:integration_mode=docker
 test:x86_64-linux --//config:unit_mode=host
 
-# Target configuration for CPU:AArch64|OS:Linux build (do not use it in case of system toolchains!)
+# Target configuration for CPU:AArch64|OS:Linux build (repository-specific addition leveraging central configuration)
 build:arm64-linux --config=stub
-build:arm64-linux --config=toolchain_common
-build:arm64-linux --platforms=@score_bazel_platforms//:aarch64-linux-gcc_12.2.0-posix
-build:arm64-linux --extra_toolchains=@score_gcc_aarch64_toolchain//:aarch64-linux-gcc_12.2.0
+build:arm64-linux --config=score-linux-aarch64
 build:arm64-linux --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_aarch64_unknown_linux_gnu
 build:arm64-linux --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_aarch64_unknown_linux_gnu_miri
 build:arm64-linux --copt=-mno-outline-atomics
@@ -82,13 +76,9 @@ build:arm64-linux --linkopt=-latomic
 test:arm64-linux --//config:integration_mode=docker
 test:arm64-linux --//config:unit_mode=host
 
-# Target configuration for CPU:x86-64|OS:QNX build (do not use it in case of system toolchains!)
+# Target configuration for CPU:x86-64|OS:QNX build (leveraging central configuration)
 build:x86_64-qnx --config=stub
-build:x86_64-qnx --config=toolchain_common
-build:x86_64-qnx --platforms=@score_bazel_platforms//:x86_64-qnx-sdp_8.0.0-posix
-build:x86_64-qnx --extra_toolchains=@score_qcc_x86_64_toolchain//:x86_64-qnx-sdp_8.0.0
-build:x86_64-qnx --extra_toolchains=@score_toolchains_rust//toolchains/ferrocene:ferrocene_x86_64_pc_nto_qnx800
-build:x86_64-qnx --extra_toolchains=@score_qnx_x86_64_ifs_toolchain//:ifs-x86_64-qnx-sdp_8.0.0
+build:x86_64-qnx --config=score-qnx-x86_64
 
 test:x86_64-qnx --//config:integration_mode=qemu
 test:x86_64-qnx --//config:unit_mode=skip
@@ -99,9 +89,9 @@ test:unit-tests-x86_64-qnx --run_under=@score_qnx_unit_tests//src:run_under_qnx
 test:unit-tests-x86_64-qnx --//config:integration_mode=skip
 test:unit-tests-x86_64-qnx --//config:unit_mode=qemu
 
-# Target configuration for CPU:AArch64|OS:QNX build (do not use it in case of system toolchains!)
+# Target configuration for CPU:AArch64|OS:QNX build (repository-specific addition)
 build:arm64-qnx --config=stub
-build:arm64-qnx --config=toolchain_common
+build:arm64-qnx --config=_score_common
 build:arm64-qnx --incompatible_strict_action_env
 build:arm64-qnx --platforms=@score_bazel_platforms//:aarch64-qnx-sdp_8.0.0-posix
 build:arm64-qnx --extra_toolchains=@score_qcc_aarch64_toolchain//:aarch64-qnx-sdp_8.0.0

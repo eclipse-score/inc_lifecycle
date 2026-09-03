@@ -38,11 +38,11 @@ coverage:llvm_cov --experimental_generate_llvm_lcov
 coverage:llvm_cov --experimental_use_llvm_covmap
 coverage:llvm_cov --extra_toolchains=@llvm_toolchain//:cc-toolchain-x86_64-linux
 
-# Register the Ferrocene host/exec Rust toolchain (via toolchain_common). Without
+# Register the Ferrocene host/exec Rust toolchain (via _score_common). Without
 # it, Rust crates built in the exec configuration (e.g. proc-macro deps such as
 # score_log_fmt) fall back to the rules_rust stable toolchain and fail to compile
 # nightly-only features. Target-config Rust already resolves to Ferrocene.
-coverage:llvm_cov --config=toolchain_common
+coverage:llvm_cov --config=_score_common
 
 # Clang 22 emits warnings the GCC 12 toolchain does not, and the base build sets
 # --copt=-Werror. Coverage runs should not fail on those unrelated warnings, so
