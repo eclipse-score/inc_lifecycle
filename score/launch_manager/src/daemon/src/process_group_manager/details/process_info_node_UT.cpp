@@ -291,7 +291,6 @@ struct YieldTestCasesData
     int status_to_exit_with_;
     bool is_self_terminating_;
     IComponent::RequestResult expected_activation_result_;
-    IComponent::RequestResult expected_term_result_;
     std::string description_;
 };
 
@@ -325,28 +324,21 @@ TEST_P(ProcessInfoNodeMapYieldTest, InsertReturnsYield)
             }),
             Return(SafeProcessMapReturnType::kYield)));
 
-    auto res = node->activate(score::cpp::stop_token{});
+    auto activation_result_ = node->activate(score::cpp::stop_token{});
 
-    ASSERT_EQ(res.has_value(), GetParam().expected_activation_result_.has_value());
+    ASSERT_EQ(activation_result_.has_value(), GetParam().expected_activation_result_.has_value());
     if (GetParam().expected_activation_result_.has_value())
     {
-        EXPECT_EQ(res.value(), GetParam().expected_activation_result_.value());
+        EXPECT_EQ(activation_result_.value(), GetParam().expected_activation_result_.value());
     }
     else
     {
-        EXPECT_EQ(res.error(), GetParam().expected_activation_result_.error());
+        EXPECT_EQ(activation_result_.error(), GetParam().expected_activation_result_.error());
     }
 
-    ASSERT_EQ(tryHandleTerminationResult.has_value(), GetParam().expected_term_result_.has_value());
-    if (GetParam().expected_term_result_.has_value())
-    {
-        EXPECT_EQ(tryHandleTerminationResult.value(), GetParam().expected_term_result_.value());
-    }
-    else
-    {
-        EXPECT_EQ(tryHandleTerminationResult.error(), GetParam().expected_term_result_.error());
-    }
-
+    ASSERT_TRUE(tryHandleTerminationResult.has_value());
+    EXPECT_EQ(tryHandleTerminationResult.value(), IComponent::RequestState::kWaiting)
+        << "An error occurring during startup should never be reported by tryHandleTermination";
     EXPECT_EQ(node->getState(), ProcessState::kTerminated);  // Not kFailed, the posix process did start successfully
 }
 
@@ -360,14 +352,12 @@ INSTANTIATE_TEST_SUITE_P(
             0,
             true,
             {IComponent::RequestState::kSuccess},
-            {IComponent::RequestState::kWaiting},
             "A native, self-terminating process exiting quickly with status 0 should report a successful activation"},
         YieldTestCasesData{
             configuration::ApplicationType::Native,
             configuration::ProcessState::Running,
             111,
             true,
-            {IComponent::RequestState::kSuccess},
             score::cpp::make_unexpected(IComponent::ComponentError::kErrorAfterReady),
             "A native, self-terminating process exiting quickly with a non-zero status should report a failure to "
             "activate"},
@@ -376,7 +366,6 @@ INSTANTIATE_TEST_SUITE_P(
             configuration::ProcessState::Running,
             0,
             false,
-            {IComponent::RequestState::kSuccess},
             score::cpp::make_unexpected(IComponent::ComponentError::kErrorAfterReady),
             "A native, non-self-terminating process exiting quickly should report a failure to activate"},
         YieldTestCasesData{
@@ -385,7 +374,6 @@ INSTANTIATE_TEST_SUITE_P(
             0,
             true,
             score::cpp::make_unexpected(IComponent::ComponentError::kErrorBeforeReady),
-            {IComponent::RequestState::kWaiting},
             "A reporting process exiting quickly (i.e. without waiting for a response from launch manager) should "
             "report a failure to activate"},
 
@@ -394,7 +382,6 @@ INSTANTIATE_TEST_SUITE_P(
             configuration::ProcessState::Terminated,
             0,
             true,
-            {IComponent::RequestState::kWaiting},
             {IComponent::RequestState::kSuccess},
             "A native, self-terminating process exiting quickly with status 0 should report a successful activation"},
         YieldTestCasesData{
@@ -402,7 +389,6 @@ INSTANTIATE_TEST_SUITE_P(
             configuration::ProcessState::Terminated,
             111,
             true,
-            {IComponent::RequestState::kWaiting},
             score::cpp::make_unexpected(IComponent::ComponentError::kErrorBeforeReady),
             "A native, self-terminating process exiting quickly with a non-zero status should report a failure to "
             "activate"},
@@ -411,7 +397,6 @@ INSTANTIATE_TEST_SUITE_P(
             configuration::ProcessState::Terminated,
             0,
             false,
-            {IComponent::RequestState::kWaiting},
             score::cpp::make_unexpected(IComponent::ComponentError::kErrorBeforeReady),
             "A native, non-self-terminating process exiting quickly should report a failure to activate"},
         YieldTestCasesData{
@@ -420,7 +405,6 @@ INSTANTIATE_TEST_SUITE_P(
             0,
             true,
             score::cpp::make_unexpected(IComponent::ComponentError::kErrorBeforeReady),
-            {IComponent::RequestState::kWaiting},
             "A reporting process exiting quickly (i.e. without waiting for a response from launch manager) should "
             "report a failure to activate"}));
 

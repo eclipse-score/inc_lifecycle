@@ -21,6 +21,7 @@
 #include <score/assert.hpp>
 #include <unistd.h>
 #include <cstring>
+#include <iostream>
 
 namespace score::mw::lifecycle::internal
 {
@@ -164,43 +165,36 @@ IComponent::RequestResult ProcessInfoNode::tryHandleTermination(int32_t process_
     LM_LOG_DEBUG() << "Process" << identifier_ << "( pid" << pid_ << ") terminated with exit code" << process_status;
     exit_code_ = process_status;
     IComponent::RequestResult res = {IComponent::RequestState::kWaiting};
+
     if (has_semaphore_.exchange(false))
-    {
-        // Termination was requested, we don't care if exit code is not 0 (a SIGKILL will set exit code to 9)
-        setState(ProcessState::kTerminated);
-        unblockSync();
-        static_cast<void>(terminator_.post());
-    }
-    else if (getState() < ProcessState::kRunning)
     {
         setState(ProcessState::kTerminated);
 
-        if (isReporting())
+        // Termination was requested, we don't care if exit code is not 0 (a SIGKILL will set exit code to 9)
+        unblockSync();
+        static_cast<void>(terminator_.post());
+    }
+    else if (getState() == ProcessState::kStarting)
+    {
+        setState(ProcessState::kTerminated);
+        // In this case, we can't return anything because any definite result given here would invalidate startup
+        // recovery actions
+
+        if (terminationIsValid(process_status))
         {
-            // Defer to the startup thread to handle this (failed startup)
-            unblockSync();
-        }
-        else if (terminationIsValid(process_status))
-        {
-            // Termination during startup is okay in this case. This might also satisfy our ready condition
-            res = tryReportCompletion(ProcessState::kTerminated);
+            termination_result_ = true;
         }
         else
         {
-            // This termination is not okay, but whether it was before or after ready depends on the ready condition
-            if (tryReportCompletion(ProcessState::kTerminated).value() == IComponent::RequestState::kSuccess)
-            {
-                res = score::cpp::make_unexpected(IComponent::ComponentError::kErrorBeforeReady);
-            }
-            else
-            {
-                res = score::cpp::make_unexpected(IComponent::ComponentError::kErrorAfterReady);
-            }
+            termination_result_ = false;
         }
+
+        unblockSync();
     }
     else
     {
         setState(ProcessState::kTerminated);
+
         if (terminationIsValid(process_status))
         {
             res = tryReportCompletion(ProcessState::kTerminated);
@@ -260,6 +254,7 @@ IComponent::RequestResult ProcessInfoNode::startProcess(score::cpp::stop_token s
         pid_ = 0;
         exit_code_ = 0;
         error = std::nullopt;
+        termination_result_ = std::nullopt;
         static_cast<void>(setState(score::mw::lifecycle::ProcessState::kStarting));  // Cannot fail by design
 
         if (osal::OsalReturnType::kSuccess == process_handling_.process_interface_->startProcess(pid_, sync_, config_))
@@ -309,8 +304,45 @@ IComponent::RequestResult ProcessInfoNode::startProcess(score::cpp::stop_token s
         return tryReportError(error.value());
     }
 
-    setState(ProcessState::kRunning);  // Can fail if we've terminated already
-    return tryReportCompletion(ProcessState::kRunning);
+    if (setState(ProcessState::kRunning))
+    {
+        return tryReportCompletion(ProcessState::kRunning);
+    }
+    else  // We have terminated after starting up
+    {
+        SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(
+            termination_result_.has_value(), "setState(kRunning) failed without a termination result");
+        // Assuming we have already waited for all ready conditions that require waiting, we have now started up and
+        // terminated. Therefore, as long as the termination was valid, we have satisfied any running or terminated
+        // condition.
+        if (termination_result_.value() == true)
+        {
+            return tryReportSuccess();
+        }
+        else
+        {
+            // We successfully reached kRunning, but reached kTerminated in error. This affects whether the error
+            // occurred before or after reaching the ready state
+            return tryReportError(getErrorAfterState(ProcessState::kRunning));
+        }
+    }
+}
+
+IComponent::ComponentError ProcessInfoNode::getErrorAfterState(ProcessState state_reached) const
+{
+    if (const configuration::ProcessState* state_condition =
+            std::get_if<configuration::ProcessState>(&config_.component_properties.ready_condition))
+    {
+        if (*state_condition == configuration::ProcessState::Terminated && state_reached == ProcessState::kRunning)
+        {
+            return IComponent::ComponentError::kErrorBeforeReady;
+        }
+    }
+    if (state_reached < ProcessState::kRunning)
+    {
+        return IComponent::ComponentError::kErrorBeforeReady;
+    }
+    return IComponent::ComponentError::kErrorAfterReady;
 }
 
 void ProcessInfoNode::setupControlClientChannel()

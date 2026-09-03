@@ -22,9 +22,11 @@
 #include "score/mw/launch_manager/process_group_manager/details/safe_process_map.hpp"
 #include "score/mw/launch_manager/process_group_manager/process_state.hpp"
 #include "score/mw/launch_manager/supervision_control_client/isupervision_event_publisher.hpp"
+#include "score/result/result.h"
 #include <score/stop_token.hpp>
 #include <atomic>
 #include <chrono>
+#include <shared_mutex>
 
 namespace score::mw::lifecycle::internal
 {
@@ -92,6 +94,10 @@ class ProcessInfoNode final : public IComponent
     [[nodiscard]] ControlClientChannelP getControlClientChannel() const;
 
   private:
+    /// @brief Given that an error has occurred after the process has reached state @p state_reached, return an error
+    /// indicating whether this was an error before the ready condition was satisfied, or after.
+    ComponentError getErrorAfterState(ProcessState state_reached) const;
+
     /// @brief Returns true if this process terminating with code @p exit_code is acceptable even when termination has
     /// not been requested.
     bool terminationIsValid(int32_t exit_code) const;
@@ -199,6 +205,10 @@ class ProcessInfoNode final : public IComponent
 
     /// @brief Unique hash to identify this node.
     IdentifierHash identifier_;
+
+    /// @brief If the process has terminated during the last startup, holds a bool indicating whether the termination is
+    /// valid or not
+    std::optional<bool> termination_result_{};
 };
 
 }  // namespace score::mw::lifecycle::internal
