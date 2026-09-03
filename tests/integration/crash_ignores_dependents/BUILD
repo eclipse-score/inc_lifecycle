@@ -41,7 +41,8 @@ integration_test(
         ":config",
         ":test_process",
         ":process_crashing_once",
-        "//score/launch_manager",
+        "//score/launch_manager:launch_manager_debug_asserts",
     ],
+    binary_renames = {"//score/launch_manager:launch_manager_debug_asserts": "launch_manager"},
     config = ":crash_ignores_dependents.json",
 )

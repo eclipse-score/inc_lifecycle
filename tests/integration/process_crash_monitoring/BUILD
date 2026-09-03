@@ -41,8 +41,9 @@ integration_test(
         ":config",
         ":control_client_test_driver",
         ":process_crashing_on_runtime",
-        "//score/launch_manager",
+        "//score/launch_manager:launch_manager_debug_asserts",
         "//tests/utils/test_helper:verification_process",
     ],
+    binary_renames = {"//score/launch_manager:launch_manager_debug_asserts": "launch_manager"},
     config = ":process_crash_monitoring.json",
 )

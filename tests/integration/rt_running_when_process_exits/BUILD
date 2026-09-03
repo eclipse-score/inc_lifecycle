@@ -42,8 +42,9 @@ integration_test(
     binaries = [
         ":control_client_test_driver",
         ":filesystem_reader",
-        "//score/launch_manager",
+        "//score/launch_manager:launch_manager_debug_asserts",
         "//tests/utils/testing_utils:touch_file.sh",
     ],
+    binary_renames = {"//score/launch_manager:launch_manager_debug_asserts": "launch_manager"},
     config = ":rt_running_when_process_exits.json",
 )

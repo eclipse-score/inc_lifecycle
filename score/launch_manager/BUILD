@@ -46,6 +46,13 @@ alias(
     actual = "//score/launch_manager/src/daemon:launch_manager",
 )
 
+# Debug-assert build variant of the daemon, for integration tests only —
+# see //score/launch_manager/src/daemon:launch_manager_debug_asserts.
+alias(
+    name = "launch_manager_debug_asserts",
+    actual = "//score/launch_manager/src/daemon:launch_manager_debug_asserts",
+)
+
 cc_library(
     name = "error",
     hdrs = ["src/execution_error.h"],

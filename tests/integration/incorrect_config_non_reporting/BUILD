@@ -29,7 +29,8 @@ integration_test(
     srcs = ["test_incorrect_config_non_reporting.py"],
     binaries = [
         ":non_reporting_process",
-        "//score/launch_manager",
+        "//score/launch_manager:launch_manager_debug_asserts",
     ],
+    binary_renames = {"//score/launch_manager:launch_manager_debug_asserts": "launch_manager"},
     config = ":non_reporting_config.json",
 )

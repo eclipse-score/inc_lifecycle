@@ -24,6 +24,7 @@ def integration_test(
         files = [],
         config = None,
         install_prefix = SCORE_TEST_INSTALL_PREFIX,
+        binary_renames = {},
         **kwargs):
     """Creates an integration test.
 
@@ -41,6 +42,10 @@ def integration_test(
         files: Additional files
         config: Launch manager configuration file
         install_prefix: Installation prefix for the test environment
+        binary_renames: Optional {label: filename} overrides for entries in
+            `binaries` — lets a differently-named target (e.g. a debug-assert
+            build variant) be installed under the filename the test scripts
+            expect (e.g. "launch_manager").
         **kwargs: Miscellaneous arguments passed through to `py_itf_test`
     """
 
@@ -49,6 +54,7 @@ def integration_test(
         srcs = binaries,
         attributes = pkg_attributes(mode = "0555"),
         prefix = "tests/{}".format(name),
+        renames = binary_renames,
     )
 
     if config:

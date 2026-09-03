@@ -67,7 +67,8 @@ integration_test(
         ":control_client_test_driver",
         ":native",
         ":reporting",
-        "//score/launch_manager",
+        "//score/launch_manager:launch_manager_debug_asserts",
     ],
+    binary_renames = {"//score/launch_manager:launch_manager_debug_asserts": "launch_manager"},
     config = ":process_fd_leak.json",
 )
