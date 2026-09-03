@@ -166,32 +166,32 @@ IComponent::RequestResult ProcessInfoNode::tryHandleTermination(int32_t process_
     exit_code_ = process_status;
     IComponent::RequestResult res = {IComponent::RequestState::kWaiting};
 
+    ProcessState starting = ProcessState::kStarting;
+
+    if (terminationIsValid(process_status))
+    {
+        termination_result_ = true;
+    }
+    else
+    {
+        termination_result_ = false;
+    }
+
     if (has_semaphore_.exchange(false))
     {
+        // Termination was requested, we don't care if exit code is not 0 (a SIGKILL will set exit code to 9)
         setState(ProcessState::kTerminated);
 
-        // Termination was requested, we don't care if exit code is not 0 (a SIGKILL will set exit code to 9)
         unblockSync();
         static_cast<void>(terminator_.post());
     }
-    else if (getState() == ProcessState::kStarting)
+    else if (process_state_.compare_exchange_strong(starting, ProcessState::kTerminated))
     {
-        setState(ProcessState::kTerminated);
         // In this case, we can't return anything because any definite result given here would invalidate startup
         // recovery actions
-
-        if (terminationIsValid(process_status))
-        {
-            termination_result_ = true;
-        }
-        else
-        {
-            termination_result_ = false;
-        }
-
         unblockSync();
     }
-    else
+    else  // This is a termination during normal execution
     {
         setState(ProcessState::kTerminated);
 

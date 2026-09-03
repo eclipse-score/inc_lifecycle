@@ -206,7 +206,7 @@ class ProcessInfoNode final : public IComponent
     /// @brief Unique hash to identify this node.
     IdentifierHash identifier_;
 
-    /// @brief If the process has terminated during the last startup, holds a bool indicating whether the termination is
+    /// @brief If the process has terminated since the last startup, holds a bool indicating whether the termination is
     /// valid or not
     std::optional<bool> termination_result_{};
 };
