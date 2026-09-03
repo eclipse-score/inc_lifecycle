@@ -423,7 +423,10 @@ ProcessInfoNode::handleProcessStarted(const score::cpp::stop_token& stop_token)
         case score::mw::lifecycle::internal::SafeProcessMapReturnType::kOk:  // Normal case, entry was put in
                                                                              // the map, process still running
             return handleProcessStillStarting(stop_token);
-        case score::mw::lifecycle::internal::SafeProcessMapReturnType::kYield:  // Process has already exited
+        case score::mw::lifecycle::internal::SafeProcessMapReturnType::kYield:
+            // Process has already exited and tryHandleTermination has completed.
+            // tryHandleTermination is called by insertIfNotTerminated() and therefore executes in sequence in this
+            // case.
             return handleProcessAlreadyTerminated();
         default:  // Error case when pn == -1
             // really bad fatal error, should not happen, treat as a failure to set the state & kill the process
