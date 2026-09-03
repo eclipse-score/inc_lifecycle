@@ -33,13 +33,13 @@ class ISupervisionFactory
     virtual ~ISupervisionFactory() noexcept = default;
 
     /// @brief Set up alive supervision for the identified process. Alive supervision is not started until the process
-    /// reports its activation using the ISupervisionStateReporter.
+    /// reports its activation using the IActivationStateReporter.
     /// @param [in] id Identifier of the process.
     /// @param [in] uid The configured uid of the process.
     /// @param [in] config Alive supervision configuration for the process.
     /// @returns Nullptr if the construction failed, handle for the process to start and stop its own supervision
     /// otherwise.
-    virtual std::unique_ptr<ISupervisionStateReporter> constructSupervision(
+    virtual std::unique_ptr<IActivationStateReporter> constructSupervision(
         const IdentifierHash id,
         const uid_t uid,
         const internal::configuration::ComponentAliveSupervision& config) = 0;

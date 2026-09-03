@@ -15,8 +15,8 @@
 #include "score/mw/launch_manager/process_group_manager/details/process_info_node.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/safe_process_map.hpp"
 #include "score/mw/launch_manager/process_group_manager/mock_iprocess.hpp"
+#include "score/mw/launch_manager/supervision_control_client/mock_activation_state_reporter.hpp"
 #include "score/mw/launch_manager/supervision_control_client/mock_supervision_factory.hpp"
-#include "score/mw/launch_manager/supervision_control_client/mock_supervision_state_reporter.hpp"
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <chrono>
@@ -54,9 +54,9 @@ class ProcessInfoNodeFixture : public ::testing::Test
         }));
     }
 
-    virtual std::unique_ptr<NiceMock<MockSupervisionStateReporter>> constructDefaultEventPublisher() const
+    virtual std::unique_ptr<NiceMock<MockActivationStateReporter>> constructDefaultEventPublisher() const
     {
-        auto mock_publisher = std::make_unique<NiceMock<MockSupervisionStateReporter>>();
+        auto mock_publisher = std::make_unique<NiceMock<MockActivationStateReporter>>();
         ON_CALL(*mock_publisher, reportActivation).WillByDefault(Return(true));
         ON_CALL(*mock_publisher, reportDeactivation).WillByDefault(Return(true));
         return mock_publisher;
@@ -65,7 +65,7 @@ class ProcessInfoNodeFixture : public ::testing::Test
     void expectActivationReport(int times = 1)
     {
         EXPECT_CALL(mock_factory_, constructSupervision).WillOnce(InvokeWithoutArgs([times]() {
-            auto mock_publisher = std::make_unique<NiceMock<MockSupervisionStateReporter>>();
+            auto mock_publisher = std::make_unique<NiceMock<MockActivationStateReporter>>();
             EXPECT_CALL(*mock_publisher, reportActivation).Times(times).WillRepeatedly(Return(true));
             return mock_publisher;
         }));
@@ -74,7 +74,7 @@ class ProcessInfoNodeFixture : public ::testing::Test
     void expectDeactivationReport(int times = 1)
     {
         EXPECT_CALL(mock_factory_, constructSupervision).WillOnce(InvokeWithoutArgs([times]() {
-            auto mock_publisher = std::make_unique<NiceMock<MockSupervisionStateReporter>>();
+            auto mock_publisher = std::make_unique<NiceMock<MockActivationStateReporter>>();
             EXPECT_CALL(*mock_publisher, reportDeactivation).Times(times).WillRepeatedly(Return(true));
             return mock_publisher;
         }));

@@ -15,7 +15,7 @@
 
 #include "score/mw/launch_manager/common/identifier_hash.hpp"
 #include "score/mw/launch_manager/common/log.hpp"
-#include "score/mw/launch_manager/supervision_control_client/isupervision_state_reporter.hpp"
+#include "score/mw/launch_manager/supervision_control_client/iactivation_state_reporter.hpp"
 #include "score/mw/launch_manager/supervision_control_client/supervision_event.hpp"
 #include <ctime>
 
@@ -28,7 +28,7 @@ namespace mw::lifecycle
 /// @brief A supervision handle can be used by a process to manage its own alive supervision. It should be constructed
 /// by the alive monitor and provided to a process so that the process need not have access to the supervision buffer.
 /// The process can then report its own activation and deactivation.
-class SupervisionHandle : public ISupervisionStateReporter
+class SupervisionHandle : public IActivationStateReporter
 {
   public:
     /// @brief Construct a new supervision handle.

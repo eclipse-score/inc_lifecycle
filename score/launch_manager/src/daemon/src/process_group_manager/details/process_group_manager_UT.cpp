@@ -15,8 +15,8 @@
 
 #include "score/mw/launch_manager/alive_monitor/mock_alive_monitor.hpp"
 #include "score/mw/launch_manager/recovery_client/mock_irecovery_client.h"
+#include "score/mw/launch_manager/supervision_control_client/mock_activation_state_reporter.hpp"
 #include "score/mw/launch_manager/supervision_control_client/mock_supervision_factory.hpp"
-#include "score/mw/launch_manager/supervision_control_client/mock_supervision_state_reporter.hpp"
 #include "score/mw/launch_manager/watchdog/mock_IWatchdogIf.hpp"
 
 #include <gmock/gmock.h>
@@ -140,7 +140,7 @@ class ProcessGroupManagerWatchdogTest : public Test
         ON_CALL(*recovery_client_, sendRecoveryRequest(_)).WillByDefault(Return(true));
 
         ON_CALL(factory_, constructSupervision).WillByDefault(InvokeWithoutArgs([]() {
-            auto publisher = std::make_unique<NiceMock<MockSupervisionStateReporter>>();
+            auto publisher = std::make_unique<NiceMock<MockActivationStateReporter>>();
             ON_CALL(*publisher, reportActivation).WillByDefault(Return(true));
             ON_CALL(*publisher, reportDeactivation).WillByDefault(Return(true));
             return publisher;
