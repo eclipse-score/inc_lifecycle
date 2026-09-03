@@ -97,6 +97,7 @@ cc_library(
         "//score/launch_manager/src/daemon/src/recovery_client",
         "//score/launch_manager/src/daemon/src/supervision_control_client:isupervision_control_notifier",
         "//score/launch_manager/src/daemon/src/watchdog:i_watchdog_if",
+        "//score/launch_manager/src/lm_control",
         "@score_baselibs//score/language/futurecpp",
     ],
 )

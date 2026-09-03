@@ -36,6 +36,7 @@
 #include "score/mw/launch_manager/recovery_client/recovery_client.hpp"
 #include "score/mw/launch_manager/supervision_control_client/isupervision_control_notifier.hpp"
 #include "score/mw/launch_manager/watchdog/IWatchdogIf.hpp"
+#include "score/mw/lifecycle/details/lm_control_service.h"
 
 namespace score::mw::lifecycle::internal
 {
@@ -128,6 +129,10 @@ class ProcessGroupManager final
     const IdentifierHash recovery_state_{"fallback"};
 
   private:
+    /// @brief Start offering the service for control clients to connect to.
+    /// @details The service offer will be destroyed once the return value goes out of scope.
+    [[nodiscard]] LmControlSkeleton offerService();
+
     /// @brief Handle a single recovery request emitted by Alive supervision.
     void handleRecoveryRequest(const IdentifierHash& process_identifier);
 

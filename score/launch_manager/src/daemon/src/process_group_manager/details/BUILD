@@ -222,6 +222,7 @@ cc_library(
         "//score/launch_manager/src/daemon/src/configuration:config",
         "//score/launch_manager/src/daemon/src/osal:semaphore",
         "//score/launch_manager/src/daemon/src/process_group_manager:iprocess",
+        "//score/launch_manager/src/lm_control",
     ],
 )
 

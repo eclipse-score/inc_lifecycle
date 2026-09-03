@@ -206,8 +206,15 @@ class BasicLmControlImpl final : public ILmControl
         {
             return score::MakeUnexpected(ExecErrc::kInvalidArguments);
         }
-        std::lock_guard<std::mutex> lock{callback_mutex_};
-        callback_ = std::move(callback);
+
+        {
+            std::lock_guard<std::mutex> lock{callback_mutex_};
+            callback_ = std::move(callback);
+        }
+
+        // Check for any pending events from before the handler was installed.
+        onActivationResult();
+
         return {};
     }
 
