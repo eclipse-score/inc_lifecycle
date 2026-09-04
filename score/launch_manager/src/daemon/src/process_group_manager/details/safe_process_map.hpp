@@ -25,15 +25,22 @@ namespace score::mw::lifecycle::internal
 /// @brief Struct representing data in a map item
 struct ProcessInfoData
 {
-    int32_t status_ = -1;              ///< Exit status for process
-    IComponent* component_ = nullptr;  ///< Pointer to the termination callback associated with this item.
+    /// @brief Exit status for process
+    int32_t status_ = -1;
+    /// @brief Pointer to the termination callback associated with this item.
+    IComponent* component_ = nullptr;
 };
+
 /// @brief Struct representing an item in the map.
 struct ProcessTreeNode
 {
-    uint32_t pid_left_ = 0xFFFFFFFF;   ///< Odd branch for binary tree of process IDs (left child).
-    uint32_t pid_right_ = 0xFFFFFFFF;  ///< Even branch for binary tree of process IDs (right child).
-    osal::ProcessID pid_ = -1;         ///< Process ID associated with this item.
+    /// @brief Odd branch for binary tree of process IDs (left child).
+    uint32_t pid_left_ = 0xFFFFFFFF;
+    /// @brief Even branch for binary tree of process IDs (right child).
+    uint32_t pid_right_ = 0xFFFFFFFF;
+    /// @brief Process ID associated with this item.
+    osal::ProcessID pid_ = -1;
+    /// @brief Process info data associated with this node.
     ProcessInfoData data_;
 };
 

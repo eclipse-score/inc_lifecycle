@@ -46,9 +46,12 @@ class IpcBase
     /// @brief Common ipc initialization return type.
     enum class EIpcInitResult : std::uint8_t
     {
-        kOk = 0U,               ///< Connection successful
-        kFailed = 1U,           ///< Connection failed - Generic
-        kPermissionDenied = 2U  ///< Connection failed - Permission Denied
+        /// @brief Connection successful
+        kOk = 0U,
+        /// @brief Connection failed - Generic
+        kFailed = 1U,
+        /// @brief Connection failed - Permission Denied
+        kPermissionDenied = 2U
     };
 
     /// @brief Return the ipc path (i.e. shared memory path)
@@ -96,9 +99,12 @@ class IpcBase
     /// require an enumeration rather than a simple boolean flag
     enum class EIpcPeekResult : std::uint8_t
     {
-        kOk = 0U,            ///< Data was successfully read
-        kNoDataToRead = 1U,  ///< No data available for reading
-        kIpcError = 2U       ///< Ipc connection is broken
+        /// @brief Data was successfully read
+        kOk = 0U,
+        /// @brief No data available for reading
+        kNoDataToRead = 1U,
+        /// @brief Ipc connection is broken
+        kIpcError = 2U
     };
 
     /// @brief Check if a new element can be read from IPC channel without removing the element
