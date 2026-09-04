@@ -24,9 +24,6 @@
 namespace score::mw::lifecycle::internal::saf::timers
 {
 
-// coverity[autosar_cpp14_m3_4_1_violation] value is referenced in multiple files, but depending on build package.
-constexpr int64_t k_nanoSecondsPerSecond{1000000000};
-
 /// @brief Features to realize robust cyclic / periodic loops on a POSIX-compliant system (e.g. QNX, Linux)
 ///
 /// @details All direct system calls are wrapped behind an interface for the sake of simpler unit testing w/ possibility
@@ -57,11 +54,11 @@ class CycleTimer
     /// execution. The method returns immediately right on the first error occurrence. The implementation will set
     /// sleepIntervalNs attribute on success.
     /// @todo Use conversion operators to switch between ms and ns
-    int64_t init(int64_t f_sleepIntervalNs) noexcept;
+    std::chrono::nanoseconds init(std::chrono::nanoseconds f_sleepIntervalNs) noexcept;
 
     /// @brief Start the cyclic timer
     /// @return start timestamp in nano seconds (0ns in case of failure)
-    NanoSecondType start() noexcept;
+    std::chrono::nanoseconds start() noexcept;
 
     /// @pre init() has been invoked with success
     /// @post calcNextShot() will be invoked
@@ -78,10 +75,11 @@ class CycleTimer
     /* RULECHECKER_comment(0, 4, check_cheap_to_copy_in_parameter, "f_exitRequested_r is passed as reference\
        to refer to original object", true_no_defect) */
     template <typename TerminationSignalPredType>
-    int sleep(const TerminationSignalPredType& f_exitRequested_r, std::uint64_t& f_nsOverDeadline_r) const noexcept
+    int sleep(const TerminationSignalPredType& f_exitRequested_r, std::chrono::nanoseconds& f_nsOverDeadline_r)
+        const noexcept
     {
         struct timespec now = {};
-        f_nsOverDeadline_r = 0U;
+        f_nsOverDeadline_r = std::chrono::nanoseconds{0U};
         // If clockGetTime fails, we do not calculate the time (possibly) passed the deadline
         // and will not use the returned timestamp.
         // In case of such clock error, the clockNanosleep below will fail as well and the error is handled there.
@@ -89,11 +87,11 @@ class CycleTimer
         {
             if ((now.tv_sec > deadline.tv_sec) || ((now.tv_sec == deadline.tv_sec) && (now.tv_nsec > deadline.tv_nsec)))
             {
-                const long secDiff{now.tv_sec - deadline.tv_sec};
-                const long nsDiff{now.tv_nsec - deadline.tv_nsec};
+                const std::chrono::seconds secDiff{now.tv_sec - deadline.tv_sec};
+                const std::chrono::nanoseconds nsDiff{now.tv_nsec - deadline.tv_nsec};
                 // Arithmetic overflow unlikely (deadline would have to be missed by hundreds of years)
-                const long nsOverDeadlineSigned{nsDiff + k_nanoSecondsPerSecond * secDiff};
-                f_nsOverDeadline_r = static_cast<std::uint64_t>(nsOverDeadlineSigned);
+                const std::chrono::nanoseconds nsOverDeadlineSigned{nsDiff + secDiff};
+                f_nsOverDeadline_r = nsOverDeadlineSigned;
                 return kDeadlineAlreadyOver;
             }
         }
@@ -127,9 +125,7 @@ class CycleTimer
     const score::mw::lifecycle::internal::saf::timers::OsClockInterface* osInterface;
 
     /// @brief Cycle time interval value in nanoseconds
-    ///
-    /// @todo NanoSeconds as concrete type
-    int64_t sleepIntervalNs;
+    std::chrono::nanoseconds sleepIntervalNs;
 
     /// @brief Contains the absolute time until when to sleep
     ///

@@ -16,10 +16,9 @@
 
 /* RULECHECKER_comment(0, 4, {check_include_time}, "Monotonic clock is needed from this header.\
     other clocks and time format is not used.", true_no_defect) */
+#include <chrono>
 #include <cstdint>
 #include <ctime>
-
-#include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
 
 namespace score::mw::lifecycle::internal::saf::timers
 {
@@ -42,25 +41,22 @@ class TimeConversion
 
     /// Convert time value in timespec (second and nanosecond) to nanoseconds
     /// @param [in] f_timespec    Time value in timespec (second and nanosecond)
-    /// @return NanoSecondType    Time value converted to nanoseconds
+    /// @return std::chrono::nanoseconds    Time value converted to nanoseconds
     ///                           (returns 0 in case of an invalid timespec)
-    static NanoSecondType convertToNanoSec(const timespec f_timespec) noexcept(true);
+    static std::chrono::nanoseconds convertToNanoSec(const timespec f_timespec) noexcept(true);
 
     /// Convert time value in milliseconds to nanoseconds
     /// @param [in]    f_timeValueMilliSec    Time value in milliseconds unit
-    /// @return NanoSecondType  Time value converted to nanoseconds
+    /// @return std::chrono::nanoseconds  Time value converted to nanoseconds
     ///                         (returns 0 in case of an error)
-    static NanoSecondType convertMilliSecToNanoSec(const double f_timeValueMilliSec) noexcept(true);
+    static std::chrono::nanoseconds convertMilliSecToNanoSec(
+        const std::chrono::milliseconds f_timeValueMilliSec) noexcept(true);
 
     /// Convert time value in nanoseconds to milliseconds
     /// @param [in]    f_timeValueNanoSec    Time value in nanoseconds unit
     /// @return double  Time value converted to milliseconds
-    static double convertNanoSecToMilliSec(const NanoSecondType f_timeValueNanoSec) noexcept(true);
-
-    /// Factor for conversion from seconds to nanoseconds
-    static constexpr uint32_t k_nanoSecInSec{static_cast<uint32_t>(1000U) * 1000U * 1000U};
-    /// Factor for conversion from milliseconds to nanoseconds
-    static constexpr double k_nanoSecInMilliSec{1000.0 * 1000.0};
+    static std::chrono::milliseconds convertNanoSecToMilliSec(
+        const std::chrono::nanoseconds f_timeValueNanoSec) noexcept(true);
 };
 
 }  // namespace score::mw::lifecycle::internal::saf::timers

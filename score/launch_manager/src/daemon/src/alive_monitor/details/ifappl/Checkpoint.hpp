@@ -62,13 +62,13 @@ class Checkpoint : public saf::common::Observable<Checkpoint>
     ~Checkpoint() override = default;
 
     /// @brief Get timestamp
-    /// @return NanoSecondType  Timestamp value of the reported checkpoint in [nano seconds]
-    score::mw::lifecycle::internal::saf::timers::NanoSecondType getTimestamp(void) const noexcept(true);
+    /// @return std::chrono::nanoseconds  Timestamp value of the reported checkpoint in [nano seconds]
+    std::chrono::nanoseconds getTimestamp(void) const noexcept(true);
 
     /// @brief Push data to checkpoint observer
     /// @details Push the checkpoint timestamp to the checkpoint observer to notify it was reported
     /// @param [in] f_timestamp     Timestamp value captured when the checkpoint was reported in [nano seconds]
-    void pushData(const score::mw::lifecycle::internal::saf::timers::NanoSecondType f_timestamp) noexcept(true);
+    void pushData(const std::chrono::nanoseconds f_timestamp) noexcept(true);
 
     /// @brief Set data loss event
     /// @details Set data loss event in the checkpoint observer
@@ -91,7 +91,7 @@ class Checkpoint : public saf::common::Observable<Checkpoint>
     bool isDataLossEvent;
 
     /// @brief Timestamp value in [nano seconds]
-    score::mw::lifecycle::internal::saf::timers::NanoSecondType timestamp;
+    std::chrono::nanoseconds timestamp;
 };
 
 }  // namespace score::mw::lifecycle::internal::saf::ifappl

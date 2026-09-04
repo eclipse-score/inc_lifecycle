@@ -73,7 +73,7 @@ bool SupervisionManager::constructWorker(
     return true;
 }
 
-void SupervisionManager::checkInterfaceForNewData(const timers::NanoSecondType f_syncTimestamp)
+void SupervisionManager::checkInterfaceForNewData(const std::chrono::nanoseconds f_syncTimestamp)
 {
     for (auto& aliveInterface : aliveInterfaces)
     {
@@ -81,7 +81,7 @@ void SupervisionManager::checkInterfaceForNewData(const timers::NanoSecondType f
     }
 }
 
-void SupervisionManager::evaluateSupervisions(const timers::NanoSecondType f_syncTimestamp)
+void SupervisionManager::evaluateSupervisions(const std::chrono::nanoseconds f_syncTimestamp)
 {
     for (auto& alive : aliveSupervisions)
     {
@@ -101,7 +101,7 @@ bool SupervisionManager::hasAnyRecoveryEnqueueFailed() const noexcept
     return false;
 }
 
-void SupervisionManager::performCyclicTriggers(const timers::NanoSecondType f_syncTimestamp)
+void SupervisionManager::performCyclicTriggers(const std::chrono::nanoseconds f_syncTimestamp)
 {
     checkInterfaceForNewData(f_syncTimestamp);
     evaluateSupervisions(f_syncTimestamp);

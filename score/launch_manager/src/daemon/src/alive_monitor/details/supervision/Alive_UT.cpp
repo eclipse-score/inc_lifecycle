@@ -29,6 +29,8 @@ using namespace testing;
 using EStatus = score::mw::lifecycle::internal::saf::supervision::Alive::EStatus;
 using score::mw::lifecycle::internal::configuration::ComponentAliveSupervision;
 
+using namespace std::chrono_literals;
+
 namespace
 {
 
@@ -114,23 +116,23 @@ struct AliveFixture
     }
 
     /// Send an activation event and notify observers.
-    void activateProcess(long ts)
+    void activateProcess(std::chrono::nanoseconds ts)
     {
-        processState.event.systemClockTimestamp.tv_nsec = ts;
+        processState.event.systemClockTimestamp.tv_nsec = ts.count();
         processState.event.eventType = score::mw::lifecycle::SupervisionEventType::kActivation;
         processState.pushData();
     }
 
     /// Send a deactivation event and notify observers.
-    void deactivateProcess(long ts)
+    void deactivateProcess(std::chrono::nanoseconds ts)
     {
-        processState.event.systemClockTimestamp.tv_nsec = ts;
+        processState.event.systemClockTimestamp.tv_nsec = ts.count();
         processState.event.eventType = score::mw::lifecycle::SupervisionEventType::kDeactivation;
         processState.pushData();
     }
 
     /// Report one alive heartbeat checkpoint at the given timestamp.
-    void reportHeartbeat(score::mw::lifecycle::internal::saf::timers::NanoSecondType timestamp)
+    void reportHeartbeat(std::chrono::nanoseconds timestamp)
     {
         checkpoint.pushData(timestamp);
     }
@@ -161,12 +163,12 @@ TEST_F(AliveSupervisionTest, AliveTransitionsOkToExpiredOnMissingHeartbeat)
 
     EXPECT_EQ(fix.alive->getStatus(), EStatus::kDeactivated);
 
-    fix.activateProcess(10U);
-    fix.alive->evaluate(11U);
+    fix.activateProcess(10ns);
+    fix.alive->evaluate(11ns);
     EXPECT_EQ(fix.alive->getStatus(), EStatus::kOk);
 
     // No heartbeats; reference cycle ends at 10 + 100000 = 1000010
-    fix.alive->evaluate(1000011U);
+    fix.alive->evaluate(1000011ns);
     EXPECT_EQ(fix.alive->getStatus(), EStatus::kExpired);
 }
 
@@ -178,18 +180,18 @@ TEST_F(AliveSupervisionTest, AliveStaysOkWithCorrectHeartbeats)
 
     EXPECT_CALL(*fix.mockClient, sendRecoveryRequest(_)).Times(0);
 
-    fix.activateProcess(10U);
-    fix.alive->evaluate(11U);
+    fix.activateProcess(10ns);
+    fix.alive->evaluate(11ns);
     EXPECT_EQ(fix.alive->getStatus(), EStatus::kOk);
 
     // Cycle 1: one heartbeat at t=500 (within [10, 1010]), evaluate at t=1011
-    fix.reportHeartbeat(500U);
-    fix.alive->evaluate(1011U);
+    fix.reportHeartbeat(500ns);
+    fix.alive->evaluate(1011ns);
     EXPECT_EQ(fix.alive->getStatus(), EStatus::kOk);
 
     // Cycle 2: one heartbeat at t=1500 (within [1010, 2010]), evaluate at t=2011
-    fix.reportHeartbeat(1500U);
-    fix.alive->evaluate(2011U);
+    fix.reportHeartbeat(1500ns);
+    fix.alive->evaluate(2011ns);
     EXPECT_EQ(fix.alive->getStatus(), EStatus::kOk);
 }
 
@@ -203,12 +205,12 @@ TEST_F(AliveSupervisionTest, AliveReportsEnqueueFailureWhenRingBufferFull)
 
     EXPECT_CALL(*fix.mockClient, sendRecoveryRequest(fix.kProcessIdentifier)).Times(1).WillOnce(Return(false));
 
-    fix.activateProcess(10U);
-    fix.alive->evaluate(11U);
+    fix.activateProcess(10ns);
+    fix.alive->evaluate(11ns);
 
     EXPECT_FALSE(fix.alive->hasRecoveryEnqueueFailed());
 
-    fix.alive->evaluate(1000011U);
+    fix.alive->evaluate(1000011ns);
     EXPECT_EQ(fix.alive->getStatus(), EStatus::kExpired);
     EXPECT_TRUE(fix.alive->hasRecoveryEnqueueFailed());
 }
@@ -225,16 +227,16 @@ TEST_F(AliveSupervisionTest, AliveDebouncesThroughFailedBeforeExpired)
         .Times(1)
         .WillOnce(::testing::Return(true));
 
-    fix.activateProcess(10U);
-    fix.alive->evaluate(11U);
+    fix.activateProcess(10ns);
+    fix.alive->evaluate(11ns);
     EXPECT_EQ(fix.alive->getStatus(), EStatus::kOk);
 
     // First missed cycle: ok -> failed (tolerance not yet exceeded)
-    fix.alive->evaluate(1000011U);
+    fix.alive->evaluate(1000011ns);
     EXPECT_EQ(fix.alive->getStatus(), EStatus::kFailed);
 
     // Second missed cycle: tolerance exceeded -> expired
-    fix.alive->evaluate(2000011U);
+    fix.alive->evaluate(2000011ns);
     EXPECT_EQ(fix.alive->getStatus(), EStatus::kExpired);
 }
 
@@ -245,12 +247,12 @@ TEST_F(AliveSupervisionTest, DeactivatesOnSupervisionDeactivation)
 
     EXPECT_CALL(*fix.mockClient, sendRecoveryRequest(_)).Times(0);
 
-    fix.activateProcess(10U);
-    fix.alive->evaluate(11U);
+    fix.activateProcess(10ns);
+    fix.alive->evaluate(11ns);
     EXPECT_EQ(fix.alive->getStatus(), EStatus::kOk);
 
-    fix.deactivateProcess(20U);
-    fix.alive->evaluate(21U);
+    fix.deactivateProcess(20ns);
+    fix.alive->evaluate(21ns);
     EXPECT_EQ(fix.alive->getStatus(), EStatus::kDeactivated);
 }
 
@@ -264,16 +266,16 @@ TEST_F(AliveSupervisionTest, ReactivatesAfterDeactivation)
 
     EXPECT_CALL(*fix.mockClient, sendRecoveryRequest(_)).Times(0);
 
-    fix.activateProcess(10U);
-    fix.alive->evaluate(11U);
+    fix.activateProcess(10ns);
+    fix.alive->evaluate(11ns);
     EXPECT_EQ(fix.alive->getStatus(), EStatus::kOk);
 
-    fix.deactivateProcess(20U);
-    fix.alive->evaluate(21U);
+    fix.deactivateProcess(20ns);
+    fix.alive->evaluate(21ns);
     EXPECT_EQ(fix.alive->getStatus(), EStatus::kDeactivated);
 
-    fix.activateProcess(30U);
-    fix.alive->evaluate(31U);
+    fix.activateProcess(30ns);
+    fix.alive->evaluate(31ns);
     EXPECT_EQ(fix.alive->getStatus(), EStatus::kOk);
 }
 
@@ -285,13 +287,13 @@ TEST_F(AliveSupervisionTest, MaxIndicationViolationExpires)
 
     EXPECT_CALL(*fix.mockClient, sendRecoveryRequest(fix.kProcessIdentifier)).Times(1).WillOnce(Return(true));
 
-    fix.activateProcess(10U);
-    fix.alive->evaluate(11U);
+    fix.activateProcess(10ns);
+    fix.alive->evaluate(11ns);
     EXPECT_EQ(fix.alive->getStatus(), EStatus::kOk);
 
     // Two heartbeats in one cycle violates max=1
-    fix.reportHeartbeat(100U);
-    fix.reportHeartbeat(200U);
-    fix.alive->evaluate(1000011U);
+    fix.reportHeartbeat(100ns);
+    fix.reportHeartbeat(200ns);
+    fix.alive->evaluate(1000011ns);
     EXPECT_EQ(fix.alive->getStatus(), EStatus::kExpired);
 }

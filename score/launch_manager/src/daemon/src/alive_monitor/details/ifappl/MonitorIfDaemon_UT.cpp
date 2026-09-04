@@ -72,23 +72,23 @@ struct MonitorIfDaemonFixture
     }
 
     /// Send an activation event and notify observers.
-    void activateProcess(long ts)
+    void activateProcess(std::chrono::nanoseconds ts)
     {
-        processState.event.systemClockTimestamp.tv_nsec = ts;
+        processState.event.systemClockTimestamp.tv_nsec = ts.count();
         processState.event.eventType = score::mw::lifecycle::SupervisionEventType::kActivation;
         processState.pushData();
     }
 
     /// Send a deactivation event and notify observers.
-    void deactivateProcess(long ts)
+    void deactivateProcess(std::chrono::nanoseconds ts)
     {
-        processState.event.systemClockTimestamp.tv_nsec = ts;
+        processState.event.systemClockTimestamp.tv_nsec = ts.count();
         processState.event.eventType = score::mw::lifecycle::SupervisionEventType::kDeactivation;
         processState.pushData();
     }
 
     /// Write a single checkpoint element into the IPC ring buffer.
-    void sendCheckpoint(timers::NanoSecondType ts)
+    void sendCheckpoint(std::chrono::nanoseconds ts)
     {
         ipcServer.sendEmplace(ts);
     }
@@ -99,7 +99,7 @@ struct MonitorIfDaemonFixture
         // Sending one element beyond capacity sets the ring-buffer overflow flag.
         for (uint32_t i = 0U; i <= ifappl::k_maxCheckpointBufferElements; ++i)
         {
-            ipcServer.sendEmplace(static_cast<timers::NanoSecondType>(i));
+            ipcServer.sendEmplace(static_cast<std::chrono::nanoseconds>(i));
         }
     }
 };
@@ -109,43 +109,43 @@ struct MonitorIfDaemonFixture
 class MonitorIfDaemonTest : public ::testing::Test
 {
   private:
-    timespec time_{};
-    static constexpr long kTimeStep = 100U;
+    std::chrono::nanoseconds time_{};
+    static constexpr std::chrono::nanoseconds kTimeStep{100U};
 
   protected:
     void SetUp() override
     {
         RecordProperty("TestType", "interface-test");
         RecordProperty("DerivationTechnique", "explorative-testing");
-        time_.tv_nsec = 0;
+        time_ = std::chrono::nanoseconds{0};
     }
 
   public:
     /// @brief Clock that increases at fixed intervals with each call
     [[nodiscard]]
-    timers::NanoSecondType mockClock()
+    std::chrono::nanoseconds mockClock()
     {
-        return time_.tv_nsec += kTimeStep;
+        return time_ += kTimeStep;
     }
 
     /// @brief Increase the time by @c count mockClock() calls
-    timers::NanoSecondType mockClockSkip(int count)
+    std::chrono::nanoseconds mockClockSkip(int count)
     {
-        return time_.tv_nsec += (kTimeStep * count);
+        return time_ += (kTimeStep * count);
     }
 
     /// @brief Get the current time plus an offset smaller than the tick size
     [[nodiscard]]
-    timers::NanoSecondType mockClockOffset() const
+    std::chrono::nanoseconds mockClockOffset() const
     {
-        return time_.tv_nsec + 50U;
+        return time_ + std::chrono::nanoseconds{50U};
     }
 
     /// @brief Get the time @c count mockClock() calls from now
     [[nodiscard]]
-    timers::NanoSecondType mockClockFuture(int count) const
+    std::chrono::nanoseconds mockClockFuture(int count) const
     {
-        return time_.tv_nsec + (kTimeStep * count);
+        return time_ + (kTimeStep * count);
     }
 };
 

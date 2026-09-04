@@ -51,7 +51,7 @@ void ObservableEventReader::deregisterObservableEvent(const IdentifierHash f_pro
     }
 }
 
-bool ObservableEventReader::distributeChanges(const timers::NanoSecondType f_syncTimestamp) noexcept
+bool ObservableEventReader::distributeChanges(const std::chrono::nanoseconds f_syncTimestamp) noexcept
 {
     // If push update is pending from previous cycle, push data for last change observable event.
     if (isPushPending)
@@ -95,7 +95,7 @@ bool ObservableEventReader::distributeChanges(const timers::NanoSecondType f_syn
 
 bool ObservableEventReader::pushUpdateTill(
     const LcmSupervisionEvent& f_event,
-    const timers::NanoSecondType f_syncTimestamp) noexcept
+    const std::chrono::nanoseconds f_syncTimestamp) noexcept
 {
     bool isSyncTimestampReached{false};
 
@@ -105,7 +105,7 @@ bool ObservableEventReader::pushUpdateTill(
         processMapIterator->second->event.eventType = f_event.eventType;
         processMapIterator->second->event.systemClockTimestamp = f_event.systemClockTimestamp;
 
-        timers::NanoSecondType changedProcessTimestamp{
+        std::chrono::nanoseconds changedProcessTimestamp{
             timers::TimeConversion::convertToNanoSec(f_event.systemClockTimestamp)};
 
         // If event occurred before synchronization timestamp, push data for current cycle.

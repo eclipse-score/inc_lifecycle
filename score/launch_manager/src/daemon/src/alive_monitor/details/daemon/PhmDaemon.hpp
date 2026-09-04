@@ -51,7 +51,6 @@ class PhmDaemon
     using RecoveryClient = score::mw::lifecycle::IRecoveryClient;
     using CycleTimer = score::mw::lifecycle::internal::saf::timers::CycleTimer;
     using CycleTimeValidator = score::mw::lifecycle::internal::saf::timers::CycleTimeValidator;
-    using NanoSecondType = score::mw::lifecycle::internal::saf::timers::NanoSecondType;
     using ObservableEventReader = score::mw::lifecycle::internal::saf::ifexm::ObservableEventReader;
     using Config = score::mw::lifecycle::internal::configuration::Config;
 
@@ -93,18 +92,17 @@ class PhmDaemon
             return EInitCode::kConstructFlatCfgFactoryFailed;
         }
 
-        int64_t cycleTimeModified{static_cast<std::int64_t>(
-            timers::TimeConversion::convertMilliSecToNanoSec(config.aliveSupervision().evaluation_cycle_ms))};
+        std::chrono::nanoseconds cycleTimeModified{timers::TimeConversion::convertMilliSecToNanoSec(
+            std::chrono::milliseconds{config.aliveSupervision().evaluation_cycle_ms})};
 
         cycleTimeModified = CycleTimeValidator::adjustCycleTimeOnClockAccuracy(cycleTimeModified, osClock);
 
-        const int64_t timerInit{cycleTimer.init(cycleTimeModified)};
-        if (timerInit > 0)
+        const std::chrono::nanoseconds timerInit{cycleTimer.init(cycleTimeModified)};
+        if (timerInit.count() > 0)
         {
-            LM_LOG_INFO() << "Phm Daemon: The (configured) periodicity in [ns] is set to:"
-                          << static_cast<uint64_t>(cycleTimeModified);
+            LM_LOG_INFO() << "Phm Daemon: The (configured) periodicity in [ns] is set to:" << cycleTimeModified;
             LM_LOG_DEBUG() << "Phm Daemon: The accuracy of the monotonic system clock in [ns] is:"
-                           << static_cast<uint64_t>(CycleTimeValidator::getMonotonicClockAccuracy(osClock));
+                           << CycleTimeValidator::getMonotonicClockAccuracy(osClock);
         }
         else
         {
@@ -138,8 +136,8 @@ class PhmDaemon
     template <typename TerminationSignalPredType>
     bool startCyclicExec(const TerminationSignalPredType& f_terminateCond) noexcept
     {
-        NanoSecondType startTimestamp{cycleTimer.start()};
-        if (startTimestamp == 0U)
+        std::chrono::nanoseconds startTimestamp{cycleTimer.start()};
+        if (startTimestamp.count() == 0U)
         {
             LM_LOG_ERROR() << "Phm Daemon: Failed to get initial timestamp";
             return false;
@@ -159,7 +157,7 @@ class PhmDaemon
             (void)cycleTimer.calcNextShot();
 
             // Sleep for the remaining cycle time or break out of cyclic loop if termination is requested
-            std::uint64_t nsOverDeadline{0U};
+            std::chrono::nanoseconds nsOverDeadline{0U};
             const int sleepResult{cycleTimer.sleep(f_terminateCond, nsOverDeadline)};
             if (sleepResult == EINTR)
             {
@@ -169,8 +167,8 @@ class PhmDaemon
             else if (sleepResult == CycleTimer::kDeadlineAlreadyOver)
             {
                 LM_LOG_DEBUG() << "Phm Daemon: Phm cycle took"
-                               << (static_cast<double>(nsOverDeadline) / 1000000.0 /*ns per ms*/)
-                               << "ms longer than the configured cycle time";
+                               << std::chrono::round<std::chrono::milliseconds>(nsOverDeadline)
+                               << "longer than the configured cycle time";
             }
             else if (sleepResult != 0)
             {

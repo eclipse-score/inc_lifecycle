@@ -18,52 +18,39 @@
 namespace score::mw::lifecycle::internal::saf::timers
 {
 
-NanoSecondType TimeConversion::convertToNanoSec(const timespec f_timespec) noexcept(true)
+std::chrono::nanoseconds TimeConversion::convertToNanoSec(const timespec f_timespec) noexcept(true)
 {
     // Result (0: invalid, >=0: valid)
-    NanoSecondType result{0U};
+    std::chrono::nanoseconds result{0U};
     // Calculate maximum number of seconds which can be stored in 64 bit unsigned integer
-    static constexpr NanoSecondType timeMaxSecond{std::numeric_limits<NanoSecondType>::max() / k_nanoSecInSec};
+    static constexpr std::chrono::seconds timeMaxSecond{std::numeric_limits<std::chrono::seconds>::max()};
     if ((f_timespec.tv_sec >= 0) && (f_timespec.tv_nsec >= 0) &&
-        (static_cast<NanoSecondType>(f_timespec.tv_sec) <= timeMaxSecond))
+        (std::chrono::seconds(f_timespec.tv_sec) <= timeMaxSecond))
     {
-        NanoSecondType timeNanoSecPart1{static_cast<NanoSecondType>(f_timespec.tv_sec) * k_nanoSecInSec};
-        if ((std::numeric_limits<NanoSecondType>::max() - timeNanoSecPart1) >=
-            static_cast<NanoSecondType>(f_timespec.tv_nsec))
+        std::chrono::nanoseconds timeNanoSecPart1{std::chrono::seconds{f_timespec.tv_sec}};
+        if ((std::numeric_limits<std::chrono::nanoseconds>::max() - timeNanoSecPart1) >=
+            std::chrono::nanoseconds(f_timespec.tv_nsec))
         {
-            result = timeNanoSecPart1 + static_cast<NanoSecondType>(f_timespec.tv_nsec);
+            result = timeNanoSecPart1 + std::chrono::nanoseconds(f_timespec.tv_nsec);
         }
     }
     return result;
 }
 
-NanoSecondType TimeConversion::convertMilliSecToNanoSec(const double f_timeValueMilliSec) noexcept(true)
+std::chrono::nanoseconds TimeConversion::convertMilliSecToNanoSec(
+    const std::chrono::milliseconds f_timeValueMilliSec) noexcept(true)
 {
-    NanoSecondType nanoSeconds{0U};
-    double timeValue{f_timeValueMilliSec};
-
-    timeValue = timeValue * k_nanoSecInMilliSec;
-
-    if (timeValue >= static_cast<double>(std::numeric_limits<NanoSecondType>::max()))
+    if (f_timeValueMilliSec.count() < 0)
     {
-        nanoSeconds = std::numeric_limits<NanoSecondType>::max();
+        return std::chrono::nanoseconds{0U};
     }
-    else if (timeValue < 0.0)
-    {
-        nanoSeconds = 0U;
-    }
-    else
-    {
-        nanoSeconds = static_cast<uint64_t>(timeValue);
-    }
-    return nanoSeconds;
+    return std::chrono::nanoseconds{f_timeValueMilliSec};
 }
 
-double TimeConversion::convertNanoSecToMilliSec(const NanoSecondType f_timeValueNanoSec) noexcept(true)
+std::chrono::milliseconds TimeConversion::convertNanoSecToMilliSec(
+    const std::chrono::nanoseconds f_timeValueNanoSec) noexcept(true)
 {
-    double milliSeconds{static_cast<double>(f_timeValueNanoSec) / k_nanoSecInMilliSec};
-
-    return milliSeconds;
+    return std::chrono::duration_cast<std::chrono::milliseconds>(f_timeValueNanoSec);
 }
 
 }  // namespace score::mw::lifecycle::internal::saf::timers

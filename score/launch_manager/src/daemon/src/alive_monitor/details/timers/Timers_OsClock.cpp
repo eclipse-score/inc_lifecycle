@@ -12,39 +12,25 @@
  ********************************************************************************/
 
 #include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
+#include "score/mw/launch_manager/alive_monitor/details/timers/TimeConversion.hpp"
 
 /* RULECHECKER_comment(0, 4, {check_include_time}, "Monotonic clock is needed from this header.\
     other clocks and time format is not used.", true_no_defect) */
 #include <cstdint>
 #include <ctime>
-#include <limits>
-
-#include "score/mw/launch_manager/alive_monitor/details/timers/TimeConversion.hpp"
 
 namespace score::mw::lifecycle::internal::saf::timers
 {
 
-NanoSecondType OsClock::getMonotonicSystemClock(void) noexcept(true)
+std::chrono::nanoseconds OsClock::getMonotonicSystemClock(void) noexcept(true)
 {
     timespec systemClock = {};
     // Result (0=error, >0=the system clock in ns)
-    NanoSecondType result{0U};
+    std::chrono::nanoseconds result{0U};
 
     if (clock_gettime(CLOCK_MONOTONIC, &systemClock) == 0)
     {
-        // Calculate max number of seconds which can be stored in 64 bit unsigned integer
-        static constexpr NanoSecondType timeMaxSecond{
-            std::numeric_limits<NanoSecondType>::max() / TimeConversion::k_nanoSecInSec};
-        if (static_cast<NanoSecondType>(systemClock.tv_sec) <= timeMaxSecond)
-        {
-            NanoSecondType timeNanoSecPart1{
-                static_cast<NanoSecondType>(systemClock.tv_sec) * TimeConversion::k_nanoSecInSec};
-            if ((std::numeric_limits<NanoSecondType>::max() - timeNanoSecPart1) >=
-                static_cast<NanoSecondType>(systemClock.tv_nsec))
-            {
-                result = timeNanoSecPart1 + static_cast<NanoSecondType>(systemClock.tv_nsec);
-            }
-        }
+        result = TimeConversion::convertToNanoSec(systemClock);
     }
 
     return result;
