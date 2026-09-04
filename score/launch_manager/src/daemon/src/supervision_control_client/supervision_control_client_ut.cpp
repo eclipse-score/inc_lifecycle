@@ -10,16 +10,12 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
-#include "score/mw/launch_manager/supervision_control_client/details/supervision_control_receiver.hpp"
-#include "score/mw/launch_manager/supervision_control_client/supervision_control_notifier.hpp"
+#include "score/mw/launch_manager/supervision_control_client/supervision_handle.hpp"
 #include <gtest/gtest.h>
 #include <memory>
 
 using namespace testing;
 using namespace score::mw::lifecycle;
-
-using score::mw::lifecycle::SupervisionControlReceiver;
-using score::mw::lifecycle::internal::SupervisionControlNotifier;
 
 class SupervisionControlClient_UT : public ::testing::Test
 {
@@ -28,27 +24,20 @@ class SupervisionControlClient_UT : public ::testing::Test
     {
         RecordProperty("TestType", "interface-test");
         RecordProperty("DerivationTechnique", "explorative-testing ");
-        notifier_ = std::make_unique<SupervisionControlNotifier>();
-        receiver_ = notifier_->constructReceiver();
+        buffer_ = std::make_shared<SupervisionBufferType>();
+        handle_ = std::make_unique<SupervisionHandle>(process_, buffer_);
     }
+
     void TearDown() override
     {
-        receiver_.reset();
-        notifier_.reset();
+        handle_.reset();
+        buffer_.reset();
     }
-    std::unique_ptr<SupervisionControlNotifier> notifier_;
-    std::unique_ptr<ISupervisionControlReceiver> receiver_;
-};
 
-TEST_F(SupervisionControlClient_UT, SupervisionControlClient_ConstructReceiver_Succeeds)
-{
-    RecordProperty(
-        "Description",
-        "This test verifies that the SupervisionControlNotifier can successfully construct a "
-        "SupervisionControlReceiver instance.");
-    ASSERT_NE(notifier_, nullptr);
-    ASSERT_NE(receiver_, nullptr);
-}
+    const IdentifierHash process_{"Process"};
+    std::shared_ptr<SupervisionBufferType> buffer_;
+    std::unique_ptr<IActivationStateReporter> handle_;
+};
 
 TEST_F(SupervisionControlClient_UT, SupervisionControlClient_QueueOneEvent_Succeeds)
 {
@@ -56,26 +45,22 @@ TEST_F(SupervisionControlClient_UT, SupervisionControlClient_QueueOneEvent_Succe
         "Description",
         "This test verifies that a single SupervisionEvent can be successfully queued using the "
         "SupervisionControlNotifier and retrieved using the SupervisionControlReceiver.");
-    SupervisionEvent event1{
-        .id = score::mw::lifecycle::IdentifierHash("Process1"),
-        .eventType = score::mw::lifecycle::SupervisionEventType::kActivation,
-        .systemClockTimestamp = {}};
+    SupervisionEvent event1{.id = process_, .eventType = SupervisionEventType::kActivation, .systemClockTimestamp = {}};
 
     clock_gettime(CLOCK_MONOTONIC, &event1.systemClockTimestamp);
 
-    bool queued = notifier_->reportActivation(event1.id, event1.systemClockTimestamp);
+    bool queued = handle_->reportActivation(event1.systemClockTimestamp);
     ASSERT_TRUE(queued);
 
-    auto result = receiver_->getNextSupervisionEvent();
-    ASSERT_TRUE(result.has_value());
-    ASSERT_TRUE(result->has_value());
-    EXPECT_EQ(result->value().id, event1.id);
-    EXPECT_EQ(result->value().eventType, event1.eventType);
-    EXPECT_EQ(result->value().systemClockTimestamp.tv_nsec, event1.systemClockTimestamp.tv_nsec);
+    SupervisionEvent result;
+    ASSERT_TRUE(buffer_->tryDequeue(result));
 
-    auto no_more = receiver_->getNextSupervisionEvent();
-    ASSERT_TRUE(no_more.has_value());
-    ASSERT_FALSE(no_more->has_value());
+    EXPECT_EQ(result.id, event1.id);
+    EXPECT_EQ(result.eventType, event1.eventType);
+    EXPECT_EQ(result.systemClockTimestamp.tv_nsec, event1.systemClockTimestamp.tv_nsec);
+
+    bool items_remaining = buffer_->tryDequeue(result);
+    ASSERT_FALSE(items_remaining);
 }
 
 TEST_F(SupervisionControlClient_UT, SupervisionControlClient_QueueMaxNumberOfEvents_Succeeds)
@@ -85,27 +70,25 @@ TEST_F(SupervisionControlClient_UT, SupervisionControlClient_QueueMaxNumberOfEve
         "This test verifies that the SupervisionControlNotifier can successfully queue the maximum number of "
         "SupervisionEvent "
         "instances defined by the buffer size, and that they can be retrieved using the SupervisionControlReceiver.");
+
+    SupervisionEvent event{.id = process_, .eventType = SupervisionEventType::kActivation, .systemClockTimestamp = {}};
+
     for (size_t i = 0; i < static_cast<size_t>(BufferConstants::BUFFER_QUEUE_SIZE); ++i)
     {
-        SupervisionEvent event{
-            .id = score::mw::lifecycle::IdentifierHash("Process" + std::to_string(i)),
-            .eventType = score::mw::lifecycle::SupervisionEventType::kActivation,
-            .systemClockTimestamp = {}};
-        bool queued = notifier_->reportActivation(event.id, event.systemClockTimestamp);
+        bool queued = handle_->reportActivation(event.systemClockTimestamp);
         ASSERT_TRUE(queued) << "Failed to queue event at index " << i;
     }
 
+    SupervisionEvent result;
+
     for (size_t i = 0; i < static_cast<size_t>(BufferConstants::BUFFER_QUEUE_SIZE); ++i)
     {
-        auto result = receiver_->getNextSupervisionEvent();
-        ASSERT_TRUE(result.has_value());
-        ASSERT_TRUE(result->has_value());
-        EXPECT_EQ(result->value().id, score::mw::lifecycle::IdentifierHash("Process" + std::to_string(i)));
+        ASSERT_TRUE(buffer_->tryDequeue(result));
+        EXPECT_EQ(result.id, event.id);
     }
 
-    auto no_more = receiver_->getNextSupervisionEvent();
-    ASSERT_TRUE(no_more.has_value());
-    ASSERT_FALSE(no_more->has_value());
+    bool items_remaining = buffer_->tryDequeue(result);
+    ASSERT_FALSE(items_remaining);
 }
 
 TEST_F(SupervisionControlClient_UT, SupervisionControlClient_QueueOneEventTooMany_Fails)
@@ -114,28 +97,14 @@ TEST_F(SupervisionControlClient_UT, SupervisionControlClient_QueueOneEventTooMan
         "Description",
         "This test verifies that attempting to queue a SupervisionEvent when the buffer is already at maximum capacity "
         "results in a failure, and that no additional events can be retrieved from the receiver.");
-    SupervisionEvent event1{
-        .id = score::mw::lifecycle::IdentifierHash("Process1"),
-        .eventType = score::mw::lifecycle::SupervisionEventType::kActivation,
-        .systemClockTimestamp = {}};
+    SupervisionEvent event{.id = process_, .eventType = SupervisionEventType::kActivation, .systemClockTimestamp = {}};
 
     for (size_t i = 0; i < static_cast<size_t>(BufferConstants::BUFFER_QUEUE_SIZE); ++i)
     {
-        SupervisionEvent event{
-            .id = score::mw::lifecycle::IdentifierHash("Process" + std::to_string(i)),
-            .eventType = score::mw::lifecycle::SupervisionEventType::kActivation,
-            .systemClockTimestamp = {}};
-        bool queued = notifier_->reportActivation(event.id, event.systemClockTimestamp);
+        bool queued = handle_->reportActivation(event.systemClockTimestamp);
         ASSERT_TRUE(queued) << "Failed to queue event at index " << i;
     }
 
-    bool queued = notifier_->reportActivation(event1.id, event1.systemClockTimestamp);
+    bool queued = handle_->reportActivation(event.systemClockTimestamp);
     ASSERT_FALSE(queued) << "Expected queuing to fail due to full buffer";
-
-    auto result = receiver_->getNextSupervisionEvent();
-    ASSERT_FALSE(result.has_value()) << "Expected no events to be retrievable";
-
-    EXPECT_EQ(
-        static_cast<score::mw::lifecycle::ExecErrc>(*result.error()),
-        score::mw::lifecycle::ExecErrc::kCommunicationError);
 }

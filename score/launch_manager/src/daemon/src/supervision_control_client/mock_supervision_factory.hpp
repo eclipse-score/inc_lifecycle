@@ -11,25 +11,25 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#ifndef SCORE_LCM_IALIVE_MONITOR_THREAD_MOCK_HPP_INCLUDED
-#define SCORE_LCM_IALIVE_MONITOR_THREAD_MOCK_HPP_INCLUDED
+#ifndef MOCK_SUPERVISION_FACTORY_HPP_INCLUDED
+#define MOCK_SUPERVISION_FACTORY_HPP_INCLUDED
 
-#include "score/mw/launch_manager/process_group_manager/ialive_monitor_thread.hpp"
-
+#include "score/mw/launch_manager/supervision_control_client/isupervision_factory.hpp"
 #include <gmock/gmock.h>
 
-namespace score::mw::lifecycle::internal
+namespace score::mw::lifecycle
 {
 
-/// @brief Reusable gmock mock for IAliveMonitorThread, for use by tests of components that own an alive monitor
-/// thread.
-class MockAliveMonitorThread : public IAliveMonitorThread
+class MockSupervisionFactory : public ISupervisionFactory
 {
   public:
-    MOCK_METHOD(bool, start, (), (override));
-    MOCK_METHOD(void, stop, (), (override));
+    MOCK_METHOD(
+        std::unique_ptr<IActivationStateReporter>,
+        constructSupervision,
+        (const IdentifierHash id, const uid_t uid, const internal::configuration::ComponentAliveSupervision& config),
+        (override));
 };
 
-}  // namespace score::mw::lifecycle::internal
+}  // namespace score::mw::lifecycle
 
-#endif  // SCORE_LCM_IALIVE_MONITOR_THREAD_MOCK_HPP_INCLUDED
+#endif

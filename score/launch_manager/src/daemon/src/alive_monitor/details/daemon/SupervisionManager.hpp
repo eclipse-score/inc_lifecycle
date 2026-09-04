@@ -86,6 +86,9 @@ class SupervisionManager
     /// @param[in] size Number of supervised components
     void reserve(std::size_t size);
 
+    /// @brief Returns true if the number of alive supervisions constructed equals the reserved size
+    [[nodiscard]] bool full() const;
+
     /// @brief Construct required worker objects for provided component
     /// @details Construct the interfaces, checkpoints, supervisions and recovery notifications
     /// @param [in] id Identifier of the component
@@ -94,7 +97,7 @@ class SupervisionManager
     /// @param [in] f_recoveryClient_r       Interface to the launch manager for recovery
     /// @param [in] f_processStateReader_r   Process state reader object for PHM daemon
     /// @return                              Construction is successful (true), otherwise failure (false)
-    bool constructWorker(
+    [[nodiscard]] bool constructWorker(
         const IdentifierHash& id,
         const ComponentAliveSupervision& component_config,
         const uid_t uid,
@@ -137,6 +140,9 @@ class SupervisionManager
     std::vector<supervision::Alive> aliveSupervisions;
 
     std::unique_ptr<factory::IPhmFactory> flatCfgFactory;
+
+    /// @brief The number of alive supervisions we expect to successfully construct
+    std::size_t capacity{0};
 };
 
 }  // namespace daemon

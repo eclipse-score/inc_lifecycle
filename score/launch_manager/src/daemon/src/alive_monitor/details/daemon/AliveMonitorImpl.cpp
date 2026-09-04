@@ -11,40 +11,38 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 #include <sys/types.h>
-
 #include <iostream>
 
 #include <score/assert.hpp>
 
 #include "score/mw/launch_manager/alive_monitor/details/daemon/AliveMonitorImpl.hpp"
+#include "score/mw/launch_manager/alive_monitor/details/daemon/PhmDaemon.hpp"
 
 namespace score::mw::lifecycle::internal::saf::daemon
 {
 
 AliveMonitorImpl::AliveMonitorImpl(
     SptrIRecoveryClient recovery_client,
-    UptrISupervisionControlReceiver observable_event_receiver,
-    const Config& config)
-    : m_recovery_client(recovery_client),
-      m_observable_event_receiver(std::move(observable_event_receiver)),
-      m_config(config)
+    AliveSupervisionConfig config,
+    const std::size_t supervised_components)
+    : m_recovery_client(recovery_client), config_(config), supervised_components_(supervised_components)
 {
 }
 
-EInitCode AliveMonitorImpl::init() noexcept
+bool AliveMonitorImpl::init() noexcept
 {
-    EInitCode initResult{EInitCode::kGeneralError};
     try
     {
         m_osClock.startMeasurement();
 
-        m_daemon = std::make_unique<PhmDaemon>(m_osClock, std::move(m_observable_event_receiver));
-        initResult = m_daemon->init(m_recovery_client, m_config);
+        m_daemon = std::make_unique<PhmDaemon>(m_osClock, supervised_components_);
+        EInitCode initResult = m_daemon->init(m_recovery_client, config_);
 
         if (initResult == EInitCode::kNoError)
         {
             const long ms{m_osClock.endMeasurement()};
             LM_LOG_DEBUG() << "AliveMonitor: Initialization took " << ms << " ms";
+            return true;
         }
         else
         {
@@ -54,22 +52,41 @@ EInitCode AliveMonitorImpl::init() noexcept
     catch (const std::exception& e)
     {
         std::cerr << "AliveMonitor: Initialization failed due to standard exception: " << e.what() << ".\n";
-        initResult = EInitCode::kGeneralError;
     }
     catch (...)
     {
         std::cerr << "AliveMonitor: Initialization failed due to exception!\n";
-        initResult = EInitCode::kGeneralError;
     }
 
-    return initResult;
+    return false;
 }
 
-bool AliveMonitorImpl::run(std::atomic_bool& cancel_thread) noexcept
+void AliveMonitorImpl::start() noexcept
+{
+    alive_monitor_thread_ = std::thread([this]() {
+        threadFn(stop_thread_);
+    });
+}
+
+void AliveMonitorImpl::stop() noexcept
+{
+    stop_thread_.store(true);
+    if (alive_monitor_thread_.joinable())
+    {
+        alive_monitor_thread_.join();
+    }
+}
+
+bool AliveMonitorImpl::threadFn(std::atomic_bool& cancel_thread) noexcept
 {
     SCORE_LANGUAGE_FUTURECPP_PRECONDITION_PRD_MESSAGE(
         m_daemon != nullptr, "HealthMonitor: Instance is not initialized!");
     return m_daemon->startCyclicExec(cancel_thread);
+}
+
+ISupervisionFactory& AliveMonitorImpl::getSupervisionFactory() const noexcept
+{
+    return *m_daemon;
 }
 
 }  // namespace score::mw::lifecycle::internal::saf::daemon

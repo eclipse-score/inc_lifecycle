@@ -14,9 +14,11 @@
 #ifndef SUPERVISION_EVENT_HPP_INCLUDED
 #define SUPERVISION_EVENT_HPP_INCLUDED
 
+#include "ipc_dropin/ringbuffer.hpp"
 #include "score/mw/launch_manager/common/identifier_hash.hpp"
 #include <cstdint>
 #include <ctime>
+#include <memory>
 
 namespace score::mw::lifecycle
 {
@@ -51,6 +53,10 @@ constexpr std::size_t BUFFER_MAXPAYLOAD = sizeof(SupervisionEvent);
 constexpr std::size_t BUFFER_QUEUE_SIZE = 4096UL;
 
 }  // namespace BufferConstants
+
+using SupervisionBufferType = ipc_dropin::RingBuffer<
+    static_cast<size_t>(score::mw::lifecycle::BufferConstants::BUFFER_QUEUE_SIZE),
+    static_cast<size_t>(score::mw::lifecycle::BufferConstants::BUFFER_MAXPAYLOAD)>;
 
 }  // namespace score::mw::lifecycle
 

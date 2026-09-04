@@ -32,18 +32,37 @@ ProcessInfoNode::ProcessInfoNode(configuration::ComponentConfig&& config, Proces
       exit_code_(0),
       config_(std::move(config)),
       process_handling_(std::move(process_handling)),
-      identifier_(IdentifierHash{{config_.name}})
+      identifier_(config_.name)
 {
-
-    if (config.component_properties.application_profile.application_type ==
-        configuration::ApplicationType::ReportingAndSupervised)
-    {
-        config_.deployment_config.environmental_variables.add(
-            "LCM_ALIVE_INTERFACE_PATH", aliveInterfacePath(IdentifierHash{config_.name}));
-    }
     if (config_.deployment_config.ready_recovery_action.has_value())
     {
         start_tries_ = config_.deployment_config.ready_recovery_action->number_of_attempts + 1;
+    }
+
+    const configuration::ApplicationProfile& app_profile = config_.component_properties.application_profile;
+
+    if (app_profile.application_type == configuration::ApplicationType::ReportingAndSupervised)
+    {
+        SCORE_LANGUAGE_FUTURECPP_ASSERT_DBG_MESSAGE(
+            app_profile.alive_supervision.has_value(), "Supervised process did not have alive supervision config");
+        const uid_t uid = config_.deployment_config.sandbox.uid;
+
+        LM_LOG_DEBUG() << "Setting up alive supervision for" << identifier_;
+
+        config_.deployment_config.environmental_variables.add(
+            "LCM_ALIVE_INTERFACE_PATH", aliveInterfacePath(identifier_));
+
+        state_publisher_ = process_handling_.supervision_factory.constructSupervision(
+            identifier_, uid, app_profile.alive_supervision.value());
+
+        if (!state_publisher_)
+        {
+            LM_LOG_ERROR() << "Failed to set up alive supervision for" << identifier_;
+        }
+        else
+        {
+            LM_LOG_DEBUG() << "Successfully set up alive supervision for" << identifier_;
+        }
     }
 }
 
@@ -95,7 +114,7 @@ IComponent::RequestResult ProcessInfoNode::tryReportSuccess()
 
         if (auto time = getTimeForReport())
         {
-            process_handling_.state_publisher_.reportActivation(identifier_, time.value());
+            state_publisher_->reportActivation(time.value());
         }
 
         return {RequestState::kSuccess};
@@ -105,14 +124,14 @@ IComponent::RequestResult ProcessInfoNode::tryReportSuccess()
 
 std::optional<timespec> ProcessInfoNode::getTimeForReport() const
 {
-    if (!isReporting())
+    if (isSupervised() && state_publisher_)
     {
-        return std::nullopt;
+        timespec timestamp{};
+        static_cast<void>(clock_gettime(CLOCK_MONOTONIC, &timestamp));
+        return timestamp;
     }
 
-    timespec timestamp{};
-    static_cast<void>(clock_gettime(CLOCK_MONOTONIC, &timestamp));
-    return timestamp;
+    return std::nullopt;
 }
 
 IComponent::RequestResult ProcessInfoNode::tryReportError(ComponentError error)
@@ -217,6 +236,13 @@ IComponent::RequestResult ProcessInfoNode::tryHandleTermination(int32_t process_
 bool ProcessInfoNode::isReporting() const
 {
     return config_.component_properties.application_profile.application_type != configuration::ApplicationType::Native;
+}
+
+bool ProcessInfoNode::isSupervised() const
+{
+    const auto app_type = config_.component_properties.application_profile.application_type;
+    return app_type == configuration::ApplicationType::ReportingAndSupervised ||
+           app_type == configuration::ApplicationType::StateManager;
 }
 
 IComponent::RequestResult ProcessInfoNode::startProcess(score::cpp::stop_token stop_token)
@@ -513,7 +539,7 @@ IComponent::RequestResult ProcessInfoNode::deactivate(score::cpp::stop_token sto
     reached_ready_.store(false);
     if (auto time = getTimeForReport())
     {
-        process_handling_.state_publisher_.reportDeactivation(identifier_, time.value());
+        state_publisher_->reportDeactivation(time.value());
     }
     terminateProcess(stop_token);
     setState(ProcessState::kIdle);

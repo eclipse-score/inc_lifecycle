@@ -146,7 +146,7 @@ cc_library(
         ":safe_process_map",
         "//score/launch_manager/src/daemon/src/osal:ifile_waiter",
         "//score/launch_manager/src/daemon/src/process_group_manager:iprocess",
-        "//score/launch_manager/src/daemon/src/supervision_control_client:isupervision_event_publisher",
+        "//score/launch_manager/src/daemon/src/supervision_control_client:isupervision_factory",
     ],
 )
 
@@ -169,7 +169,7 @@ cc_library(
         "//score/launch_manager/src/daemon/src/osal:semaphore",
         "//score/launch_manager/src/daemon/src/process_group_manager:iprocess",
         "//score/launch_manager/src/daemon/src/process_group_manager:process_state",
-        "//score/launch_manager/src/daemon/src/supervision_control_client:isupervision_event_publisher",
+        "//score/launch_manager/src/daemon/src/supervision_control_client:iactivation_state_reporter",
         "@score_baselibs//score/language/futurecpp",
     ],
 )
@@ -182,7 +182,8 @@ lm_cc_test(
         ":safe_process_map",
         "//score/launch_manager/src/daemon/src/osal:mock_ifile_waiter",
         "//score/launch_manager/src/daemon/src/process_group_manager:mock_iprocess",
-        "//score/launch_manager/src/daemon/src/supervision_control_client:mock_supervision_event_publisher",
+        "//score/launch_manager/src/daemon/src/supervision_control_client:mock_activation_state_reporter",
+        "//score/launch_manager/src/daemon/src/supervision_control_client:mock_supervision_factory",
         "@googletest//:gtest_main",
     ],
 )
@@ -234,7 +235,8 @@ lm_cc_test(
         ":graph",
         "//score/launch_manager/src/daemon/src/configuration:config",
         "//score/launch_manager/src/daemon/src/process_group_manager:mock_iprocess",
-        "//score/launch_manager/src/daemon/src/supervision_control_client:mock_supervision_event_publisher",
+        "//score/launch_manager/src/daemon/src/supervision_control_client:mock_activation_state_reporter",
+        "//score/launch_manager/src/daemon/src/supervision_control_client:mock_supervision_factory",
         "@googletest//:gtest_main",
     ],
 )
@@ -352,12 +354,12 @@ lm_cc_test(
     name = "process_group_manager_UT",
     srcs = ["process_group_manager_UT.cpp"],
     deps = [
+        "//score/launch_manager/src/daemon/src/alive_monitor:mock_alive_monitor",
         "//score/launch_manager/src/daemon/src/configuration:config",
         "//score/launch_manager/src/daemon/src/process_group_manager",
-        "//score/launch_manager/src/daemon/src/process_group_manager:mock_ialive_monitor_thread",
         "//score/launch_manager/src/daemon/src/recovery_client:mock_recovery_client",
-        "//score/launch_manager/src/daemon/src/supervision_control_client:isupervision_control_notifier",
-        "//score/launch_manager/src/daemon/src/supervision_control_client:mock_supervision_control_notifier",
+        "//score/launch_manager/src/daemon/src/supervision_control_client:mock_activation_state_reporter",
+        "//score/launch_manager/src/daemon/src/supervision_control_client:mock_supervision_factory",
         "//score/launch_manager/src/daemon/src/watchdog:mock_i_watchdog_if",
         "@googletest//:gtest_main",
     ],

@@ -10,22 +10,22 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
-#ifndef MOCK_SUPERVISION_EVENT_PUBLISHER_HPP_INCLUDED
-#define MOCK_SUPERVISION_EVENT_PUBLISHER_HPP_INCLUDED
+#ifndef MOCK_ACTIVATION_STATE_REPORTER_HPP_INCLUDED
+#define MOCK_ACTIVATION_STATE_REPORTER_HPP_INCLUDED
 
-#include "score/mw/launch_manager/supervision_control_client/isupervision_event_publisher.hpp"
+#include "score/mw/launch_manager/supervision_control_client/iactivation_state_reporter.hpp"
 #include <gmock/gmock.h>
 
 namespace score::mw::lifecycle
 {
 
-class MockSupervisionEventPublisher : public ISupervisionEventPublisher
+class MockActivationStateReporter : public IActivationStateReporter
 {
   public:
-    MOCK_METHOD(bool, reportActivation, (IdentifierHash id, timespec time), (override, noexcept));
-    MOCK_METHOD(bool, reportDeactivation, (IdentifierHash id, timespec time), (override, noexcept));
+    MOCK_METHOD(bool, reportActivation, (timespec time), (override, noexcept));
+    MOCK_METHOD(bool, reportDeactivation, (timespec time), (override, noexcept));
 };
 
 }  // namespace score::mw::lifecycle
 
-#endif  // MOCK_SUPERVISION_EVENT_PUBLISHER_HPP_INCLUDED
+#endif  // MOCK_ACTIVATION_STATE_REPORTER_HPP_INCLUDED

@@ -10,29 +10,28 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
-#ifndef ISUPERVISION_EVENT_PUBLISHER_HPP_INCLUDED
-#define ISUPERVISION_EVENT_PUBLISHER_HPP_INCLUDED
+#ifndef IACTIVATION_STATE_REPORTER_HPP_INCLUDED
+#define IACTIVATION_STATE_REPORTER_HPP_INCLUDED
 
-#include "score/mw/launch_manager/common/identifier_hash.hpp"
 #include <ctime>
 
 namespace score::mw::lifecycle
 {
 
-/// @brief ISupervisionEventPublisher interface for forwarding supervision events to the alive monitor.
+/// @brief IActivationStateReporter interface for forwarding supervision events to the alive monitor.
 ///        The Launch Manager uses this interface to notify the alive monitor whenever a supervised
 ///        process reaches the active state or inactive state
-class ISupervisionEventPublisher
+class IActivationStateReporter
 {
   public:
     /// @brief Destructor.
-    virtual ~ISupervisionEventPublisher() noexcept = default;
+    virtual ~IActivationStateReporter() noexcept = default;
 
-    /// @brief Report that process with @param id has reached the active state at @param time
-    virtual bool reportActivation(IdentifierHash id, timespec time) noexcept = 0;
+    /// @brief Report that the calling process has reached the active state at @param time
+    virtual bool reportActivation(timespec time) noexcept = 0;
 
-    /// @brief Report that process with @param id has changed from the active state at @param time
-    virtual bool reportDeactivation(IdentifierHash id, timespec time) noexcept = 0;
+    /// @brief Report that the calling process has changed from the active state at @param time
+    virtual bool reportDeactivation(timespec time) noexcept = 0;
 };
 
 }  // namespace score::mw::lifecycle

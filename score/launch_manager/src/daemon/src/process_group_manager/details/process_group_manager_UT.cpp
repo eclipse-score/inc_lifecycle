@@ -13,9 +13,10 @@
 
 #include "score/mw/launch_manager/process_group_manager/process_group_manager.hpp"
 
-#include "score/mw/launch_manager/process_group_manager/mock_alive_monitor_thread.hpp"
+#include "score/mw/launch_manager/alive_monitor/mock_alive_monitor.hpp"
 #include "score/mw/launch_manager/recovery_client/mock_irecovery_client.h"
-#include "score/mw/launch_manager/supervision_control_client/mock_supervision_control_notifier.hpp"
+#include "score/mw/launch_manager/supervision_control_client/mock_activation_state_reporter.hpp"
+#include "score/mw/launch_manager/supervision_control_client/mock_supervision_factory.hpp"
 #include "score/mw/launch_manager/watchdog/mock_IWatchdogIf.hpp"
 
 #include <gmock/gmock.h>
@@ -36,20 +37,9 @@ namespace score::mw::lifecycle::internal
 namespace
 {
 
-using score::mw::lifecycle::MockRecoveryClient;
-using score::mw::lifecycle::MockSupervisionControlNotifier;
-using score::mw::lifecycle::internal::watchdog::MockWatchdogIf;
-
-using score::mw::lifecycle::internal::configuration::AliveSupervisionConfig;
-using score::mw::lifecycle::internal::configuration::ApplicationType;
-using score::mw::lifecycle::internal::configuration::ComponentConfig;
-using score::mw::lifecycle::internal::configuration::Config;
-using score::mw::lifecycle::internal::configuration::ConfigBuilder;
-using score::mw::lifecycle::internal::configuration::FallbackRunTargetConfig;
-using score::mw::lifecycle::internal::configuration::ProcessState;
-using score::mw::lifecycle::internal::configuration::ReadyCondition;
-using score::mw::lifecycle::internal::configuration::RunTargetConfig;
-using score::mw::lifecycle::internal::configuration::WatchdogConfig;
+using namespace configuration;
+using namespace watchdog;
+using saf::daemon::MockAliveMonitor;
 
 Config makeMinimalConfig()
 {
@@ -112,12 +102,22 @@ Config makeMinimalConfig()
         .build();
 }
 
+GraphConfig takeGraphConfig(Config& config)
+{
+    return GraphConfig{
+        config.takeComponents(),
+        config.takeRunTargets(),
+        config.takeFallbackRunTarget(),
+        config.takeInitialRunTarget()};
+}
+
 class ProcessGroupManagerWatchdogTest : public Test
 {
   protected:
     void expectNormalStartup()
     {
-        EXPECT_CALL(*alive_monitor_thread_, start()).WillOnce(Return(true));
+        EXPECT_CALL(*alive_monitor_, init()).WillOnce(Return(true));
+        EXPECT_CALL(*alive_monitor_, start());
         EXPECT_CALL(*watchdog_, init(_, _)).WillOnce(Return(true));
         EXPECT_CALL(*watchdog_, enable()).WillOnce(Return(true));
     }
@@ -127,9 +127,9 @@ class ProcessGroupManagerWatchdogTest : public Test
         RecordProperty("TestType", "unit-test");
         RecordProperty("DerivationTechnique", "explorative-testing");
 
-        auto alive_monitor_thread = std::make_unique<NiceMock<MockAliveMonitorThread>>();
-        alive_monitor_thread_ = alive_monitor_thread.get();
-        ON_CALL(*alive_monitor_thread_, start()).WillByDefault(Return(true));
+        auto alive_monitor = std::make_unique<NiceMock<MockAliveMonitor>>();
+        alive_monitor_ = alive_monitor.get();
+        ON_CALL(*alive_monitor_, getSupervisionFactory).WillByDefault(ReturnRef(factory_));
 
         auto recovery_client = std::make_shared<NiceMock<MockRecoveryClient>>();
         recovery_client_ = recovery_client.get();
@@ -138,22 +138,24 @@ class ProcessGroupManagerWatchdogTest : public Test
         ON_CALL(*recovery_client_, setRecoveryRequestCallback(_)).WillByDefault(SaveArg<0>(&recovery_callback_));
         ON_CALL(*recovery_client_, sendRecoveryRequest(_)).WillByDefault(Return(true));
 
-        auto supervision_control_notifier = std::make_unique<NiceMock<MockSupervisionControlNotifier>>();
-        supervision_control_notifier_ = supervision_control_notifier.get();
-        ON_CALL(*supervision_control_notifier_, constructReceiver())
-            .WillByDefault(Return(ByMove(std::unique_ptr<score::mw::lifecycle::ISupervisionControlReceiver>{})));
-        ON_CALL(*supervision_control_notifier_, reportActivation(_, _)).WillByDefault(Return(true));
-        ON_CALL(*supervision_control_notifier_, reportDeactivation(_, _)).WillByDefault(Return(true));
+        ON_CALL(factory_, constructSupervision).WillByDefault(InvokeWithoutArgs([]() {
+            auto publisher = std::make_unique<NiceMock<MockActivationStateReporter>>();
+            ON_CALL(*publisher, reportActivation).WillByDefault(Return(true));
+            ON_CALL(*publisher, reportDeactivation).WillByDefault(Return(true));
+            return publisher;
+        }));
 
         auto watchdog = std::make_unique<StrictMock<MockWatchdogIf>>();
         watchdog_ = watchdog.get();
 
+        auto config = makeMinimalConfig();
+
         process_group_manager_ = std::make_unique<ProcessGroupManager>(
-            makeMinimalConfig(),
-            std::move(alive_monitor_thread),
+            takeGraphConfig(config),
+            std::move(alive_monitor),
             std::move(recovery_client),
-            std::move(supervision_control_notifier),
-            std::move(watchdog));
+            std::move(watchdog),
+            config.takeWatchdog());
     }
 
     void TearDown() override
@@ -161,11 +163,11 @@ class ProcessGroupManagerWatchdogTest : public Test
         process_group_manager_->deinitialize();
     }
 
-    MockAliveMonitorThread* alive_monitor_thread_{};
+    MockAliveMonitor* alive_monitor_{};
     MockRecoveryClient* recovery_client_{};
-    score::mw::lifecycle::IRecoveryClient::RecoveryRequestCallback recovery_callback_{};
-    MockSupervisionControlNotifier* supervision_control_notifier_{};
+    IRecoveryClient::RecoveryRequestCallback recovery_callback_{};
     MockWatchdogIf* watchdog_{};
+    NiceMock<MockSupervisionFactory> factory_{};
     std::unique_ptr<ProcessGroupManager> process_group_manager_;
 };
 
@@ -178,7 +180,7 @@ TEST_F(ProcessGroupManagerWatchdogTest, GivenMinimalConfig_ExpectWatchdogMethods
     InSequence sequence;
     expectNormalStartup();
     EXPECT_CALL(*watchdog_, disable()).Times(1);
-    EXPECT_CALL(*alive_monitor_thread_, stop()).Times(1);
+    EXPECT_CALL(*alive_monitor_, stop()).Times(1);
 
     // When
     auto initialize_result = process_group_manager_->initialize();
@@ -197,7 +199,7 @@ TEST_F(ProcessGroupManagerWatchdogTest, GivenMinimalConfig_ExpectWatchdogService
     });
     // Called in deinitialize() after run() returns
     EXPECT_CALL(*watchdog_, disable()).Times(1);
-    EXPECT_CALL(*alive_monitor_thread_, stop()).Times(1);
+    EXPECT_CALL(*alive_monitor_, stop()).Times(1);
 
     // When
     ASSERT_TRUE(process_group_manager_->initialize());
@@ -221,7 +223,7 @@ TEST_F(ProcessGroupManagerWatchdogTest, GivenMinimalConfig_ExpectWatchdogFired_W
         process_group_manager_->cancel();
     });
     EXPECT_CALL(*watchdog_, disable()).Times(1);
-    EXPECT_CALL(*alive_monitor_thread_, stop()).Times(1);
+    EXPECT_CALL(*alive_monitor_, stop()).Times(1);
 
     // When
     ASSERT_TRUE(process_group_manager_->initialize());
@@ -232,7 +234,7 @@ TEST_F(ProcessGroupManagerWatchdogTest, GivenMinimalConfig_ExpectWatchdogFired_W
     ASSERT_TRUE(recovery_callback_);
     for (int i = 0; i < kNumRecoveryRequests; ++i)
     {
-        recovery_callback_(score::mw::lifecycle::IdentifierHash{"overflow_probe"});
+        recovery_callback_(IdentifierHash{"overflow_probe"});
     }
 
     auto run_result = process_group_manager_->run();
@@ -248,7 +250,7 @@ TEST_F(ProcessGroupManagerWatchdogTest, GivenMinimalConfig_ExpectWatchdogDisable
     // We are explicitly calling deinitialize() in this test for readability,
     // so disable() and stop() are expected to be called twice: once in deinitialize() and once in TearDown().
     EXPECT_CALL(*watchdog_, disable()).Times(2);
-    EXPECT_CALL(*alive_monitor_thread_, stop()).Times(2);
+    EXPECT_CALL(*alive_monitor_, stop()).Times(2);
 
     // When
     ASSERT_TRUE(process_group_manager_->initialize());
