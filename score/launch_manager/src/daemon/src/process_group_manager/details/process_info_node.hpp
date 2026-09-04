@@ -16,7 +16,6 @@
 
 #include "score/launch_manager/src/daemon/src/configuration/component_config.hpp"
 #include "score/mw/launch_manager/configuration/component_config.hpp"
-#include "score/mw/launch_manager/control/control_client_channel.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/icomponent.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/process_handling.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/safe_process_map.hpp"
@@ -68,7 +67,6 @@ class ProcessInfoNode final : public IComponent
           process_state_(other.process_state_.load()),
           reached_ready_(other.reached_ready_.load()),
           config_(std::move(other.config_)),
-          control_client_channel_(std::move(other.control_client_channel_)),
           sync_(std::move(other.sync_)),
           process_handling_(std::move(other.process_handling_)),
           identifier_(other.identifier_)
@@ -98,9 +96,6 @@ class ProcessInfoNode final : public IComponent
 
     /// @return The configured shutdown_timeout for this process, or zero
     std::chrono::milliseconds getTerminationTimeout() const;
-
-    /// @return The ControlClientChannel for this process, or nullptr if none exists.
-    [[nodiscard]] ControlClientChannelP getControlClientChannel() const;
 
   private:
     /// @brief Given that an error has occurred after the process has reached state @p state_reached, return an error
@@ -168,9 +163,6 @@ class ProcessInfoNode final : public IComponent
     /// @brief Sends SIGKILL repeatedly until the process exits or the stop token is triggered.
     void handleForcedTermination(const score::cpp::stop_token& stop_token);
 
-    /// @brief Creates the ControlClientChannel from the process's IPC comms handle.
-    void setupControlClientChannel();
-
     /// @brief semaphore used to check termination with timeout
     osal::Semaphore terminator_{};
 
@@ -192,9 +184,6 @@ class ProcessInfoNode final : public IComponent
 
     /// @brief Pointer to config for this process
     configuration::ComponentConfig config_;
-
-    /// @brief Pointer to the ControlClientChannel object if it exists
-    ControlClientChannelP control_client_channel_{nullptr};
 
     /// @brief Pointer to the comms for this process
     osal::IpcCommsP sync_{nullptr};

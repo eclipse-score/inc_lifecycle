@@ -78,11 +78,8 @@ score::Result<std::monostate> ReportRunningImpl::reportKRunningtoDaemon() const 
         return comms_error;
     }
 
-    const bool correct_type =
-        sync->comms_type_ == CommsType::kReporting || sync->comms_type_ == CommsType::kControlClient;
-
     // This is our best safeguard against incorrect data treated as an IPCCommsSync
-    if (!correct_type || sync->pid_ != getpid())
+    if (sync->comms_type_ != CommsType::kReporting || sync->pid_ != getpid())
     {
         LM_LOG_ERROR() << "[Lifecycle client] Cannot report kRunning from a non-reporting process or a process not "
                           "started by Launch Manager";

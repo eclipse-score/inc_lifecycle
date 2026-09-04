@@ -22,11 +22,6 @@
 #include <string>
 #include <vector>
 
-namespace score::mw::lifecycle
-{
-class ControlClient;
-}  // namespace score::mw::lifecycle
-
 namespace score::mw::lifecycle::internal::saf::factory
 {
 

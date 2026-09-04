@@ -86,11 +86,12 @@ cc_library(
         "//score/launch_manager/src/daemon/src/common/concurrency:mpmc_concurrent_queue",
         "//score/launch_manager/src/daemon/src/common/concurrency:thread_pool",
         "//score/launch_manager/src/daemon/src/configuration:config",
-        "//score/launch_manager/src/daemon/src/control:control_client_channel",
         "//score/launch_manager/src/daemon/src/osal:ipc_comms",
         "//score/launch_manager/src/daemon/src/osal:wait_for_file",
         "//score/launch_manager/src/daemon/src/process_group_manager/details:graph",
-        "//score/launch_manager/src/daemon/src/process_group_manager/details:itransition_result_publisher",
+        "//score/launch_manager/src/daemon/src/process_group_manager/details:igraph_get",
+        "//score/launch_manager/src/daemon/src/process_group_manager/details:igraph_set",
+        "//score/launch_manager/src/daemon/src/process_group_manager/details:igraph_watch",
         "//score/launch_manager/src/daemon/src/process_group_manager/details:os_handler",
         "//score/launch_manager/src/daemon/src/process_group_manager/details:process_info_node",
         "//score/launch_manager/src/daemon/src/process_group_manager/details:process_launcher",
@@ -99,7 +100,22 @@ cc_library(
         "//score/launch_manager/src/daemon/src/recovery_client",
         "//score/launch_manager/src/daemon/src/supervision_control_client:isupervision_control_notifier",
         "//score/launch_manager/src/daemon/src/watchdog:i_watchdog_if",
+        "//score/launch_manager/src/lm_control",
         "@score_baselibs//score/language/futurecpp",
+    ],
+)
+
+cc_library(
+    name = "control_provider",
+    srcs = ["control_provider.cpp"],
+    hdrs = ["control_provider.hpp"],
+    include_prefix = "score/mw/launch_manager/process_group_manager",
+    strip_include_prefix = "/score/launch_manager/src/daemon/src/process_group_manager",
+    visibility = ["//score/launch_manager/src/daemon:__subpackages__"],
+    deps = [
+        ":process_group_manager",
+        "//score/launch_manager/src/daemon/src/common:log",
+        "//score/launch_manager/src/lm_control",
     ],
 )
 

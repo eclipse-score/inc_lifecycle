@@ -83,8 +83,6 @@ ApplicationType convertApplicationType(fb::ApplicationType fb_type)
             return ApplicationType::Reporting;
         case fb::ApplicationType::Reporting_And_Supervised:
             return ApplicationType::ReportingAndSupervised;
-        case fb::ApplicationType::State_Manager:
-            return ApplicationType::StateManager;
         case fb::ApplicationType::Native:
         default:
             return ApplicationType::Native;

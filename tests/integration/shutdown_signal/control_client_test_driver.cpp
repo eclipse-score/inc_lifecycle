@@ -18,8 +18,10 @@
 
 #include "common.hpp"
 #include "tests/utils/test_helper/test_helper.hpp"
-#include <score/mw/lifecycle/control_client.h>
+#include <score/mw/lifecycle/ilm_control.hpp>
 #include <score/mw/lifecycle/report_running.h>
+
+using namespace score::mw::lifecycle;
 
 // The Launch Manager shall shut a process down by sending it a SIGTERM, and, if
 // the process does not terminate itself in time, a SIGKILL.
@@ -35,30 +37,66 @@
 // would terminate the control daemon too, so it could not run the assertion.
 TEST(ShutdownSignal, Daemon)
 {
-    score::mw::lifecycle::ControlClient client{};
     ASSERT_TRUE(check_clean({sigterm_received_file}));
 
-    TEST_STEP("Control daemon report running")
+    std::unique_ptr<ILmControl> client;
+
+    TEST_STEP("Create client")
     {
-        score::mw::lifecycle::report_running();
+        auto client_result = ILmControl::Create("StateManager/LaunchManager/Instance");
+        ASSERT_TRUE(client_result.has_value()) << client_result.error().Message();
+        client = std::move(client_result).value();
     }
+
+    TEST_STEP("Register callback")
+    {
+        const auto result = client->register_run_target_activation_callback(push_event);
+        ASSERT_TRUE(result.has_value());
+    }
+
+    TEST_STEP("Report running")
+    {
+        report_running();
+    }
+
+    pop_event([](RunTargetActivationSource source, RunTargetName target) {
+        TEST_STEP("Callback for RunTarget Startup")
+        {
+            EXPECT_EQ(source, RunTargetActivationSource::kInitialActivation);
+            EXPECT_EQ(target, "Startup");
+        }
+    });
 
     TEST_STEP("Activate RunTarget Running")
     {
-        score::cpp::stop_token stop_token;
-        auto result = client.ActivateRunTarget("Running").Get(stop_token);
-        EXPECT_TRUE(result.has_value()) << "Activating target Running failed: " << result.error().Message();
+        const auto result = client->activate_run_target("Running", true);
+        EXPECT_TRUE(result.has_value()) << result.error().Message();
     }
+
+    pop_event([](RunTargetActivationSource source, RunTargetName target) {
+        TEST_STEP("Callback for RunTarget Running")
+        {
+            EXPECT_EQ(source, RunTargetActivationSource::kStateManagerRequest);
+            EXPECT_EQ(target, "Running");
+        }
+    });
 
     // Switching away from "Running" terminates shutdown_signal_process. Because it does not
     // self-terminate on SIGTERM, the Launch Manager must escalate to SIGKILL for
     // the transition to complete.
     TEST_STEP("Activate RunTarget Startup")
     {
-        score::cpp::stop_token stop_token;
-        auto result = client.ActivateRunTarget("Startup").Get(stop_token);
-        EXPECT_TRUE(result.has_value()) << "Activating target Startup failed: " << result.error().Message();
+        const auto result = client->activate_run_target("Startup", true);
+        EXPECT_TRUE(result.has_value()) << result.error().Message();
     }
+
+    pop_event([](RunTargetActivationSource source, RunTargetName target) {
+        TEST_STEP("Callback for RunTarget Startup")
+        {
+            EXPECT_EQ(source, RunTargetActivationSource::kStateManagerRequest);
+            EXPECT_EQ(target, "Startup");
+        }
+    });
 
     TEST_STEP("Verify SIGTERM was received and SIGKILL forced termination")
     {
@@ -81,7 +119,8 @@ TEST(ShutdownSignal, Daemon)
 
     TEST_STEP("Activate RunTarget Off")
     {
-        client.ActivateRunTarget("Off");
+        const auto result = client->activate_run_target("Off", true);
+        EXPECT_TRUE(result.has_value()) << result.error().Message();
     }
 }
 

@@ -13,37 +13,75 @@
 #include <gtest/gtest.h>
 
 #include "tests/utils/test_helper/test_helper.hpp"
-#include <score/mw/lifecycle/control_client.h>
+#include <score/mw/lifecycle/ilm_control.hpp>
 #include <score/mw/lifecycle/report_running.h>
+
+using namespace score::mw::lifecycle;
 
 TEST(FileStateExist, ControlClientTestDriver)
 {
-    score::mw::lifecycle::ControlClient client;
-
     ASSERT_TRUE(check_clean({fallback_file}));
 
-    TEST_STEP("Report kRunning from ControlClientTestDriver")
+    std::unique_ptr<ILmControl> client;
+
+    TEST_STEP("Create client")
     {
-        score::mw::lifecycle::report_running();
+        auto client_result = ILmControl::Create("StateManager/LaunchManager/Instance");
+        ASSERT_TRUE(client_result.has_value()) << client_result.error().Message();
+        client = std::move(client_result).value();
     }
+
+    TEST_STEP("Register callback")
+    {
+        const auto result = client->register_run_target_activation_callback(push_event);
+        ASSERT_TRUE(result.has_value());
+    }
+
+    TEST_STEP("Report running")
+    {
+        report_running();
+    }
+
+    pop_event([](RunTargetActivationSource source, RunTargetName target) {
+        TEST_STEP("Callback for RunTarget Startup")
+        {
+            EXPECT_EQ(source, RunTargetActivationSource::kInitialActivation);
+            EXPECT_EQ(target, "Startup");
+        }
+    });
 
     TEST_STEP("Activate RunTarget that works")
     {
-        score::cpp::stop_token stop_token;
-        auto result = client.ActivateRunTarget("working").Get(stop_token);
-        EXPECT_TRUE(result.has_value());
+        const auto result = client->activate_run_target("working", true);
+        EXPECT_TRUE(result.has_value()) << result.error().Message();
     }
+
+    pop_event([](RunTargetActivationSource source, RunTargetName target) {
+        TEST_STEP("Callback for RunTarget working")
+        {
+            EXPECT_EQ(source, RunTargetActivationSource::kStateManagerRequest);
+            EXPECT_EQ(target, "working");
+        }
+    });
 
     TEST_STEP("Activate RunTarget that times out")
     {
-        score::cpp::stop_token stop_token;
-        auto result = client.ActivateRunTarget("timeout").Get(stop_token);
-        EXPECT_FALSE(result.has_value()) << "Activation should timeout and error";
+        const auto result = client->activate_run_target("timeout", true);
+        EXPECT_TRUE(result.has_value()) << result.error().Message();
     }
+
+    pop_event([](RunTargetActivationSource source, RunTargetName target) {
+        TEST_STEP("Callback for RunTarget fallback")
+        {
+            EXPECT_EQ(source, RunTargetActivationSource::kRecoveryAction);
+            EXPECT_EQ(target, "fallback");
+        }
+    });
 
     TEST_STEP("Activate RunTarget Off")
     {
-        client.ActivateRunTarget("Off");
+        const auto result = client->activate_run_target("Off", true);
+        EXPECT_TRUE(result.has_value()) << result.error().Message();
     }
 }
 

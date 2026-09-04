@@ -27,16 +27,11 @@ namespace score::mw::lifecycle::internal::osal
 
 using ProcessID = pid_t;
 
-/// @brief This enum class is used to distinguish between different types of communication required by processes
-/// The information is initially reported by configuration manager in the startup_config_ member of the OsConfig
-/// structure and is used by ProcessGroupManager to initially create the correct size of shared memory and also
-/// by Control Client library to determine if a process is allowed to report kRunning and if it is allowed to use the
-/// Control Client interfaces.
+/// @brief The type of communications used for a child process.
 enum class CommsType : std::uint_least8_t
 {
-    kNoComms = 0,        // Do not create any communications channel
-    kReporting = 1,      // Create an osal::Comms object only
-    kControlClient = 2,  // Create an osal::Comms object and reserve space for a ControlClientChannel
+    kNoComms = 0,    // Do not create any communications channel
+    kReporting = 1,  // Create an osal::Comms object only
 };
 
 ///@brief This enum class likely represents the return status or outcome of an operating system abstraction layer (OSAL)

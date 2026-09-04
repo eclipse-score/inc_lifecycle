@@ -38,7 +38,6 @@ integration_test(
     name = "crash_ignores_dependents",
     srcs = ["crash_ignores_dependents.py"],
     binaries = [
-        ":config",
         ":test_process",
         ":process_crashing_once",
         "//score/launch_manager",

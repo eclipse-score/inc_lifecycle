@@ -341,7 +341,9 @@ def test_preprocessing_alive_supervision_presence_based_on_app_type():
             },
             "sm_app": {
                 "component_properties": {
-                    "application_profile": {"application_type": "State_Manager"}
+                    "application_profile": {
+                        "application_type": "Reporting_And_Supervised"
+                    }
                 }
             },
         },

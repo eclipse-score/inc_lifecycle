@@ -11,22 +11,28 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-#ifndef SCORE_LCM_ITRANSITION_RESULT_PUBLISHER
-#define SCORE_LCM_ITRANSITION_RESULT_PUBLISHER
+#ifndef SCORE_LCM_CONTROL_PROVIDER
+#define SCORE_LCM_CONTROL_PROVIDER
 
-#include "score/mw/launch_manager/control/control_client_channel.hpp"
+#include "score/mw/launch_manager/process_group_manager/process_group_manager.hpp"
+#include "score/mw/lifecycle/details/lm_control_service.h"
 
 namespace score::mw::lifecycle::internal
 {
 
-class ITransitionResultPublisher
+class ControlProvider
 {
   public:
-    virtual void setInitialStateTransitionResult(ControlClientCode result) = 0;
+    ControlProvider(ProcessGroupManager* process_group_manager);
 
-    virtual ~ITransitionResultPublisher() = default;
+  private:
+    /// @brief The external `mw::com` interface.
+    LmControlSkeleton skeleton_;
+
+    /// @brief The underlying graph implementation.
+    ProcessGroupManager* process_group_manager_;
 };
 
 }  // namespace score::mw::lifecycle::internal
 
-#endif  // SCORE_LCM_ITRANSITION_RESULT_PUBLISHER
+#endif  // SCORE_LCM_CONTROL_PROVIDER

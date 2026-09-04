@@ -173,7 +173,7 @@
             "component_properties": {
                 "binary_name": "sm",
                 "application_profile": {
-                    "application_type": "State_Manager",
+                    "application_type": "Reporting_And_Supervised",
                     "alive_supervision": {
                         "reporting_cycle": 0.1,
                         "failed_cycles_tolerance": 0,

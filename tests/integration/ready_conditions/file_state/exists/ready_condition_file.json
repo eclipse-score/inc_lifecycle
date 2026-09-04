@@ -35,7 +35,7 @@
                     "process_state": "Running"
                 },
                 "application_profile": {
-                    "application_type": "State_Manager",
+                    "application_type": "Reporting_And_Supervised",
                     "is_self_terminating": false,
                     "alive_supervision": {
                         "min_indications": 0
@@ -125,6 +125,11 @@
                     "run_target": "fallback_run_target"
                 }
             }
+        },
+        "fallback": {
+            "depends_on": [
+                "control_client_test_driver"
+            ]
         }
     },
     "initial_run_target": "Startup",

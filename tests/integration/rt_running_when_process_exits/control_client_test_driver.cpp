@@ -16,7 +16,7 @@
 #include <string_view>
 
 #include "tests/utils/test_helper/test_helper.hpp"
-#include <score/mw/lifecycle/control_client.h>
+#include <score/mw/lifecycle/ilm_control.hpp>
 #include <score/mw/lifecycle/report_running.h>
 
 namespace
@@ -24,6 +24,8 @@ namespace
 /// @brief Marker file written by the slow setup component once it has finished (and is about to exit).
 constexpr std::string_view kSlowSetupOutput = "slow_setup_output.txt";
 }  // namespace
+
+using namespace score::mw::lifecycle;
 
 // Given a configuration with two run targets, each pulling in a self-terminating component whose
 // ready condition is "Terminated" but which differ in whether that component has a dependent:
@@ -40,32 +42,68 @@ constexpr std::string_view kSlowSetupOutput = "slow_setup_output.txt";
 // running and its marker file has not been written yet.
 TEST(RtRunningWhenProcessExits, ControlClientTestDriver)
 {
-    score::mw::lifecycle::ControlClient client;
-    score::cpp::stop_token stop_token;
-
     // kSlowSetupOutput is checked too: its later presence must be a reliable signal that
     // the slow setup component terminated during *this* run, not leftover from a previous one.
     ASSERT_TRUE(check_clean({kSlowSetupOutput}));
 
+    std::unique_ptr<ILmControl> client;
+
+    TEST_STEP("Create client")
+    {
+        auto client_result = ILmControl::Create("StateManager/LaunchManager/Instance");
+        ASSERT_TRUE(client_result.has_value()) << client_result.error().Message();
+        client = std::move(client_result).value();
+    }
+
+    TEST_STEP("Register callback")
+    {
+        const auto result = client->register_run_target_activation_callback(push_event);
+        ASSERT_TRUE(result.has_value());
+    }
+
     TEST_STEP("Report running")
     {
-        score::mw::lifecycle::report_running();
+        report_running();
     }
+
+    pop_event([](RunTargetActivationSource source, RunTargetName target) {
+        TEST_STEP("Callback for RunTarget Startup")
+        {
+            EXPECT_EQ(source, RunTargetActivationSource::kInitialActivation);
+            EXPECT_EQ(target, "Startup");
+        }
+    });
 
     // The with-dependents case: filesystem_reader asserts on the prepared file and on the setup
     // script process being gone, so the ordering is checked there.
     TEST_STEP("Activate run target with a terminated-ready component that HAS a dependent")
     {
-        auto result = client.ActivateRunTarget("run_target_reader").Get(stop_token);
-        EXPECT_TRUE(result.has_value()) << "Activating run_target_reader failed: " << result.error();
+        const auto result = client->activate_run_target("run_target_reader", true);
+        EXPECT_TRUE(result.has_value()) << result.error().Message();
     }
+
+    pop_event([](RunTargetActivationSource source, RunTargetName target) {
+        TEST_STEP("Callback for RunTarget run_target_reader")
+        {
+            EXPECT_EQ(source, RunTargetActivationSource::kStateManagerRequest);
+            EXPECT_EQ(target, "run_target_reader");
+        }
+    });
 
     // The no-dependents case: activation must only complete once the slow setup component has terminated.
     TEST_STEP("Activate run target with a terminated-ready component that has NO dependent")
     {
-        auto result = client.ActivateRunTarget("run_target_slow_setup").Get(stop_token);
-        EXPECT_TRUE(result.has_value()) << "Activating run_target_slow_setup failed: " << result.error();
+        const auto result = client->activate_run_target("run_target_slow_setup", true);
+        EXPECT_TRUE(result.has_value()) << result.error().Message();
     }
+
+    pop_event([](RunTargetActivationSource source, RunTargetName target) {
+        TEST_STEP("Callback for RunTarget run_target_slow_setup")
+        {
+            EXPECT_EQ(source, RunTargetActivationSource::kStateManagerRequest);
+            EXPECT_EQ(target, "run_target_slow_setup");
+        }
+    });
 
     TEST_STEP("Verify the slow setup component had terminated before activation completed")
     {
@@ -77,7 +115,8 @@ TEST(RtRunningWhenProcessExits, ControlClientTestDriver)
 
     TEST_STEP("Activate run target Off")
     {
-        client.ActivateRunTarget("Off");
+        const auto result = client->activate_run_target("Off", true);
+        EXPECT_TRUE(result.has_value()) << result.error().Message();
     }
 }
 

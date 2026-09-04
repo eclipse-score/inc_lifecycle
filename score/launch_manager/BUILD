@@ -18,7 +18,7 @@ package(default_visibility = ["//visibility:public"])
 
 alias(
     name = "control_cc",
-    actual = "//score/launch_manager/src/control_client:control_client",
+    actual = "//score/launch_manager/src/lm_control:lm_control",
 )
 
 alias(

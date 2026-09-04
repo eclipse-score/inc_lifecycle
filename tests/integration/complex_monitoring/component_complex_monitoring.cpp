@@ -67,7 +67,7 @@ TEST(ComplexMonitoring, ComponentComplexMonitoring)
 int main()
 {
     TestRunner(__FILE__, TerminationBehavior::kContinue).RunTests();
-    // Then expect kill due to recovery action (verified by control client)
+    // Then expect kill due to recovery action (verified by state manager)
     while (true)  // Stop reporting, wait for sigkill
     {
         pause();

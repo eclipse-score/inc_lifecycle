@@ -13,36 +13,61 @@
 #include <gtest/gtest.h>
 
 #include "tests/utils/test_helper/test_helper.hpp"
-#include <score/mw/lifecycle/control_client.h>
+#include <score/mw/lifecycle/ilm_control.hpp>
 #include <score/mw/lifecycle/report_running.h>
+
+using namespace score::mw::lifecycle;
 
 TEST(MissingBinaryFailure, ControlClientTestDriver)
 {
-    score::mw::lifecycle::ControlClient client;
-
     ASSERT_TRUE(check_clean({fallback_file}));
 
-    TEST_STEP("Report kRunning from ControlClientTestDriver")
+    std::unique_ptr<ILmControl> client;
+
+    TEST_STEP("Create client")
     {
-        score::mw::lifecycle::report_running();
+        auto client_result = ILmControl::Create("StateManager/LaunchManager/Instance");
+        ASSERT_TRUE(client_result.has_value()) << client_result.error().Message();
+        client = std::move(client_result).value();
     }
+
+    TEST_STEP("Register callback")
+    {
+        const auto result = client->register_run_target_activation_callback(push_event);
+        ASSERT_TRUE(result.has_value());
+    }
+
+    TEST_STEP("Report running")
+    {
+        report_running();
+    }
+
+    pop_event([](RunTargetActivationSource source, RunTargetName target) {
+        TEST_STEP("Callback for RunTarget Startup")
+        {
+            EXPECT_EQ(source, RunTargetActivationSource::kInitialActivation);
+            EXPECT_EQ(target, "Startup");
+        }
+    });
 
     TEST_STEP("Activate RunTarget containing a component with a missing binary")
     {
-        score::cpp::stop_token stop_token;
-        auto result = client.ActivateRunTarget("run_target_with_missing_binary").Get(stop_token);
-        EXPECT_FALSE(result.has_value()) << "Activating a run target with a missing binary should fail.";
+        const auto result = client->activate_run_target("run_target_with_missing_binary", true);
+        EXPECT_TRUE(result.has_value()) << result.error().Message();
     }
-    // Limitation: we cannot wait for the transition to fallback to complete
-    sleep(1);
-    TEST_STEP("Verify fallback run target was activated")
-    {
-        EXPECT_TRUE(std::filesystem::exists(fallback_file)) << "Fallback run target should have been activated";
-    }
+
+    pop_event([](RunTargetActivationSource source, RunTargetName target) {
+        TEST_STEP("Callback for RunTarget fallback")
+        {
+            EXPECT_EQ(source, RunTargetActivationSource::kRecoveryAction);
+            EXPECT_EQ(target, "fallback");
+        }
+    });
 
     TEST_STEP("Activate RunTarget Off")
     {
-        client.ActivateRunTarget("Off");
+        const auto result = client->activate_run_target("Off", true);
+        EXPECT_TRUE(result.has_value()) << result.error().Message();
     }
 }
 

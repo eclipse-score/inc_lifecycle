@@ -114,7 +114,7 @@
             "component_properties": {
                 "binary_name": "sm",
                 "application_profile": {
-                    "application_type": "State_Manager"
+                    "application_type": "Reporting_And_Supervised"
                 },
                 "depends_on": ["setup_filesystem_sh"]
             },

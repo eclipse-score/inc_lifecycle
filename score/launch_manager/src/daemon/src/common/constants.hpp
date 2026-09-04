@@ -37,33 +37,14 @@ constexpr std::chrono::milliseconds kMaxQueueDelay{
 constexpr std::chrono::milliseconds kGraphTimeout{10000};   ///< Timeout duration for graph operations.
 constexpr std::chrono::milliseconds kMaxSigKillDelay{500};  ///< The maximum time to wait for a process termination
 
-constexpr std::chrono::milliseconds kControlClientPollingDelay{
-    1};  ///< Time Control Client will wait during polling for acknowledgement
-
 constexpr std::chrono::milliseconds kMaxRunningDelay{
     1000};  ///< report_running() API will wait for Launch Manager to respond
-
-constexpr std::chrono::milliseconds kControlClientMaxIpcDelay{
-    500};  ///< The maximum time to wait, when trying to communicate with LCM. When this time is exceeded
-           ///< kCommunicationError will be returned
-constexpr std::chrono::milliseconds kControlClientBgThreadSleepTime{100};
 
 constexpr std::chrono::milliseconds kDefaultOffStateTransitionTimeout{
     3000};  ///< Default timeout for Off state transition
 
 constexpr std::int64_t kMainLoopCycleTimeMs{50};  ///< The period at which the main loop services the watchdog
 constexpr std::int64_t kMainLoopCycleTimeNs{kMainLoopCycleTimeMs * 1'000'000LL};
-
-enum class ControlClientLimits : uint16_t
-{
-    kControlClientMaxInstances = 256U,  ///< Maximum number of ControlClient instances that should be created by state
-                                        ///< manager. If state manager create more instances than kMaxInstances, those
-                                        ///< instances will always return kCommunicationError when used
-    kControlClientMaxRequests =
-        512U  ///< Maximum number of active requests, for example SetState call, that ControlClient instance can send to
-              ///< LCM. If that number is exceeded ControlClient API will return kFailed, until one of the current
-              ///< requests is completed by LCM
-};
 
 enum class ProcessLimits : std::uint32_t
 {

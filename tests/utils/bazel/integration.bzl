@@ -53,22 +53,25 @@ def integration_test(
 
     if config:
         launch_manager_config(
-            name = "config",
+            name = "lm_config",
             config = config,
             flatbuffer_out_dir = "etc",
         )
-        all_files = files + [":config"]
-    else:
-        all_files = files
+        pkg_files(
+            name = "lm_config_file",
+            srcs = [":lm_config"],
+            prefix = "tests/{}".format(name),
+            attributes = pkg_attributes(mode = "0400"),
+        )
 
     pkg_files(
-        name = "files",
-        srcs = all_files,
-        prefix = "tests/{}".format(name),
+        name = "mw_com_config_file",
+        srcs = ["//tests/utils/environments:mw_com_config.json"],
+        prefix = "tests/{}/etc".format(name),
         attributes = pkg_attributes(mode = "0400"),
     )
 
-    pkg_tar(name = "environment", srcs = [":binaries", ":files"])
+    pkg_tar(name = "environment", srcs = [":binaries", ":lm_config_file", ":mw_com_config_file"])
 
     final_deps = kwargs.pop("deps", []) + all_requirements + [
         "@score_tooling//python_basics/score_pytest:attribute_plugin",

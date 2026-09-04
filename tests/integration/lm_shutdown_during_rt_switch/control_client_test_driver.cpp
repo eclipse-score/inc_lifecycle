@@ -16,8 +16,10 @@
 
 #include "common.hpp"
 #include "tests/utils/test_helper/test_helper.hpp"
-#include <score/mw/lifecycle/control_client.h>
+#include <score/mw/lifecycle/ilm_control.hpp>
 #include <score/mw/lifecycle/report_running.h>
+
+using namespace score::mw::lifecycle;
 
 // The Launch Manager shall exit after performing a shutdown - stopping all the
 // processes it owns in dependency order - when requested (i.e. when it receives
@@ -32,19 +34,51 @@
 // run_target_c, must never start) and shut everything down.
 TEST(LmShutdownDuringRtSwitch, ControlClient)
 {
-    score::mw::lifecycle::ControlClient client{};
     ASSERT_TRUE(check_clean({a_started, a_terminating, c_started}));
+    std::unique_ptr<ILmControl> client;
+
+    TEST_STEP("Create client")
+    {
+        auto client_result = ILmControl::Create("StateManager/LaunchManager/Instance");
+        ASSERT_TRUE(client_result.has_value()) << client_result.error().Message();
+        client = std::move(client_result).value();
+    }
+
+    TEST_STEP("Register callback")
+    {
+        const auto result = client->register_run_target_activation_callback(push_event);
+        ASSERT_TRUE(result.has_value());
+    }
 
     TEST_STEP("Report running")
     {
-        score::mw::lifecycle::report_running();
+        report_running();
     }
+
+    pop_event([](RunTargetActivationSource source, RunTargetName target) {
+        TEST_STEP("Callback for RunTarget Startup")
+        {
+            EXPECT_EQ(source, RunTargetActivationSource::kInitialActivation);
+            EXPECT_EQ(target, "Startup");
+        }
+    });
 
     TEST_STEP("Activate run_target_a")
     {
-        score::cpp::stop_token stop_token;
-        auto result = client.ActivateRunTarget("run_target_a").Get(stop_token);
-        EXPECT_TRUE(result.has_value()) << "Activating run_target_a failed: " << result.error().Message();
+        const auto result = client->activate_run_target("run_target_a", true);
+        EXPECT_TRUE(result.has_value()) << result.error().Message();
+    }
+
+    pop_event([](RunTargetActivationSource source, RunTargetName target) {
+        TEST_STEP("Callback for RunTarget run_target_a")
+        {
+            EXPECT_EQ(source, RunTargetActivationSource::kStateManagerRequest);
+            EXPECT_EQ(target, "run_target_a");
+        }
+    });
+
+    TEST_STEP("Verify activation of run_target_a")
+    {
         EXPECT_TRUE(std::filesystem::exists(a_started)) << "component_a was not started";
     }
 
@@ -54,7 +88,8 @@ TEST(LmShutdownDuringRtSwitch, ControlClient)
         // external SIGTERM to the launch manager, so we must not wait for a
         // result. The launch manager will shut this process down instead of ever
         // completing the switch.
-        client.ActivateRunTarget("run_target_c");
+        const auto result = client->activate_run_target("run_target_c", true);
+        EXPECT_TRUE(result.has_value()) << result.error().Message();
     }
 
     // Block until the launch manager terminates us as part of its own shutdown.
