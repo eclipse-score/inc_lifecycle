@@ -25,30 +25,18 @@ namespace score::mw::lifecycle
 TEST(DependencyGraphTest, EmplaceAndAccessByIndex)
 {
     const std::string_view text = "AAAAA";
-    DependencyGraph<IdentifierHash> graph(1);
-    const auto res = graph.emplace(text);
+    DependencyGraph<IdentifierHash, std::string> graph(1);
+    const auto res = graph.try_emplace(IdentifierHash{text}, text);
 
     auto& hash = graph[res];
-    EXPECT_EQ(hash, IdentifierHash{text});
-}
-
-TEST(DependencyGraphTest, EmplaceReturnsSequentialIndices)
-{
-    DependencyGraph<IdentifierHash> graph(3);
-    const auto first = graph.emplace("a");
-    const auto second = graph.emplace("b");
-    const auto third = graph.emplace("c");
-
-    EXPECT_EQ(first, 0U);
-    EXPECT_EQ(second, 1U);
-    EXPECT_EQ(third, 2U);
+    EXPECT_EQ(hash, text);
 }
 
 TEST(DependencyGraphTest, AddDependencyWiresDependsOnAndDependents)
 {
-    DependencyGraph<IdentifierHash> graph(2);
-    const auto dep = graph.emplace("dep");
-    const auto root = graph.emplace("root");
+    DependencyGraph<IdentifierHash, std::string> graph(2);
+    const auto dep = graph.try_emplace(IdentifierHash{"dep"}, "dep");
+    const auto root = graph.try_emplace(IdentifierHash{"root"}, "root");
     graph.addDependency(root, dep);
 
     EXPECT_THAT(graph.dependsOn(root), ::testing::ElementsAre(dep));
@@ -59,50 +47,48 @@ TEST(DependencyGraphTest, AddDependencyWiresDependsOnAndDependents)
 
 TEST(DependencyGraphTest, SizeReflectsNumberOfEmplacedNodes)
 {
-    DependencyGraph<IdentifierHash> graph(2);
+    DependencyGraph<IdentifierHash, std::string> graph(2);
     EXPECT_EQ(graph.size(), 0U);
-    graph.emplace("a");
+    graph.try_emplace(IdentifierHash{"a"}, "a");
     EXPECT_EQ(graph.size(), 1U);
-    graph.emplace("b");
+    graph.try_emplace(IdentifierHash{"b"}, "b");
     EXPECT_EQ(graph.size(), 2U);
 }
 
 TEST(DependencyGraphTest, TraverseVisitsWholeChainThroughDependsOn)
 {
     // root -> mid -> leaf (X -> Y means X depends_on Y)
-    DependencyGraph<IdentifierHash> graph(3);
-    const auto leaf = graph.emplace("leaf");
-    const auto mid = graph.emplace("mid");
-    const auto root = graph.emplace("root");
+    DependencyGraph<IdentifierHash, std::string> graph(3);
+    const auto leaf = graph.try_emplace(IdentifierHash{"leaf"}, "leaf");
+    const auto mid = graph.try_emplace(IdentifierHash{"mid"}, "mid");
+    const auto root = graph.try_emplace(IdentifierHash{"root"}, "root");
     graph.addDependency(root, mid);
     graph.addDependency(mid, leaf);
 
-    std::vector<IdentifierHash> visited;
-    graph.traverse(root, [&](GraphIndex i) -> const std::vector<GraphIndex>& {
+    std::vector<std::string> visited;
+    graph.traverse(root, [&](IdentifierHash i) -> const std::vector<IdentifierHash>& {
         visited.push_back(graph[i]);
         return graph.dependsOn(i);
     });
 
-    EXPECT_THAT(
-        visited,
-        ::testing::UnorderedElementsAre(IdentifierHash{"root"}, IdentifierHash{"mid"}, IdentifierHash{"leaf"}));
+    EXPECT_THAT(visited, ::testing::UnorderedElementsAre("leaf", "mid", "root"));
 }
 
 TEST(DependencyGraphTest, TraverseVisitsSharedDependencyExactlyOnce)
 {
     // Diamond: both a and b depend on shared; root depends on both a and b.
-    DependencyGraph<IdentifierHash> graph(4);
-    const auto shared = graph.emplace("shared");
-    const auto a = graph.emplace("a");
-    const auto b = graph.emplace("b");
-    const auto root = graph.emplace("root");
+    DependencyGraph<IdentifierHash, std::string> graph(4);
+    const auto shared = graph.try_emplace(IdentifierHash{"shared"}, "shared");
+    const auto a = graph.try_emplace(IdentifierHash{"a"}, "a");
+    const auto b = graph.try_emplace(IdentifierHash{"b"}, "b");
+    const auto root = graph.try_emplace(IdentifierHash{"root"}, "root");
     graph.addDependency(a, shared);
     graph.addDependency(b, shared);
     graph.addDependency(root, a);
     graph.addDependency(root, b);
 
     std::size_t shared_visits = 0;
-    graph.traverse(root, [&](GraphIndex i) -> const std::vector<GraphIndex>& {
+    graph.traverse(root, [&](IdentifierHash i) -> const std::vector<IdentifierHash>& {
         if (i == shared)
         {
             ++shared_visits;

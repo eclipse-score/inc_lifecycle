@@ -30,7 +30,7 @@ TEST(FallbackToSameTargetRestarts, ControlClientTestDriver)
 
     const std::string_view process_file = "process_started_normally";
 
-    ASSERT_TRUE(check_clean({test_end_location, process_file}));
+    ASSERT_TRUE(check_clean({process_file}));
     // Establish communication with launch manager
     TEST_STEP("Report running")
     {

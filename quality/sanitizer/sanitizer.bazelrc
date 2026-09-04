@@ -1,0 +1,64 @@
+# *******************************************************************************
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+# ==============================================================================
+# Debug symbols — used by all sanitizer configs below
+# ==============================================================================
+
+test:with_debug_symbols --features=debug_symbols
+build:with_debug_symbols --strip=never
+
+# ==============================================================================
+# Per-sanitizer configs (primary API — each activates exactly one sanitizer)
+# ==============================================================================
+
+build:asan --features=score_asan
+build:asan --@score_cpp_policies//sanitizers/flags:asan=True
+build:asan --platform_suffix=asan
+build:asan --config=with_debug_symbols
+test:asan  --run_under=@score_cpp_policies//sanitizers:wrapper
+
+build:ubsan --features=score_ubsan_clang
+build:ubsan --@score_cpp_policies//sanitizers/flags:ubsan=True
+build:ubsan --platform_suffix=ubsan
+build:ubsan --config=with_debug_symbols
+test:ubsan  --run_under=@score_cpp_policies//sanitizers:wrapper
+
+build:lsan --features=score_lsan
+build:lsan --@score_cpp_policies//sanitizers/flags:lsan=True
+build:lsan --platform_suffix=lsan
+build:lsan --config=with_debug_symbols
+test:lsan  --run_under=@score_cpp_policies//sanitizers:wrapper
+
+build:tsan --features=score_tsan
+build:tsan --@score_cpp_policies//sanitizers/flags:tsan=True
+build:tsan --platform_suffix=tsan
+build:tsan --config=with_debug_symbols
+test:tsan  --run_under=@score_cpp_policies//sanitizers:wrapper
+
+# ==============================================================================
+# Composite configs — convenience aliases for common combinations
+# ==============================================================================
+# Note on --platform_suffix ordering: each --config=asan/ubsan/lsan sets its own
+# --platform_suffix. The final --platform_suffix below overrides all of them to a
+# single canonical suffix. Bazel applies the last value of a repeatable flag, so
+# this override is intentional and stable.
+
+build:asan_ubsan_lsan --config=asan
+build:asan_ubsan_lsan --config=ubsan
+build:asan_ubsan_lsan --config=lsan
+build:asan_ubsan_lsan --platform_suffix=asan_ubsan_lsan
+
+build:tsan_ubsan --config=tsan
+build:tsan_ubsan --config=ubsan
+build:tsan_ubsan --platform_suffix=tsan_ubsan

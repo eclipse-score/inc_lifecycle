@@ -23,13 +23,7 @@
 #include "score/mw/launch_manager/alive_monitor/details/ifexm/ObservableEvent.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
 
-namespace score
-{
-namespace mw::lifecycle::internal
-{
-namespace saf
-{
-namespace ifappl
+namespace score::mw::lifecycle::internal::saf::ifappl
 {
 
 /// @brief Checkpoint Observer
@@ -100,9 +94,6 @@ class Checkpoint : public saf::common::Observable<Checkpoint>
     score::mw::lifecycle::internal::saf::timers::NanoSecondType timestamp;
 };
 
-}  // namespace ifappl
-}  // namespace saf
-}  // namespace mw::lifecycle::internal
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::saf::ifappl
 
 #endif

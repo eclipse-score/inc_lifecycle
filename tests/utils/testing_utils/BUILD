@@ -20,7 +20,7 @@ exports_files(
 py_library(
     name = "testing_utils",
     srcs = [
-        "run_until_file_deployed.py",
+        "run_test.py",
         "setup_test.py",
         "test_results.py",
     ],

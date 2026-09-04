@@ -22,22 +22,12 @@
 #include <string>
 #include <vector>
 
-namespace score
-{
-namespace mw::lifecycle
+namespace score::mw::lifecycle
 {
 class ControlClient;
-}
-}  // namespace score
+}  // namespace score::mw::lifecycle
 
-namespace score
-{
-namespace mw::lifecycle::internal
-{
-namespace saf
-{
-
-namespace factory
+namespace score::mw::lifecycle::internal::saf::factory
 {
 
 /// @brief PHM Factory for FlatCfg AR21-11 format
@@ -110,9 +100,6 @@ class FlatCfgFactory : public IPhmFactory
         const std::int32_t f_uid) noexcept(false);
 };
 
-}  // namespace factory
-}  // namespace saf
-}  // namespace mw::lifecycle::internal
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::saf::factory
 
 #endif

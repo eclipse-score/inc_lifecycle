@@ -10,8 +10,8 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-from tests.utils.testing_utils.run_until_file_deployed import run_until_file_deployed
 from tests.utils.testing_utils.setup_test import setup_test
+from tests.utils.testing_utils.run_test import run_test
 from tests.utils.testing_utils.test_results import assert_test_results
 from attribute_plugin import add_test_properties
 
@@ -53,18 +53,11 @@ def test_rt_running_when_process_exits(
 
     """
 
-    # launch manager will simply ignore the arguments if run with --//config:use_new_configuration=False.
-    # the old configuration will be used, which is the default behavior.
-    # The new configuration will be used if run with --//config:use_new_configuration=True
-    new_config_path = str(remote_test_dir / "etc/rt_running_when_process_exits.bin")
-
-    run_until_file_deployed(
+    run_test(
         target=target,
         binary_path=str(remote_test_dir / "launch_manager"),
-        file_path=remote_test_dir.parent / "test_end",
+        args=["-c", str(remote_test_dir / "etc/rt_running_when_process_exits.bin")],
         cwd=str(remote_test_dir),
-        args=["-c", new_config_path],
-        timeout_s=3.0,
     )
 
     assert_test_results({"control_client_test_driver.xml", "filesystem_reader.xml"})

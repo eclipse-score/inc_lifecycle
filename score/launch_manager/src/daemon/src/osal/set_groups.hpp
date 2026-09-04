@@ -18,16 +18,7 @@
 
 #include <cstdint>
 
-namespace score
-{
-
-namespace mw::lifecycle
-{
-
-namespace internal
-{
-
-namespace osal
+namespace score::mw::lifecycle::internal::osal
 {
 
 /// @brief Call the setgroups() function, which has a different signature in Linux and QNX.
@@ -36,8 +27,5 @@ namespace osal
 /// @param __groups pointer to the list of groups, may be NULL
 /// @returns 0 on success, -1 on failure.
 [[nodiscard]] std::int32_t setgroups(size_t __n, const gid_t* __groups) noexcept(true);
-}  // namespace osal
-}  // namespace internal
-}  // namespace mw::lifecycle
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::osal
 #endif

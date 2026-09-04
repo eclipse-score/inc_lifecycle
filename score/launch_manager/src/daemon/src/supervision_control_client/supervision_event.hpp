@@ -18,10 +18,7 @@
 #include <cstdint>
 #include <ctime>
 
-namespace score
-{
-
-namespace mw::lifecycle
+namespace score::mw::lifecycle
 {
 
 /// @brief Type of supervision event sent from the launch manager to the alive monitor.
@@ -55,8 +52,6 @@ constexpr std::size_t BUFFER_QUEUE_SIZE = 4096UL;
 
 }  // namespace BufferConstants
 
-}  // namespace mw::lifecycle
-
-}  // namespace score
+}  // namespace score::mw::lifecycle
 
 #endif  // SUPERVISION_EVENT_HPP_INCLUDED

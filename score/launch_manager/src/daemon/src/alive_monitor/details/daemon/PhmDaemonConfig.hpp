@@ -16,13 +16,7 @@
 
 #include <cstdint>
 
-namespace score
-{
-namespace mw::lifecycle::internal
-{
-namespace saf
-{
-namespace daemon
+namespace score::mw::lifecycle::internal::saf::daemon
 {
 
 /// @brief Configuration parameters of the PHM daemon
@@ -37,9 +31,6 @@ class PhmDaemonConfig
     }
 };
 
-}  // namespace daemon
-}  // namespace saf
-}  // namespace mw::lifecycle::internal
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::saf::daemon
 
 #endif

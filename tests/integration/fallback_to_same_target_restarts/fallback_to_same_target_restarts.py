@@ -10,8 +10,8 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-from tests.utils.testing_utils.run_until_file_deployed import run_until_file_deployed
 from tests.utils.testing_utils.setup_test import setup_test
+from tests.utils.testing_utils.run_test import run_test
 from tests.utils.testing_utils.test_results import assert_test_results
 from attribute_plugin import add_test_properties
 
@@ -31,15 +31,11 @@ def test_fallback_to_same_target_restarts(
     Expected Behaviour: The process is relaunched and completes normally.
     """
 
-    new_config_path = str(remote_test_dir / "etc/fallback_to_same_target_restarts.bin")
-
-    run_until_file_deployed(
+    run_test(
         target=target,
         binary_path=str(remote_test_dir / "launch_manager"),
-        file_path=remote_test_dir.parent / "test_end",
+        args=["-c", str(remote_test_dir / "etc/fallback_to_same_target_restarts.bin")],
         cwd=str(remote_test_dir),
-        args=["-c", new_config_path],
-        timeout_s=4.0,
     )
 
     assert_test_results({"control_client_test_driver.xml", "process_crashing_once.xml"})

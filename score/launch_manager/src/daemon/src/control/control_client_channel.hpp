@@ -22,27 +22,21 @@
 #include "score/mw/launch_manager/common/process_group_state_id.hpp"
 #include "score/mw/launch_manager/osal/ipc_comms.hpp"
 
-namespace score
-{
-
-namespace mw::lifecycle
-{
-
-namespace internal
+namespace score::mw::lifecycle::internal
 {
 
 /// @brief This is initially some ID provided by the Control Client library. When received
 /// by Control Client handler additional information is added - the state manager
 /// process originating the request. This can be given in the form of a function
-/// group index and process index.
+/// group index and process identifier.
 /// When the Control Client library receives a response, it must be able to extract
 /// the client ID, ignoring the state manager process identification.
 struct ControlClientID final
 {
-    uint16_t process_group_index_;  ///< Process group containing the state manager process
-    uint16_t process_index_;        ///< The process within the process group
-    uint32_t future_id_;            ///< ID to match request and response
-    ControlClientID() : process_group_index_(0), process_index_(0), future_id_(0)
+    uint16_t process_group_index_;       ///< Process group containing the state manager process
+    IdentifierHash process_identifier_;  ///< The process within the process group
+    uint32_t future_id_;                 ///< ID to match request and response
+    ControlClientID() : process_group_index_(0), process_identifier_(""), future_id_(0)
     {
     }  ///< For use by Control Client
 };
@@ -121,7 +115,7 @@ struct ControlClientComms final
     }
 };
 
-struct ControlClientChannel;
+class ControlClientChannel;
 using ControlClientChannelP = std::shared_ptr<ControlClientChannel>;
 
 /// @brief The bidirectional communications channel between a state manager and the Launch Manager
@@ -300,10 +294,6 @@ constexpr ControlClientCodeMapping stateArray[] = {
     {ControlClientCode::kExecutionErrorRequestSuccess, "kExecutionErrorRequestSuccess"},
 };
 
-}  // namespace internal
-
-}  // namespace mw::lifecycle
-
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal
 
 #endif  // CONTROL_CLIENT_CHANNEL_HPP_INCLUDED

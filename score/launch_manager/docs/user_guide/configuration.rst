@@ -224,6 +224,7 @@ component_properties (object)
                     * **Constraint:** Must be greater than 0.
                     * **Default:** ``0.01``
 
+
 .. _lm_conf_deployment_config_object_:
 
 deployment_config (object)

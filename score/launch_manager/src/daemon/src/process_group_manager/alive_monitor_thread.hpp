@@ -20,11 +20,7 @@
 
 #include "score/mw/launch_manager/process_group_manager/ialive_monitor_thread.hpp"
 
-namespace score
-{
-namespace mw::lifecycle
-{
-namespace internal
+namespace score::mw::lifecycle::internal
 {
 
 /// @brief AliveMonitor manages the lifecycle of the alive monitoring daemon in a separate thread.
@@ -52,7 +48,5 @@ class AliveMonitorThread final : public IAliveMonitorThread
     saf::daemon::EInitCode initResult{saf::daemon::EInitCode::kNotInitialized};
 };
 
-}  // namespace internal
-}  // namespace mw::lifecycle
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal
 #endif

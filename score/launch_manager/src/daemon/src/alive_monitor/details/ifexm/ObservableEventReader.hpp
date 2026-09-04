@@ -21,13 +21,7 @@
 #include "score/mw/launch_manager/supervision_control_client/isupervision_control_receiver.hpp"
 #include "score/mw/launch_manager/supervision_control_client/supervision_event.hpp"
 
-namespace score
-{
-namespace mw::lifecycle::internal
-{
-namespace saf
-{
-namespace ifexm
+namespace score::mw::lifecycle::internal::saf::ifexm
 {
 
 /// @brief Observable Event reader
@@ -91,9 +85,6 @@ class ObservableEventReader
     ObservableEvent* lastChangedProcess_p{nullptr};
 };
 
-}  // namespace ifexm
-}  // namespace saf
-}  // namespace mw::lifecycle::internal
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::saf::ifexm
 
 #endif

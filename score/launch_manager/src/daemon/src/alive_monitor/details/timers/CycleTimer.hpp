@@ -21,13 +21,7 @@
 #include "score/mw/launch_manager/alive_monitor/details/timers/OsClockInterface.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
 
-namespace score
-{
-namespace mw::lifecycle::internal
-{
-namespace saf
-{
-namespace timers
+namespace score::mw::lifecycle::internal::saf::timers
 {
 
 // coverity[autosar_cpp14_m3_4_1_violation] value is referenced in multiple files, but depending on build package.
@@ -143,9 +137,6 @@ class CycleTimer
     struct timespec deadline;
 };
 
-}  // namespace timers
-}  // namespace saf
-}  // namespace mw::lifecycle::internal
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::saf::timers
 
 #endif

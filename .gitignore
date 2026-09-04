@@ -58,6 +58,11 @@ styles/
 __pycache__/
 /.coverage
 
+# LLVM source-based coverage report outputs (bazel run //coverage:generate_coverage_html)
+/coverage_linux
+/coverage_qnx
+/coverage_artifacts
+
 # Rust
 debug/
 target/

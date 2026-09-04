@@ -11,6 +11,7 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
+#include "score/mw/launch_manager/osal/mock_ifile_waiter.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/process_info_node.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/safe_process_map.hpp"
 #include "score/mw/launch_manager/process_group_manager/mock_iprocess.hpp"
@@ -20,6 +21,7 @@
 #include <chrono>
 #include <cstdint>
 #include <memory>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -27,8 +29,9 @@ using namespace testing;
 using namespace score::mw::lifecycle::internal;
 using namespace score::mw::lifecycle;
 
-// Default ProcessIndex for testing
-constexpr uint32_t kProcessIndex = 111;
+// Default process name for testing
+constexpr std::string_view kProcessName{"test_process"};
+const IdentifierHash kProcessNameHash{kProcessName};
 
 class MockSafeProcessMapInserter : public SafeProcessMapInserter
 {
@@ -57,8 +60,8 @@ class ProcessInfoNodeFixture : public ::testing::Test
         configuration::ProcessState ready_state = configuration::ProcessState::Running)
     {
         configuration::ComponentConfig config{};
-        config.name = "test_process";
-        config.component_properties.binary_name = "test_process";
+        config.name = kProcessName;
+        config.component_properties.binary_name = kProcessName;
 
         auto& profile = config.component_properties.application_profile;
         profile.application_type = application_type;
@@ -68,7 +71,28 @@ class ProcessInfoNodeFixture : public ::testing::Test
         config.deployment_config.shutdown_timeout_ms = shutdown_timeout_ms_;
 
         return std::make_unique<ProcessInfoNode>(
-            std::move(config), kProcessIndex, ProcessHandling{mock_publisher_, &mock_processIf_, process_map_});
+            std::move(config), ProcessHandling{mock_publisher_, &mock_processIf_, process_map_});
+    }
+
+    /// @brief Helper method to create a ProcessInfoNode with a FileState ready condition.
+    std::unique_ptr<ProcessInfoNode> createFileStateProcessInfoNode(
+        std::string file_path,
+        configuration::FileExistenceState state,
+        configuration::ApplicationType application_type = configuration::ApplicationType::Reporting,
+        std::chrono::milliseconds ready_timeout = std::chrono::milliseconds{50},
+        std::chrono::milliseconds poll_interval = std::chrono::milliseconds{5})
+    {
+        configuration::ComponentConfig config{};
+        config.name = "test_process";
+        config.component_properties.binary_name = "test_process";
+        config.component_properties.application_profile.application_type = application_type;
+        config.component_properties.ready_condition =
+            configuration::ReadyCondition{configuration::FileState{std::move(file_path), state, poll_interval}};
+        config.deployment_config.ready_timeout_ms = static_cast<std::uint32_t>(ready_timeout.count());
+        config.deployment_config.shutdown_timeout_ms = shutdown_timeout_ms_;
+
+        return std::make_unique<ProcessInfoNode>(
+            std::move(config), ProcessHandling{mock_publisher_, &mock_processIf_, process_map_, &mock_file_waiter_});
     }
 
     /// @brief Helper method to create a ProcessInfoNode that is self-terminating.
@@ -124,6 +148,7 @@ class ProcessInfoNodeFixture : public ::testing::Test
     score::cpp::stop_source stop_source_{};
     std::shared_ptr<MockSafeProcessMapInserter> process_map_{std::make_shared<MockSafeProcessMapInserter>()};
     StrictMock<osal::MockIProcess> mock_processIf_{};
+    StrictMock<osal::MockIFileWaiter> mock_file_waiter_{};
     NiceMock<MockSupervisionEventPublisher> mock_publisher_{};
 };
 
@@ -139,7 +164,7 @@ TEST_F(ProcessInfoNodeStartupTest, CanConstructIdleProcessInfoNode)
 
     auto node = createProcessInfoNode();
 
-    ASSERT_THAT(node->getIndex(), Eq(kProcessIndex));
+    ASSERT_THAT(node->getIdentifier(), Eq(kProcessName));
     ASSERT_THAT(node->getState(), Eq(score::mw::lifecycle::ProcessState::kIdle));
     ASSERT_THAT(node->getPid(), Eq(0));
     ASSERT_THAT(node->active(), IsFalse());
@@ -545,7 +570,7 @@ TEST_F(ProcessInfoNodeMoveTest, MoveConstruct_IdleNode_PreservesObservableState)
 
     ProcessInfoNode moved{std::move(*source)};
 
-    ASSERT_THAT(moved.getIndex(), Eq(kProcessIndex));
+    ASSERT_THAT(moved.getIdentifier(), Eq(kProcessName));
     ASSERT_THAT(moved.getState(), Eq(score::mw::lifecycle::ProcessState::kIdle));
     ASSERT_THAT(moved.active(), IsFalse());
     ASSERT_THAT(moved.getPid(), Eq(0));
@@ -565,7 +590,7 @@ TEST_F(ProcessInfoNodeMoveTest, MoveConstruct_RunningNode_PreservesAtomicState)
 
     ProcessInfoNode moved{std::move(*source)};
 
-    ASSERT_THAT(moved.getIndex(), Eq(kProcessIndex));
+    ASSERT_THAT(moved.getIdentifier(), Eq(kProcessName));
     ASSERT_THAT(moved.getState(), Eq(score::mw::lifecycle::ProcessState::kRunning));
     ASSERT_THAT(moved.active(), IsTrue());
 }
@@ -596,4 +621,99 @@ TEST_F(ProcessInfoNodeDeactivationTest, ProcessIgnoresSigterm_ForcedWithSigkill)
     ASSERT_THAT(result.value(), Eq(IComponent::RequestState::kSuccess));
     ASSERT_THAT(node->active(), IsFalse());
     ASSERT_THAT(node->getState(), Eq(score::mw::lifecycle::ProcessState::kIdle));
+}
+
+class ProcessInfoNodeFileStateTest : public ProcessInfoNodeFixture
+{
+};
+
+TEST_F(ProcessInfoNodeFileStateTest, ConditionAlreadyMet_ReturnsSuccess)
+{
+    RecordProperty(
+        "Description",
+        "A FileState ready condition with Exists that is satisfied lets activate() "
+        "return kSuccess.");
+
+    auto node = createFileStateProcessInfoNode(
+        "/ready",
+        configuration::FileExistenceState::Exists,
+        configuration::ApplicationType::Reporting,
+        std::chrono::milliseconds{50},
+        std::chrono::milliseconds{5});
+    expectSuccessfulProcessLaunch();
+    EXPECT_CALL(mock_processIf_, ignoreRunning(_)).WillOnce(Return(osal::OsalReturnType::kSuccess));
+    EXPECT_CALL(
+        mock_file_waiter_,
+        waitForFile(
+            _,
+            Eq(configuration::FileExistenceState::Exists),
+            Eq(std::chrono::milliseconds{50}),
+            Eq(std::chrono::milliseconds{5}),
+            _))
+        .WillOnce(Return(osal::OsalReturnType::kSuccess));
+    EXPECT_CALL(mock_publisher_, reportActivation);
+
+    auto result = node->activate(score::cpp::stop_token{});
+
+    ASSERT_THAT(result.has_value(), IsTrue());
+    ASSERT_THAT(result.value(), Eq(IComponent::RequestState::kSuccess));
+    ASSERT_THAT(node->getState(), Eq(score::mw::lifecycle::ProcessState::kRunning));
+}
+
+TEST_F(ProcessInfoNodeFileStateTest, NotExistingCondition_ReturnsSuccess)
+{
+    RecordProperty(
+        "Description",
+        "A FileState ready condition with NotExisting that is satisfied lets activate() "
+        "return kSuccess.");
+
+    auto node = createFileStateProcessInfoNode("/var/run/gone", configuration::FileExistenceState::NotExisting);
+    expectSuccessfulProcessLaunch();
+    EXPECT_CALL(mock_processIf_, ignoreRunning(_)).WillOnce(Return(osal::OsalReturnType::kSuccess));
+    EXPECT_CALL(mock_file_waiter_, waitForFile(_, Eq(configuration::FileExistenceState::NotExisting), _, _, _))
+        .WillOnce(Return(osal::OsalReturnType::kSuccess));
+    EXPECT_CALL(mock_publisher_, reportActivation);
+
+    auto result = node->activate(score::cpp::stop_token{});
+
+    ASSERT_THAT(result.has_value(), IsTrue());
+    ASSERT_THAT(result.value(), Eq(IComponent::RequestState::kSuccess));
+    ASSERT_THAT(node->getState(), Eq(score::mw::lifecycle::ProcessState::kRunning));
+}
+
+TEST_F(ProcessInfoNodeFileStateTest, NativeApplication_DoesNotIgnoreRunning_ReturnsSuccess)
+{
+    RecordProperty("Description", "A FileState ready condition with a native process hall not call ignoreRunning.");
+
+    auto node = createFileStateProcessInfoNode(
+        "/var/run/ready", configuration::FileExistenceState::Exists, configuration::ApplicationType::Native);
+    expectSuccessfulProcessLaunch();
+    EXPECT_CALL(mock_file_waiter_, waitForFile(_, _, _, _, _)).WillOnce(Return(osal::OsalReturnType::kSuccess));
+
+    auto result = node->activate(score::cpp::stop_token{});
+
+    ASSERT_THAT(result.has_value(), IsTrue());
+    ASSERT_THAT(result.value(), Eq(IComponent::RequestState::kSuccess));
+    ASSERT_THAT(node->getState(), Eq(score::mw::lifecycle::ProcessState::kRunning));
+}
+
+TEST_F(ProcessInfoNodeFileStateTest, WaitForFileTimesOut_ReturnsActivationTimedOut)
+{
+    RecordProperty(
+        "Description",
+        "If waitForFile() times out, activate() returns kActivationTimedOut and the process ends up terminated.");
+
+    auto node = createFileStateProcessInfoNode("/var/run/ready", configuration::FileExistenceState::Exists);
+    expectSuccessfulProcessLaunch();
+    EXPECT_CALL(mock_processIf_, ignoreRunning(_)).WillOnce(Return(osal::OsalReturnType::kSuccess));
+    EXPECT_CALL(mock_file_waiter_, waitForFile(_, _, _, _, _)).WillOnce(Return(osal::OsalReturnType::kTimeout));
+    // Simulate the OS handler reporting the killed process's exit once termination is requested.
+    expectOsAcknowledgesTermination(node.get());
+    EXPECT_CALL(mock_publisher_, reportActivation).Times(0);
+
+    auto result = node->activate(score::cpp::stop_token{});
+
+    ASSERT_THAT(result.has_value(), IsFalse());
+    ASSERT_THAT(result.error(), Eq(IComponent::ComponentError::kActivationTimedOut));
+    ASSERT_THAT(node->getState(), Eq(score::mw::lifecycle::ProcessState::kTerminated));
 }

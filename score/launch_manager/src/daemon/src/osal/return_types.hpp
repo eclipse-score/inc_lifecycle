@@ -17,16 +17,7 @@
 #include <sys/types.h>
 #include <cstdint>
 
-namespace score
-{
-
-namespace mw::lifecycle
-{
-
-namespace internal
-{
-
-namespace osal
+namespace score::mw::lifecycle::internal::osal
 {
 
 // We cant rule out of the possibility of porting OSAL code for the non-posix complain OS in the future.
@@ -67,12 +58,6 @@ enum class [[nodiscard]] OsalReturnType
     kTimeout = 2
 };
 
-}  // namespace osal
-
-}  // namespace internal
-
-}  // namespace mw::lifecycle
-
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::osal
 
 #endif  // OSAL_ERROR_TYPES_HPP_INCLUDED

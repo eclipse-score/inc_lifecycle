@@ -131,8 +131,8 @@ Build all components for different platforms:
 **QNX**
 
 ```sh
-bazel build --config=x86_64-qnx //...
-bazel build --config=arm64-qnx //...
+bazel build --config=x86_64-qnx //score/...
+bazel build --config=arm64-qnx //score/...
 ```
 
 Integration tests via [QEMU](https://www.qemu.org/):
@@ -154,35 +154,14 @@ natively on the host.
 **Linux**
 
 ```sh
-bazel build --config=x86_64-linux //...
-bazel build --config=arm64-linux //...
+bazel build --config=x86_64-linux //score/...
+bazel build --config=arm64-linux //score/...
 ```
 
-To test launch_manager and health_monitor with the sanitizers enabled use one of the following
+### Quality
 
-ASan + UBSan + LSan (recommended):
-
-```sh
-bazel test --config=asan_ubsan_lsan --config=x86_64-linux //score/... //tests/...
-```
-
-TSan:
-
-```sh
-bazel test --config=tsan --config=x86_64-linux //score/... //tests/...
-```
-
-To build all components with ``score::mw::log`` enabled, use this command:
-
-```sh
-bazel test --config=x86_64-linux //score/... //tests/...
-```
-
-Run tests with sanitizers: ASan + UBSan + LSan (recommended):
-
-```sh
-bazel test --config=asan_ubsan_lsan --config=x86_64-linux //score/... //tests/...
-```
+* For generating code coverage report, see [quality/coverage/README.md](quality/coverage/README.md).
+* For running tests with sanitizers enabled, see [quality/sanitizer/README.md](quality/sanitizer/README.md).
 
 ### Demo
 
@@ -198,6 +177,7 @@ score_lifecycle/
 ├── external/              # Third party software
 ├── examples/              # Example applications
 ├── scripts/               # Launch Manager Configuration generation
+├── quality/               # Quality specific infrastructure code (e.g. code coverage)
 └── tests/                 # Feature Integration tests
 ```
 

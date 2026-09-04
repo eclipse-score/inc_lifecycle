@@ -101,6 +101,7 @@ Module Viewpoint
    :id: mod_view_sta__lifecycle__all
    :version: 1
    :includes: comp__lifecycle_launch_manager, comp__health_monitor
+   :belongs_to: mod__lifecycle
 
    .. needarch::
       :scale: 50

@@ -45,8 +45,6 @@ TEST(ParallelLaunch, ControlClientTestDriver)
 {
     score::mw::lifecycle::ControlClient client;
 
-    ASSERT_TRUE(check_clean({test_end_location}));
-
     for (const auto id : kComponentIds)
     {
         ASSERT_TRUE(check_clean({"start_" + std::string{id}, "running_" + std::string{id}}));

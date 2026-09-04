@@ -18,13 +18,7 @@
 #include "score/mw/launch_manager/supervision_control_client/isupervision_control_notifier.hpp"
 #include "score/mw/launch_manager/supervision_control_client/supervision_event.hpp"
 
-namespace score
-{
-
-namespace mw::lifecycle
-{
-
-namespace internal
+namespace score::mw::lifecycle::internal
 {
 
 /// @brief SupervisionControlNotifier implementation for forwarding supervision events to the alive monitor.
@@ -74,9 +68,5 @@ class SupervisionControlNotifier final : public ISupervisionControlNotifier
         ring_buffer_{};
 };
 
-}  // namespace internal
-
-}  // namespace mw::lifecycle
-
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal
 #endif

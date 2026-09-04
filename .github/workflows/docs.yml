@@ -1,0 +1,39 @@
+# *******************************************************************************
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+name: Publish Documentation
+
+on:
+  workflow_run:
+    workflows: ["PR"]
+    types: [completed]
+
+jobs:
+  docs-publish:
+    # Only publish for events that produce a real, addressable doc version.
+    # merge_group runs are ephemeral (merge-queue checks) and would otherwise
+    # cause unintended Pages publishes / preview-folder churn.
+    if: |
+      github.event.workflow_run.conclusion == 'success' &&
+      contains(fromJSON('["pull_request", "push", "release"]'), github.event.workflow_run.event)
+    uses: eclipse-score/cicd-workflows/.github/workflows/docs-publish.yml@8d80e8df150cae21d53cbc8031d0f970648f7a67 # v0.0.3
+    permissions:
+      actions: write
+      contents: write
+      id-token: write
+      pages: write
+      pull-requests: write
+    concurrency:
+      group: docs-publish
+      cancel-in-progress: false
+      queue: max

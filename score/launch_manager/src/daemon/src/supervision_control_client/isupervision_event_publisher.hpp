@@ -16,10 +16,7 @@
 #include "score/mw/launch_manager/common/identifier_hash.hpp"
 #include <ctime>
 
-namespace score
-{
-
-namespace mw::lifecycle
+namespace score::mw::lifecycle
 {
 
 /// @brief ISupervisionEventPublisher interface for forwarding supervision events to the alive monitor.
@@ -38,8 +35,6 @@ class ISupervisionEventPublisher
     virtual bool reportDeactivation(IdentifierHash id, timespec time) noexcept = 0;
 };
 
-}  // namespace mw::lifecycle
-
-}  // namespace score
+}  // namespace score::mw::lifecycle
 
 #endif

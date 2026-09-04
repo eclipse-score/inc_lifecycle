@@ -23,17 +23,12 @@
 #include <string>
 #include <vector>
 
-namespace score
-{
-namespace mw::lifecycle
+namespace score::mw::lifecycle
 {
 
 class IRecoveryClient;
 
-namespace internal
-{
-
-namespace saf
+namespace internal::saf
 {
 
 // Forward declarations
@@ -145,9 +140,7 @@ class SupervisionManager
 };
 
 }  // namespace daemon
-}  // namespace saf
-}  // namespace internal
-}  // namespace mw::lifecycle
-}  // namespace score
+}  // namespace internal::saf
+}  // namespace score::mw::lifecycle
 
 #endif

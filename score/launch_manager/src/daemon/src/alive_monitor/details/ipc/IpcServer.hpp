@@ -26,13 +26,7 @@
 #include <unistd.h>
 #include <string>
 
-namespace score
-{
-namespace mw::lifecycle::internal
-{
-namespace saf
-{
-namespace ipc
+namespace score::mw::lifecycle::internal::saf::ipc
 {
 
 /// @brief Abstraction for a server to open a new IPC channel that clients can connect to
@@ -211,9 +205,6 @@ class IpcServer final : public IpcBase<Payload, MaxNumberElements, Socket>
     }
 };
 
-}  // namespace ipc
-}  // namespace saf
-}  // namespace mw::lifecycle::internal
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::saf::ipc
 
 #endif

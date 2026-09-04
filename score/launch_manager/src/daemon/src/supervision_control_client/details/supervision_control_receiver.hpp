@@ -17,10 +17,7 @@
 #include "ipc_dropin/ringbuffer.hpp"
 #include "score/mw/launch_manager/supervision_control_client/isupervision_control_receiver.hpp"
 
-namespace score
-{
-
-namespace mw::lifecycle
+namespace score::mw::lifecycle
 {
 
 /// @brief SupervisionControlReceiver implementation for receiving supervision events from the Launch Manager.
@@ -61,8 +58,6 @@ class SupervisionControlReceiver final : public ISupervisionControlReceiver
     BufferP ring_buffer_{};
 };
 
-}  // namespace mw::lifecycle
-
-}  // namespace score
+}  // namespace score::mw::lifecycle
 
 #endif  // SUPERVISION_CONTROL_RECEIVER_HPP_INCLUDED

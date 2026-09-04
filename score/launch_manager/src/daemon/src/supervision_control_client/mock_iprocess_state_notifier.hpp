@@ -20,9 +20,7 @@
 
 #include <memory>
 
-namespace score
-{
-namespace mw::lifecycle
+namespace score::mw::lifecycle
 {
 
 /// @brief Reusable gmock mock for IProcessStateNotifier, for use by tests of components that notify PHM of process
@@ -38,7 +36,6 @@ class MockProcessStateNotifier : public IProcessStateNotifier
         (noexcept, override));
 };
 
-}  // namespace mw::lifecycle
-}  // namespace score
+}  // namespace score::mw::lifecycle
 
 #endif  // IPROCESSSTATE_NOTIFIER_MOCK_HPP_INCLUDED

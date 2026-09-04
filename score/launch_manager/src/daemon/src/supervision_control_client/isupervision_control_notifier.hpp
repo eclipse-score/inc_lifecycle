@@ -17,10 +17,7 @@
 #include "score/mw/launch_manager/supervision_control_client/isupervision_event_publisher.hpp"
 #include "score/mw/launch_manager/supervision_control_client/supervision_event.hpp"
 
-namespace score
-{
-
-namespace mw::lifecycle
+namespace score::mw::lifecycle
 {
 
 /// @brief ISupervisionControlNotifier interface for forwarding supervision events to the alive monitor.
@@ -37,8 +34,6 @@ class ISupervisionControlNotifier : public ISupervisionEventPublisher
     virtual std::unique_ptr<score::mw::lifecycle::ISupervisionControlReceiver> constructReceiver() = 0;
 };
 
-}  // namespace mw::lifecycle
-
-}  // namespace score
+}  // namespace score::mw::lifecycle
 
 #endif

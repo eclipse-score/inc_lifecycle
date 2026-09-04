@@ -19,13 +19,7 @@
 #include "score/mw/launch_manager/alive_monitor/details/ipc/IpcServer.hpp"
 #include "score/mw/launch_manager/alive_monitor/details/timers/Timers_OsClock.hpp"
 
-namespace score
-{
-namespace mw::lifecycle::internal
-{
-namespace saf
-{
-namespace ifappl
+namespace score::mw::lifecycle::internal::saf::ifappl
 {
 
 /// @brief Maximum number of Checkpoints to be stored in IPC channel
@@ -58,9 +52,6 @@ struct CheckpointBufferElement final
 /// @brief IPC server type instantiation with maximum checkpoint buffer size
 using CheckpointIpcServer = ipc::IpcServer<CheckpointBufferElement, k_maxCheckpointBufferElements>;
 
-}  // namespace ifappl
-}  // namespace saf
-}  // namespace mw::lifecycle::internal
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::saf::ifappl
 
 #endif

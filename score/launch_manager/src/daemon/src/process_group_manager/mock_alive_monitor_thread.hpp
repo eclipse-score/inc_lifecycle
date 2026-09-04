@@ -18,11 +18,7 @@
 
 #include <gmock/gmock.h>
 
-namespace score
-{
-namespace mw::lifecycle
-{
-namespace internal
+namespace score::mw::lifecycle::internal
 {
 
 /// @brief Reusable gmock mock for IAliveMonitorThread, for use by tests of components that own an alive monitor
@@ -34,8 +30,6 @@ class MockAliveMonitorThread : public IAliveMonitorThread
     MOCK_METHOD(void, stop, (), (override));
 };
 
-}  // namespace internal
-}  // namespace mw::lifecycle
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal
 
 #endif  // SCORE_LCM_IALIVE_MONITOR_THREAD_MOCK_HPP_INCLUDED

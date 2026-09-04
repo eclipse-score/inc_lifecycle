@@ -20,13 +20,7 @@
 
 #include "score/mw/launch_manager/supervision_control_client/supervision_event.hpp"
 
-namespace score
-{
-namespace mw::lifecycle::internal
-{
-namespace saf
-{
-namespace ifexm
+namespace score::mw::lifecycle::internal::saf::ifexm
 {
 
 /// @brief Observable Event
@@ -69,9 +63,6 @@ class ObservableEvent : public saf::common::Observable<ObservableEvent>
     void pushData(void) noexcept;
 };
 
-}  // namespace ifexm
-}  // namespace saf
-}  // namespace mw::lifecycle::internal
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::saf::ifexm
 
 #endif

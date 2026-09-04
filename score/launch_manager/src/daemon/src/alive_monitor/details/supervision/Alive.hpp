@@ -26,13 +26,7 @@
 #include "score/mw/launch_manager/configuration/config.hpp"
 #include "score/mw/launch_manager/recovery_client/irecovery_client.h"
 
-namespace score
-{
-namespace mw::lifecycle::internal
-{
-namespace saf
-{
-namespace supervision
+namespace score::mw::lifecycle::internal::saf::supervision
 {
 
 using configuration::ComponentAliveSupervision;
@@ -357,9 +351,6 @@ class Alive : public ISupervision,
     score::mw::lifecycle::internal::saf::common::TimeSortingBuffer<TimeSortedUpdateEvent> timeSortingUpdateEventBuffer;
 };
 
-}  // namespace supervision
-}  // namespace saf
-}  // namespace mw::lifecycle::internal
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::saf::supervision
 
 #endif

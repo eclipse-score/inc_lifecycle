@@ -19,13 +19,7 @@
 
 #include <vector>
 
-namespace score
-{
-namespace mw::lifecycle::internal
-{
-namespace saf
-{
-namespace common
+namespace score::mw::lifecycle::internal::saf::common
 {
 
 /// @brief Observer template class
@@ -130,9 +124,6 @@ class Observable
     std::vector<Observer<Type_Observable>*> observers{};
 };
 
-}  // namespace common
-}  // namespace saf
-}  // namespace mw::lifecycle::internal
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::saf::common
 
 #endif

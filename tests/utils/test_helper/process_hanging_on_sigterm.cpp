@@ -57,7 +57,7 @@ TEST(ProcessHangingOnSigterm, StallsDuringTermination)
 
     TEST_STEP("Stall during termination to keep the run-target switch in progress")
     {
-        EXPECT_TRUE(touch_file(signal_file("terminating"))) << "failed to deploy file";
+        EXPECT_EQ(kill(getppid(), SIGTERM), 0);
         static_cast<void>(sleep(kTerminationDelaySeconds));
     }
 }

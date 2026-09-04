@@ -45,6 +45,7 @@ ProcessGroupManager::ProcessGroupManager(
     std::unique_ptr<score::mw::lifecycle::internal::watchdog::IWatchdogIf> watchdog)
     : configuration_(std::move(config)),
       process_interface_(),
+      file_waiter_(),
       process_map_(nullptr),
       thread_pool_(nullptr),
       worker_jobs_(nullptr),
@@ -132,7 +133,6 @@ void ProcessGroupManager::deinitialize()
         event_queue_->stop();
     }
     os_handler_.reset();
-    process_monitor_.reset();
     alive_monitor_thread_->stop();
 
     // Join the worker threads before destroying the process groups: a worker may
@@ -143,6 +143,7 @@ void ProcessGroupManager::deinitialize()
 
     graph_.reset();
     process_map_.reset();
+    process_monitor_.reset();
 }
 
 bool ProcessGroupManager::initializeControlClientHandler()
@@ -210,7 +211,7 @@ bool ProcessGroupManager::initializeProcessGroups()
         configuration_.components().size() + configuration_.runTargets().size() + 2,
         configuration_,
         worker_jobs_,
-        ProcessHandling{*supervision_control_notifier_.get(), &process_interface_, process_map_},
+        ProcessHandling{*supervision_control_notifier_.get(), &process_interface_, process_map_, &file_waiter_},
         this);
 
     LM_LOG_DEBUG() << "Process group initialized successfully";
@@ -434,7 +435,7 @@ void ProcessGroupManager::controlClientResponses(Graph& pg)
 bool ProcessGroupManager::sendResponse(ControlClientMessage msg)
 {
     auto pin = getProcessInfoNode(
-        msg.originating_control_client_.process_group_index_, msg.originating_control_client_.process_index_);
+        msg.originating_control_client_.process_group_index_, msg.originating_control_client_.process_identifier_);
     bool ret = true;
 
     if (pin)
@@ -479,8 +480,7 @@ void ProcessGroupManager::controlClientRequests(Graph& pg)
         // Fill in some routing details
         // Single process group at index 0
         scc->request().originating_control_client_.process_group_index_ = 0U;
-        scc->request().originating_control_client_.process_index_ =
-            static_cast<uint16_t>(control_client->getIndex() & 0xFFFFU);
+        scc->request().originating_control_client_.process_identifier_ = control_client->getIdentifier();
 
         LM_LOG_DEBUG() << "ProcessGroupManager::ControlClientHandler: got request"
                        << scc->toString(scc->request().request_or_response_) << "("
@@ -572,13 +572,19 @@ void ProcessGroupManager::processStateTransition(ControlClientChannelP scc)
 
     IdentifierHash old_state = graph_->getProcessGroupState();
     GraphState graph_state = graph_->getState();
+    const IdentifierHash requested_state = scc->request().process_group_state_.pg_state_name_;
     scc->request().request_or_response_ = ControlClientCode::kSetStateSuccess;
 
-    if (GraphState::kInTransition == graph_state)
+    if (!graph_->isValidRunTarget(requested_state))
     {
-        if (old_state != scc->request().process_group_state_.pg_state_name_)
+        // Reject before this can reach Graph::startTransition() with no matching node (#541).
+        scc->request().request_or_response_ = ControlClientCode::kSetStateInvalidArguments;
+    }
+    else if (GraphState::kInTransition == graph_state)
+    {
+        if (old_state != requested_state)
         {
-            (void)graph_->setPendingState(scc->request().process_group_state_.pg_state_name_);
+            (void)graph_->setPendingState(requested_state);
             // get state transition start time stamp
             graph_->setRequestStartTime();
             graph_->cancel();
@@ -590,14 +596,14 @@ void ProcessGroupManager::processStateTransition(ControlClientChannelP scc)
             scc->request().request_or_response_ = ControlClientCode::kSetStateTransitionToSameState;
         }
     }
-    else if (GraphState::kSuccess == graph_state && old_state == scc->request().process_group_state_.pg_state_name_)
+    else if (GraphState::kSuccess == graph_state && old_state == requested_state)
     {
         // Already in state
         scc->request().request_or_response_ = ControlClientCode::kSetStateAlreadyInState;
     }
     else
     {
-        (void)graph_->setPendingState(scc->request().process_group_state_.pg_state_name_);
+        (void)graph_->setPendingState(requested_state);
         // get state transition start time stamp
         graph_->setRequestStartTime();
     }
@@ -662,7 +668,9 @@ void ProcessGroupManager::processGroupHandler(Graph& pg)
             pgs.pg_name_ = pg.getProcessGroupName();
             LM_LOG_DEBUG() << "Start transition to" << pgs.pg_state_name_ << "for PG" << pgs.pg_name_;
 
-            pg.startTransition(pgs.pg_state_name_);
+            // Already rejected via isValidRunTarget() in processStateTransition() (#541) if invalid.
+            const bool started = pg.startTransition(pgs.pg_state_name_);
+            SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(started, "pending state was not rejected by isValidRunTarget()");
         }
 
         if (GraphState::kUndefinedState == pg.getState())
@@ -688,7 +696,8 @@ void ProcessGroupManager::processGroupHandler(Graph& pg)
             // nobody requested this transition, so there is nowhere to communicate an error
             // if we failed and there is no external request, we will try again next time
             pg.setRequestStartTime();
-            pg.startTransition(recovery_state.pg_state_name_);
+            const bool started = pg.startTransition(recovery_state.pg_state_name_);
+            SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(started, "fallback RunTarget node missing");
         }
     }
 }
@@ -699,11 +708,11 @@ void ProcessGroupManager::setInitialStateTransitionResult(ControlClientCode resu
     ControlClientChannel::nudgeControlClientHandler();
 }
 
-ProcessInfoNode* ProcessGroupManager::getProcessInfoNode(uint32_t pg_index, uint32_t process_index)
+ProcessInfoNode* ProcessGroupManager::getProcessInfoNode(uint32_t pg_index, IdentifierHash process_id)
 {
     if (pg_index == 0U && graph_)
     {
-        return graph_->getProcessInfoNode(process_index);
+        return graph_->getProcessInfoNode(process_id);
     }
 
     return nullptr;

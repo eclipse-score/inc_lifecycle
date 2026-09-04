@@ -28,26 +28,22 @@ build --java_runtime_version=remotejdk_17
 build --tool_java_runtime_version=remotejdk_17
 build --credential_helper=*.qnx.com=%workspace%/scripts/internal/qnx_creds.py
 
-# Treat warnings as errors, except in external code
+# Enable warnings and treat them as errors
 build --copt=-Wall
 build --copt=-Wextra
 build --copt=-Werror
 build --copt=-Wno-error=deprecated-declarations
-build --per_file_copt=external/.*@-Wno-error
+
+# Disable warnings for external code
+build --per_file_copt=external/.*@-w
 
 # Common test flags for all platforms
 test --test_output=errors
 test --@score_baselibs//score/json:base_library=nlohmann
 
-# Coverage configuration for C++
-coverage --features=coverage
-coverage --combined_report=lcov
-coverage --cache_test_results=no
-coverage --test_tag_filters=-no-coverage
-coverage --copt=-fprofile-update=atomic
-coverage --linkopt=-fprofile-update=atomic
-# Exclude mocks targets from coverge report
-coverage --instrumentation_filter="^//score/health_monitor/src/cpp[/:],^//score/launch_manager[/:],-[:/]mock_,-_mock"
+# Code coverage configuration (LLVM source-based). See //quality/coverage.
+import %workspace%/quality/coverage/coverage.bazelrc
+import %workspace%/quality/sanitizer/sanitizer.bazelrc
 
 
 # Common Lifecycle Toolchain flags for build (do not use it in case of system toolchains!)
@@ -121,19 +117,6 @@ test:unit-tests-arm64-qnx --run_under=@score_qnx_unit_tests//src:run_under_qnx
 test:unit-tests-arm64-qnx --//config:integration_mode=skip
 test:unit-tests-arm64-qnx --//config:unit_mode=qemu
 
-# Ferrocene Rust coverage config
-build:ferrocene-coverage --@rules_rust//rust/settings:extra_rustc_flag=-Cinstrument-coverage
-build:ferrocene-coverage --@rules_rust//rust/settings:extra_rustc_flag=-Clink-dead-code
-build:ferrocene-coverage --@rules_rust//rust/settings:extra_rustc_flag=-Ccodegen-units=1
-build:ferrocene-coverage --@rules_rust//rust/settings:extra_rustc_flag=-Cdebuginfo=2
-build:ferrocene-coverage --@rules_rust//rust/settings:extra_exec_rustc_flag=-Cinstrument-coverage
-build:ferrocene-coverage --@rules_rust//rust/settings:extra_exec_rustc_flag=-Clink-dead-code
-build:ferrocene-coverage --@rules_rust//rust/settings:extra_exec_rustc_flag=-Ccodegen-units=1
-build:ferrocene-coverage --@rules_rust//rust/settings:extra_exec_rustc_flag=-Cdebuginfo=2
-test:ferrocene-coverage --run_under=@score_tooling//coverage:llvm_profile_wrapper
-
-build:ferrocene-coverage --remote_download_all
-
 # to be removed
 build:build_qnx8 --config=arm64-qnx
 
@@ -144,40 +127,5 @@ build:bench -c opt
 ## uncomment below to use score::mw::log instead of the stdout logger
 # build --cxxopt=-DLC_LOG_SCORE_MW_LOG
 
-# ==============================================================================
-# Sanitizer configurations — powered by score_cpp_policies runtime infrastructure
-# (wrapper, suppression files, env templates)
-# ==============================================================================
-
-# Minimal debug info (-g1) for sanitizer stack traces; stripping disabled
-build:with_debug_symbols --copt=-g1
-build:with_debug_symbols --strip=never
-
-# AddressSanitizer + UndefinedBehaviorSanitizer + LeakSanitizer (recommended)
-build:asan_ubsan_lsan --config=with_debug_symbols
-build:asan_ubsan_lsan --copt=-fsanitize=undefined,address,leak
-build:asan_ubsan_lsan --linkopt=-fsanitize=undefined,address,leak
-build:asan_ubsan_lsan --platform_suffix=asan_ubsan_lsan
-build:asan_ubsan_lsan --@score_cpp_policies//sanitizers/flags:sanitizer=asan_ubsan_lsan
-test:asan_ubsan_lsan --run_under=@score_cpp_policies//sanitizers:wrapper
-test:asan_ubsan_lsan --test_tag_filters=-no-asan,-no-lsan,-no-ubsan
-test:asan_ubsan_lsan --build_tests_only
-
-# Convenience aliases (all resolve to asan_ubsan_lsan)
-build:asan  --config=asan_ubsan_lsan
-build:ubsan --config=asan_ubsan_lsan
-build:lsan  --config=asan_ubsan_lsan
-
-# ThreadSanitizer (cannot be combined with ASan/LSan)
-build:tsan --config=with_debug_symbols
-build:tsan --copt=-fsanitize=thread
-build:tsan --copt=-O1
-build:tsan --linkopt=-fsanitize=thread
-build:tsan --linkopt=-static-libtsan
-build:tsan --platform_suffix=tsan
-build:tsan --@score_cpp_policies//sanitizers/flags:sanitizer=tsan
-test:tsan --run_under=@score_cpp_policies//sanitizers:wrapper
-test:tsan --test_tag_filters=-no-tsan
-test:tsan --build_tests_only
-test:tsan --cxxopt=-Wno-maybe-uninitialized
-test:tsan --cxxopt=-Wno-redundant-move
+# Sanitizer configuration (ASan/UBSan/LSan/TSan). See //quality/sanitizer.
+import %workspace%/quality/sanitizer/sanitizer.bazelrc

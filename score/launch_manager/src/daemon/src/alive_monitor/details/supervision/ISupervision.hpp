@@ -22,13 +22,7 @@
 #include <string_view>
 #include <vector>
 
-namespace score
-{
-namespace mw::lifecycle::internal
-{
-namespace saf
-{
-namespace supervision
+namespace score::mw::lifecycle::internal::saf::supervision
 {
 
 /// @brief ISupervision
@@ -81,9 +75,6 @@ class ISupervision
     const IdentifierHash k_cfgName;
 };
 
-}  // namespace supervision
-}  // namespace saf
-}  // namespace mw::lifecycle::internal
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::saf::supervision
 
 #endif

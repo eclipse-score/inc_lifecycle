@@ -15,13 +15,7 @@
 
 #include "score/mw/launch_manager/osal/num_cores.hpp"
 
-namespace score
-{
-namespace mw::lifecycle
-{
-namespace internal
-{
-namespace osal
+namespace score::mw::lifecycle::internal::osal
 {
 
 uint32_t getNumCores()
@@ -33,7 +27,4 @@ uint32_t getNumCores()
     }
     return num_cores;
 }
-}  // namespace osal
-}  // namespace internal
-}  // namespace mw::lifecycle
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::osal

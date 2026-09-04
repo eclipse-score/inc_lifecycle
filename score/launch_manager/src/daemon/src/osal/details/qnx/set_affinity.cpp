@@ -13,16 +13,7 @@
 #include <sys/neutrino.h>
 
 #include "score/mw/launch_manager/osal/set_affinity.hpp"
-namespace score
-{
-
-namespace mw::lifecycle
-{
-
-namespace internal
-{
-
-namespace osal
+namespace score::mw::lifecycle::internal::osal
 {
 
 int32_t setaffinity(uint64_t cpumask) noexcept(true)
@@ -49,7 +40,4 @@ int32_t setaffinity(uint64_t cpumask) noexcept(true)
 
     return 0 == ThreadCtl(_NTO_TCTL_RUNMASK_GET_AND_SET_INHERIT, &tm) ? 0 : -1;
 }
-}  // namespace osal
-}  // namespace internal
-}  // namespace mw::lifecycle
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal::osal

@@ -69,8 +69,7 @@ TEST(ControlClientFDs, FindOpenFDs)
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
-
-        ASSERT_TRUE(touch_file(test_end_location));
+        EXPECT_EQ(kill(getppid(), SIGTERM), 0);
     }
 }
 
@@ -79,7 +78,7 @@ int main(int argc, char** argv)
     g_argc = argc;
     g_argv = argv;
 
-    // test end file is made in the test so that we block to wait for other
+    // test end is signalled in the test so that we block to wait for other
     // procs to finish
     TestRunner runner{__FILE__, TerminationBehavior::kWait, TerminationNotification::kNone};
 

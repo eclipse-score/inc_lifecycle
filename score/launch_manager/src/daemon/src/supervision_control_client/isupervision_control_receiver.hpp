@@ -20,10 +20,7 @@
 
 #include "score/mw/launch_manager/supervision_control_client/supervision_event.hpp"
 
-namespace score
-{
-
-namespace mw::lifecycle
+namespace score::mw::lifecycle
 {
 
 /// @brief ISupervisionControlReceiver interface for receiving supervision events.
@@ -39,8 +36,6 @@ class ISupervisionControlReceiver
     virtual score::Result<std::optional<SupervisionEvent>> getNextSupervisionEvent() noexcept = 0;
 };
 
-}  // namespace mw::lifecycle
-
-}  // namespace score
+}  // namespace score::mw::lifecycle
 
 #endif

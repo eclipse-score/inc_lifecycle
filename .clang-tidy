@@ -1,4 +1,4 @@
-Checks: ' -*, bugprone-*, cert-*, clang-analyzer-core.*, clang-analyzer-cplusplus.*, clang-analyzer-security.*, cppcoreguidelines-pro-bounds-pointer-arithmetic, cppcoreguidelines-pro-type-cstyle-cast, hicpp-* '
+Checks: ' -*, bugprone-*, cert-*, clang-analyzer-core.*, clang-analyzer-cplusplus.*, clang-analyzer-security.*, cppcoreguidelines-pro-bounds-pointer-arithmetic, cppcoreguidelines-pro-type-cstyle-cast, hicpp-*, modernize-concat-nested-namespaces '
 WarningsAsErrors: 'bugprone-*,cert-*,clang-analyzer-*,hicpp-*'
 CheckOptions:
   - key: hicpp-special-member-functions.AllowSoleDefaultDtor

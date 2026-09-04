@@ -10,8 +10,8 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-from tests.utils.testing_utils.run_until_file_deployed import run_until_file_deployed
 from tests.utils.testing_utils.setup_test import setup_test
+from tests.utils.testing_utils.run_test import run_test
 from tests.utils.testing_utils.test_results import assert_test_results
 from attribute_plugin import add_test_properties
 
@@ -42,18 +42,11 @@ def test_lm_shutdown(target, setup_test, assert_test_results, remote_test_dir):
     processes it owns, and exits cleanly.
     """
 
-    new_config_path = str(remote_test_dir / "etc/lm_shutdown_during_rt_switch.bin")
-    a_terminating = remote_test_dir / "component_a_terminating"
-
-    # Run until `component_a_terminating` is deployed so we can request shutdown during
-    # the transition to run target c
-    run_until_file_deployed(
+    run_test(
         target=target,
         binary_path=str(remote_test_dir / "launch_manager"),
-        file_path=a_terminating,
+        args=["-c", str(remote_test_dir / "etc/lm_shutdown_during_rt_switch.bin")],
         cwd=str(remote_test_dir),
-        args=["-c", new_config_path],
-        timeout_s=10.0,
     )
 
     # component_c never runs (the pending switch was cancelled), so it produces no XML

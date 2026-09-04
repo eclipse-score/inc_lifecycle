@@ -21,11 +21,7 @@
 #include <limits>
 #include <string>
 
-namespace score
-{
-namespace mw::lifecycle
-{
-namespace internal
+namespace score::mw::lifecycle::internal
 {
 
 /// Returns the IPC socket path for the alive monitoring interface of a component.
@@ -43,8 +39,6 @@ inline std::string aliveInterfacePath(const IdentifierHash& component_name)
     return "/lifecycle_health_" + std::string{buf.begin(), result.ptr};
 }
 
-}  // namespace internal
-}  // namespace mw::lifecycle
-}  // namespace score
+}  // namespace score::mw::lifecycle::internal
 
 #endif  // ALIVE_INTERFACE_PATH_HPP_INCLUDED

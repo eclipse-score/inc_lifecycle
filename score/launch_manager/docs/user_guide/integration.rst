@@ -34,7 +34,7 @@ The provided bazel function ``launch_manager_config`` handles the compilation of
 
 .. code-block:: python
 
-   load("@score_lifecycle_health//:defs.bzl", "launch_manager_config")
+   load("@score_lifecycle//:defs.bzl", "launch_manager_config")
 
    # This is your launch manager json configuration
    exports_files(["lm_config.json"])

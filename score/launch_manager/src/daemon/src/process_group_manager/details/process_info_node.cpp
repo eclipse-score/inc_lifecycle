@@ -15,6 +15,7 @@
 #include "score/launch_manager/src/daemon/src/configuration/component_config.hpp"
 #include "score/mw/launch_manager/common/alive_interface_path.hpp"
 #include "score/mw/launch_manager/common/log.hpp"
+#include "score/mw/launch_manager/osal/ifile_waiter.hpp"
 #include "score/mw/launch_manager/osal/ipc_comms.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/safe_process_map.hpp"
 #include <score/assert.hpp>
@@ -24,17 +25,14 @@
 namespace score::mw::lifecycle::internal
 {
 
-ProcessInfoNode::ProcessInfoNode(
-    configuration::ComponentConfig&& config,
-    uint32_t index,
-    ProcessHandling process_handling)
+ProcessInfoNode::ProcessInfoNode(configuration::ComponentConfig&& config, ProcessHandling process_handling)
     : terminator_(),
       has_semaphore_(false),
-      process_index_(index),
       pid_(0),
-      status_(0),
+      exit_code_(0),
       config_(std::move(config)),
-      process_handling_(std::move(process_handling))
+      process_handling_(std::move(process_handling)),
+      identifier_(IdentifierHash{{config_.name}})
 {
 
     if (config.component_properties.application_profile.application_type ==
@@ -51,7 +49,7 @@ ProcessInfoNode::ProcessInfoNode(
 
 IComponent::RequestResult ProcessInfoNode::tryReportCompletion(score::mw::lifecycle::ProcessState new_state)
 {
-    ProcessState desired_state{};
+    ProcessState desired_state;
 
     const auto& ready_condition = config_.component_properties.ready_condition;
 
@@ -69,6 +67,10 @@ IComponent::RequestResult ProcessInfoNode::tryReportCompletion(score::mw::lifecy
                         desired_state = ProcessState::kTerminated;
                         break;
                 }
+            }
+            else if constexpr (std::is_same_v<ReadyCondT, configuration::FileState>)
+            {
+                desired_state = ProcessState::kRunning;
             }
         },
         ready_condition);
@@ -93,7 +95,7 @@ IComponent::RequestResult ProcessInfoNode::tryReportSuccess()
 
         if (auto time = getTimeForReport())
         {
-            process_handling_.state_publisher_.reportActivation(IdentifierHash{config_.name}, time.value());
+            process_handling_.state_publisher_.reportActivation(identifier_, time.value());
         }
 
         return {RequestState::kSuccess};
@@ -160,13 +162,12 @@ void ProcessInfoNode::unblockSync()
 
 IComponent::RequestResult ProcessInfoNode::tryHandleTermination(int32_t process_status)
 {
-    LM_LOG_DEBUG() << "Process" << process_index_ << "pid" << pid_ << "(" << config_.name << ") for node" << this
-                   << "terminated with status" << process_status;
-    status_ = process_status;
+    LM_LOG_DEBUG() << "Process" << identifier_ << "( pid" << pid_ << ") terminated with exit code" << process_status;
+    exit_code_ = process_status;
     IComponent::RequestResult res = {IComponent::RequestState::kWaiting};
     if (has_semaphore_.exchange(false))
     {
-        // Termination was requested, we don't care if status is not 0 (a SIGKILL will set status to 9)
+        // Termination was requested, we don't care if exit code is not 0 (a SIGKILL will set exit code to 9)
         setState(ProcessState::kTerminated);
         unblockSync();
         static_cast<void>(terminator_.post());
@@ -188,8 +189,8 @@ IComponent::RequestResult ProcessInfoNode::tryHandleTermination(int32_t process_
         }
         else
         {
-            LM_LOG_WARN() << "unexpected termination of process" << process_index_ << "pid" << pid_ << "("
-                          << config_.name << ")" << "( status" << status_ << ")";
+            LM_LOG_WARN() << "unexpected termination of process" << identifier_ << "( pid" << pid_ << "exit code"
+                          << exit_code_ << ")";
             res = score::cpp::make_unexpected(IComponent::ComponentError::kErrorAfterReady);
         }
     }
@@ -205,10 +206,12 @@ IComponent::RequestResult ProcessInfoNode::tryHandleTermination(int32_t process_
 
 IComponent::RequestResult ProcessInfoNode::startProcess(score::cpp::stop_token stop_token)
 {
-    LM_LOG_DEBUG() << "Starting process" << process_index_ << "(" << config_.name << ") from executable"
-                   << config_.deployment_config.bin_dir << "/" << config_.component_properties.binary_name;
+    LM_LOG_DEBUG() << "Starting process (" << identifier_ << ") from executable" << config_.deployment_config.bin_dir
+                   << "/" << config_.component_properties.binary_name;
 
     std::optional<ComponentError> error;
+    const std::chrono::time_point initial_time = std::chrono::steady_clock::now();
+
     for (std::uint8_t attempts = start_tries_; attempts != 0U; attempts--)
     {
         // setState(kIdle) will fail if the state is:
@@ -226,13 +229,15 @@ IComponent::RequestResult ProcessInfoNode::startProcess(score::cpp::stop_token s
         }
 
         pid_ = 0;
-        status_ = 0;
+        exit_code_ = 0;
         error = std::nullopt;
         static_cast<void>(setState(score::mw::lifecycle::ProcessState::kStarting));  // Cannot fail by design
 
         if (osal::OsalReturnType::kSuccess == process_handling_.process_interface_->startProcess(pid_, sync_, config_))
         {
-            LM_LOG_DEBUG() << "startProcess pid" << pid_ << "received for process:" << config_.name;
+            const std::chrono::time_point launched_time = std::chrono::steady_clock::now();
+            LM_LOG_DEBUG() << "startProcess pid" << pid_ << "received for process:" << identifier_ << "( startup time:"
+                           << std::chrono::round<std::chrono::microseconds>(launched_time - initial_time) << ")";
 
             if (configuration::ApplicationType::StateManager ==
                 config_.component_properties.application_profile.application_type)
@@ -266,7 +271,9 @@ IComponent::RequestResult ProcessInfoNode::startProcess(score::cpp::stop_token s
 
         sync_.reset();
     }
-    LM_LOG_DEBUG() << "startProcess for process" << process_index_ << "(" << config_.name << ") done";
+    const std::chrono::time_point finished_time = std::chrono::steady_clock::now();
+    LM_LOG_DEBUG() << "startProcess for process (" << config_.name << ") done, took"
+                   << std::chrono::round<std::chrono::milliseconds>(finished_time - initial_time);
 
     if (error.has_value())
     {
@@ -286,14 +293,55 @@ void ProcessInfoNode::setupControlClientChannel()
 score::cpp::expected_blank<IComponent::ComponentError> ProcessInfoNode::handleProcessStillStarting(
     const score::cpp::stop_token& stop_token)
 {
-    static_cast<void>(stop_token);  // Not yet supported
+    const bool is_native =
+        config_.component_properties.application_profile.application_type == configuration::ApplicationType::Native;
 
-    if (((configuration::ApplicationType::Native ==
-          config_.component_properties.application_profile.application_type) ||
-         (process_handling_.process_interface_->waitForkRunning(
-              sync_, std::chrono::milliseconds(config_.deployment_config.ready_timeout_ms)) ==
-          osal::OsalReturnType::kSuccess)) &&
-        (0 == status_))
+    const bool startup_condition_met = std::visit(
+        [this, is_native, &stop_token](auto&& arg) -> bool {
+            using T = std::decay_t<decltype(arg)>;
+
+            if constexpr (std::is_same_v<T, configuration::ProcessState>)
+            {
+                if (is_native)
+                {
+                    // A native process does not report kRunning, so its exit code is the only readiness indication.
+                    return exit_code_ == 0;
+                }
+
+                auto wait_res = process_handling_.process_interface_->waitForkRunning(
+                    sync_, std::chrono::milliseconds(config_.deployment_config.ready_timeout_ms));
+                return (wait_res == osal::OsalReturnType::kSuccess) && (exit_code_ == 0);
+            }
+            // req-id: comp_req__launch_man__path_condition_check
+            else if constexpr (std::is_same_v<T, configuration::FileState>)
+            {
+
+                if (!is_native)
+                {
+                    // currently we do not support multiple ready conditions so we need
+                    // to ignore the krunning signal.
+                    auto wait_res = process_handling_.process_interface_->ignoreRunning(sync_);
+                    static_cast<void>(wait_res);
+                }
+
+                const auto wait_res = process_handling_.file_waiter_->waitForFile(
+                    arg.file_path,
+                    arg.state,
+                    std::chrono::milliseconds(config_.deployment_config.ready_timeout_ms),
+                    arg.polling_interval,
+                    stop_token);
+
+                if (wait_res != osal::OsalReturnType::kSuccess)
+                {
+                    LM_LOG_ERROR() << "Error Waiting for file";
+                }
+
+                return (wait_res == osal::OsalReturnType::kSuccess) && (exit_code_ == 0);
+            }
+        },
+        config_.component_properties.ready_condition);
+
+    if (startup_condition_met)
     {
         handleProcessRunning();
         return {};
@@ -304,20 +352,19 @@ score::cpp::expected_blank<IComponent::ComponentError> ProcessInfoNode::handlePr
         return score::cpp::make_unexpected(ComponentError::kErrorBeforeReady);
     }
 
-    LM_LOG_WARN() << "Got kRunning timeout for process" << process_index_ << "(" << config_.name << ")";
+    LM_LOG_WARN() << "Got kRunning timeout for process (" << identifier_ << ")";
     terminateProcess(stop_token);
     return score::cpp::make_unexpected(ComponentError::kActivationTimedOut);
 }
 
 score::cpp::expected_blank<IComponent::ComponentError> ProcessInfoNode::handleProcessAlreadyTerminated()
 {
-    if ((0 != status_) ||
+    if ((0 != exit_code_) ||
         (configuration::ApplicationType::Native != config_.component_properties.application_profile.application_type))
     {
         // Error. To get a legal terminated before kRunning the process must be self-terminating, non-reporting
-        // and to have exited with zero status
-        LM_LOG_WARN() << "Got process termination before kRunning for pid" << pid_ << "(" << config_.name << ") process"
-                      << process_index_;
+        // and to have exited with zero exit code
+        LM_LOG_WARN() << "Got process termination before kRunning for pid" << pid_ << "(" << identifier_ << ")";
         // This will cause the graph to fail unless we have restart attempts left
         return score::cpp::make_unexpected(ComponentError::kErrorBeforeReady);
     }
@@ -351,40 +398,37 @@ void ProcessInfoNode::handleProcessRunning()
 {
     if (configuration::ApplicationType::Native == config_.component_properties.application_profile.application_type)
     {
-        LM_LOG_DEBUG() << "Considered kRunning for Non Reporting Process pid" << pid_ << "(" << config_.name
-                       << ") process" << process_index_;
+        LM_LOG_DEBUG() << "Considered kRunning for Non Reporting Process pid" << pid_ << "(" << identifier_ << ")";
     }
     else
     {
-        LM_LOG_DEBUG() << "Got kRunning for pid" << pid_ << "(" << config_.name << ") process" << process_index_;
+        LM_LOG_DEBUG() << "Got kRunning for pid" << pid_ << "(" << identifier_ << ")";
     }
 }
 
 void ProcessInfoNode::terminateProcess(const score::cpp::stop_token& stop_token)
 {
-    LM_LOG_DEBUG() << "terminating process" << process_index_ << "(" << config_.name << ")";
+    LM_LOG_DEBUG() << "terminating process (" << identifier_ << ")";
 
     if (setState(score::mw::lifecycle::ProcessState::kTerminating))
     {
         handleTerminationProcess(stop_token);
     }
-    LM_LOG_DEBUG() << "terminateProcess for process" << process_index_ << "(" << config_.name << ") done";
+    LM_LOG_DEBUG() << "terminateProcess for process (" << identifier_ << ") done";
 }
 
 void ProcessInfoNode::handleTerminationProcess(const score::cpp::stop_token& stop_token)
 {
     static_cast<void>(terminator_.init(0U, false));
     has_semaphore_.store(true);
-    LM_LOG_DEBUG() << "Requesting termination of process" << process_index_ << "pid" << pid_ << "(" << config_.name
-                   << ")";
+    LM_LOG_DEBUG() << "Requesting termination of process pid" << pid_ << "(" << identifier_ << ")";
 
     // handle request termination
     if ((process_handling_.process_interface_->requestTermination(pid_) == osal::OsalReturnType::kFail) ||
         (terminator_.timedWait(std::chrono::milliseconds(config_.deployment_config.shutdown_timeout_ms)) ==
          osal::OsalReturnType::kSuccess))
     {
-        LM_LOG_DEBUG() << "Queuing jobs after regular termination of process wait" << process_index_ << "("
-                       << config_.name << ")";
+        LM_LOG_DEBUG() << "Queuing jobs after regular termination of process (" << identifier_ << ")";
     }
     else
     {
@@ -400,13 +444,12 @@ void ProcessInfoNode::handleForcedTermination(const score::cpp::stop_token& stop
 {
     static_cast<void>(stop_token);  // Not yet supported
 
-    LM_LOG_WARN() << "Process" << process_index_ << "(" << config_.name
-                  << ") did not respond to SIGTERM, sending SIGKILL";
+    LM_LOG_WARN() << "Process (" << identifier_ << ") did not respond to SIGTERM, sending SIGKILL";
 
     while ((osal::OsalReturnType::kSuccess == process_handling_.process_interface_->forceTermination(pid_)) &&
            (terminator_.timedWait(score::mw::lifecycle::internal::kMaxSigKillDelay) != osal::OsalReturnType::kSuccess))
     {
-        LM_LOG_FATAL() << "Process" << process_index_ << "(" << config_.name << ") did not respond to SIGKILL!!";
+        LM_LOG_FATAL() << "Process (" << identifier_ << ") did not respond to SIGKILL!!";
     }
 }
 
@@ -428,7 +471,7 @@ IComponent::RequestResult ProcessInfoNode::deactivate(score::cpp::stop_token sto
     reached_ready_.store(false);
     if (auto time = getTimeForReport())
     {
-        process_handling_.state_publisher_.reportDeactivation(IdentifierHash{config_.name}, time.value());
+        process_handling_.state_publisher_.reportDeactivation(identifier_, time.value());
     }
     terminateProcess(stop_token);
     setState(ProcessState::kIdle);
@@ -455,9 +498,9 @@ std::chrono::milliseconds ProcessInfoNode::getTerminationTimeout() const
     return std::chrono::milliseconds{config_.deployment_config.shutdown_timeout_ms};
 }
 
-uint32_t ProcessInfoNode::getIndex() const
+IdentifierHash ProcessInfoNode::getIdentifier() const
 {
-    return process_index_;
+    return identifier_;
 }
 
 ControlClientChannelP ProcessInfoNode::getControlClientChannel() const
