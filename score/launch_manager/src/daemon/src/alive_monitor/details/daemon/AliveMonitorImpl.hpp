@@ -31,7 +31,7 @@ namespace internal::saf::daemon
 
 using SptrIRecoveryClient = std::shared_ptr<score::mw::lifecycle::IRecoveryClient>;
 using UptrPhmDaemon = std::unique_ptr<score::mw::lifecycle::internal::saf::daemon::PhmDaemon>;
-using OsClock = score::mw::lifecycle::internal::saf::timers::OsClockInterface;
+using OsClock = internal::saf::timers::OsClockInterface;
 using configuration::AliveSupervisionConfig;
 
 class AliveMonitorImpl : public IAliveMonitor
@@ -48,28 +48,35 @@ class AliveMonitorImpl : public IAliveMonitor
         const std::size_t supervised_components);
 
     /// @brief @see IAliveMonitor definition
-    bool start() noexcept override;
+    void start() noexcept override;
 
     /// @brief @see IAliveMonitor definition
     void stop() noexcept override;
 
     /// @brief @see IAliveMonitor definition
-    ISupervisionFactory& getSupervisionFactory() const noexcept override;
+    [[nodiscard]] ISupervisionFactory& getSupervisionFactory() const noexcept override;
 
     /// @brief @see IAliveMonitor definition
-    bool init() noexcept override;
+    [[nodiscard]] bool init() noexcept override;
 
   private:
     /// @brief Run the AliveMonitor functionality in a cyclic manner until cancellation is requested.
     /// @param cancel_thread Atomic boolean flag to signal thread cancellation.
     bool threadFn(std::atomic_bool& cancel_thread) noexcept;
 
+    /// @brief Client to send recovery requests to.
     SptrIRecoveryClient m_recovery_client{nullptr};
+    /// @brief Daemon responsible for alive supervisions.
     UptrPhmDaemon m_daemon{nullptr};
+    /// @brief Interface used to retrieve time.
     OsClock m_osClock{};
+    /// @brief Parameters for alive supervision.
     AliveSupervisionConfig config_;
+    /// @brief Thread in which the alive monitor shall run.
     std::thread alive_monitor_thread_{};
+    /// @brief If true, exit the alive monitor thread's loop.
     std::atomic_bool stop_thread_{false};
+    /// @brief The number of components that require alive supervision.
     std::size_t supervised_components_;
 };
 

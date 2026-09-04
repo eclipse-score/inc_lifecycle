@@ -26,7 +26,7 @@ class IAliveMonitor
 
     /// @brief Start the monitor thread
     /// @warning Not valid if @c init() failed
-    virtual bool start() = 0;
+    virtual void start() = 0;
 
     /// @brief Stop the monitor thread
     /// @warning Not valid if @c init() failed
@@ -34,11 +34,11 @@ class IAliveMonitor
 
     /// @brief Returns an interface for components to register their alive supervision
     /// @warning Not valid if @c init() failed
-    virtual ISupervisionFactory& getSupervisionFactory() const = 0;
+    [[nodiscard]] virtual ISupervisionFactory& getSupervisionFactory() const = 0;
 
     /// @brief Initialize the AliveMonitor functionality
     /// @return True if initialization was successful, false otherwise.
-    virtual bool init() noexcept = 0;
+    [[nodiscard]] virtual bool init() noexcept = 0;
 };
 
 }  // namespace score::mw::lifecycle::internal::saf::daemon

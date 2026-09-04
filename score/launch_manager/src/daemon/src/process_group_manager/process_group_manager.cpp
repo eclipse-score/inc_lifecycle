@@ -91,6 +91,7 @@ bool ProcessGroupManager::initialize()
 
     if (!alive_monitor_->init())
     {
+        LM_LOG_ERROR() << "Alive monitor initialization failed";
         return false;
     }
 
@@ -102,11 +103,7 @@ bool ProcessGroupManager::initialize()
     }
 
     LM_LOG_DEBUG() << "Process Group initialization done";
-    if (!alive_monitor_->start())
-    {
-        LM_LOG_ERROR() << "Alive monitor thread failed to start";
-        return false;
-    }
+
     // Watchdog config may not be available if no watchdog is configured
     if (watchdog_config_.has_value())
     {

@@ -87,7 +87,7 @@ class SupervisionManager
     void reserve(std::size_t size);
 
     /// @brief Returns true if the number of alive supervisions constructed equals the reserved size
-    bool full() const;
+    [[nodiscard]] bool full() const;
 
     /// @brief Construct required worker objects for provided component
     /// @details Construct the interfaces, checkpoints, supervisions and recovery notifications

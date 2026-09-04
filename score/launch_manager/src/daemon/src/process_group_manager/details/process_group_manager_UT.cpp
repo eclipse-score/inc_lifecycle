@@ -117,7 +117,7 @@ class ProcessGroupManagerWatchdogTest : public Test
     void expectNormalStartup()
     {
         EXPECT_CALL(*alive_monitor_, init()).WillOnce(Return(true));
-        EXPECT_CALL(*alive_monitor_, start()).WillOnce(Return(true));
+        EXPECT_CALL(*alive_monitor_, start());
         EXPECT_CALL(*watchdog_, init(_, _)).WillOnce(Return(true));
         EXPECT_CALL(*watchdog_, enable()).WillOnce(Return(true));
     }
@@ -129,7 +129,6 @@ class ProcessGroupManagerWatchdogTest : public Test
 
         auto alive_monitor = std::make_unique<NiceMock<MockAliveMonitor>>();
         alive_monitor_ = alive_monitor.get();
-        ON_CALL(*alive_monitor_, start()).WillByDefault(Return(true));
         ON_CALL(*alive_monitor_, getSupervisionFactory).WillByDefault(ReturnRef(factory_));
 
         auto recovery_client = std::make_shared<NiceMock<MockRecoveryClient>>();

@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2025 Contributors to the Eclipse Foundation
+ * Copyright (c) 2026 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -22,7 +22,7 @@ namespace score::mw::lifecycle::internal::saf::daemon
 class MockAliveMonitor : public IAliveMonitor
 {
   public:
-    MOCK_METHOD(bool, start, (), (override));
+    MOCK_METHOD(void, start, (), (override));
     MOCK_METHOD(void, stop, (), (override));
     MOCK_METHOD(ISupervisionFactory&, getSupervisionFactory, (), (const, override));
     MOCK_METHOD(bool, init, (), (noexcept, override));

@@ -61,13 +61,11 @@ bool AliveMonitorImpl::init() noexcept
     return false;
 }
 
-bool AliveMonitorImpl::start() noexcept
+void AliveMonitorImpl::start() noexcept
 {
     alive_monitor_thread_ = std::thread([this]() {
         threadFn(stop_thread_);
     });
-
-    return true;
 }
 
 void AliveMonitorImpl::stop() noexcept

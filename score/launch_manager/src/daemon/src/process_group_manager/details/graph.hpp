@@ -47,11 +47,16 @@ namespace score::mw::lifecycle::internal
 using WorkerQueue =
     MPMCConcurrentQueue<std::optional<ComponentTask>, static_cast<std::size_t>(ProcessLimits::kMaxProcesses)>;
 
+/// @brief Config members needed to build the graph
 struct GraphConfig
 {
+    /// @brief Components that run targets may depend on
     std::vector<configuration::ComponentConfig> components_;
+    /// @brief Run targets that can be activated
     std::vector<configuration::RunTargetConfig> run_targets_;
+    /// @brief Information about the run target transitioned to in the event of an error
     configuration::FallbackRunTargetConfig fallback_run_target_;
+    /// @brief Name of the first run target to launch
     std::string initial_run_target_;
 };
 
