@@ -86,7 +86,7 @@
                     "--uid=0",
                     "--gid=0",
                     "--scheduling-policy=SCHED_RR",
-                    "--scheduling-priority=10"
+                    "--scheduling-priority=20"
                 ],
                 "ready_condition": {
                     "process_state": "Terminated"
@@ -101,7 +101,7 @@
                     "gid": 0,
                     "supplementary_group_ids": [],
                     "scheduling_policy": "SCHED_RR",
-                    "scheduling_priority": 10
+                    "scheduling_priority": 20
                 }
             }
         },
