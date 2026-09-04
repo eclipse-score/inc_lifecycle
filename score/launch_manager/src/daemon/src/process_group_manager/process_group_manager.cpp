@@ -104,6 +104,8 @@ bool ProcessGroupManager::initialize()
 
     LM_LOG_DEBUG() << "Process Group initialization done";
 
+    alive_monitor_->start();
+
     // Watchdog config may not be available if no watchdog is configured
     if (watchdog_config_.has_value())
     {
