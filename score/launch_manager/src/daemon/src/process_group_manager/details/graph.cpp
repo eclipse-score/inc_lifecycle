@@ -346,9 +346,7 @@ void Graph::handleComponentEvent(const ComponentEvent& event)
             }
             else if constexpr (std::is_same_v<T, UnexpectedTermination>)
             {
-                // This is always an error after ready - an unexpected termination before ready is an activation failure
-                const auto error = IComponent::ComponentError::kErrorAfterReady;
-                abort(1, error);
+                abort(1, data.reason);
 
                 // Need to clean up any leftover resources
                 IComponent& failingComponent = componentOf(nodes_[data.node_identifier]);

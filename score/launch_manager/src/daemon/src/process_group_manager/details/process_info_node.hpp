@@ -40,6 +40,17 @@ namespace score::mw::lifecycle::internal
 ///       In the future, this class shall be split up to properly separate Component and Process lifecycle.
 class ProcessInfoNode final : public IComponent
 {
+    /// @brief Enum representing different outcomes of a termination.
+    enum class TeminationResult : uint8_t
+    {
+        /// @brief Since the last startup, the process has not terminated.
+        kNone,
+        /// @brief The last termination was acceptable.
+        kOk,
+        /// @brief The last termination was invalid/unexpected.
+        kError,
+    };
+
   public:
     /// @brief Constructs a ProcessInfoNode.
     /// @param config Configuration for the OS process.
@@ -91,6 +102,13 @@ class ProcessInfoNode final : public IComponent
     [[nodiscard]] ControlClientChannelP getControlClientChannel() const;
 
   private:
+    /// @brief Given that an error has occurred after the process has reached state @p state_reached, return an error
+    /// indicating whether this was an error before the ready condition was satisfied, or after.
+    ComponentError getErrorAfterState(ProcessState state_reached) const;
+
+    /// @brief Returns true if the process is configured to report kRunning
+    bool isReporting() const;
+
     /// @brief Atomically transitions to new_state if the transition is valid. For reporting
     /// processes, also notifies the platform health manager of the state change.
     /// @param new_state The desired process state.
@@ -194,6 +212,9 @@ class ProcessInfoNode final : public IComponent
 
     /// @brief Unique hash to identify this node.
     IdentifierHash identifier_;
+
+    /// @brief The result of the last termination since the process started.
+    TeminationResult termination_result_{};
 };
 
 }  // namespace score::mw::lifecycle::internal

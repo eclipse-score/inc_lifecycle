@@ -320,6 +320,130 @@ TEST_F(ProcessInfoNodeStartupTest, ActivateAlreadyActiveNode_ReturnsSuccess)
     ASSERT_THAT(node->getState(), Eq(score::mw::lifecycle::ProcessState::kRunning));
 }
 
+struct YieldTestCasesData
+{
+    configuration::ApplicationType app_type_;
+    configuration::ProcessState condition_;
+    int status_to_exit_with_;
+    bool is_self_terminating_;
+    IComponent::RequestResult expected_activation_result_;
+    std::string description_;
+};
+
+void PrintTo(const YieldTestCasesData& params, std::ostream* os)
+{
+    *os << "{ Reporting: " << (params.app_type_ == configuration::ApplicationType::Native ? "No" : "Yes")
+        << ", Condition: " << (params.condition_ == configuration::ProcessState::Running ? "Running" : "Terminated")
+        << ", Exit status: " << params.status_to_exit_with_
+        << ", Self Terminating: " << (params.is_self_terminating_ ? "Yes" : "No") << " }, " << params.description_;
+}
+
+class ProcessInfoNodeMapYieldTest : public ::WithParamInterface<YieldTestCasesData>, public ProcessInfoNodeFixture
+{
+};
+
+TEST_P(ProcessInfoNodeMapYieldTest, InsertReturnsYield)
+{
+    RecordProperty("Description", GetParam().description_);
+
+    auto node = createProcessInfoNode(GetParam().app_type_, 0, GetParam().is_self_terminating_, GetParam().condition_);
+    IComponent::RequestResult tryHandleTerminationResult;
+    auto status = GetParam().status_to_exit_with_;
+
+    EXPECT_CALL(mock_processIf_, startProcess).WillOnce(Return(osal::OsalReturnType::kSuccess));
+    // kYield means the process already terminated, so we should not request termination again
+    EXPECT_CALL(mock_processIf_, requestTermination).Times(0);
+    EXPECT_CALL(*process_map_, insertIfNotTerminated)
+        .WillOnce(DoAll(
+            InvokeWithoutArgs([node = node.get(), &tryHandleTerminationResult, status] {
+                tryHandleTerminationResult = node->tryHandleTermination(status);
+            }),
+            Return(SafeProcessMapReturnType::kYield)));
+
+    auto activation_result_ = node->activate(score::cpp::stop_token{});
+
+    ASSERT_EQ(activation_result_.has_value(), GetParam().expected_activation_result_.has_value());
+    if (GetParam().expected_activation_result_.has_value())
+    {
+        EXPECT_EQ(activation_result_.value(), GetParam().expected_activation_result_.value());
+    }
+    else
+    {
+        EXPECT_EQ(activation_result_.error(), GetParam().expected_activation_result_.error());
+    }
+
+    ASSERT_TRUE(tryHandleTerminationResult.has_value());
+    EXPECT_EQ(tryHandleTerminationResult.value(), IComponent::RequestState::kWaiting)
+        << "An error occurring during startup should never be reported by tryHandleTermination";
+    EXPECT_EQ(node->getState(), ProcessState::kTerminated);  // Not kFailed, the posix process did start successfully
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    ProcessInfoNodeTest,
+    ProcessInfoNodeMapYieldTest,
+    Values(
+        YieldTestCasesData{
+            configuration::ApplicationType::Native,
+            configuration::ProcessState::Running,
+            0,
+            true,
+            {IComponent::RequestState::kSuccess},
+            "A native, self-terminating process exiting quickly with status 0 should report a successful activation"},
+        YieldTestCasesData{
+            configuration::ApplicationType::Native,
+            configuration::ProcessState::Running,
+            111,
+            true,
+            score::cpp::make_unexpected(IComponent::ComponentError::kErrorAfterReady),
+            "A native, self-terminating process exiting quickly with a non-zero status should report a failure to "
+            "activate"},
+        YieldTestCasesData{
+            configuration::ApplicationType::Native,
+            configuration::ProcessState::Running,
+            0,
+            false,
+            score::cpp::make_unexpected(IComponent::ComponentError::kErrorAfterReady),
+            "A native, non-self-terminating process exiting quickly should report a failure to activate"},
+        YieldTestCasesData{
+            configuration::ApplicationType::Reporting,
+            configuration::ProcessState::Running,
+            0,
+            true,
+            score::cpp::make_unexpected(IComponent::ComponentError::kErrorBeforeReady),
+            "A reporting process exiting quickly (i.e. without waiting for a response from launch manager) should "
+            "report a failure to activate"},
+
+        YieldTestCasesData{
+            configuration::ApplicationType::Native,
+            configuration::ProcessState::Terminated,
+            0,
+            true,
+            {IComponent::RequestState::kSuccess},
+            "A native, self-terminating process exiting quickly with status 0 should report a successful activation"},
+        YieldTestCasesData{
+            configuration::ApplicationType::Native,
+            configuration::ProcessState::Terminated,
+            111,
+            true,
+            score::cpp::make_unexpected(IComponent::ComponentError::kErrorBeforeReady),
+            "A native, self-terminating process exiting quickly with a non-zero status should report a failure to "
+            "activate"},
+        YieldTestCasesData{
+            configuration::ApplicationType::Native,
+            configuration::ProcessState::Terminated,
+            0,
+            false,
+            score::cpp::make_unexpected(IComponent::ComponentError::kErrorBeforeReady),
+            "A native, non-self-terminating process exiting quickly should report a failure to activate"},
+        YieldTestCasesData{
+            configuration::ApplicationType::Reporting,
+            configuration::ProcessState::Terminated,
+            0,
+            true,
+            score::cpp::make_unexpected(IComponent::ComponentError::kErrorBeforeReady),
+            "A reporting process exiting quickly (i.e. without waiting for a response from launch manager) should "
+            "report a failure to activate"}));
+
 // Bundles process crashes and timeouts that occur during activate(), before the ready condition is reached.
 class ProcessInfoNodeStartupCrashTest : public ProcessInfoNodeFixture
 {

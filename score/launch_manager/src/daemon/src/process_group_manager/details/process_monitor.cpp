@@ -116,7 +116,7 @@ void ProcessMonitor::terminated(IComponent& component, int32_t status)
     bool push_res = true;
     if (!res.has_value())
     {
-        push_res = event_queue_.push(UnexpectedTermination{component.getIdentifier()});
+        push_res = event_queue_.push(UnexpectedTermination{component.getIdentifier(), res.error()});
     }
     else if (res.value() != IComponent::RequestState::kWaiting)
     {

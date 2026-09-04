@@ -187,14 +187,7 @@ class Graph final
     /// @brief Move assignment operator(deleted).
     Graph& operator=(Graph&&) noexcept = delete;
 
-    /// @brief Applies a ComponentEvent — produced by ProcessMonitor from worker/OS-handler thread
-    /// callbacks and drained on the main thread — to this graph.
-    /// @details Dispatches on the event's variant:
-    ///   - ActivationSuccessful / DeactivationComplete: `nodeExecuted(node_identifier, {})`
-    ///   - ActivationFailed: `nodeExecuted(node_identifier, make_unexpected(reason))`
-    ///   - UnexpectedTermination: `abort(1, kErrorAfterReady)` — ProcessMonitor::terminated() only
-    ///     pushes this event once a process has already reached its ready condition, so it is
-    ///     always a post-ready crash.
+    /// @brief Applies a ComponentEvent to this graph.
     /// @param event The event to process.
     void handleComponentEvent(const ComponentEvent& event);
 

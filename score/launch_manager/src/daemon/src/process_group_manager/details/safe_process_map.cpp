@@ -25,33 +25,33 @@ SafeProcessMap::SafeProcessMap(uint32_t capacity, IComponentController& terminat
 {
     if (capacity)
     {
-        free_root_ = 0U;
-        pid_root_.store(LINK_NO_VALUE);
+        free_list_head_ = 0U;
+        tree_root_.store(NULL_INDEX);
         for (std::size_t i = 0U; i < capacity; ++i)
         {
             items_[i].pid_ = 0;
-            items_[i].data_.pin_ = nullptr;
-            items_[i].pid_left_ = LINK_NO_VALUE;
+            items_[i].data_.component_ = nullptr;
+            items_[i].pid_left_ = NULL_INDEX;
             items_[i].pid_right_ = static_cast<uint32_t>(i + 1U);
             items_[i].data_.status_ = -1;
         }
-        items_[capacity - 1UL].pid_right_ = LINK_NO_VALUE;
+        items_[capacity - 1UL].pid_right_ = NULL_INDEX;
     }
 }
 
-void SafeProcessMap::findNode(uint32_t& mask, uint32_t& last, osal::ProcessID key)
+void SafeProcessMap::findNode(uint32_t& mask, uint32_t& parent, osal::ProcessID key)
 {
-    while (rover_ != LINK_NO_VALUE && key != items_[rover_].pid_)
+    while (current_ != NULL_INDEX && key != items_[current_].pid_)
     {
-        last = rover_;
+        parent = current_;
 
         if (static_cast<uint32_t>(key) & mask)
         {
-            rover_ = items_[last].pid_left_;
+            current_ = items_[parent].pid_left_;
         }
         else
         {
-            rover_ = items_[last].pid_right_;
+            current_ = items_[parent].pid_right_;
         }
 
         mask = mask << 1U;
@@ -67,13 +67,13 @@ void SafeProcessMap::findNode(uint32_t& mask, uint32_t& last, osal::ProcessID ke
 }
 
 // RULECHECKER_comment(1, 1, check_max_parameters, "refactored with WI #9343", true);
-int32_t SafeProcessMap::insertNode(uint32_t& mask, uint32_t& last, osal::ProcessID& key, ProcessInfoData& data)
+int32_t SafeProcessMap::insertNode(uint32_t& mask, uint32_t& parent, osal::ProcessID& key, ProcessInfoData& data)
 {
     int32_t ret_value = -1;
 
-    rover_ = free_root_;
+    current_ = free_list_head_;
 
-    if (rover_ == LINK_NO_VALUE)
+    if (current_ == NULL_INDEX)
     {
         // too bad, we are out of memory
         ret_value = -1;
@@ -81,22 +81,22 @@ int32_t SafeProcessMap::insertNode(uint32_t& mask, uint32_t& last, osal::Process
     else
     {
         mask = mask >> 1U;
-        free_root_ = items_[rover_].pid_right_;
-        items_[rover_].pid_ = key;
-        items_[rover_].data_ = data;
-        items_[rover_].pid_left_ = LINK_NO_VALUE;
-        items_[rover_].pid_right_ = LINK_NO_VALUE;
+        free_list_head_ = items_[current_].pid_right_;
+        items_[current_].pid_ = key;
+        items_[current_].data_ = data;
+        items_[current_].pid_left_ = NULL_INDEX;
+        items_[current_].pid_right_ = NULL_INDEX;
 
         if (static_cast<uint32_t>(key) & mask)
         {
-            items_[last].pid_left_ = rover_;
+            items_[parent].pid_left_ = current_;
         }
         else
         {
-            items_[last].pid_right_ = rover_;
+            items_[parent].pid_right_ = current_;
         }
 
-        if (data.pin_ == nullptr)
+        if (data.component_ == nullptr)
         {
             ret_value = 1;
         }
@@ -110,29 +110,29 @@ int32_t SafeProcessMap::insertNode(uint32_t& mask, uint32_t& last, osal::Process
 }
 
 // RULECHECKER_comment(1, 1, check_max_parameters, "refactored with WI #9343", true);
-int32_t SafeProcessMap::removeNode(ProcessInfoData& target, ProcessInfoData& data, uint32_t& last, uint32_t& local_root)
+int32_t SafeProcessMap::removeNode(ProcessInfoData& target, ProcessInfoData& data, uint32_t& parent, uint32_t& root)
 {
     // found key. There are 4 situations:
-    // data.pin_ == nullptr, stored pin_ != nullptr: normal findTerminated
-    // data.pin_ != nullptr, stored pin_ == nullptr: normal insertIfNotTerminated
-    // both data.pin_ and stored pin_ point to an ITerminationCallback: anomalous
-    // both data.pin_ and stored pin_ are null: anomalous
-    // In other words, exactly one of data.pin_ and stored pin_ must be nullptr
+    // data.component_ == nullptr, stored component_ != nullptr: normal findTerminated
+    // data.component_ != nullptr, stored component_ == nullptr: normal insertIfNotTerminated
+    // both data.component_ and stored component_ point to an ITerminationCallback: anomalous
+    // both data.component_ and stored component_ are null: anomalous
+    // In other words, exactly one of data.component_ and stored component_ must be nullptr
     // or there is an anomaly and we return -2
     int32_t ret_value = -2;
-    if ((nullptr == data.pin_) ^ (nullptr == items_[rover_].data_.pin_))
+    if ((nullptr == data.component_) ^ (nullptr == items_[current_].data_.component_))
     {
         // found key, we will remove it!
-        target = items_[rover_].data_;
-        if (target.pin_)
+        target = items_[current_].data_;
+        if (target.component_)
         {
             target.status_ = data.status_;
         }
         else
         {
-            target.pin_ = data.pin_;
+            target.component_ = data.component_;
         }
-        if (data.pin_)
+        if (data.component_)
         {
             ret_value = 1;
         }
@@ -141,26 +141,26 @@ int32_t SafeProcessMap::removeNode(ProcessInfoData& target, ProcessInfoData& dat
             ret_value = 0;
         }
         // Need to find a suitable leaf to use as the replacement
-        uint32_t leaf = rover_;
-        uint32_t previous = rover_;
-        findLeaf(leaf, previous);
-        deleteNode(last, leaf, local_root, previous);
+        uint32_t leaf = current_;
+        uint32_t leaf_parent = current_;
+        findLeaf(leaf, leaf_parent);
+        deleteNode(parent, leaf, root, leaf_parent);
     }
     return ret_value;
 }
 
-void SafeProcessMap::findLeaf(uint32_t& leaf, uint32_t& previous)
+void SafeProcessMap::findLeaf(uint32_t& leaf, uint32_t& leaf_parent)
 {
     while (true)
     {
-        if (items_[leaf].pid_left_ != LINK_NO_VALUE)
+        if (items_[leaf].pid_left_ != NULL_INDEX)
         {
-            previous = leaf;
+            leaf_parent = leaf;
             leaf = items_[leaf].pid_left_;
         }
-        else if (items_[leaf].pid_right_ != LINK_NO_VALUE)
+        else if (items_[leaf].pid_right_ != NULL_INDEX)
         {
-            previous = leaf;
+            leaf_parent = leaf;
             leaf = items_[leaf].pid_right_;
         }
         else
@@ -171,50 +171,50 @@ void SafeProcessMap::findLeaf(uint32_t& leaf, uint32_t& previous)
 }
 
 // RULECHECKER_comment(1, 1, check_max_parameters, "refactored with WI #9343", true);
-void SafeProcessMap::deleteNode(uint32_t& last, uint32_t& leaf, uint32_t& local_root, uint32_t& previous)
+void SafeProcessMap::deleteNode(uint32_t& parent, uint32_t& leaf, uint32_t& root, uint32_t& leaf_parent)
 {
-    if (leaf == local_root)
+    if (leaf == root)
     {
         // tree is now empty!
-        local_root = LINK_NO_VALUE;
+        root = NULL_INDEX;
     }
     else
     {
-        if (leaf == rover_)
+        if (leaf == current_)
         {
-            // simply remove the link to rover
-            if (items_[last].pid_left_ == rover_)
+            // simply remove the link to current_
+            if (items_[parent].pid_left_ == current_)
             {
-                items_[last].pid_left_ = LINK_NO_VALUE;
+                items_[parent].pid_left_ = NULL_INDEX;
             }
             else
             {
-                items_[last].pid_right_ = LINK_NO_VALUE;
+                items_[parent].pid_right_ = NULL_INDEX;
             }
         }
         else
         {
             // Put the leaf in place of the item we are replacing
-            items_[rover_].pid_ = items_[leaf].pid_;
-            items_[rover_].data_ = items_[leaf].data_;
+            items_[current_].pid_ = items_[leaf].pid_;
+            items_[current_].data_ = items_[leaf].data_;
 
             // Remove the links on the item that previously pointed to the leaf
-            if (items_[previous].pid_left_ == leaf)
+            if (items_[leaf_parent].pid_left_ == leaf)
             {
-                items_[previous].pid_left_ = LINK_NO_VALUE;
+                items_[leaf_parent].pid_left_ = NULL_INDEX;
             }
             else
             {
-                items_[previous].pid_right_ = LINK_NO_VALUE;
+                items_[leaf_parent].pid_right_ = NULL_INDEX;
             }
         }
     }
     // now return the leaf we found to the free list
     items_[leaf].pid_ = 0;
     items_[leaf].data_ = {-1, nullptr};
-    items_[leaf].pid_left_ = LINK_NO_VALUE;
-    items_[leaf].pid_right_ = free_root_;
-    free_root_ = leaf;
+    items_[leaf].pid_left_ = NULL_INDEX;
+    items_[leaf].pid_right_ = free_list_head_;
+    free_list_head_ = leaf;
 }
 
 int32_t SafeProcessMap::search(osal::ProcessID key, ProcessInfoData data)
@@ -228,27 +228,27 @@ int32_t SafeProcessMap::search(osal::ProcessID key, ProcessInfoData data)
             ProcessInfoData target;
             target = {data.status_, nullptr};
             // Gain a lock on the root of the tree
-            uint32_t local_root = pid_root_.exchange(LINK_LOCKED);
+            uint32_t root = tree_root_.exchange(LOCKED_INDEX);
 
-            while (local_root == LINK_LOCKED)
+            while (root == LOCKED_INDEX)
             {
                 std::this_thread::yield();
-                local_root = pid_root_.exchange(LINK_LOCKED);
+                root = tree_root_.exchange(LOCKED_INDEX);
             }
-            rover_ = local_root;
+            current_ = root;
 
-            if (local_root == LINK_NO_VALUE)
+            if (root == NULL_INDEX)
             {
                 // no tree, special case.
-                rover_ = free_root_;
-                free_root_ = items_[rover_].pid_right_;
-                items_[rover_].pid_ = key;
-                items_[rover_].data_ = data;
-                items_[rover_].pid_left_ = LINK_NO_VALUE;
-                items_[rover_].pid_right_ = LINK_NO_VALUE;
-                local_root = rover_;
+                current_ = free_list_head_;
+                free_list_head_ = items_[current_].pid_right_;
+                items_[current_].pid_ = key;
+                items_[current_].data_ = data;
+                items_[current_].pid_left_ = NULL_INDEX;
+                items_[current_].pid_right_ = NULL_INDEX;
+                root = current_;
 
-                if (data.pin_ == nullptr)
+                if (data.component_ == nullptr)
                 {
                     ret_value = 1;
                 }
@@ -260,33 +260,33 @@ int32_t SafeProcessMap::search(osal::ProcessID key, ProcessInfoData data)
             else
             {
                 // Look for the key
-                uint32_t last = LINK_NO_VALUE;
+                uint32_t parent = NULL_INDEX;
                 uint32_t mask = 1U;
 
-                findNode(mask, last, key);
+                findNode(mask, parent, key);
 
-                if (rover_ == LINK_NO_VALUE)
+                if (current_ == NULL_INDEX)
                 {
                     // key not found, we will add it
-                    ret_value = insertNode(mask, last, key, data);
+                    ret_value = insertNode(mask, parent, key, data);
                 }
                 else
                 {
                     // found key, we will remove it!
-                    ret_value = removeNode(target, data, last, local_root);
+                    ret_value = removeNode(target, data, parent, root);
                 }
             }
             // release the lock on the tree
-            pid_root_.store(local_root);
+            tree_root_.store(root);
 
             if (-2 == ret_value)
             {
                 // allow another thread to run to resolve the anomaly
                 std::this_thread::yield();
             }
-            else if (target.pin_)
+            else if (target.component_)
             {
-                termination_handler_.terminated(*target.pin_, target.status_);
+                termination_handler_.terminated(*target.component_, target.status_);
             }
         }
     }
