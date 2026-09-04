@@ -77,10 +77,24 @@ class LocalAsyncProcess(AsyncProcess):
 
     def stop(self) -> int:
         if self.is_running():
-            # Kill the entire process group so that children (e.g. the actual
-            # daemon binary launched under fakeroot) receive SIGTERM and can
-            # run their cleanup code before exiting.
-            os.killpg(os.getpgid(self._process.pid), signal.SIGTERM)
+            # Signal only the process(es) fakeroot launched, not the whole
+            # process group. fakeroot's /bin/sh wrapper traps EXIT/INT but not
+            # TERM, so killpg() would kill the wrapper itself before it can
+            # wait() for its child and relay the real exit code -- self._process
+            # would then report the wrapper's own signal death (-15) instead of
+            # the actual binary's exit status, regardless of whether that
+            # binary shut down cleanly.
+            children = subprocess.run(
+                ["pgrep", "-P", str(self._process.pid)],
+                capture_output=True,
+                text=True,
+            ).stdout.split()
+            targets = [int(pid) for pid in children] or [self._process.pid]
+            for pid in targets:
+                try:
+                    os.kill(pid, signal.SIGTERM)
+                except ProcessLookupError:
+                    pass
             for _ in range(5):
                 time.sleep(1)
                 if not self.is_running():
