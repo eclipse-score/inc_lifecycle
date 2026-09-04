@@ -21,7 +21,6 @@
 #include <score/assert.hpp>
 #include <unistd.h>
 #include <cstring>
-#include <iostream>
 
 namespace score::mw::lifecycle::internal
 {

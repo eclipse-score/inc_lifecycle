@@ -26,7 +26,6 @@
 #include <score/stop_token.hpp>
 #include <atomic>
 #include <chrono>
-#include <shared_mutex>
 
 namespace score::mw::lifecycle::internal
 {
