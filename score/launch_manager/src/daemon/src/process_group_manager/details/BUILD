@@ -222,6 +222,7 @@ cc_library(
         "//score/launch_manager/src/daemon/src/configuration:config",
         "//score/launch_manager/src/daemon/src/osal:semaphore",
         "//score/launch_manager/src/daemon/src/process_group_manager:iprocess",
+        "//score/launch_manager/src/daemon/src/process_group_manager/details:igraph_watch",
         "//score/launch_manager/src/lm_control",
     ],
 )
@@ -412,5 +413,42 @@ lm_cc_test(
         ":icomponent",
         ":transition",
         "@googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "igraph_get",
+    hdrs = ["igraph_get.hpp"],
+    include_prefix = "score/mw/launch_manager/process_group_manager/details",
+    strip_include_prefix = "/score/launch_manager/src/daemon/src/process_group_manager/details",
+    visibility = ["//score/launch_manager/src/daemon/src/process_group_manager:__pkg__"],
+    deps = [
+        "//score/launch_manager/src/daemon/src/common:identifier_hash",
+        "@score_baselibs//score/result",
+    ],
+)
+
+cc_library(
+    name = "igraph_set",
+    hdrs = ["igraph_set.hpp"],
+    include_prefix = "score/mw/launch_manager/process_group_manager/details",
+    strip_include_prefix = "/score/launch_manager/src/daemon/src/process_group_manager/details",
+    visibility = ["//score/launch_manager/src/daemon/src/process_group_manager:__pkg__"],
+    deps = [
+        "//score/launch_manager/src/daemon/src/common:identifier_hash",
+        "@score_baselibs//score/result",
+    ],
+)
+
+cc_library(
+    name = "igraph_watch",
+    hdrs = ["igraph_watch.hpp"],
+    include_prefix = "score/mw/launch_manager/process_group_manager/details",
+    strip_include_prefix = "/score/launch_manager/src/daemon/src/process_group_manager/details",
+    visibility = ["//score/launch_manager/src/daemon/src/process_group_manager:__pkg__"],
+    deps = [
+        "//score/launch_manager/src/daemon/src/common:identifier_hash",
+        "//score/launch_manager/src/lm_control",
+        "@score_baselibs//score/result",
     ],
 )

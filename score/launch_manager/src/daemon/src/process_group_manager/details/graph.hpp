@@ -33,6 +33,7 @@
 #include "score/mw/launch_manager/process_group_manager/details/component_of.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/component_task.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/dependency_graph.hpp"
+#include "score/mw/launch_manager/process_group_manager/details/igraph_watch.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/process_handling.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/process_info_node.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/run_target.hpp"
@@ -138,7 +139,7 @@ static constexpr GraphState state_results[][static_cast<uint>(GraphState::kUndef
 /// needed and starts the ones required for the new state, respecting dependency order. If
 /// the transition completes without errors the graph enters kSuccess. Otherwise it enters
 /// kUndefinedState.
-class Graph final
+class Graph final : public IGraphWatch
 {
   public:
     /// @brief All currently supported component implementations.
@@ -154,8 +155,7 @@ class Graph final
         uint32_t max_num_nodes,
         configuration::Config& configuration,
         std::shared_ptr<WorkerQueue> job_queue,
-        ProcessHandling process_handling,
-        LmControlSkeleton skeleton);
+        ProcessHandling process_handling);
 
     /// @brief Destructor to clean up resources used by the Graph object.
     ~Graph();
@@ -258,6 +258,8 @@ class Graph final
     /// @return The timeout in milliseconds, or zero if there is no configured timeout.
     std::chrono::milliseconds getOffStateTransitionTimeout() const;
 
+    void watch_active_run_target(std::function<void(IdentifierHash, RunTargetActivationSource)> callback) override;
+
   private:
     /// @brief Reports that a node has finished executing, enqueuing successors or updating the graph state if a
     /// transition has finished.
@@ -349,8 +351,7 @@ class Graph final
     /// @brief Transition timeout for Off state
     std::chrono::milliseconds off_state_transition_timeout_{0};
 
-    // TODO: Move to interface
-    LmControlSkeleton skeleton_;
+    std::optional<std::function<void(IdentifierHash, RunTargetActivationSource)>> active_run_target_callback_;
 };
 
 }  // namespace score::mw::lifecycle::internal

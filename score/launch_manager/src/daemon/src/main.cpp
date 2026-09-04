@@ -21,6 +21,7 @@
 #include "score/mw/launch_manager/common/log.hpp"
 #include "score/mw/launch_manager/configuration/flatbuffer_config_loader.hpp"
 #include "score/mw/launch_manager/process_group_manager/alive_monitor_thread.hpp"
+#include "score/mw/launch_manager/process_group_manager/control_provider.hpp"
 #include "score/mw/launch_manager/process_group_manager/process_group_manager.hpp"
 #include "score/mw/launch_manager/recovery_client/recovery_client.hpp"
 #include "score/mw/launch_manager/supervision_control_client/supervision_control_notifier.hpp"
@@ -179,6 +180,9 @@ int main(int argc, const char* argv[])
 
         if (process_group_manager->initialize())
         {
+            // Remains active in the background until this variable goes out of scope.
+            const ControlProvider control_provider = ControlProvider(process_group_manager.get());
+
             if (runLCMDaemon(*process_group_manager))
             {
                 exit_code = EXIT_SUCCESS;

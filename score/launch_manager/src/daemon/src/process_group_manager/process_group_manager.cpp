@@ -150,8 +150,7 @@ bool ProcessGroupManager::initializeProcessGroups()
         configuration_.components().size() + configuration_.runTargets().size() + 2,
         configuration_,
         worker_jobs_,
-        ProcessHandling{*supervision_control_notifier_.get(), &process_interface_, process_map_, &file_waiter_},
-        this->offerService());
+        ProcessHandling{*supervision_control_notifier_.get(), &process_interface_, process_map_, &file_waiter_});
 
     LM_LOG_DEBUG() << "Process group initialized successfully";
     return true;
@@ -184,75 +183,6 @@ void ProcessGroupManager::createProcessComponentsObjects(std::size_t total_proce
     LM_LOG_DEBUG() << "Creating worker threads...";
     thread_pool_ = std::make_unique<ThreadPool<ComponentTask>>(
         worker_jobs_, static_cast<uint32_t>(ProcessLimits::kNumWorkerThreads), *process_monitor_);
-}
-
-[[nodiscard]] LmControlSkeleton ProcessGroupManager::offerService()
-{
-    const auto instance_specifier =
-        score::mw::com::InstanceSpecifier::Create(std::string{"LaunchManager/StateManager/Instance"});
-    SCORE_LANGUAGE_FUTURECPP_ASSERT_PRD_MESSAGE(
-        instance_specifier.has_value(), instance_specifier.error().Message().data());
-
-    auto instance_result = LmControlSkeleton::Create(instance_specifier.value());
-    SCORE_LANGUAGE_FUTURECPP_ASSERT_PRD_MESSAGE(instance_result.has_value(), instance_result.error().Message().data());
-    auto instance = std::move(instance_result).value();
-
-    const auto activate_run_target_register_result = instance.activate_run_target.RegisterHandler(
-        [this](ActivateRunTargetResponse& response, const ActivateRunTargetRequest& request) {
-            SCORE_LANGUAGE_FUTURECPP_ASSERT_PRD_MESSAGE(
-                request.mode == ActivationMode::kForced, "Only ActivationMode::kForced is implemented");
-
-            IdentifierHash new_state{request.run_target_name.data()};
-
-            if (!graph_->isValidRunTarget(new_state))
-            {
-                response = ActivateRunTargetResponse{
-                    status : RequestStatus::kRejected,
-                    rejection_reason : ExecErrc::kRunTargetDoesntExist
-                };
-                return;
-            }
-
-            if (graph_->getProcessGroupState() == new_state)
-            {
-                response = ActivateRunTargetResponse{
-                    status : RequestStatus::kRejected,
-                    rejection_reason : ExecErrc::kAlreadyInState
-                };
-                return;
-            }
-
-            graph_->startTransition(new_state);
-
-            response = ActivateRunTargetResponse{status : RequestStatus::kAccepted};
-        });
-    SCORE_LANGUAGE_FUTURECPP_ASSERT_PRD_MESSAGE(
-        activate_run_target_register_result.has_value(), activate_run_target_register_result.error().Message().data());
-
-    const auto get_active_run_target_register_result =
-        instance.get_active_run_target.RegisterHandler([this]([[maybe_unused]] GetActiveRunTargetResponse& response) {
-            if (graph_->getState() == GraphState::kInTransition)
-            {
-                response =
-                GetActiveRunTargetResponse{status : QueryStatus::kNotAvailable, run_target : RunTargetName("")};
-            }
-            else
-            {
-                const IdentifierHash state = graph_->getProcessGroupState();
-                const std::lock_guard<std::mutex> lock(IdentifierHash::get_registry_mutex());
-                const std::string& name = IdentifierHash::get_registry()[state.data()];
-
-                response =
-                GetActiveRunTargetResponse{status : QueryStatus::kAvailable, run_target : RunTargetName(name)};
-            }
-        });
-    SCORE_LANGUAGE_FUTURECPP_ASSERT_PRD_MESSAGE(
-        activate_run_target_register_result.has_value(), activate_run_target_register_result.error().Message().data());
-
-    const auto offer_result = instance.OfferService();
-    SCORE_LANGUAGE_FUTURECPP_ASSERT_PRD_MESSAGE(offer_result.has_value(), offer_result.error().Message().data());
-
-    return instance;
 }
 
 bool ProcessGroupManager::run()
@@ -523,6 +453,41 @@ std::shared_ptr<SafeProcessMap> ProcessGroupManager::getProcessMap()
 std::shared_ptr<ProcessGroupManager::WorkerQueue> ProcessGroupManager::getWorkerJobs()
 {
     return worker_jobs_;
+}
+
+score::Result<IdentifierHash> ProcessGroupManager::get_active_run_target()
+{
+    if (graph_->getState() == GraphState::kInTransition)
+    {
+        return score::MakeUnexpected(ExecErrc::kActivationInProgress);
+    }
+    else
+    {
+        return graph_->getProcessGroupState();
+    }
+}
+
+score::Result<void> ProcessGroupManager::set_requested_run_target(IdentifierHash run_target)
+{
+    if (!graph_->isValidRunTarget(run_target))
+    {
+        return score::MakeUnexpected(ExecErrc::kRunTargetDoesntExist);
+    }
+
+    if (graph_->getProcessGroupState() == run_target)
+    {
+        return score::MakeUnexpected(ExecErrc::kAlreadyInState);
+    }
+
+    graph_->startTransition(run_target);
+
+    return {};
+}
+
+void ProcessGroupManager::watch_active_run_target(
+    std::function<void(IdentifierHash, RunTargetActivationSource)> callback)
+{
+    graph_->watch_active_run_target(callback);
 }
 
 }  // namespace score::mw::lifecycle::internal

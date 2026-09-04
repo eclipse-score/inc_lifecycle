@@ -119,15 +119,14 @@ Graph::Graph(
     uint32_t max_num_nodes,
     configuration::Config& configuration,
     std::shared_ptr<WorkerQueue> job_queue,
-    ProcessHandling process_handling,
-    LmControlSkeleton skeleton)
+    ProcessHandling process_handling)
     : nodes_(max_num_nodes),
       transition_builder_(nodes_),
       state_(GraphState::kSuccess),
       configuration_(configuration),
       job_queue_(job_queue),
       process_handling_(std::move(process_handling)),
-      skeleton_(std::move(skeleton))
+      active_run_target_callback_(std::nullopt)
 {
     CreateDependencyGraph(nodes_, configuration_, process_handling_, off_state_transition_timeout_);
 }
@@ -219,47 +218,19 @@ void Graph::queueReadyNodes()
 
 void Graph::finalizeTransitionSuccess()
 {
-    auto allocate_result = skeleton_.activation_result.Allocate();
-    if (allocate_result.has_value())
+    if (active_run_target_callback_.has_value())
     {
-        ActivationResult* event = allocate_result.value().Get();
+        const IdentifierHash state = getProcessGroupState();
 
-        {
-            const std::lock_guard<std::mutex> lock(IdentifierHash::get_registry_mutex());
-            const auto& registry = IdentifierHash::get_registry();
-            const auto it = registry.find(getProcessGroupState().data());
-            SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(
-                it != registry.end(), "IdentifierHash does not correspond to an existing name");
-            event->activated_run_target = RunTargetName(it->second);
-        }
-
+        RunTargetActivationSource source;
         if (is_initial_state_transition_)
-        {
-            event->activation_source = RunTargetActivationSource::kInitialActivation;
-        }
-        else if (getProcessGroupState() == IdentifierHash{"fallback"})
-        {
-            event->activation_source = RunTargetActivationSource::kRecoveryAction;
-        }
+            source = RunTargetActivationSource::kInitialActivation;
+        else if (state == IdentifierHash{"fallback"})
+            source = RunTargetActivationSource::kRecoveryAction;
         else
-        {
-            event->activation_source = RunTargetActivationSource::kStateManagerRequest;
-        }
+            source = RunTargetActivationSource::kStateManagerRequest;
 
-        const auto send_result = skeleton_.activation_result.Send(std::move(allocate_result.value()));
-        if (send_result.has_value())
-        {
-            LM_LOG_DEBUG() << "Sent the activation result to the state manager";
-        }
-        else
-        {
-            LM_LOG_ERROR() << "Failed to send the activation result to the state manager";
-        }
-    }
-    else
-    {
-        LM_LOG_ERROR() << "Failed to allocate space to send the activation result to the state manager:"
-                          "check that the mw::com configuration is correct";
+        active_run_target_callback_.value()(state, source);
     }
 
     if (is_initial_state_transition_)
@@ -586,6 +557,11 @@ std::chrono::time_point<std::chrono::steady_clock> Graph::getRequestStartTime()
 std::chrono::milliseconds Graph::getOffStateTransitionTimeout() const
 {
     return off_state_transition_timeout_;
+}
+
+void Graph::watch_active_run_target(std::function<void(IdentifierHash, RunTargetActivationSource)> callback)
+{
+    active_run_target_callback_ = callback;
 }
 
 }  // namespace score::mw::lifecycle::internal

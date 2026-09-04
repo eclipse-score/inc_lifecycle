@@ -26,6 +26,9 @@
 #include "score/mw/launch_manager/osal/wait_for_file.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/component_event_queue.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/graph.hpp"
+#include "score/mw/launch_manager/process_group_manager/details/igraph_get.hpp"
+#include "score/mw/launch_manager/process_group_manager/details/igraph_set.hpp"
+#include "score/mw/launch_manager/process_group_manager/details/igraph_watch.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/os_handler.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/process_info_node.hpp"
 #include "score/mw/launch_manager/process_group_manager/details/process_launcher.hpp"
@@ -54,7 +57,7 @@ namespace score::mw::lifecycle::internal
 ///     configured by integrator. Interaction with OSAL to start and stop processes. Interaction with OSAL to discover
 ///     when processes terminated in an unexpected way. Fulfilling PG State transitions requests from SM, as well as
 ///     informing SM about unexpected problems (for example process crashes).
-class ProcessGroupManager final
+class ProcessGroupManager final : public IGraphGet, public IGraphSet, public IGraphWatch
 {
     using WorkerQueue =
         MPMCConcurrentQueue<std::optional<ComponentTask>, static_cast<std::size_t>(ProcessLimits::kMaxProcesses)>;
@@ -126,13 +129,15 @@ class ProcessGroupManager final
     /// @brief Cancels processGroupManager main routine as though SIGTERM had been sent
     void cancel();
 
+    [[nodiscard]] score::Result<IdentifierHash> get_active_run_target() override;
+
+    [[nodiscard]] score::Result<void> set_requested_run_target(IdentifierHash run_target) override;
+
+    void watch_active_run_target(std::function<void(IdentifierHash, RunTargetActivationSource)> callback) override;
+
     const IdentifierHash recovery_state_{"fallback"};
 
   private:
-    /// @brief Start offering the service for control clients to connect to.
-    /// @details The service offer will be destroyed once the return value goes out of scope.
-    [[nodiscard]] LmControlSkeleton offerService();
-
     /// @brief Handle a single recovery request emitted by Alive supervision.
     void handleRecoveryRequest(const IdentifierHash& process_identifier);
 
