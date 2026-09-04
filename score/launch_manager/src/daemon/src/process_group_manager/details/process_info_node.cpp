@@ -124,7 +124,7 @@ IComponent::RequestResult ProcessInfoNode::tryReportSuccess()
 
 std::optional<timespec> ProcessInfoNode::getTimeForReport() const
 {
-    if (!isReporting() && state_publisher_)
+    if (isSupervised() && state_publisher_)
     {
         timespec timestamp{};
         static_cast<void>(clock_gettime(CLOCK_MONOTONIC, &timestamp));
@@ -236,6 +236,13 @@ IComponent::RequestResult ProcessInfoNode::tryHandleTermination(int32_t process_
 bool ProcessInfoNode::isReporting() const
 {
     return config_.component_properties.application_profile.application_type != configuration::ApplicationType::Native;
+}
+
+bool ProcessInfoNode::isSupervised() const
+{
+    const auto app_type = config_.component_properties.application_profile.application_type;
+    return app_type == configuration::ApplicationType::ReportingAndSupervised ||
+           app_type == configuration::ApplicationType::StateManager;
 }
 
 IComponent::RequestResult ProcessInfoNode::startProcess(score::cpp::stop_token stop_token)

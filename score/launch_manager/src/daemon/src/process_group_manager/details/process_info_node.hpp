@@ -109,6 +109,9 @@ class ProcessInfoNode final : public IComponent
     /// @brief Returns true if the process is configured to report kRunning
     bool isReporting() const;
 
+    /// @brief Returns true if the process is configured to report to alive monitor
+    bool isSupervised() const;
+
     /// @brief Atomically transitions to new_state if the transition is valid. For reporting
     /// processes, also notifies the platform health manager of the state change.
     /// @param new_state The desired process state.
