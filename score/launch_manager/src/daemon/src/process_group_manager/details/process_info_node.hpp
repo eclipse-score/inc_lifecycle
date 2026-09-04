@@ -22,7 +22,6 @@
 #include "score/mw/launch_manager/process_group_manager/details/safe_process_map.hpp"
 #include "score/mw/launch_manager/process_group_manager/process_state.hpp"
 #include "score/mw/launch_manager/supervision_control_client/isupervision_event_publisher.hpp"
-#include "score/result/result.h"
 #include <score/stop_token.hpp>
 #include <atomic>
 #include <chrono>
@@ -41,6 +40,17 @@ namespace score::mw::lifecycle::internal
 ///       In the future, this class shall be split up to properly separate Component and Process lifecycle.
 class ProcessInfoNode final : public IComponent
 {
+    /// @brief Enum representing different outcomes of a termination.
+    enum class TeminationResult : uint8_t
+    {
+        /// @brief Since the last startup, the process has not terminated.
+        kNone,
+        /// @brief The last termination was acceptable.
+        kOk,
+        /// @brief The last termination was invalid/unexpected.
+        kError,
+    };
+
   public:
     /// @brief Constructs a ProcessInfoNode.
     /// @param config Configuration for the OS process.
@@ -201,9 +211,8 @@ class ProcessInfoNode final : public IComponent
     /// @brief Unique hash to identify this node.
     IdentifierHash identifier_;
 
-    /// @brief If the process has terminated since the last startup, holds a bool indicating whether the termination is
-    /// valid or not
-    std::optional<bool> termination_result_{};
+    /// @brief The result of the last termination since the process started.
+    TeminationResult termination_result_{};
 };
 
 }  // namespace score::mw::lifecycle::internal
