@@ -33,58 +33,83 @@ namespace score::mw::lifecycle::internal
 /// the client ID, ignoring the state manager process identification.
 struct ControlClientID final
 {
-    uint16_t process_group_index_;       ///< Process group containing the state manager process
-    IdentifierHash process_identifier_;  ///< The process within the process group
-    uint32_t future_id_;                 ///< ID to match request and response
+    /// @brief Process group containing the state manager process
+    uint16_t process_group_index_;
+    /// @brief The process within the process group
+    IdentifierHash process_identifier_;
+    /// @brief ID to match request and response
+    uint32_t future_id_;
+
+    /// @brief For use by Control Client
     ControlClientID() : process_group_index_(0), process_identifier_(""), future_id_(0)
     {
-    }  ///< For use by Control Client
+    }
 };
 
 /// @brief Code for requests from Control Client and responses back from Launch Manager
 enum class ControlClientCode  // Both request and response codes are given. Mapping to AUTOSAR is done at client side
 {
     // General
-    kNotSet = 0,          ///< This code is used to initialise variables
-    kInvalidRequest = 1,  ///< Response back to Control Client if Launch Manager gets a code it does not recognise
+    /// @brief This code is used to initialise variables
+    kNotSet = 0,
+    /// @brief Response back to Control Client if Launch Manager gets a code it does not recognise
+    kInvalidRequest = 1,
 
     // setState functionality
-    kSetStateRequest = 16,           ///< setState request code
-    kSetStateInvalidArguments = 17,  ///<  Response: invalid arguments response for set state request
-    kSetStateCancelled = 18,         ///< Response: setState request was cancelled by a newer request
-    kSetStateFailed = 19,            ///< Response: setState request failed (PG in undefined state)
-    kSetStateSuccess = 20,           ///< Response: setState request succeeded (PG in new state)
-    kSetStateAlreadyInState = 21,    ///< Response: setState had no effect because PG was already in requested state
-    kSetStateTransitionToSameState =
-        22,  ///< Response: setState had no effect because PG already in transition to new state
+    /// @brief setState request code
+    kSetStateRequest = 16,
+    /// @brief Response: invalid arguments response for set state request
+    kSetStateInvalidArguments = 17,
+    /// @brief Response: setState request was cancelled by a newer request
+    kSetStateCancelled = 18,
+    /// @brief Response: setState request failed (PG in undefined state)
+    kSetStateFailed = 19,
+    /// @brief Response: setState request succeeded (PG in new state)
+    kSetStateSuccess = 20,
+    /// @brief Response: setState had no effect because PG was already in requested state
+    kSetStateAlreadyInState = 21,
+    /// @brief Response: setState had no effect because PG already in transition to new state
+    kSetStateTransitionToSameState = 22,
 
     // Responses resulting from unexpected termination (when do we report these?)
-    kFailedUnexpectedTerminationOnEnter =
-        23,  ///< Response: Unexpected Termination of a process during transition to new process group state
-    kFailedUnexpectedTermination = 24,  ///< Response: termination of a process when not in transition
+    /// @brief Response: Unexpected Termination of a process during transition to new process group state
+    kFailedUnexpectedTerminationOnEnter = 23,
+    /// @brief Response: termination of a process when not in transition
+    kFailedUnexpectedTermination = 24,
 
     // getInitialMachineState functionality
-    kGetInitialMachineStateRequest = 32,  ///< Request the initial machine state result
-    kInitialMachineStateNotSet = 33,  ///< Internal value used before first state transition or there is no machine PG
-    kInitialMachineStateFailed =
-        34,  ///<  Response: The transition to the initial machine state failed (or was cancelled)
-    kInitialMachineStateSuccess = 35,  ///< Response: The initial machine state transition was successful
+    /// @brief Request the initial machine state result
+    kGetInitialMachineStateRequest = 32,
+    /// @brief Internal value used before first state transition or there is no machine PG
+    kInitialMachineStateNotSet = 33,
+    /// @brief Response: The transition to the initial machine state failed (or was cancelled)
+    kInitialMachineStateFailed = 34,
+    /// @brief Response: The initial machine state transition was successful
+    kInitialMachineStateSuccess = 35,
 
     // getExecutionError functionality
-    kGetExecutionErrorRequest = 48,        ///< Request the execution error for a process group
-    kExecutionErrorInvalidArguments = 49,  ///< Response: Process group does not exist
-    kExecutionErrorRequestFailed = 50,     ///< Response: The process group is in a defined state
-    kExecutionErrorRequestSuccess = 51,    ///< Response: Execution error reported for the given process group
+    /// @brief Request the execution error for a process group
+    kGetExecutionErrorRequest = 48,
+    /// @brief Response: Process group does not exist
+    kExecutionErrorInvalidArguments = 49,
+    /// @brief Response: The process group is in a defined state
+    kExecutionErrorRequestFailed = 50,
+    /// @brief Response: Execution error reported for the given process group
+    kExecutionErrorRequestSuccess = 51,
 };
 
 /// @brief A message that can be a request, and acknowledgement or a response
 struct ControlClientMessage final
 {
-    ControlClientID originating_control_client_;  ///< ID of the individual Control Client and state manager process
-    ControlClientCode request_or_response_;    ///< Request code (SM -> LM) or acknowledgement/response code (LM -> SM)
-    ProcessGroupStateID process_group_state_;  ///< Payload for most requests & responses
-    uint32_t execution_error_code_;            ///< Additional payload for `kExecutionErrorRequestSuccess` and
-                                               ///< `kFailedUnexpectedTermination`
+    /// @brief ID of the individual Control Client and state manager process
+    ControlClientID originating_control_client_;
+    /// @brief Request code (SM -> LM) or acknowledgement/response code (LM -> SM)
+    ControlClientCode request_or_response_;
+    /// @brief Payload for most requests & responses
+    ProcessGroupStateID process_group_state_;
+    /// @brief Additional payload for `kExecutionErrorRequestSuccess` and `kFailedUnexpectedTermination`
+    uint32_t execution_error_code_;
+
     // Constructor to initialize all data members
     ControlClientMessage()
         : originating_control_client_(),
@@ -107,8 +132,11 @@ struct ControlClientCodeMapping
 /// @brief Communications channel used for requests and responses
 struct ControlClientComms final
 {
-    std::atomic_bool empty_;    ///< true when a message can be placed, false when one may be read
-    ControlClientMessage msg_;  ///< The message to be sent
+    /// @brief true when a message can be placed, false when one may be read
+    std::atomic_bool empty_;
+    /// @brief The message to be sent
+    ControlClientMessage msg_;
+
     // Constructor to initialize all data members
     ControlClientComms() : empty_(true), msg_()
     {

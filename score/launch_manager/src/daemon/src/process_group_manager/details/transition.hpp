@@ -37,8 +37,10 @@ namespace score::mw::lifecycle
 /// @brief What should happen to a ready node right now.
 enum class Action : std::uint8_t
 {
-    Stop,   ///< deactivate the node
-    Start,  ///< activate the node
+    /// @brief Deactivate the node
+    Stop,
+    /// @brief Activate the node
+    Start,
 };
 
 /// @brief Contains a node that is ready to be activated/deactivated
@@ -271,11 +273,15 @@ class Transition
         }
     }
 
+    /// @brief Transition execution phases
     enum class Phase : std::uint8_t
     {
-        Stopping,  ///< Deactivating nodes exclusive to the `source` state
-        Starting,  ///< Activating new nodes that are exclusive to the `target` state
-        Done,      ///< every participating node has reached its terminal state
+        /// @brief Deactivating nodes exclusive to the `source` state
+        Stopping,
+        /// @brief Activating new nodes that are exclusive to the `target` state
+        Starting,
+        /// @brief Every participating node has reached its terminal state
+        Done,
     };
 
     struct NodeInfo

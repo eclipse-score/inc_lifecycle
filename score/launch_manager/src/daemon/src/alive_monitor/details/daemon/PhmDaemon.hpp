@@ -33,11 +33,16 @@ namespace score::mw::lifecycle::internal::saf::daemon
 /// @brief Return codes for PhmDaemon Initialization
 enum class EInitCode : std::int8_t
 {
-    kNoError,                        ///< Init Successful (no error occurred)
-    kNotInitialized,                 ///< Init was not performed
-    kCycleTimeInitFailed,            ///< Cyclic Timer initialization failed
-    kConstructFlatCfgFactoryFailed,  ///< FlatCfgFactory failed loading SWCL configurations
-    kGeneralError                    ///< General error
+    /// @brief Init Successful (no error occurred)
+    kNoError,
+    /// @brief Init was not performed
+    kNotInitialized,
+    /// @brief Cyclic Timer initialization failed
+    kCycleTimeInitFailed,
+    /// @brief FlatCfgFactory failed loading SWCL configurations
+    kConstructFlatCfgFactoryFailed,
+    /// @brief General error
+    kGeneralError
 };
 
 /// @brief PHM daemon main class wraps the functionality for initialization and cyclic execution.

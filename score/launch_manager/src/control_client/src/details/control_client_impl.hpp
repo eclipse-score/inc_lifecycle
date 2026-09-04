@@ -34,18 +34,21 @@ namespace score::mw::lifecycle
 /// arrives later, so ControlClientImpl needs a storage where those active requests can wait for completion.
 struct ControlClientRequestInfo
 {
-    score::concurrency::InterruptiblePromise<void>
-        promise_;  ///< promise that should be fulfilled, i.e. set_value(), when answer from LCM is available.
-                   ///< SetState() and GetInitialMachineStateTransitionResult() use this type.
-    std::atomic_bool in_use_;  ///< information whether this slot in the array is used or not. We are using atomic flag
-                               ///< as only the code that reserves the slot will use synchronization primitive. There is
-                               ///< no reason to protect release code, thanks to the std::atomic_flag
-    bool initial_machine_state_transition_request_;  ///< is this a request that originated from
-                                                     ///< GetInitialMachineStateTransitionResult? Due to the design of
-                                                     ///< LCM, there is no place to cache those request on LCM side. As
-                                                     ///< there is no limit on how many times ControlClient instance can
-                                                     ///< call GetInitialMachineStateTransitionResult method, we will
-                                                     ///< cache them on ControlClientImpl side.
+    /// @brief Promise that should be fulfilled, i.e. set_value(), when answer from LCM is available.
+    /// SetState() and GetInitialMachineStateTransitionResult() use this type.
+    score::concurrency::InterruptiblePromise<void> promise_;
+
+    /// @brief Information whether this slot in the array is used or not. We are using atomic flag
+    /// as only the code that reserves the slot will use synchronization primitive. There is
+    /// no reason to protect release code, thanks to the std::atomic_flag.
+    std::atomic_bool in_use_;
+
+    /// @brief Is this a request that originated from GetInitialMachineStateTransitionResult? Due to the design of
+    /// LCM, there is no place to cache those request on LCM side. As there is no limit on how many times
+    /// ControlClient instance can call GetInitialMachineStateTransitionResult method, we will cache them on
+    /// ControlClientImpl side.
+    bool initial_machine_state_transition_request_;
+
     // Constructor to initialize all members
     ControlClientRequestInfo() : promise_(), in_use_(false), initial_machine_state_transition_request_(false)
     {

@@ -25,8 +25,11 @@ namespace score::mw::lifecycle::internal
 // have user-declared constructor. The rule doesn’t apply.", false)
 struct ProcessGroupStateID final
 {
-    score::mw::lifecycle::IdentifierHash pg_name_;        ///< Name of the process group.
-    score::mw::lifecycle::IdentifierHash pg_state_name_;  ///< Name of the process group state.
+    /// @brief Name of the process group.
+    score::mw::lifecycle::IdentifierHash pg_name_;
+
+    /// @brief Name of the process group state.
+    score::mw::lifecycle::IdentifierHash pg_state_name_;
 };
 
 }  // namespace score::mw::lifecycle::internal

@@ -122,15 +122,18 @@ class MonitorIfDaemon : public common::Observer<ifexm::ObservableEvent>
     /// @param[in] f_elem_r The checkpoint to push to observers
     void pushCheckpointToObservers(const CheckpointBufferElement& f_elem_r);
 
-    /// Internal states for instances of this class
+    /// @brief Internal states for instances of this class
     enum class EInternalState : std::uint8_t
     {
-        kActive,           ///< Interface active
-        kInactive,         ///< Interface inactive
-        kInactiveOverflow  ///< Interface inactive due to overflow
+        /// @brief Interface active
+        kActive,
+        /// @brief Interface inactive
+        kInactive,
+        /// @brief Interface inactive due to overflow
+        kInactiveOverflow
     };
 
-    /// Current internal state
+    /// @brief Current internal state
     EInternalState status{EInternalState::kInactive};
 
     /// @brief Current Activation request

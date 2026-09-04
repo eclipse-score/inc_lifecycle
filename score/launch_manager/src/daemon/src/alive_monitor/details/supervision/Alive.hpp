@@ -165,12 +165,18 @@ class Alive : public ISupervision,
     /// @brief Enumeration of supervision update events
     enum class EUpdateEventType : std::uint8_t
     {
-        kNoChange = 0U,      ///< update event for no change in activation/deactivation
-        kActivation = 1U,    ///< update event for activation of supervision
-        kDeactivation = 2U,  ///< update event for deactivation of supervision
-        kCheckpoint = 3U,    ///< update event for reported checkpoint
-        kEvaluation = 4U,    ///< artificial update event for evaluation of supervision (relevant for Alive only)
-        kSync = 5U           ///< artificial update event for synchronization (relevant for Alive only)
+        /// @brief Update event for no change in activation/deactivation
+        kNoChange = 0U,
+        /// @brief Update event for activation of supervision
+        kActivation = 1U,
+        /// @brief Update event for deactivation of supervision
+        kDeactivation = 2U,
+        /// @brief Update event for reported checkpoint
+        kCheckpoint = 3U,
+        /// @brief Artificial update event for evaluation of supervision (relevant for Alive only)
+        kEvaluation = 4U,
+        /// @brief Artificial update event for synchronization (relevant for Alive only)
+        kSync = 5U
     };
 
     /// @brief Get timestamp of current update event
@@ -249,18 +255,25 @@ class Alive : public ISupervision,
     /// @brief Reasons for Alive state transitions
     enum class EReason : std::uint8_t
     {
-        kDataLoss,                 ///< Checkpoint data was lost, e.g. due to full buffer
-        kFailedToleranceExceeded,  ///< More failed cycles than the configured tolerance
-        kDataCorruption,           ///< Checkpoint data was corrupted
-        kOverflow                  ///< Overflow appeared, e.g. failed cycle counter or timestamp overflowed
+        /// @brief Checkpoint data was lost, e.g. due to full buffer
+        kDataLoss,
+        /// @brief More failed cycles than the configured tolerance
+        kFailedToleranceExceeded,
+        /// @brief Checkpoint data was corrupted
+        kDataCorruption,
+        /// @brief Overflow appeared, e.g. failed cycle counter or timestamp overflowed
+        kOverflow
     };
 
     /// @brief Reasons for Data loss
     enum class EDataLossReason : std::uint8_t
     {
-        kNoDataLoss,   ///< No data loss appeared
-        kBufferFull,   ///< Time sorted buffer is full
-        kSharedMemory  ///< Data loss in shared memory occurred
+        /// @brief No data loss appeared
+        kNoDataLoss,
+        /// @brief Time sorted buffer is full
+        kBufferFull,
+        /// @brief Data loss in shared memory occurred
+        kSharedMemory
     };
 
     /// @brief Switch to state Expired
