@@ -189,18 +189,6 @@ use_repo(oci, "debian-test-runtime", "debian-test-runtime_linux_amd64")
 bazel_dep(name = "score_baselibs", version = "0.2.12")
 bazel_dep(name = "score_communication", version = "0.4.0")
 
-# Hedron's Compile Commands Extractor for Bazel
-# https://github.com/hedronvision/bazel-compile-commands-extractor
-bazel_dep(name = "hedron_compile_commands", dev_dependency = True)
-git_override(
-    module_name = "hedron_compile_commands",
-    commit = "abb61a688167623088f8768cc9264798df6a9d10",
-    patch_strip = 1,
-    # Patch for support for Bazel 8.6.0.
-    patches = ["//patches:hedron_compile_commands_env_vars.patch"],
-    remote = "https://github.com/hedronvision/bazel-compile-commands-extractor.git",
-)
-
 # Needed to fix bazel mod errors
 # see https://github.com/grpc/grpc-java/issues/12165
 bazel_dep(name = "grpc-java", version = "1.78.0")
