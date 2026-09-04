@@ -11,23 +11,11 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-load("@hedron_compile_commands//:refresh_compile_commands.bzl", "refresh_compile_commands")
 load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 load("@score_docs_as_code//:docs.bzl", "docs")
 load("@score_tooling//:defs.bzl", "copyright_checker", "dash_license_checker", "setup_starpls")
 load("@score_tooling//third_party/format:macros.bzl", "use_format_targets")
 load("//:project_config.bzl", "PROJECT_CONFIG")
-
-# Generate `compile_commands.json`.
-# Required for `clangd` support.
-refresh_compile_commands(
-    name = "generate_compile_commands",
-    exclude_external_sources = True,
-    target_compatible_with = ["@platforms//os:linux"],
-    targets = {
-        "//...": "",
-    },
-)
 
 # In order to update the requirements, change the `requirements.in` file and run:
 # `bazel run //:requirements.update`.
