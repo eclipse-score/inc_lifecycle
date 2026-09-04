@@ -126,6 +126,3 @@ build:bench -c opt
 ## default is a stdout logger which looks like dlt logs
 ## uncomment below to use score::mw::log instead of the stdout logger
 # build --cxxopt=-DLC_LOG_SCORE_MW_LOG
-
-# Sanitizer configuration (ASan/UBSan/LSan/TSan). See //quality/sanitizer.
-import %workspace%/quality/sanitizer/sanitizer.bazelrc
