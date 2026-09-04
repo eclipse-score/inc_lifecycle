@@ -37,14 +37,14 @@ required for Vector and IPC APIs", true_no_defect) */
 struct CheckpointBufferElement final
 {
     /// @brief Timestamp of the checkpoint
-    internal::saf::timers::NanoSecondType timestamp{0U};
+    std::chrono::nanoseconds timestamp{0U};
 
     /// @brief Default constructor needed for storage in vector
     CheckpointBufferElement() = default;
 
     /// @brief Constructor for usage with emplace
     /// @param [in] f_timestamp The checkpoint timestamp
-    CheckpointBufferElement(internal::saf::timers::NanoSecondType f_timestamp) noexcept(true) : timestamp(f_timestamp)
+    CheckpointBufferElement(std::chrono::nanoseconds f_timestamp) noexcept(true) : timestamp(f_timestamp)
     {
     }
 };

@@ -22,17 +22,17 @@ Checkpoint::Checkpoint(const ifexm::ObservableEvent* f_processState_p) noexcept(
     static_cast<void>(0U);
 }
 
-timers::NanoSecondType Checkpoint::getTimestamp(void) const noexcept(true)
+std::chrono::nanoseconds Checkpoint::getTimestamp(void) const noexcept(true)
 {
     return timestamp;
 }
 
-void Checkpoint::pushData(const timers::NanoSecondType f_timestamp) noexcept(true)
+void Checkpoint::pushData(const std::chrono::nanoseconds f_timestamp) noexcept(true)
 {
     timestamp = f_timestamp;
 
     // If monotonic system clock fails, set data loss event.
-    if (timestamp == 0U)
+    if (timestamp.count() == 0U)
     {
         setDataLossEvent(true);
     }

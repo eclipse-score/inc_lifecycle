@@ -117,7 +117,7 @@ class Alive : public ISupervision,
     void updateData(const ifexm::ObservableEvent& f_observable_r) noexcept(true) override;
 
     /// @copydoc ISupervision::evaluate()
-    void evaluate(const timers::NanoSecondType f_syncTimestamp) override;
+    void evaluate(const std::chrono::nanoseconds f_syncTimestamp) override;
 
     /// @brief Get Supervision status
     /// @return     Status of Supervision
@@ -125,7 +125,7 @@ class Alive : public ISupervision,
 
     /// @brief Get timestamp of supervision event
     /// @return     Timestamp of checkpoint supervision event
-    timers::NanoSecondType getTimestamp(void) const noexcept(true);
+    std::chrono::nanoseconds getTimestamp(void) const noexcept(true);
 
     /// @brief Check whether a recovery request failed to enqueue (ring buffer full)
     /// @return True if sendRecoveryRequest failed
@@ -143,21 +143,21 @@ class Alive : public ISupervision,
         // cppcheck-suppress unusedStructMember
         CheckpointIdentifier identifier_p{nullptr};
         /// @brief timestamp of checkpoint
-        timers::NanoSecondType timestamp{UINT64_MAX};
+        std::chrono::nanoseconds timestamp{std::chrono::nanoseconds::max()};
     };
 
     /// @brief Time sorted supervision event snapshot (activation / deactivation event)
     struct SupervisionEventSnapshot final
     {
         /// @brief Timestamp of the supervision event
-        timers::NanoSecondType timestamp{UINT64_MAX};
+        std::chrono::nanoseconds timestamp{std::chrono::nanoseconds::max()};
         /// @brief Supervision event type that triggered this snapshot
         // cppcheck-suppress unusedStructMember
         score::mw::lifecycle::SupervisionEventType eventType{score::mw::lifecycle::SupervisionEventType::kDeactivation};
     };
 
     /// @brief Sync snapshot stores sync timestamp in the time sorting buffer
-    using SyncSnapshot = timers::NanoSecondType;
+    using SyncSnapshot = std::chrono::nanoseconds;
 
     /// @brief Defines one element of time sorted update event
     using TimeSortedUpdateEvent = std::variant<SupervisionEventSnapshot, CheckpointSnapshot, SyncSnapshot>;
@@ -176,35 +176,35 @@ class Alive : public ISupervision,
     /// @brief Get timestamp of current update event
     /// @param [in] f_updateEvent    Sorted update event (e.g, Activation, Deactivation, Checkpoint, ...) from Buffer
     /// @return                      Timestamp of update event
-    static timers::NanoSecondType getTimestampOfUpdateEvent(const TimeSortedUpdateEvent f_updateEvent) noexcept(true);
+    static std::chrono::nanoseconds getTimestampOfUpdateEvent(const TimeSortedUpdateEvent f_updateEvent) noexcept(true);
 
     /// @brief Check and trigger transition out of state Deactivated
     /// @param [in] f_updateEventType       Type of update event (e.g, Activation, Deactivation, Checkpoint, ...)
     /// @param [in] f_updateEventTimestamp  Timestamp of update event
     void checkTransitionsOutOfDeactivated(
         const EUpdateEventType f_updateEventType,
-        const timers::NanoSecondType f_updateEventTimestamp) noexcept(true);
+        const std::chrono::nanoseconds f_updateEventTimestamp) noexcept(true);
 
     /// @brief Check and trigger common transitions to state Deactivated
     /// @param [in] f_updateEventType       Type of update event (e.g, Activation, Deactivation, Checkpoint, ...)
     /// @param [in] f_updateEventTimestamp  Timestamp of update event
     void checkTransitionsToDeactivated(
         const EUpdateEventType f_updateEventType,
-        const timers::NanoSecondType f_updateEventTimestamp) noexcept(true);
+        const std::chrono::nanoseconds f_updateEventTimestamp) noexcept(true);
 
     /// @brief Check and trigger transition out of state Ok
     /// @param [in] f_updateEventType       Type of update event (e.g, Activation, Deactivation, Checkpoint, ...)
     /// @param [in] f_updateEventTimestamp  Timestamp of update event
     void checkTransitionsOutOfOk(
         const EUpdateEventType f_updateEventType,
-        const timers::NanoSecondType f_updateEventTimestamp) noexcept(true);
+        const std::chrono::nanoseconds f_updateEventTimestamp) noexcept(true);
 
     /// @brief Check and trigger transition out of state Failed
     /// @param [in] f_updateEventType       Type of update event (e.g, Activation, Deactivation, Checkpoint, ...)
     /// @param [in] f_updateEventTimestamp  Timestamp of update event
     void checkTransitionsOutOfFailed(
         const EUpdateEventType f_updateEventType,
-        const timers::NanoSecondType f_updateEventTimestamp) noexcept(true);
+        const std::chrono::nanoseconds f_updateEventTimestamp) noexcept(true);
 
     /// @brief Get the type of current update events for alive supervision (including evaluation event)
     /// @param [in] f_isEvaluationEvent  Flag for indicating evaluation event
@@ -221,7 +221,7 @@ class Alive : public ISupervision,
     /// @param [in] f_updateEvent   Sorted update event (e.g, Activation, Deactivation, Checkpoint, ...) from Buffer
     /// @return                     True: evaluation event is set, False: no evaluation event
     bool detectEvaluationEvent(
-        const timers::NanoSecondType f_timestampOfUpdateEvent,
+        const std::chrono::nanoseconds f_timestampOfUpdateEvent,
         const TimeSortedUpdateEvent f_updateEvent) const noexcept(true);
 
     /// @brief Evaluate alive supervision after reference cycle in Ok state
@@ -232,7 +232,7 @@ class Alive : public ISupervision,
 
     /// @brief Store sync event in time sorting buffer
     /// @param [in] f_syncTimestamp   synchronization timestamp
-    void storeSyncEvent(const timers::NanoSecondType f_syncTimestamp);
+    void storeSyncEvent(const std::chrono::nanoseconds f_syncTimestamp);
 
     /// @brief Handle data loss reaction
     void handleDataLossReaction(void) noexcept(true);
@@ -284,17 +284,17 @@ class Alive : public ISupervision,
     /// @brief Increment indication count and check for overflow
     /// @details If overflow appears, status is set to EXPIRED
     /// @param [in] f_updateEventTimestamp  Timestamp of last update event which lead to increment of indication count
-    void incIndicationCount(const timers::NanoSecondType f_updateEventTimestamp) noexcept(true);
+    void incIndicationCount(const std::chrono::nanoseconds f_updateEventTimestamp) noexcept(true);
 
     /// @brief Set reference cycle timestamps if no overflow appears
     /// @details Set referenceCycleStart to the provided param and referenceCycleEnd to f_baseValue +
     /// k_aliveReferenceCycle. If overflow would appear status is set to EXPIRED.
     /// @param [in] f_baseValue Value to set reference referenceCycleStart
     /// @return true on overflow and vice versa
-    bool setReferenceCycleTimestamps(timers::NanoSecondType f_baseValue) noexcept(true);
+    bool setReferenceCycleTimestamps(std::chrono::nanoseconds f_baseValue) noexcept(true);
 
     /// @brief Alive reference cycle in [nano seconds]
-    const score::mw::lifecycle::internal::saf::timers::NanoSecondType k_aliveReferenceCycle;
+    const std::chrono::nanoseconds k_aliveReferenceCycle;
 
     /// @brief Minimum allowed alive indications
     const uint32_t k_minAliveIndications;
@@ -327,10 +327,10 @@ class Alive : public ISupervision,
     EStatus aliveStatus{EStatus::kDeactivated};
 
     /// @brief alive reference cycle start time in [nano seconds]
-    timers::NanoSecondType referenceCycleStart{0U};
+    std::chrono::nanoseconds referenceCycleStart{0U};
 
     /// @brief alive reference cycle end time in [nano seconds]
-    timers::NanoSecondType referenceCycleEnd{UINT64_MAX};
+    std::chrono::nanoseconds referenceCycleEnd{std::chrono::nanoseconds::max()};
 
     /// @brief Number of indications that belong to the current alive reference cycle
     uint32_t indicationCount{0U};
@@ -340,11 +340,11 @@ class Alive : public ISupervision,
 
     /// @brief Timestamp in which state change is detected in [nano seconds]
     /// @details This timestamp is updated whenever assessment is done or data loss has occurred.
-    saf::timers::NanoSecondType eventTimestamp{0U};
+    std::chrono::nanoseconds eventTimestamp{0U};
 
     /// @brief Sync timestamp from current evaluation [nano seconds]
     /// @details This is required for eventTimestamp in case of data loss
-    saf::timers::NanoSecondType lastSyncTimestamp{0U};
+    std::chrono::nanoseconds lastSyncTimestamp{0U};
 
     /// @brief Time sorting buffer for update events in alive supervision
     /// @details This buffer sorts all process events and checkpoint events in the same buffer.

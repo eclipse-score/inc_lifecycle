@@ -35,7 +35,6 @@ namespace score::mw::lifecycle::internal::saf::factory
 {
 
 using RecoveryClient = score::mw::lifecycle::IRecoveryClient;
-using NanoSecondType = saf::timers::NanoSecondType;
 using IdentifierHash = score::mw::lifecycle::IdentifierHash;
 
 FlatCfgFactory::FlatCfgFactory() : IPhmFactory()

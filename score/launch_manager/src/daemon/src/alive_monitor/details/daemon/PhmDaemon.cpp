@@ -38,12 +38,12 @@ PhmDaemon::PhmDaemon(OsClock& f_osClock, std::unique_ptr<ISupervisionControlRece
 
 void PhmDaemon::performCyclicTriggers(void)
 {
-    NanoSecondType syncTimestamp{timers::OsClock::getMonotonicSystemClock()};
-    if (syncTimestamp == 0U)
+    std::chrono::nanoseconds syncTimestamp{timers::OsClock::getMonotonicSystemClock()};
+    if (syncTimestamp.count() == 0U)
     {
         // No valid time value, use max value for synchronization
         // All received data will be considered.
-        syncTimestamp = UINT64_MAX;
+        syncTimestamp = std::chrono::nanoseconds::max();
     }
 
     if (processStateReader.distributeChanges(syncTimestamp))

@@ -31,7 +31,8 @@ Alive::Alive(
     saf::ifappl::Checkpoint& checkpoint_r,
     const uint16_t bufferSize)
     : ISupervision(id),
-      k_aliveReferenceCycle(timers::TimeConversion::convertMilliSecToNanoSec(f_aliveCfg_r.reporting_cycle_ms)),
+      k_aliveReferenceCycle(
+          timers::TimeConversion::convertMilliSecToNanoSec(std::chrono::milliseconds{f_aliveCfg_r.reporting_cycle_ms})),
       k_minAliveIndications(f_aliveCfg_r.min_indications.value_or(0)),
       k_maxAliveIndications(f_aliveCfg_r.max_indications.value_or(0)),
       k_isMinCheckDisabled(k_minAliveIndications == 0),
@@ -43,7 +44,7 @@ Alive::Alive(
 {
     checkpoint_r.attachObserver(*this);
     SCORE_LANGUAGE_FUTURECPP_PRECONDITION_PRD_MESSAGE(
-        (k_aliveReferenceCycle != 0U), "k_aliveReferenceCycle=0 causes infinite loop during evaluation.");
+        (k_aliveReferenceCycle.count() != 0U), "k_aliveReferenceCycle=0 causes infinite loop during evaluation.");
 
     SCORE_LANGUAGE_FUTURECPP_PRECONDITION_PRD_MESSAGE(
         (aliveStatus == EStatus::kDeactivated), "Alive Supervision must start in deactivated state, see SWS_PHM_00204");
@@ -55,13 +56,13 @@ Alive::Alive(
 // coverity[exn_spec_violation:FALSE] std::length_error is not thrown from push() which uses fixed-size-vector
 void Alive::updateData(const score::mw::lifecycle::internal::saf::ifappl::Checkpoint& f_observable_r) noexcept(true)
 {
-    timers::NanoSecondType timestamp{f_observable_r.getTimestamp()};
+    std::chrono::nanoseconds timestamp{f_observable_r.getTimestamp()};
 
     if (f_observable_r.getDataLossEvent())
     {
         dataLossReason = EDataLossReason::kSharedMemory;
         // If clock error is detected, last syncTimestamp is used as event timestamp.
-        eventTimestamp = ((timestamp == 0U) ? lastSyncTimestamp : timestamp);
+        eventTimestamp = ((timestamp.count() == 0U) ? lastSyncTimestamp : timestamp);
     }
     else
     {
@@ -77,7 +78,7 @@ void Alive::updateData(const score::mw::lifecycle::internal::saf::ifappl::Checkp
 // coverity[exn_spec_violation:FALSE] std::length_error is not thrown from push() which uses fixed-size-vector
 void Alive::updateData(const ifexm::ObservableEvent& f_observable_r) noexcept(true)
 {
-    const timers::NanoSecondType timestamp{
+    const std::chrono::nanoseconds timestamp{
         timers::TimeConversion::convertToNanoSec(f_observable_r.event.systemClockTimestamp)};
     SupervisionEventSnapshot snapshot{timestamp, f_observable_r.event.eventType};
     if (!timeSortingUpdateEventBuffer.push(snapshot, timestamp))
@@ -92,12 +93,12 @@ Alive::EStatus Alive::getStatus(void) const noexcept(true)
     return aliveStatus;
 }
 
-timers::NanoSecondType Alive::getTimestamp(void) const noexcept(true)
+std::chrono::nanoseconds Alive::getTimestamp(void) const noexcept(true)
 {
     return eventTimestamp;
 }
 
-void Alive::evaluate(const timers::NanoSecondType f_syncTimestamp)
+void Alive::evaluate(const std::chrono::nanoseconds f_syncTimestamp)
 {
     storeSyncEvent(f_syncTimestamp);
 
@@ -113,7 +114,7 @@ void Alive::evaluate(const timers::NanoSecondType f_syncTimestamp)
 
     while (sortedUpdateEvent_p != nullptr)
     {
-        timers::NanoSecondType timestampOfUpdateEvent{getTimestampOfUpdateEvent(*sortedUpdateEvent_p)};
+        std::chrono::nanoseconds timestampOfUpdateEvent{getTimestampOfUpdateEvent(*sortedUpdateEvent_p)};
         SCORE_LANGUAGE_FUTURECPP_ASSERT_PRD_MESSAGE(
             (timestampOfUpdateEvent <= f_syncTimestamp),
             "Alive supervision: Checkpoint events are reported beyond syncTimestamp.");
@@ -177,7 +178,7 @@ void Alive::evaluate(const timers::NanoSecondType f_syncTimestamp)
     lastSyncTimestamp = f_syncTimestamp;
 }
 
-void Alive::storeSyncEvent(const timers::NanoSecondType f_syncTimestamp)
+void Alive::storeSyncEvent(const std::chrono::nanoseconds f_syncTimestamp)
 {
     // If there is a reported alive checkpoint exactly at syncTimestamp, push will update sync event after the
     // reported alive checkpoint during sorting. Reason: Sync event is pushed after last alive checkpoint.
@@ -201,7 +202,7 @@ void Alive::handleDataLossReaction(void) noexcept(true)
 }
 
 bool Alive::detectEvaluationEvent(
-    const timers::NanoSecondType f_timestampOfUpdateEvent,
+    const std::chrono::nanoseconds f_timestampOfUpdateEvent,
     const TimeSortedUpdateEvent f_updateEvent) const noexcept(true)
 {
     bool isEvaluationEvent;
@@ -290,7 +291,7 @@ Alive::EUpdateEventType Alive::getAliveEventType(
 
 void Alive::checkTransitionsOutOfDeactivated(
     const EUpdateEventType f_updateEventType,
-    const timers::NanoSecondType f_updateEventTimestamp) noexcept(true)
+    const std::chrono::nanoseconds f_updateEventTimestamp) noexcept(true)
 {
     if (f_updateEventType == EUpdateEventType::kActivation)
     {
@@ -304,7 +305,7 @@ void Alive::checkTransitionsOutOfDeactivated(
 
 void Alive::checkTransitionsToDeactivated(
     const EUpdateEventType f_updateEventType,
-    const timers::NanoSecondType f_updateEventTimestamp) noexcept(true)
+    const std::chrono::nanoseconds f_updateEventTimestamp) noexcept(true)
 {
     if ((f_updateEventType == EUpdateEventType::kDeactivation) && (aliveStatus != EStatus::kDeactivated))
     {
@@ -315,7 +316,7 @@ void Alive::checkTransitionsToDeactivated(
 
 void Alive::checkTransitionsOutOfOk(
     const EUpdateEventType f_updateEventType,
-    const timers::NanoSecondType f_updateEventTimestamp) noexcept(true)
+    const std::chrono::nanoseconds f_updateEventTimestamp) noexcept(true)
 {
     // Accept only alive checkpoint or evaluation event.
     // Deactivation event is handled at the end of evaluate function.
@@ -333,13 +334,13 @@ void Alive::checkTransitionsOutOfOk(
     }
 }
 
-bool Alive::setReferenceCycleTimestamps(timers::NanoSecondType f_baseValue) noexcept(true)
+bool Alive::setReferenceCycleTimestamps(std::chrono::nanoseconds f_baseValue) noexcept(true)
 {
-    if (f_baseValue > UINT64_MAX - k_aliveReferenceCycle)
+    if (f_baseValue > std::chrono::nanoseconds::max() - k_aliveReferenceCycle)
     {
         LM_LOG_ERROR() << "Alive Supervision (" << getConfigName()
                        << ") overflow appeared during increase of reference cycle timestamps";
-        eventTimestamp = std::max(referenceCycleEnd + 1U, UINT64_MAX);
+        eventTimestamp = std::max(referenceCycleEnd + std::chrono::nanoseconds{1U}, std::chrono::nanoseconds::max());
         switchToExpired(EReason::kOverflow);
         return true;
     }
@@ -348,7 +349,7 @@ bool Alive::setReferenceCycleTimestamps(timers::NanoSecondType f_baseValue) noex
     return false;
 }
 
-void Alive::incIndicationCount(const timers::NanoSecondType f_updateEventTimestamp) noexcept(true)
+void Alive::incIndicationCount(const std::chrono::nanoseconds f_updateEventTimestamp) noexcept(true)
 {
     if (indicationCount == UINT32_MAX)
     {
@@ -382,7 +383,7 @@ void Alive::evaluateRefCycleOutOfOk(void) noexcept(true)
 
 void Alive::checkTransitionsOutOfFailed(
     const EUpdateEventType f_updateEventType,
-    const timers::NanoSecondType f_updateEventTimestamp) noexcept(true)
+    const std::chrono::nanoseconds f_updateEventTimestamp) noexcept(true)
 {
     // Accept only alive checkpoint or evaluation event.
     // Deactivation event is handled at the end of evaluate function.
@@ -441,8 +442,8 @@ void Alive::switchToDeactivated(void) noexcept(true)
     aliveStatus = EStatus::kDeactivated;
     failedSupervisionCycles = 0U;
     indicationCount = 0U;
-    referenceCycleStart = 0U;
-    referenceCycleEnd = UINT64_MAX;
+    referenceCycleStart = std::chrono::nanoseconds{0U};
+    referenceCycleEnd = std::chrono::nanoseconds::max();
 
     LM_LOG_DEBUG() << "Alive Supervision (" << getConfigName() << ") switched to DEACTIVATED.";
 
@@ -510,8 +511,8 @@ void Alive::switchToExpired(Alive::EReason reason) noexcept(true)
 
     failedSupervisionCycles = k_failedSupervisionCyclesTolerance;
     indicationCount = 0U;
-    referenceCycleStart = 0U;
-    referenceCycleEnd = UINT64_MAX;
+    referenceCycleStart = std::chrono::nanoseconds{0U};
+    referenceCycleEnd = std::chrono::nanoseconds::max();
     dataLossReason = EDataLossReason::kNoDataLoss;
 
     const bool enqueued = recoveryClient_p->sendRecoveryRequest(processIdentifier_);
@@ -577,9 +578,9 @@ void Alive::logExpiredFailedStateDetails() const noexcept(true)
                   << k_failedSupervisionCyclesTolerance;
 }
 
-timers::NanoSecondType Alive::getTimestampOfUpdateEvent(const TimeSortedUpdateEvent f_updateEvent) noexcept(true)
+std::chrono::nanoseconds Alive::getTimestampOfUpdateEvent(const TimeSortedUpdateEvent f_updateEvent) noexcept(true)
 {
-    timers::NanoSecondType timestamp{0U};
+    std::chrono::nanoseconds timestamp{0U};
     if (std::holds_alternative<SupervisionEventSnapshot>(f_updateEvent))
     {
         timestamp = std::get<SupervisionEventSnapshot>(f_updateEvent).timestamp;

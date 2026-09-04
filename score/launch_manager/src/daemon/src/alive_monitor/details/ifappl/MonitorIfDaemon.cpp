@@ -54,7 +54,7 @@ void MonitorIfDaemon::updateData(const ifexm::ObservableEvent& f_observable_r) n
     }
 }
 
-void MonitorIfDaemon::checkForNewData(const timers::NanoSecondType f_syncTimestamp) noexcept(true)
+void MonitorIfDaemon::checkForNewData(const std::chrono::nanoseconds f_syncTimestamp) noexcept(true)
 {
     if ((isActivateRequest == true) && (status == EInternalState::kInactive))
     {
@@ -126,7 +126,7 @@ void MonitorIfDaemon::pushCheckpointToObservers(const CheckpointBufferElement& f
     }
 }
 
-bool MonitorIfDaemon::pushNewDataToCheckpointObservers(const timers::NanoSecondType f_syncTimestamp)
+bool MonitorIfDaemon::pushNewDataToCheckpointObservers(const std::chrono::nanoseconds f_syncTimestamp)
 {
     using IpcResult = CheckpointIpcServer::EIpcPeekResult;
     std::uint32_t amountOfReceivedCheckpoints{0U};
@@ -188,7 +188,7 @@ void MonitorIfDaemon::pushOverflowInfoToCheckpointObservers(void) const
     for (auto& observer : checkpointObservers)
     {
         observer->setDataLossEvent(true);
-        observer->pushData(static_cast<timers::NanoSecondType>(0));
+        observer->pushData(static_cast<std::chrono::nanoseconds>(0));
     }
 }
 

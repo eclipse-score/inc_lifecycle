@@ -63,14 +63,14 @@ class ObservableEventReader
     /// @details Distribute supervision events to the registered Observable Event classes
     /// @param [in] f_syncTimestamp   Timestamp for cyclic synchronization
     /// @return     true (successful distribution), false (failed distribution)
-    bool distributeChanges(const timers::NanoSecondType f_syncTimestamp) noexcept;
+    bool distributeChanges(const std::chrono::nanoseconds f_syncTimestamp) noexcept;
 
   private:
     /// @brief Push update for changed registered process
     /// @param [in] f_event              Supervision event for which push update is needed
     /// @param [in] f_syncTimestamp      Timestamp for cyclic synchronization
     /// @return     true (sync timestamp is reached), false (sync timestamp is not yet reached)
-    bool pushUpdateTill(const LcmSupervisionEvent& f_event, const timers::NanoSecondType f_syncTimestamp) noexcept;
+    bool pushUpdateTill(const LcmSupervisionEvent& f_event, const std::chrono::nanoseconds f_syncTimestamp) noexcept;
 
     /// @brief Process state receiver for HM thread
     std::unique_ptr<LcmSupervisionControlReceiver> processStateReceiverHM;

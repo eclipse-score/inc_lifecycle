@@ -104,7 +104,7 @@ class SupervisionManager
     /// @brief Perform cyclic execution
     /// @details Perform cyclic execution required for alive supervision
     /// @param [in] f_syncTimestamp   Timestamp for cyclic synchronization
-    void performCyclicTriggers(const timers::NanoSecondType f_syncTimestamp);
+    void performCyclicTriggers(const std::chrono::nanoseconds f_syncTimestamp);
 
     /// @brief Check whether any alive supervision failed to enqueue a recovery request
     /// @return True if any alive supervision recovery request has failed
@@ -114,12 +114,12 @@ class SupervisionManager
     /// @brief Check interfaces for new data
     /// @details All interfaces created during construction will be checked for new data.
     /// @param [in] f_syncTimestamp   Timestamp for cyclic synchronization
-    void checkInterfaceForNewData(const timers::NanoSecondType f_syncTimestamp);
+    void checkInterfaceForNewData(const std::chrono::nanoseconds f_syncTimestamp);
 
     /// @brief Evaluate supervisions
     /// @details Evaluate all supervisions created during construction.
     /// @param [in] f_syncTimestamp   Timestamp for cyclic synchronization
-    void evaluateSupervisions(const timers::NanoSecondType f_syncTimestamp);
+    void evaluateSupervisions(const std::chrono::nanoseconds f_syncTimestamp);
 
     /// Vector of Process states
     std::vector<ifexm::ObservableEvent> processStates;

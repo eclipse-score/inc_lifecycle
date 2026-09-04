@@ -15,31 +15,31 @@
 namespace score::mw::lifecycle::internal::saf::timers
 {
 
-int64_t CycleTimeValidator::getMonotonicClockAccuracy(
+std::chrono::nanoseconds CycleTimeValidator::getMonotonicClockAccuracy(
     const score::mw::lifecycle::internal::saf::timers::OsClockInterface& f_clock_sys) noexcept(true)
 {
     struct timespec clockResolution{};
-    int64_t accuracyNs{-1};
+    std::chrono::nanoseconds accuracyNs{-1};
     const int getResResult{f_clock_sys.clockGetRes(&clockResolution)};
 
     if (0 == getResResult)
     {
-        accuracyNs = clockResolution.tv_nsec;
+        accuracyNs = std::chrono::nanoseconds{clockResolution.tv_nsec};
     }
 
     return accuracyNs;
 }
 
-int64_t CycleTimeValidator::adjustCycleTimeOnClockAccuracy(
-    const int64_t f_requested_interval_ns,
+std::chrono::nanoseconds CycleTimeValidator::adjustCycleTimeOnClockAccuracy(
+    const std::chrono::nanoseconds f_requested_interval_ns,
     const score::mw::lifecycle::internal::saf::timers::OsClockInterface& f_clock_sys) noexcept(true)
 {
-    int64_t intervalNs{-1};  // start with an invalid value
+    std::chrono::nanoseconds intervalNs{-1};  // start with an invalid value
 
-    const int64_t accuracyNs{
+    const std::chrono::nanoseconds accuracyNs{
         score::mw::lifecycle::internal::saf::timers::CycleTimeValidator::getMonotonicClockAccuracy(f_clock_sys)};
 
-    if (0 < accuracyNs)
+    if (accuracyNs.count() > 0)
     {
         if (f_requested_interval_ns >= accuracyNs)
         {

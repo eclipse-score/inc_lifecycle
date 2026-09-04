@@ -48,7 +48,7 @@ class ISupervision
     /// This method tells the supervision that all supervision interfaces were queried for new data
     /// and the collected data (checkpoints) is now ready for evaluation.
     /// @param [in] f_syncTimestamp   Timestamp for cyclic synchronization
-    virtual void evaluate(const timers::NanoSecondType f_syncTimestamp) = 0;
+    virtual void evaluate(const std::chrono::nanoseconds f_syncTimestamp) = 0;
 
     /// @brief Get the name of the configuration element for the corresponding supervision container
     /// @return The hashed name of the corresponding supervision configuration container
