@@ -443,7 +443,7 @@ void Alive::switchToDeactivated(void) noexcept(true)
     failedSupervisionCycles = 0U;
     indicationCount = 0U;
     referenceCycleStart = std::chrono::nanoseconds{0U};
-    referenceCycleEnd = std::chrono::nanoseconds{UINT64_MAX};
+    referenceCycleEnd = std::chrono::nanoseconds::max();
 
     LM_LOG_DEBUG() << "Alive Supervision (" << getConfigName() << ") switched to DEACTIVATED.";
 
@@ -512,7 +512,7 @@ void Alive::switchToExpired(Alive::EReason reason) noexcept(true)
     failedSupervisionCycles = k_failedSupervisionCyclesTolerance;
     indicationCount = 0U;
     referenceCycleStart = std::chrono::nanoseconds{0U};
-    referenceCycleEnd = std::chrono::nanoseconds{UINT64_MAX};
+    referenceCycleEnd = std::chrono::nanoseconds::max();
     dataLossReason = EDataLossReason::kNoDataLoss;
 
     const bool enqueued = recoveryClient_p->sendRecoveryRequest(processIdentifier_);

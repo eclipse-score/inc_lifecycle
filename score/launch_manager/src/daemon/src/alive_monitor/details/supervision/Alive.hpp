@@ -143,14 +143,14 @@ class Alive : public ISupervision,
         // cppcheck-suppress unusedStructMember
         CheckpointIdentifier identifier_p{nullptr};
         /// @brief timestamp of checkpoint
-        std::chrono::nanoseconds timestamp{UINT64_MAX};
+        std::chrono::nanoseconds timestamp{std::chrono::nanoseconds::max()};
     };
 
     /// @brief Time sorted supervision event snapshot (activation / deactivation event)
     struct SupervisionEventSnapshot final
     {
         /// @brief Timestamp of the supervision event
-        std::chrono::nanoseconds timestamp{UINT64_MAX};
+        std::chrono::nanoseconds timestamp{std::chrono::nanoseconds::max()};
         /// @brief Supervision event type that triggered this snapshot
         // cppcheck-suppress unusedStructMember
         score::mw::lifecycle::SupervisionEventType eventType{score::mw::lifecycle::SupervisionEventType::kDeactivation};
@@ -330,7 +330,7 @@ class Alive : public ISupervision,
     std::chrono::nanoseconds referenceCycleStart{0U};
 
     /// @brief alive reference cycle end time in [nano seconds]
-    std::chrono::nanoseconds referenceCycleEnd{UINT64_MAX};
+    std::chrono::nanoseconds referenceCycleEnd{std::chrono::nanoseconds::max()};
 
     /// @brief Number of indications that belong to the current alive reference cycle
     uint32_t indicationCount{0U};

@@ -148,7 +148,7 @@ TEST_F(TimeConversionTest, ConvertMilliSecToNanoSec_WholeMillis_ReturnsNanoSecon
         "Description",
         "This test verifies that a whole number of milliseconds is converted to the equivalent number of "
         "nanoseconds.");
-    ASSERT_EQ(TimeConversion::convertMilliSecToNanoSec(1ms), 1ns);
+    ASSERT_EQ(TimeConversion::convertMilliSecToNanoSec(1ms), std::chrono::duration_cast<nanoseconds>(1ms));
 }
 
 TEST_F(TimeConversionTest, ConvertMilliSecToNanoSec_Negative_ReturnsZero)
