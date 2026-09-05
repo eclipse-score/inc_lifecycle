@@ -40,7 +40,8 @@ integration_test(
     binaries = [
         ":component_parallel_launch",
         ":control_client_test_driver",
-        "//score/launch_manager",
+        "//score/launch_manager:launch_manager_debug_asserts",
     ],
+    binary_renames = {"//score/launch_manager:launch_manager_debug_asserts": "launch_manager"},
     config = ":parallel_launch.json",
 )

@@ -41,8 +41,9 @@ integration_test(
         ":sandbox_options_process_a",
         ":sandbox_options_process_b",
         ":sandbox_options_process_c",
-        "//score/launch_manager",
+        "//score/launch_manager:launch_manager_debug_asserts",
         "//tests/utils/test_helper:verification_process",
     ],
+    binary_renames = {"//score/launch_manager:launch_manager_debug_asserts": "launch_manager"},
     config = ":sandbox_options.json",
 )

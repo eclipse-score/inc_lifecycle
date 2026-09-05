@@ -28,7 +28,8 @@ integration_test(
     srcs = ["process_launch_args.py"],
     binaries = [
         ":process_initial",
-        "//score/launch_manager",
+        "//score/launch_manager:launch_manager_debug_asserts",
     ],
+    binary_renames = {"//score/launch_manager:launch_manager_debug_asserts": "launch_manager"},
     config = ":process_launch_args.json",
 )

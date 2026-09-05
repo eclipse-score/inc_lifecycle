@@ -38,7 +38,8 @@ integration_test(
     binaries = [
         "//tests/utils/test_helper:process_hanging_on_sigterm",
         ":control_client_test_driver",
-        "//score/launch_manager",
+        "//score/launch_manager:launch_manager_debug_asserts",
     ],
+    binary_renames = {"//score/launch_manager:launch_manager_debug_asserts": "launch_manager"},
     config = ":lm_shutdown_during_switch_to_off.json",
 )

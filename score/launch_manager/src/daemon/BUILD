@@ -10,27 +10,16 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
-load("@rules_cc//cc:defs.bzl", "cc_binary")
+load(":daemon.bzl", "launch_manager_binary")
 
-cc_binary(
-    name = "launch_manager",
-    srcs = ["src/main.cpp"],
-    linkopts = select({
-        "@platforms//os:linux": ["-lpthread"],
-        "//conditions:default": [],
-    }),
-    visibility = ["//score/launch_manager:__subpackages__"],
-    deps = [
-        "//score/launch_manager/src/daemon/src/alive_monitor",
-        "//score/launch_manager/src/daemon/src/common:assertion_handler",
-        "//score/launch_manager/src/daemon/src/common:log",
-        "//score/launch_manager/src/daemon/src/configuration:flatbuffer_config_loader",
-        "//score/launch_manager/src/daemon/src/osal:ipc_comms",
-        "//score/launch_manager/src/daemon/src/process_group_manager",
-        "//score/launch_manager/src/daemon/src/process_group_manager:alive_monitor_thread",
-        "//score/launch_manager/src/daemon/src/recovery_client",
-        "//score/launch_manager/src/daemon/src/supervision_control_client:supervision_control_notifier",
-        "//score/launch_manager/src/daemon/src/watchdog:watchdog_factory",
-        "@score_baselibs//score/language/futurecpp",
-    ],
+# Production binary — ships as-is, debug-level asserts stay compiled out.
+launch_manager_binary(name = "launch_manager")
+
+# Opt-in variant for integration tests: same srcs/deps as the production
+# binary, but with SCORE_LANGUAGE_FUTURECPP_ASSERT_LEVEL_DEBUG enabled so the
+# integration suite actually exercises DBG-level asserts (see lifecycle#579,
+# which did the same for unit tests via lm_cc_test).
+launch_manager_binary(
+    name = "launch_manager_debug_asserts",
+    defines = ["SCORE_LANGUAGE_FUTURECPP_ASSERT_LEVEL_DEBUG"],
 )

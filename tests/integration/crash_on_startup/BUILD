@@ -29,9 +29,10 @@ integration_test(
     srcs = ["crash_on_startup.py"],
     binaries = [
         ":control_client_test_driver",
-        "//score/launch_manager",
+        "//score/launch_manager:launch_manager_debug_asserts",
         "//tests/utils/test_helper:process_crashing_on_startup_n_times",
         "//tests/utils/test_helper:verification_process",
     ],
+    binary_renames = {"//score/launch_manager:launch_manager_debug_asserts": "launch_manager"},
     config = ":crash_on_startup.json",
 )

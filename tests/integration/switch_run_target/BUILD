@@ -76,7 +76,8 @@ integration_test(
         ":component_d",
         ":component_e",
         ":control_client_test_driver",
-        "//score/launch_manager",
+        "//score/launch_manager:launch_manager_debug_asserts",
     ],
+    binary_renames = {"//score/launch_manager:launch_manager_debug_asserts": "launch_manager"},
     config = ":switch_run_target.json",
 )

@@ -41,8 +41,9 @@ integration_test(
     binaries = [
         ":complex_reporting_process",
         ":control_client_test_driver",
-        "//score/launch_manager",
+        "//score/launch_manager:launch_manager_debug_asserts",
         "//tests/utils/test_helper:verification_process",
     ],
+    binary_renames = {"//score/launch_manager:launch_manager_debug_asserts": "launch_manager"},
     config = ":process_complex_rep_failure.json",
 )
