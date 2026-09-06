@@ -27,7 +27,6 @@
 #include "score/mw/launch_manager/common/concurrency/fixed_size_queue.hpp"
 
 #include <score/assert.hpp>
-#include <score/expected.hpp>
 
 namespace score::mw::lifecycle::internal
 {
@@ -68,12 +67,12 @@ class MpscBoundedQueue
     /// @brief Enqueues an item.
     /// @return blank on success; ConcurrencyErrc::kOverflow if the queue is full, or
     ///         ConcurrencyErrc::kStopped if the queue has been stopped.
-    [[nodiscard]] score::cpp::expected_blank<ConcurrencyErrc> push(T&& item)
+    [[nodiscard]] score::ResultBlank push(T&& item)
     {
         return push_impl(std::move(item));
     }
 
-    [[nodiscard]] score::cpp::expected_blank<ConcurrencyErrc> push(const T& item)
+    [[nodiscard]] score::ResultBlank push(const T& item)
     {
         return push_impl(item);
     }
@@ -83,7 +82,7 @@ class MpscBoundedQueue
     /// @return blank if an item is available (caller should drain via tryPop());
     ///         ConcurrencyErrc::kTimeout if the timeout elapsed with none available, or
     ///         ConcurrencyErrc::kStopped if the queue has been stopped.
-    [[nodiscard]] score::cpp::expected_blank<ConcurrencyErrc> wait(std::chrono::milliseconds timeout)
+    [[nodiscard]] score::ResultBlank wait(std::chrono::milliseconds timeout)
     {
         std::unique_lock lock(mutex_);
         SCORE_LANGUAGE_FUTURECPP_ASSERT_MESSAGE(ensure_single_consumer(), "Only a single consumer thread is allowed.");
@@ -94,13 +93,13 @@ class MpscBoundedQueue
 
         if (stopped_)
         {
-            return score::cpp::make_unexpected(ConcurrencyErrc::kStopped);
+            return score::MakeUnexpected(ConcurrencyErrc::kStopped);
         }
         if (!has_item)
         {
-            return score::cpp::make_unexpected(ConcurrencyErrc::kTimeout);
+            return score::MakeUnexpected(ConcurrencyErrc::kTimeout);
         }
-        return {};
+        return score::ResultBlank{};
     }
 
     /// @brief Non-blocking pop. Never waits, regardless of whether the queue has been stopped, so
@@ -146,23 +145,23 @@ class MpscBoundedQueue
     }
 
     template <typename U>
-    [[nodiscard]] score::cpp::expected_blank<ConcurrencyErrc> push_impl(U&& item)
+    [[nodiscard]] score::ResultBlank push_impl(U&& item)
     {
         std::unique_lock lock(mutex_);
 
         if (stopped_)
         {
-            return score::cpp::make_unexpected(ConcurrencyErrc::kStopped);
+            return score::MakeUnexpected(ConcurrencyErrc::kStopped);
         }
 
         if (!queue_.push(std::forward<U>(item)))
         {
-            return score::cpp::make_unexpected(ConcurrencyErrc::kOverflow);
+            return score::MakeUnexpected(ConcurrencyErrc::kOverflow);
         }
 
         lock.unlock();
         not_empty_cv_.notify_one();
-        return {};
+        return score::ResultBlank{};
     }
 
     mutable std::mutex mutex_{};

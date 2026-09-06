@@ -14,13 +14,15 @@
 #ifndef CONCURRENCY_ERROR_DOMAIN_HPP_INCLUDED
 #define CONCURRENCY_ERROR_DOMAIN_HPP_INCLUDED
 
-#include <cstdint>
+#include "score/result/error_domain.h"
+#include "score/result/result.h"
+
 #include <ostream>
 
 namespace score::mw::lifecycle::internal
 {
 
-enum class ConcurrencyErrc : std::uint8_t
+enum class ConcurrencyErrc : score::result::ErrorCode
 {
     /// @brief An OS call returned an error.
     kOsError = 1,
@@ -35,6 +37,37 @@ enum class ConcurrencyErrc : std::uint8_t
     kTimeout = 4,
 };
 
+/// @brief Error domain for concurrency-related error codes.
+class ConcurrencyErrorDomain final : public score::result::ErrorDomain
+{
+  public:
+    std::string_view MessageFor(const score::result::ErrorCode& code) const noexcept override
+    {
+        switch (static_cast<ConcurrencyErrc>(code))
+        {
+            case ConcurrencyErrc::kOsError:
+                return "OS call returned an error";
+            case ConcurrencyErrc::kOverflow:
+                return "Container has overflowed";
+            case ConcurrencyErrc::kStopped:
+                return "Container has stopped";
+            case ConcurrencyErrc::kTimeout:
+                return "Timeout was triggered";
+            default:
+                return "Unknown concurrency error";
+        }
+    }
+};
+
+/// @brief Global domain instance — required for ADL-based MakeError() lookup.
+constexpr ConcurrencyErrorDomain kConcurrencyErrorDomain{};
+
+/// @brief Creates a score::result::Error from a ConcurrencyErrc value (enables score::MakeUnexpected).
+inline score::result::Error MakeError(ConcurrencyErrc code, std::string_view user_message = "") noexcept
+{
+    return {static_cast<score::result::ErrorCode>(code), kConcurrencyErrorDomain, user_message};
+}
+
 inline std::ostream& operator<<(std::ostream& os, ConcurrencyErrc errc) noexcept
 {
     switch (errc)
@@ -48,7 +81,7 @@ inline std::ostream& operator<<(std::ostream& os, ConcurrencyErrc errc) noexcept
         case ConcurrencyErrc::kTimeout:
             return os << "kTimeout";
         default:
-            return os << static_cast<std::uint8_t>(errc);
+            return os << static_cast<score::result::ErrorCode>(errc);
     }
 }
 
@@ -73,7 +106,7 @@ inline score::mw::log::LogStream& operator<<(score::mw::log::LogStream& os, Conc
         case ConcurrencyErrc::kTimeout:
             return os << "kTimeout";
         default:
-            return os << static_cast<std::uint8_t>(errc);
+            return os << static_cast<score::result::ErrorCode>(errc);
     }
 }
 
