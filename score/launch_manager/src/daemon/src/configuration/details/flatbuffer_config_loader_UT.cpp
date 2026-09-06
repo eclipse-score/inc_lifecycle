@@ -84,8 +84,8 @@ std::vector<uint8_t> finishBuffer(
     auto sandbox = buildDefaultSandbox(fbb);
     return fb::CreateDeploymentConfig(
         fbb,
-        1.0 /*ready_timeout*/,
-        1.0 /*shutdown_timeout*/,
+        1000 /*ready_timeout_ms*/,
+        1000 /*shutdown_timeout_ms*/,
         0 /*environmental_variables*/,
         bin_dir,
         work_dir,
@@ -116,8 +116,9 @@ std::vector<uint8_t> buildConfigWithComponents(
     ::flatbuffers::FlatBufferBuilder& fbb,
     ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<fb::Component>>> comps)
 {
-    auto fallback = fb::CreateFallbackRunTarget(fbb, 0 /*description*/, 0 /*depends_on*/, 1.0 /*transition_timeout*/);
-    auto alive_sup = fb::CreateAliveSupervision(fbb, 1.0 /*evaluation_cycle*/);
+    auto fallback =
+        fb::CreateFallbackRunTarget(fbb, 0 /*description*/, 0 /*depends_on*/, 1000 /*transition_timeout_ms*/);
+    auto alive_sup = fb::CreateAliveSupervision(fbb, 1000 /*evaluation_cycle_ms*/);
     auto rts = fbb.CreateVector(std::vector<::flatbuffers::Offset<fb::RunTarget>>{});
     auto irt = fbb.CreateString("Startup");
     auto config = fb::CreateLaunchManagerConfig(
@@ -129,8 +130,9 @@ std::vector<uint8_t> buildConfigWithRunTargets(
     ::flatbuffers::FlatBufferBuilder& fbb,
     ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<fb::RunTarget>>> rts)
 {
-    auto fallback = fb::CreateFallbackRunTarget(fbb, 0 /*description*/, 0 /*depends_on*/, 1.0 /*transition_timeout*/);
-    auto alive_sup = fb::CreateAliveSupervision(fbb, 1.0 /*evaluation_cycle*/);
+    auto fallback =
+        fb::CreateFallbackRunTarget(fbb, 0 /*description*/, 0 /*depends_on*/, 1000 /*transition_timeout_ms*/);
+    auto alive_sup = fb::CreateAliveSupervision(fbb, 1000 /*evaluation_cycle_ms*/);
     auto comps = fbb.CreateVector(std::vector<::flatbuffers::Offset<fb::Component>>{});
     auto irt = fbb.CreateString("Startup");
     auto config = fb::CreateLaunchManagerConfig(
@@ -168,8 +170,8 @@ class FlatbufferConfigLoaderTest : public ::testing::Test
         ::flatbuffers::FlatBufferBuilder fbb;
         auto irt = fbb.CreateString(initial_run_target);
         auto fallback =
-            fb::CreateFallbackRunTarget(fbb, 0 /*description*/, 0 /*depends_on*/, 1.0 /*transition_timeout*/);
-        auto alive_sup = fb::CreateAliveSupervision(fbb, 1.0 /*evaluation_cycle*/);
+            fb::CreateFallbackRunTarget(fbb, 0 /*description*/, 0 /*depends_on*/, 1000 /*transition_timeout_ms*/);
+        auto alive_sup = fb::CreateAliveSupervision(fbb, 1000 /*evaluation_cycle_ms*/);
         auto comps = fbb.CreateVector(std::vector<::flatbuffers::Offset<fb::Component>>{});
         auto rts = fbb.CreateVector(std::vector<::flatbuffers::Offset<fb::RunTarget>>{});
         auto config = fb::CreateLaunchManagerConfig(fbb, schema_version, comps, rts, irt, fallback, alive_sup);
@@ -209,7 +211,7 @@ TEST_F(FlatbufferConfigLoaderTest, LoadSingleComponent)
     ::flatbuffers::FlatBufferBuilder fbb;
 
     auto alive_sup = fb::CreateComponentAliveSupervision(
-        fbb, 0.5 /*reporting_cycle*/, 2 /*failed_cycles_tolerance*/, 1 /*min_indications*/, 3 /*max_indications*/);
+        fbb, 500 /*reporting_cycle_ms*/, 2 /*failed_cycles_tolerance*/, 1 /*min_indications*/, 3 /*max_indications*/);
     auto app_profile = fb::CreateApplicationProfile(
         fbb, fb::ApplicationType::Reporting_And_Supervised, true /*is_self_terminating*/, alive_sup);
     auto bin_name = fbb.CreateString("my_binary");
@@ -225,8 +227,8 @@ TEST_F(FlatbufferConfigLoaderTest, LoadSingleComponent)
     auto sandbox = buildDefaultSandbox(fbb);
     auto deploy = fb::CreateDeploymentConfig(
         fbb,
-        1.5 /*ready_timeout*/,
-        2.5 /*shutdown_timeout*/,
+        1500 /*ready_timeout_ms*/,
+        2500 /*shutdown_timeout_ms*/,
         0 /*environmental_variables*/,
         bin_dir,
         work_dir,
@@ -288,8 +290,8 @@ TEST_F(FlatbufferConfigLoaderTest, LoadSingleComponentWithFileState)
     auto sandbox = buildDefaultSandbox(fbb);
     auto deploy = fb::CreateDeploymentConfig(
         fbb,
-        1.5 /*ready_timeout*/,
-        2.5 /*shutdown_timeout*/,
+        1500 /*ready_timeout_ms*/,
+        2500 /*shutdown_timeout_ms*/,
         0 /*environmental_variables*/,
         bin_dir,
         work_dir,
@@ -326,7 +328,7 @@ TEST_F(FlatbufferConfigLoaderTest, LoadRunTargets)
     auto rt_desc = fbb.CreateString("Initial state");
     auto rt_dep = fbb.CreateString("component_a");
     auto rt_deps = fbb.CreateVector(std::vector<::flatbuffers::Offset<::flatbuffers::String>>{rt_dep});
-    auto rt = fb::CreateRunTarget(fbb, rt_name, rt_desc, rt_deps, 5.0 /*transition_timeout*/, switch_action);
+    auto rt = fb::CreateRunTarget(fbb, rt_name, rt_desc, rt_deps, 5000 /*transition_timeout_ms*/, switch_action);
     auto rts = fbb.CreateVector(std::vector<::flatbuffers::Offset<fb::RunTarget>>{rt});
 
     auto result = loadBuffer(buildConfigWithRunTargets(fbb, rts));
@@ -353,7 +355,8 @@ TEST_F(FlatbufferConfigLoaderTest, ConfiguredOffRunTargetIsLoadedVerbatim)
     auto switch_action = fb::CreateSwitchRunTargetAction(fbb, switch_target);
     auto rt_name = fbb.CreateString(kOffRunTargetName);
     auto rt_desc = fbb.CreateString("Configured off state");
-    auto rt = fb::CreateRunTarget(fbb, rt_name, rt_desc, 0 /*depends_on*/, 2.0 /*transition_timeout*/, switch_action);
+    auto rt =
+        fb::CreateRunTarget(fbb, rt_name, rt_desc, 0 /*depends_on*/, 2000 /*transition_timeout_ms*/, switch_action);
     auto rts = fbb.CreateVector(std::vector<::flatbuffers::Offset<fb::RunTarget>>{rt});
 
     auto result = loadBuffer(buildConfigWithRunTargets(fbb, rts));
@@ -374,9 +377,9 @@ TEST_F(FlatbufferConfigLoaderTest, LoadFallbackRunTarget)
     auto fb_desc = fbb.CreateString("Fallback state");
     auto fb_dep = fbb.CreateString("critical_comp");
     auto fb_deps = fbb.CreateVector(std::vector<::flatbuffers::Offset<::flatbuffers::String>>{fb_dep});
-    auto fallback = fb::CreateFallbackRunTarget(fbb, fb_desc, fb_deps, 10.0 /*transition_timeout*/);
+    auto fallback = fb::CreateFallbackRunTarget(fbb, fb_desc, fb_deps, 10000 /*transition_timeout_ms*/);
 
-    auto alive_sup = fb::CreateAliveSupervision(fbb, 1.0 /*evaluation_cycle*/);
+    auto alive_sup = fb::CreateAliveSupervision(fbb, 1000 /*evaluation_cycle_ms*/);
     auto comps = fbb.CreateVector(std::vector<::flatbuffers::Offset<fb::Component>>{});
     auto rts = fbb.CreateVector(std::vector<::flatbuffers::Offset<fb::RunTarget>>{});
     auto irt = fbb.CreateString("Startup");
@@ -399,8 +402,9 @@ TEST_F(FlatbufferConfigLoaderTest, LoadAliveSupervision)
 
     ::flatbuffers::FlatBufferBuilder fbb;
 
-    auto alive_sup = fb::CreateAliveSupervision(fbb, 0.25 /*evaluation_cycle*/);
-    auto fallback = fb::CreateFallbackRunTarget(fbb, 0 /*description*/, 0 /*depends_on*/, 1.0 /*transition_timeout*/);
+    auto alive_sup = fb::CreateAliveSupervision(fbb, 250 /*evaluation_cycle_ms*/);
+    auto fallback =
+        fb::CreateFallbackRunTarget(fbb, 0 /*description*/, 0 /*depends_on*/, 1000 /*transition_timeout_ms*/);
     auto comps = fbb.CreateVector(std::vector<::flatbuffers::Offset<fb::Component>>{});
     auto rts = fbb.CreateVector(std::vector<::flatbuffers::Offset<fb::RunTarget>>{});
     auto irt = fbb.CreateString("Startup");
@@ -421,10 +425,11 @@ TEST_F(FlatbufferConfigLoaderTest, LoadWatchdog)
 
     auto dev_path = fbb.CreateString("/dev/watchdog0");
     auto watchdog = fb::CreateWatchdog(
-        fbb, dev_path, 30.0 /*max_timeout*/, true /*deactivate_on_shutdown*/, false /*require_magic_close*/);
+        fbb, dev_path, 30000 /*max_timeout_ms*/, true /*deactivate_on_shutdown*/, false /*require_magic_close*/);
 
-    auto fallback = fb::CreateFallbackRunTarget(fbb, 0 /*description*/, 0 /*depends_on*/, 1.0 /*transition_timeout*/);
-    auto alive_sup = fb::CreateAliveSupervision(fbb, 1.0 /*evaluation_cycle*/);
+    auto fallback =
+        fb::CreateFallbackRunTarget(fbb, 0 /*description*/, 0 /*depends_on*/, 1000 /*transition_timeout_ms*/);
+    auto alive_sup = fb::CreateAliveSupervision(fbb, 1000 /*evaluation_cycle_ms*/);
     auto comps = fbb.CreateVector(std::vector<::flatbuffers::Offset<fb::Component>>{});
     auto rts = fbb.CreateVector(std::vector<::flatbuffers::Offset<fb::RunTarget>>{});
     auto irt = fbb.CreateString("Startup");
@@ -449,14 +454,14 @@ TEST_F(FlatbufferConfigLoaderTest, LoadRestartRecoveryAction)
 
     ::flatbuffers::FlatBufferBuilder fbb;
 
-    auto restart = fb::CreateRestartAction(fbb, 3 /*number_of_attempts*/, 1.5 /*delay_before_restart*/);
+    auto restart = fb::CreateRestartAction(fbb, 3 /*number_of_attempts*/, 1500 /*delay_before_restart_ms*/);
     auto bin_dir = fbb.CreateString("/opt");
     auto work_dir = fbb.CreateString("/tmp");
     auto sandbox = buildDefaultSandbox(fbb);
     auto deploy = fb::CreateDeploymentConfig(
         fbb,
-        1.0 /*ready_timeout*/,
-        1.0 /*shutdown_timeout*/,
+        1000 /*ready_timeout_ms*/,
+        1000 /*shutdown_timeout_ms*/,
         0 /*environmental_variables*/,
         bin_dir,
         work_dir,
@@ -488,7 +493,7 @@ TEST_F(FlatbufferConfigLoaderTest, LoadSwitchRunTargetAction)
     auto switch_action = fb::CreateSwitchRunTargetAction(fbb, target_name);
     auto rt_name = fbb.CreateString("Startup");
     auto rt = fb::CreateRunTarget(
-        fbb, rt_name, 0 /*description*/, 0 /*depends_on*/, 1.0 /*transition_timeout*/, switch_action);
+        fbb, rt_name, 0 /*description*/, 0 /*depends_on*/, 1000 /*transition_timeout_ms*/, switch_action);
     auto rts = fbb.CreateVector(std::vector<::flatbuffers::Offset<fb::RunTarget>>{rt});
 
     auto result = loadBuffer(buildConfigWithRunTargets(fbb, rts));
@@ -520,8 +525,8 @@ TEST_F(FlatbufferConfigLoaderTest, LoadSandbox)
     auto work_dir = fbb.CreateString("/tmp");
     auto deploy = fb::CreateDeploymentConfig(
         fbb,
-        0.5 /*ready_timeout*/,
-        0.5 /*shutdown_timeout*/,
+        500 /*ready_timeout_ms*/,
+        500 /*shutdown_timeout_ms*/,
         0 /*environmental_variables*/,
         bin_dir,
         work_dir,
@@ -558,7 +563,7 @@ TEST_F(FlatbufferConfigLoaderTest, LoadComponentAliveSupervision)
     ::flatbuffers::FlatBufferBuilder fbb;
 
     auto comp_alive_sup = fb::CreateComponentAliveSupervision(
-        fbb, 1.0 /*reporting_cycle*/, 3 /*failed_cycles_tolerance*/, 2 /*min_indications*/, 5 /*max_indications*/);
+        fbb, 1000 /*reporting_cycle_ms*/, 3 /*failed_cycles_tolerance*/, 2 /*min_indications*/, 5 /*max_indications*/);
     auto app_profile = fb::CreateApplicationProfile(
         fbb, fb::ApplicationType::Reporting_And_Supervised, false /*is_self_terminating*/, comp_alive_sup);
     auto bin_name = fbb.CreateString("supervised_bin");
@@ -601,8 +606,8 @@ TEST_F(FlatbufferConfigLoaderTest, LoadEnvironmentalVariables)
     auto sandbox = buildDefaultSandbox(fbb);
     auto deploy = fb::CreateDeploymentConfig(
         fbb,
-        0.5 /*ready_timeout*/,
-        0.5 /*shutdown_timeout*/,
+        500 /*ready_timeout_ms*/,
+        500 /*shutdown_timeout_ms*/,
         env_vars,
         bin_dir,
         work_dir,
@@ -756,8 +761,8 @@ TEST_F(FlatbufferConfigLoaderTest, MissingSchemaVersionReturnsInvalidFormat)
 
     ::flatbuffers::FlatBufferBuilder fbb;
     auto irt = fbb.CreateString("Startup");
-    auto fallback = fb::CreateFallbackRunTarget(fbb, 0, 0, 1.0);
-    auto alive_sup = fb::CreateAliveSupervision(fbb, 1.0);
+    auto fallback = fb::CreateFallbackRunTarget(fbb, 0, 0, 1000);
+    auto alive_sup = fb::CreateAliveSupervision(fbb, 1000);
     auto comps = fbb.CreateVector(std::vector<::flatbuffers::Offset<fb::Component>>{});
     auto rts = fbb.CreateVector(std::vector<::flatbuffers::Offset<fb::RunTarget>>{});
     auto config = fb::CreateLaunchManagerConfig(fbb, std::nullopt, comps, rts, irt, fallback, alive_sup);

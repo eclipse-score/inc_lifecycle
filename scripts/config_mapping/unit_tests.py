@@ -37,7 +37,6 @@ from lifecycle_config import (
     SCHED_POLICY_MAP,
 )
 
-
 # ---------------------------------------------------------------------------
 # preprocess_defaults
 # ---------------------------------------------------------------------------
@@ -849,7 +848,7 @@ def test_gen_config_with_alive_supervision(tmp_path):
 
     app_profile = output["components"][0]["component_properties"]["application_profile"]
     assert "alive_supervision" in app_profile
-    assert app_profile["alive_supervision"]["reporting_cycle"] == 1.0
+    assert app_profile["alive_supervision"]["reporting_cycle_ms"] == 1000
     assert app_profile["alive_supervision"]["failed_cycles_tolerance"] == 3
     assert app_profile["alive_supervision"]["min_indications"] == 1
     assert app_profile["alive_supervision"]["max_indications"] == 5
@@ -915,7 +914,7 @@ def test_gen_config_with_watchdog(tmp_path):
     assert output["schema_version"] == 1
 
     assert output["watchdog"]["device_file_path"] == "/dev/watchdog0"
-    assert output["watchdog"]["max_timeout"] == 5
+    assert output["watchdog"]["max_timeout_ms"] == 5000
     assert output["watchdog"]["deactivate_on_shutdown"] is True
     assert output["watchdog"]["require_magic_close"] is True
 
@@ -1190,7 +1189,7 @@ def test_gen_config_ready_recovery_action(tmp_path):
 
     rra = output["components"][0]["deployment_config"]["ready_recovery_action"]
     assert rra["number_of_attempts"] == 3
-    assert rra["delay_before_restart"] == 5
+    assert rra["delay_before_restart_ms"] == 5000
 
 
 ## TODO

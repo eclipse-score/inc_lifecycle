@@ -367,7 +367,7 @@ TEST_F(ConverterTest, ConvertRestartActionValid)
 {
     RecordProperty("Description", "convertRestartAction with valid fields returns correct values.");
     ::flatbuffers::FlatBufferBuilder fbb;
-    auto ra = fb::CreateRestartAction(fbb, 3 /*number_of_attempts*/, 1.5 /*delay_before_restart*/);
+    auto ra = fb::CreateRestartAction(fbb, 3 /*number_of_attempts*/, 1500 /*delay_before_restart_ms*/);
     fbb.Finish(ra);
     const auto* ptr = ::flatbuffers::GetRoot<fb::RestartAction>(fbb.GetBufferPointer());
 
@@ -426,7 +426,7 @@ TEST_F(ConverterTest, ConvertComponentAliveSupervisionValid)
     RecordProperty("Description", "convertComponentAliveSupervision maps all fields correctly.");
     ::flatbuffers::FlatBufferBuilder fbb;
     auto cas = fb::CreateComponentAliveSupervision(
-        fbb, 0.5 /*reporting_cycle*/, 2 /*failed_cycles_tolerance*/, 1 /*min_indications*/, 3 /*max_indications*/);
+        fbb, 500 /*reporting_cycle_ms*/, 2 /*failed_cycles_tolerance*/, 1 /*min_indications*/, 3 /*max_indications*/);
     fbb.Finish(cas);
     const auto* ptr = ::flatbuffers::GetRoot<fb::ComponentAliveSupervision>(fbb.GetBufferPointer());
 
@@ -442,10 +442,10 @@ TEST_F(ConverterTest, ConvertComponentAliveSupervisionValid)
 
 TEST_F(ConverterTest, ConvertComponentAliveSupervisionMissingReportingCycleReturnsError)
 {
-    RecordProperty("Description", "Missing reporting_cycle returns InvalidFormat.");
+    RecordProperty("Description", "Missing reporting_cycle_ms returns InvalidFormat.");
     ::flatbuffers::FlatBufferBuilder fbb;
     auto cas = fb::CreateComponentAliveSupervision(
-        fbb, ::flatbuffers::nullopt /*reporting_cycle*/, 3 /*failed_cycles_tolerance*/);
+        fbb, ::flatbuffers::nullopt /*reporting_cycle_ms*/, 3 /*failed_cycles_tolerance*/);
     fbb.Finish(cas);
     const auto* ptr = ::flatbuffers::GetRoot<fb::ComponentAliveSupervision>(fbb.GetBufferPointer());
 
@@ -459,7 +459,7 @@ TEST_F(ConverterTest, ConvertComponentAliveSupervisionMissingToleranceReturnsErr
     RecordProperty("Description", "Missing failed_cycles_tolerance returns InvalidFormat.");
     ::flatbuffers::FlatBufferBuilder fbb;
     auto cas = fb::CreateComponentAliveSupervision(
-        fbb, 1.0 /*reporting_cycle*/, ::flatbuffers::nullopt /*failed_cycles_tolerance*/);
+        fbb, 1000 /*reporting_cycle_ms*/, ::flatbuffers::nullopt /*failed_cycles_tolerance*/);
     fbb.Finish(cas);
     const auto* ptr = ::flatbuffers::GetRoot<fb::ComponentAliveSupervision>(fbb.GetBufferPointer());
 
@@ -472,7 +472,7 @@ TEST_F(ConverterTest, ConvertComponentAliveSupervisionBothIndicationsAbsentRetur
 {
     RecordProperty("Description", "Both min/max_indications absent returns InvalidFormat.");
     ::flatbuffers::FlatBufferBuilder fbb;
-    auto cas = fb::CreateComponentAliveSupervision(fbb, 1.0 /*reporting_cycle*/, 3 /*failed_cycles_tolerance*/);
+    auto cas = fb::CreateComponentAliveSupervision(fbb, 1000 /*reporting_cycle_ms*/, 3 /*failed_cycles_tolerance*/);
     fbb.Finish(cas);
     const auto* ptr = ::flatbuffers::GetRoot<fb::ComponentAliveSupervision>(fbb.GetBufferPointer());
 
@@ -486,7 +486,7 @@ TEST_F(ConverterTest, ConvertComponentAliveSupervisionOnlyMinIndicationsPresent)
     RecordProperty("Description", "Only min_indications set is accepted, max_indications remains nullopt.");
     ::flatbuffers::FlatBufferBuilder fbb;
     auto cas = fb::CreateComponentAliveSupervision(
-        fbb, 1.0 /*reporting_cycle*/, 3 /*failed_cycles_tolerance*/, 2 /*min_indications*/);
+        fbb, 1000 /*reporting_cycle_ms*/, 3 /*failed_cycles_tolerance*/, 2 /*min_indications*/);
     fbb.Finish(cas);
     const auto* ptr = ::flatbuffers::GetRoot<fb::ComponentAliveSupervision>(fbb.GetBufferPointer());
 
@@ -503,7 +503,7 @@ TEST_F(ConverterTest, ConvertComponentAliveSupervisionOnlyMaxIndicationsPresent)
     ::flatbuffers::FlatBufferBuilder fbb;
     auto cas = fb::CreateComponentAliveSupervision(
         fbb,
-        1.0 /*reporting_cycle*/,
+        1000 /*reporting_cycle_ms*/,
         3 /*failed_cycles_tolerance*/,
         ::flatbuffers::nullopt /*min_indications*/,
         5 /*max_indications*/);
@@ -889,8 +889,8 @@ TEST_F(ConverterTest, ConvertDeploymentConfigValid)
     auto sandbox = buildDefaultSandbox(fbb);
     auto deploy = fb::CreateDeploymentConfig(
         fbb,
-        1.5 /*ready_timeout*/,
-        2.5 /*shutdown_timeout*/,
+        1500 /*ready_timeout_ms*/,
+        2500 /*shutdown_timeout_ms*/,
         0 /*environmental_variables*/,
         bin_dir,
         work_dir,
@@ -912,15 +912,15 @@ TEST_F(ConverterTest, ConvertDeploymentConfigValid)
 
 TEST_F(ConverterTest, ConvertDeploymentConfigMissingReadyTimeoutReturnsError)
 {
-    RecordProperty("Description", "Missing ready_timeout returns InvalidFormat.");
+    RecordProperty("Description", "Missing ready_timeout_ms returns InvalidFormat.");
     ::flatbuffers::FlatBufferBuilder fbb;
     auto bin_dir = fbb.CreateString("/opt");
     auto work_dir = fbb.CreateString("/tmp");
     auto sandbox = buildDefaultSandbox(fbb);
     auto deploy = fb::CreateDeploymentConfig(
         fbb,
-        ::flatbuffers::nullopt /*ready_timeout*/,
-        1.0 /*shutdown_timeout*/,
+        ::flatbuffers::nullopt /*ready_timeout_ms*/,
+        1000 /*shutdown_timeout_ms*/,
         0 /*environmental_variables*/,
         bin_dir,
         work_dir,
@@ -937,15 +937,15 @@ TEST_F(ConverterTest, ConvertDeploymentConfigMissingReadyTimeoutReturnsError)
 
 TEST_F(ConverterTest, ConvertDeploymentConfigMissingShutdownTimeoutReturnsError)
 {
-    RecordProperty("Description", "Missing shutdown_timeout returns InvalidFormat.");
+    RecordProperty("Description", "Missing shutdown_timeout_ms returns InvalidFormat.");
     ::flatbuffers::FlatBufferBuilder fbb;
     auto bin_dir = fbb.CreateString("/opt");
     auto work_dir = fbb.CreateString("/tmp");
     auto sandbox = buildDefaultSandbox(fbb);
     auto deploy = fb::CreateDeploymentConfig(
         fbb,
-        1.0 /*ready_timeout*/,
-        ::flatbuffers::nullopt /*shutdown_timeout*/,
+        1000 /*ready_timeout_ms*/,
+        ::flatbuffers::nullopt /*shutdown_timeout_ms*/,
         0 /*environmental_variables*/,
         bin_dir,
         work_dir,
@@ -976,8 +976,8 @@ TEST_F(ConverterTest, ConvertComponentValid)
     auto sandbox = buildDefaultSandbox(fbb);
     auto deploy = fb::CreateDeploymentConfig(
         fbb,
-        1.0 /*ready_timeout*/,
-        1.0 /*shutdown_timeout*/,
+        1000 /*ready_timeout_ms*/,
+        1000 /*shutdown_timeout_ms*/,
         0 /*environmental_variables*/,
         bin_dir,
         work_dir,
@@ -1016,8 +1016,8 @@ TEST_F(ConverterTest, ConvertComponentsValid)
         auto sandbox = buildDefaultSandbox(fbb);
         auto deploy = fb::CreateDeploymentConfig(
             fbb,
-            1.0 /*ready_timeout*/,
-            1.0 /*shutdown_timeout*/,
+            1000 /*ready_timeout_ms*/,
+            1000 /*shutdown_timeout_ms*/,
             0 /*environmental_variables*/,
             bin_dir,
             work_dir,
@@ -1060,8 +1060,8 @@ TEST_F(ConverterTest, ConvertComponentsWithInvalidComponentReturnsError)
     auto sandbox = buildDefaultSandbox(fbb);
     auto deploy = fb::CreateDeploymentConfig(
         fbb,
-        1.0 /*ready_timeout*/,
-        1.0 /*shutdown_timeout*/,
+        1000 /*ready_timeout_ms*/,
+        1000 /*shutdown_timeout_ms*/,
         0 /*environmental_variables*/,
         bin_dir,
         work_dir,
@@ -1090,7 +1090,7 @@ TEST_F(ConverterTest, ConvertRunTargetsValid)
         auto switch_action = fb::CreateSwitchRunTargetAction(fbb, switch_target);
         auto rt_name = fbb.CreateString(name);
         return fb::CreateRunTarget(
-            fbb, rt_name, 0 /*description*/, 0 /*depends_on*/, 1.0 /*transition_timeout*/, switch_action);
+            fbb, rt_name, 0 /*description*/, 0 /*depends_on*/, 1000 /*transition_timeout_ms*/, switch_action);
     };
 
     auto rt_a = build_rt("Startup", "SafeState");
@@ -1122,7 +1122,7 @@ TEST_F(ConverterTest, ConvertRunTargetsWithInvalidRunTargetReturnsError)
         rt_name,
         0 /*description*/,
         0 /*depends_on*/,
-        ::flatbuffers::nullopt /*transition_timeout*/,
+        ::flatbuffers::nullopt /*transition_timeout_ms*/,
         switch_action);
     auto rts = fbb.CreateVector(std::vector<::flatbuffers::Offset<fb::RunTarget>>{rt});
     fbb.Finish(rts);
@@ -1145,7 +1145,7 @@ TEST_F(ConverterTest, ConvertRunTargetValid)
     auto rt_desc = fbb.CreateString("Initial state");
     auto rt_dep = fbb.CreateString("component_a");
     auto rt_deps = fbb.CreateVector(std::vector<::flatbuffers::Offset<::flatbuffers::String>>{rt_dep});
-    auto rt = fb::CreateRunTarget(fbb, rt_name, rt_desc, rt_deps, 5.0 /*transition_timeout*/, switch_action);
+    auto rt = fb::CreateRunTarget(fbb, rt_name, rt_desc, rt_deps, 5000 /*transition_timeout_ms*/, switch_action);
     fbb.Finish(rt);
     const auto* ptr = ::flatbuffers::GetRoot<fb::RunTarget>(fbb.GetBufferPointer());
 
@@ -1161,7 +1161,7 @@ TEST_F(ConverterTest, ConvertRunTargetValid)
 
 TEST_F(ConverterTest, ConvertRunTargetMissingTransitionTimeoutReturnsError)
 {
-    RecordProperty("Description", "Missing transition_timeout returns InvalidFormat.");
+    RecordProperty("Description", "Missing transition_timeout_ms returns InvalidFormat.");
     ::flatbuffers::FlatBufferBuilder fbb;
     auto switch_target = fbb.CreateString("SafeState");
     auto switch_action = fb::CreateSwitchRunTargetAction(fbb, switch_target);
@@ -1171,7 +1171,7 @@ TEST_F(ConverterTest, ConvertRunTargetMissingTransitionTimeoutReturnsError)
         rt_name,
         0 /*description*/,
         0 /*depends_on*/,
-        ::flatbuffers::nullopt /*transition_timeout*/,
+        ::flatbuffers::nullopt /*transition_timeout_ms*/,
         switch_action);
     fbb.Finish(rt);
     const auto* ptr = ::flatbuffers::GetRoot<fb::RunTarget>(fbb.GetBufferPointer());
@@ -1188,7 +1188,7 @@ TEST_F(ConverterTest, ConvertFallbackRunTargetValid)
     auto desc = fbb.CreateString("Fallback state");
     auto dep = fbb.CreateString("critical_comp");
     auto deps = fbb.CreateVector(std::vector<::flatbuffers::Offset<::flatbuffers::String>>{dep});
-    auto frt = fb::CreateFallbackRunTarget(fbb, desc, deps, 10.0 /*transition_timeout*/);
+    auto frt = fb::CreateFallbackRunTarget(fbb, desc, deps, 10000 /*transition_timeout_ms*/);
     fbb.Finish(frt);
     const auto* ptr = ::flatbuffers::GetRoot<fb::FallbackRunTarget>(fbb.GetBufferPointer());
 
@@ -1202,7 +1202,7 @@ TEST_F(ConverterTest, ConvertFallbackRunTargetValid)
 
 TEST_F(ConverterTest, ConvertFallbackRunTargetMissingTimeoutReturnsError)
 {
-    RecordProperty("Description", "Missing transition_timeout returns InvalidFormat.");
+    RecordProperty("Description", "Missing transition_timeout_ms returns InvalidFormat.");
     ::flatbuffers::FlatBufferBuilder fbb;
     auto frt = fb::CreateFallbackRunTarget(fbb);
     fbb.Finish(frt);
@@ -1223,9 +1223,9 @@ TEST_F(ConverterTest, ConvertAliveSupervisionNullReturnsDefault)
 
 TEST_F(ConverterTest, ConvertAliveSupervisionValid)
 {
-    RecordProperty("Description", "convertAliveSupervision maps evaluation_cycle correctly.");
+    RecordProperty("Description", "convertAliveSupervision maps evaluation_cycle_ms correctly.");
     ::flatbuffers::FlatBufferBuilder fbb;
-    auto as = fb::CreateAliveSupervision(fbb, 0.25 /*evaluation_cycle*/);
+    auto as = fb::CreateAliveSupervision(fbb, 250 /*evaluation_cycle_ms*/);
     fbb.Finish(as);
     const auto* ptr = ::flatbuffers::GetRoot<fb::AliveSupervision>(fbb.GetBufferPointer());
 
@@ -1236,7 +1236,7 @@ TEST_F(ConverterTest, ConvertAliveSupervisionValid)
 
 TEST_F(ConverterTest, ConvertAliveSupervisionMissingCycleReturnsError)
 {
-    RecordProperty("Description", "Missing evaluation_cycle returns InvalidFormat.");
+    RecordProperty("Description", "Missing evaluation_cycle_ms returns InvalidFormat.");
     ::flatbuffers::FlatBufferBuilder fbb;
     auto as = fb::CreateAliveSupervision(fbb);
     fbb.Finish(as);
@@ -1260,7 +1260,7 @@ TEST_F(ConverterTest, ConvertWatchdogValid)
     RecordProperty("Description", "convertWatchdog maps all fields correctly.");
     ::flatbuffers::FlatBufferBuilder fbb;
     auto dev_path = fbb.CreateString("/dev/watchdog0");
-    auto wd = fb::CreateWatchdog(fbb, dev_path, 30.0 /*max_timeout*/, true /*deactivate*/, false /*magic_close*/);
+    auto wd = fb::CreateWatchdog(fbb, dev_path, 30000 /*max_timeout_ms*/, true /*deactivate*/, false /*magic_close*/);
     fbb.Finish(wd);
     const auto* ptr = ::flatbuffers::GetRoot<fb::Watchdog>(fbb.GetBufferPointer());
 
@@ -1275,13 +1275,13 @@ TEST_F(ConverterTest, ConvertWatchdogValid)
 
 TEST_F(ConverterTest, ConvertWatchdogMissingMaxTimeoutReturnsError)
 {
-    RecordProperty("Description", "Missing max_timeout returns InvalidFormat.");
+    RecordProperty("Description", "Missing max_timeout_ms returns InvalidFormat.");
     ::flatbuffers::FlatBufferBuilder fbb;
     auto dev_path = fbb.CreateString("/dev/watchdog0");
     auto wd = fb::CreateWatchdog(
         fbb,
         dev_path,
-        ::flatbuffers::nullopt /*max_timeout*/,
+        ::flatbuffers::nullopt /*max_timeout_ms*/,
         true /*deactivate_on_shutdown*/,
         false /*require_magic_close*/);
     fbb.Finish(wd);
@@ -1300,7 +1300,7 @@ TEST_F(ConverterTest, ConvertWatchdogMissingDeactivateReturnsError)
     auto wd = fb::CreateWatchdog(
         fbb,
         dev_path,
-        30.0 /*max_timeout*/,
+        30000 /*max_timeout_ms*/,
         ::flatbuffers::nullopt /*deactivate_on_shutdown*/,
         false /*require_magic_close*/);
     fbb.Finish(wd);
@@ -1319,7 +1319,7 @@ TEST_F(ConverterTest, ConvertWatchdogMissingMagicCloseReturnsError)
     auto wd = fb::CreateWatchdog(
         fbb,
         dev_path,
-        30.0 /*max_timeout*/,
+        30000 /*max_timeout_ms*/,
         true /*deactivate_on_shutdown*/,
         ::flatbuffers::nullopt /*require_magic_close*/);
     fbb.Finish(wd);

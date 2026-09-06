@@ -10,7 +10,7 @@
                     "application_type": "Reporting_And_Supervised",
                     "is_self_terminating": false,
                     "alive_supervision": {
-                        "reporting_cycle": 0.5,
+                        "reporting_cycle_ms": 500,
                         "failed_cycles_tolerance": 2,
                         "min_indications": 1,
                         "max_indications": 3
@@ -27,8 +27,8 @@
                 }
             },
             "deployment_config": {
-                "ready_timeout": 2.0,
-                "shutdown_timeout": 3.0,
+                "ready_timeout_ms": 2000,
+                "shutdown_timeout_ms": 3000,
                 "bin_dir": "/opt/apps/a",
                 "working_dir": "/var/run/a",
                 "sandbox": {
@@ -64,7 +64,7 @@
                 ],
                 "ready_recovery_action": {
                     "number_of_attempts": 5,
-                    "delay_before_restart": 0.5
+                    "delay_before_restart_ms": 500
                 },
                 "recovery_action": {
                     "run_target": "fallback_run_target"
@@ -94,8 +94,8 @@
                 }
             },
             "deployment_config": {
-                "ready_timeout": 1.0,
-                "shutdown_timeout": 2.0,
+                "ready_timeout_ms": 1000,
+                "shutdown_timeout_ms": 2000,
                 "bin_dir": "/opt/apps/b",
                 "working_dir": "/var/run/apps",
                 "sandbox": {
@@ -126,7 +126,7 @@
                 ],
                 "ready_recovery_action": {
                     "number_of_attempts": 3,
-                    "delay_before_restart": 1.0
+                    "delay_before_restart_ms": 1000
                 },
                 "recovery_action": {
                     "run_target": "fallback_run_target"
@@ -155,8 +155,8 @@
                 }
             },
             "deployment_config": {
-                "ready_timeout": 1.0,
-                "shutdown_timeout": 2.0,
+                "ready_timeout_ms": 1000,
+                "shutdown_timeout_ms": 2000,
                 "bin_dir": "/opt/apps/c",
                 "working_dir": "/var/run/apps",
                 "sandbox": {
@@ -189,7 +189,7 @@
                 ],
                 "ready_recovery_action": {
                     "number_of_attempts": 3,
-                    "delay_before_restart": 1.0
+                    "delay_before_restart_ms": 1000
                 },
                 "recovery_action": {
                     "run_target": "fallback_run_target"
@@ -205,7 +205,7 @@
                     "application_type": "State_Manager",
                     "is_self_terminating": false,
                     "alive_supervision": {
-                        "reporting_cycle": 0.1,
+                        "reporting_cycle_ms": 100,
                         "failed_cycles_tolerance": 0,
                         "min_indications": 0,
                         "max_indications": 10
@@ -218,8 +218,8 @@
                 }
             },
             "deployment_config": {
-                "ready_timeout": 1.0,
-                "shutdown_timeout": 2.0,
+                "ready_timeout_ms": 1000,
+                "shutdown_timeout_ms": 2000,
                 "bin_dir": "/opt/apps/sm",
                 "working_dir": "/var/run/apps",
                 "sandbox": {
@@ -252,7 +252,7 @@
                 ],
                 "ready_recovery_action": {
                     "number_of_attempts": 3,
-                    "delay_before_restart": 1.0
+                    "delay_before_restart_ms": 1000
                 },
                 "recovery_action": {
                     "run_target": "fallback_run_target"
@@ -263,7 +263,7 @@
     "run_targets": [
         {
             "name": "Startup",
-            "transition_timeout": 3.0,
+            "transition_timeout_ms": 3000,
             "recovery_action": {
                 "run_target": "fallback_run_target"
             },
@@ -274,7 +274,7 @@
         },
         {
             "name": "Full",
-            "transition_timeout": 10.0,
+            "transition_timeout_ms": 10000,
             "recovery_action": {
                 "run_target": "fallback_run_target"
             },
@@ -288,7 +288,7 @@
         },
         {
             "name": "Diagnostic",
-            "transition_timeout": 7.5,
+            "transition_timeout_ms": 7500,
             "recovery_action": {
                 "run_target": "fallback_run_target"
             },
@@ -301,18 +301,18 @@
     ],
     "initial_run_target": "Startup",
     "fallback_run_target": {
-        "transition_timeout": 1.5,
+        "transition_timeout_ms": 1500,
         "description": "Fallback mode - all non-essential services stopped",
         "depends_on": [
             "state_manager"
         ]
     },
     "alive_supervision": {
-        "evaluation_cycle": 0.25
+        "evaluation_cycle_ms": 250
     },
     "watchdog": {
         "device_file_path": "/dev/watchdog",
-        "max_timeout": 2,
+        "max_timeout_ms": 2000,
         "deactivate_on_shutdown": true,
         "require_magic_close": false
     }

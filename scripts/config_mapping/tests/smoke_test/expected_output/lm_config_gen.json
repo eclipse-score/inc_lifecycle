@@ -20,8 +20,8 @@
                 }
             },
             "deployment_config": {
-                "ready_timeout": 0.5,
-                "shutdown_timeout": 0.5,
+                "ready_timeout_ms": 500,
+                "shutdown_timeout_ms": 500,
                 "bin_dir": "/opt/scripts",
                 "working_dir": "/opt/scripts",
                 "sandbox": {
@@ -54,7 +54,7 @@
                 ],
                 "ready_recovery_action": {
                     "number_of_attempts": 1,
-                    "delay_before_restart": 0.5
+                    "delay_before_restart_ms": 500
                 },
                 "recovery_action": {
                     "run_target": "Off"
@@ -83,8 +83,8 @@
                 }
             },
             "deployment_config": {
-                "ready_timeout": 0.5,
-                "shutdown_timeout": 0.5,
+                "ready_timeout_ms": 500,
+                "shutdown_timeout_ms": 500,
                 "bin_dir": "/opt/apps/dlt-daemon",
                 "working_dir": "/opt/apps/dlt-daemon",
                 "sandbox": {
@@ -117,7 +117,7 @@
                 ],
                 "ready_recovery_action": {
                     "number_of_attempts": 1,
-                    "delay_before_restart": 0.5
+                    "delay_before_restart_ms": 500
                 },
                 "recovery_action": {
                     "run_target": "Off"
@@ -133,7 +133,7 @@
                     "application_type": "Reporting_And_Supervised",
                     "is_self_terminating": false,
                     "alive_supervision": {
-                        "reporting_cycle": 0.5,
+                        "reporting_cycle_ms": 500,
                         "failed_cycles_tolerance": 2,
                         "min_indications": 1,
                         "max_indications": 3
@@ -150,8 +150,8 @@
                 }
             },
             "deployment_config": {
-                "ready_timeout": 0.5,
-                "shutdown_timeout": 0.5,
+                "ready_timeout_ms": 500,
+                "shutdown_timeout_ms": 500,
                 "bin_dir": "/opt/apps/someip",
                 "working_dir": "/opt/apps/someip",
                 "sandbox": {
@@ -184,7 +184,7 @@
                 ],
                 "ready_recovery_action": {
                     "number_of_attempts": 1,
-                    "delay_before_restart": 0.5
+                    "delay_before_restart_ms": 500
                 },
                 "recovery_action": {
                     "run_target": "Off"
@@ -200,7 +200,7 @@
                     "application_type": "Reporting_And_Supervised",
                     "is_self_terminating": false,
                     "alive_supervision": {
-                        "reporting_cycle": 0.5,
+                        "reporting_cycle_ms": 500,
                         "failed_cycles_tolerance": 2,
                         "min_indications": 1,
                         "max_indications": 3
@@ -220,8 +220,8 @@
                 }
             },
             "deployment_config": {
-                "ready_timeout": 0.5,
-                "shutdown_timeout": 0.5,
+                "ready_timeout_ms": 500,
+                "shutdown_timeout_ms": 500,
                 "bin_dir": "/opt/apps/test_app1",
                 "working_dir": "/opt/apps/test_app1",
                 "sandbox": {
@@ -254,7 +254,7 @@
                 ],
                 "ready_recovery_action": {
                     "number_of_attempts": 1,
-                    "delay_before_restart": 0.5
+                    "delay_before_restart_ms": 500
                 },
                 "recovery_action": {
                     "run_target": "Off"
@@ -270,7 +270,7 @@
                     "application_type": "State_Manager",
                     "is_self_terminating": false,
                     "alive_supervision": {
-                        "reporting_cycle": 0.5,
+                        "reporting_cycle_ms": 500,
                         "failed_cycles_tolerance": 2,
                         "min_indications": 1,
                         "max_indications": 3
@@ -289,8 +289,8 @@
                 }
             },
             "deployment_config": {
-                "ready_timeout": 0.5,
-                "shutdown_timeout": 0.5,
+                "ready_timeout_ms": 500,
+                "shutdown_timeout_ms": 500,
                 "bin_dir": "/opt/apps/state_manager",
                 "working_dir": "/opt/apps/state_manager",
                 "sandbox": {
@@ -323,7 +323,7 @@
                 ],
                 "ready_recovery_action": {
                     "number_of_attempts": 1,
-                    "delay_before_restart": 0.5
+                    "delay_before_restart_ms": 500
                 },
                 "recovery_action": {
                     "run_target": "Off"
@@ -334,7 +334,7 @@
     "run_targets": [
         {
             "name": "Startup",
-            "transition_timeout": 5,
+            "transition_timeout_ms": 5000,
             "recovery_action": {
                 "run_target": "fallback_run_target"
             },
@@ -345,7 +345,7 @@
         },
         {
             "name": "Full",
-            "transition_timeout": 5,
+            "transition_timeout_ms": 5000,
             "recovery_action": {
                 "run_target": "fallback_run_target"
             },
@@ -358,16 +358,15 @@
     ],
     "initial_run_target": "Startup",
     "fallback_run_target": {
-        "transition_timeout": 1.5,
-        "description": "Switching off everything",
-        "depends_on": []
+        "transition_timeout_ms": 1500,
+        "description": "Switching off everything"
     },
     "alive_supervision": {
-        "evaluation_cycle": 0.5
+        "evaluation_cycle_ms": 500
     },
     "watchdog": {
         "device_file_path": "/dev/watchdog",
-        "max_timeout": 2,
+        "max_timeout_ms": 2000,
         "deactivate_on_shutdown": true,
         "require_magic_close": false
     }
